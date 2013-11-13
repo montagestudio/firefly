@@ -5,7 +5,7 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "test": "istanbul test jasmine-node -- spec"
+    "test": "jshint . && istanbul test jasmine-node -- spec"
   },
   "repository": {
     "type": "git",
@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",
-    "istanbul": "~0.1.44"
+    "istanbul": "~0.1.44",
+    "jshint": "~2.3.0"
   }
 }
