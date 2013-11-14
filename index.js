@@ -14,6 +14,7 @@ var commandOptions = {
     }
 };
 
+// Need to do this because .file does not take an `fs` argument
 function serveFile(path, contentType, fs) {
     return function () {
         return function (request, response) {
@@ -36,7 +37,6 @@ function main(options) {
             throw new Error("Client directory '" + options.client + "' does not exist");
         }
 
-        // Need to do this because .file does not take an `fs` argument
         var index = fs.join(options.client, "index.html");
         var serveApp = serveFile(index, "text/html", fs);
 
