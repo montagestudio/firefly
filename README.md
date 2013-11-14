@@ -11,6 +11,8 @@ through its associated Environment Bridge.
 Running
 =======
 
+Filament needs to be on the "firefly" branch (for now)
+
 If Firefly is checked out next to filament you can run:
 
 ```bash
