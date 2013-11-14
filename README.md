@@ -18,3 +18,17 @@ body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-abou
 - Make sure commit messages start with uppercase present tense commands
 e.g. Prefer "Clear selection when clicking templateExplorer" over
 "Cleared selection when clicking templateExplorer"
+
+Updating dependencies
+---------------------
+
+The dependencies are checked in [as recomended](http://www.futurealoof.com/posts/nodemodules-in-git.html)
+by members of the community. To update them run:
+
+```bash
+npm run update-dependencies
+```
+
+This will remove all the existing dependencies, install and dedupe, and stage
+the node_modules. At this point you should test and rollback any dependencies
+that you don't want to update.

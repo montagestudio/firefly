@@ -2,6 +2,5 @@
 .DS_Store
 .idea
 console.log
-node_modules/
 npm-debug.log
 SikuliLog.txt
