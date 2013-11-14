@@ -1,4 +1,4 @@
-/* global global,opener:true */
+/* global global */
 var Q = require("q"),
     QFS = require("q-io/fs"),
     PATH = require('path');

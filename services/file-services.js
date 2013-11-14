@@ -1,6 +1,6 @@
-/* global global,opener:true */
 var Q = require("q"),
     QFS = require("q-io/fs"),
+    minimatch = require("minimatch"),
     PATH = require('path');
 
 var guard = function (exclude) {
@@ -42,14 +42,13 @@ exports.list = function (path) {
         var paths = filenames.filter(function (name) {
             return !(/^\./).test(name);
         }).map(function (filename) {
-
-                console.log(" > ", filename)
+            console.log(" > ", filename);
             return PATH.join(localPath, filename);
         });
 
         return pathsToUrlStatArray(paths);
     });
-}
+};
 
 /**
  * Lists all the files in a package except node_modules, dotfiles and files
@@ -72,7 +71,8 @@ exports.listPackage = function (path) {
 
 exports.open = function (thing) {
     var done = Q.defer();
-    opener(thing, done.makeNodeResolver());
+    // opener(thing, done.makeNodeResolver());
+    done.reject(new Error("TODO Implement me"));
     return done.promise;
 };
 

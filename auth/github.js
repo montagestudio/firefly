@@ -37,7 +37,6 @@ module.exports = function ($) {
             "client_id": CLIENT_ID,
             "client_secret": CLIENT_SECRET,
             "code": code
-            // "redirect_uri": CALLBACK_DONE
         });
 
         var req = https.request({
