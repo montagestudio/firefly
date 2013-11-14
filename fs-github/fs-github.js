@@ -8,10 +8,10 @@ var concat = function (arrays) {
 
 module.exports = GithubFs;
 
-function GithubFs(username, repository, access_token) {
+function GithubFs(username, repository, accessToken) {
     this.username = username;
     this.repository = repository;
-    this._api = new GithubApi(access_token);
+    this._api = new GithubApi(accessToken);
     this._branchTree = null;
 }
 
@@ -97,17 +97,18 @@ GithubFs.prototype.list = function(path) {
 GithubFs.prototype.listTree = function(basePath, guard) {
     var self = this;
     basePath = String(basePath || '');
-    if (!basePath)
+    if (!basePath) {
         basePath = "/";
+    }
     guard = guard || function () {
         return true;
     };
     var stat = self.stat(basePath);
     return Q.when(stat, function (stat) {
         var paths = [];
-        var mode; // true:include, false:exclude, null:no-recur
+        var include;
         try {
-            var include = guard(basePath, stat);
+            include = guard(basePath, stat);
         } catch (exception) {
             return Q.reject(exception);
         }
@@ -200,7 +201,9 @@ GithubFs.prototype._getBranchTree = function() {
             self = this;
 
         return api.getRepository(user, repo).then(function(repository) {
+            //jshint -W106
             return api.getBranch(user, repo, repository.default_branch)
+            //jshint +W106
             .then(function(branch) {
                 return api.getTree(user, repo, branch.commit.sha, true)
                 .then(function(tree) {

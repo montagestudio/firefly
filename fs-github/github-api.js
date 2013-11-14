@@ -1,3 +1,4 @@
+/* global XMLHttpRequest */
 var Q = require("q");
 
 module.exports = GithubApi;
