@@ -1,6 +1,8 @@
 /*jshint browser:true */
 var Montage = require("montage").Montage,
-    Promise = require("montage/core/promise").Promise;
+    Promise = require("montage/core/promise").Promise,
+    Connection = require("q-connection"),
+    adaptConnection = require("q-connection/adapt"),
     FileDescriptor = require("./file-descriptor").FileDescriptor;
 
 var PROJECT_PROTOCOL = "fs:";
@@ -18,6 +20,37 @@ exports.EnvironmentBridge = Montage.specialize({
             this._backendName = backendName;
 
             return this;
+        }
+    },
+
+    _backend: {
+        value: null
+    },
+
+    backend: {
+        get: function () {
+            var self = this;
+
+            if (self._backend == null) {
+                var connection = adaptConnection(new WebSocket("ws://" + window.location.host));
+                connection.closed.then(function () {
+                    self._backend = null;
+                });
+
+                self._backend = Connection(connection);
+                self._backend.then(function (value) {
+                    console.log(value);
+                    debugger;
+                }).done();
+            }
+
+            return self._backend;
+        }
+    },
+
+    convertBackendUrlToPath: {
+        value: function (url) {
+            return decodeURIComponent(url.replace(/^\w+:\/\/\w*/m, ""));
         }
     },
 
@@ -71,18 +104,19 @@ exports.EnvironmentBridge = Montage.specialize({
 
     list: {
         value: function (url) {
+            var path = this.convertBackendUrlToPath(url);
 
-            //TODO actually implement this
-
-            var fakefd = FileDescriptor.create().initWithUrlAndStat("fs://localhost/foo.reel/", 0);
-
-            return Promise.resolve([fakefd]);
+            return this.backend.get(this._backendName).invoke("list", path).then(function (fileDescriptors) {
+                return fileDescriptors.map(function (fd) {
+                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                });
+            });
         }
     },
 
     watch: {
         value: function () {
-            console.log("watch", arguments)
+            console.log("watch", arguments);
             return Promise.resolve(true);
         }
     },
