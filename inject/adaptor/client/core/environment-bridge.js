@@ -1,3 +1,4 @@
+/*jshint browser:true */
 var Montage = require("montage").Montage,
     Promise = require("montage/core/promise").Promise;
 
