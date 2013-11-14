@@ -1,6 +1,10 @@
+var Q = require("q");
 var joey = require("joey");
 var FS = require("q-io/fs");
 var HttpApps = require("q-io/http-apps/fs");
+
+var SocketServer = require("websocket.io");
+var Connection = require("q-connection");
 
 var commandOptions = {
     "client": {
@@ -30,6 +34,8 @@ function main(options) {
     options.port = options.port || commandOptions.port.default;
 
     var fs = options.fs;
+
+    var filamentBackend = require(fs.join(options.client, "backend_plugins", "filament-backend"));
 
     return fs.exists(options.client)
     .then(function (clientExists) {
@@ -62,6 +68,24 @@ function main(options) {
         .listen(options.port);
     })
     .then(function (server) {
+        var socketServer = SocketServer.attach(server.node);
+        socketServer.on("connection", function (connection) {
+            console.log("websocket connection");
+            Connection(connection, {
+                "filament-backend": Q.master(filamentBackend)
+            });
+
+            connection.on("close", function(conn) {
+                console.warn("websocket connection closed");
+            });
+
+            connection.on("error", function(err) {
+                if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
+                    console.log("#connection error:", err);
+                }
+            });
+        });
+
         console.log("Listening on http://127.0.0.1:" + options.port);
         return server;
     });
