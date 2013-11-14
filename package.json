@@ -5,11 +5,17 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "test": "jshint . && istanbul test jasmine-node -- spec"
+    "test": "jshint . && istanbul test jasmine-node -- spec",
+    "start": "node index.js --client=../filament"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/declarativ/firefly.git"
+  },
+  "dependencies": {
+    "joey": "~1.3.1",
+    "optimist": "~0.6.0",
+    "q-io": "~1.10.4"
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",

@@ -1,8 +1,9 @@
 var joey = require("joey");
+var fs = require("q-io/fs");
 
-var argv = require('optimist')
-    .usage('Usage: $0 --client=<directory> [--port=<port>]')
-    .demand(['client'])
+var argv = require("optimist")
+    .usage("Usage: $0 --client=<directory> [--port=<port>]")
+    .demand(["client"])
     .options({
         "client": {
             alias: "c",
@@ -15,14 +16,20 @@ var argv = require('optimist')
         }
     }).argv;
 
+fs.exists(argv.client)
+.then(function (clientExists) {
+    if (!clientExists) {
+        throw new Error("Client directory '" + argv.client + "' does not exist");
+    }
 
-joey
-    .log()
-    .error()
-    .fileTree(argv.client)
-    .listen(argv.port)
-    .then(function () {
-        console.log("Listening on http://127.0.0.1:8080");
+    return joey
+        .log()
+        .error()
+        .fileTree(argv.client)
+        .listen(argv.port);
+})
+.then(function () {
+    console.log("Listening on http://127.0.0.1:8080");
 
-    })
-    .done();
+})
+.done();
