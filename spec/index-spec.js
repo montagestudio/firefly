@@ -9,7 +9,7 @@ describe("server", function () {
             "login": {
                 "index.html": "pass"
             },
-            "welcome": {
+            "project-list": {
                 "index.html": "pass"
             }
         });
@@ -27,7 +27,7 @@ describe("server", function () {
     describe("index", function () {
 
         it("serves index.html at /app", function (done) {
-            request("http://127.0.0.1:8080/app")
+            request("http://127.0.0.1:2440/app")
             .then(function (response) {
                 expect(response.status).toEqual(200);
             })
@@ -35,7 +35,7 @@ describe("server", function () {
         });
 
         it("serves index.html at /user/repo", function (done) {
-            request("http://127.0.0.1:8080/declarativ/filament")
+            request("http://127.0.0.1:2440/declarativ/filament")
             .then(function (response) {
                 expect(response.status).toEqual(200);
             })
@@ -45,21 +45,21 @@ describe("server", function () {
     });
 
     it("serves login app at /", function (done) {
-        request("http://127.0.0.1:8080/")
+        request("http://127.0.0.1:2440/")
         .then(function (response) {
             expect(response.status).toEqual(200);
         }).then(done, done);
     });
 
-    it("serves welcome app at /welcome", function (done) {
-        request("http://127.0.0.1:8080/welcome")
+    it("serves project-list app at /projects", function (done) {
+        request("http://127.0.0.1:2440/projects")
         .then(function (response) {
             expect(response.status).toEqual(200);
         }).then(done, done);
     });
 
     it("serves client adaptor at adaptor/client", function (done) {
-        request("http://127.0.0.1:8080/adaptor/client/ui/native/menu.js")
+        request("http://127.0.0.1:2440/adaptor/client/ui/native/menu.js")
         .then(function (response) {
             expect(response.status).toEqual(200);
         }).then(done, done);

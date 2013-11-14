@@ -11,7 +11,7 @@ var redirect = require("q-io/http-apps/redirect").redirect;
 
 var CLIENT_ID = "74436b0ec02c75f65fb8";
 var CLIENT_SECRET = "8a34f992f207659a773c72d9bbbc40d23c7c51ae";
-var CALLBACK = "http://127.0.0.1:8080/auth/github/callback";
+var CALLBACK = "http://127.0.0.1:2440/auth/github/callback";
 
 var OAUTH_STATE = uuid.v4();
 
@@ -69,6 +69,6 @@ module.exports = function ($) {
         });
         req.end(data, "utf-8");
 
-        return redirect(request, "/welcome");
+        return redirect(request, "/projects");
     });
 };
