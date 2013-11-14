@@ -11,8 +11,7 @@ module.exports = GithubFs;
 function GithubFs(username, repository, access_token) {
     this.username = username;
     this.repository = repository;
-    this._access_token = access_token;
-    this._api = new GithubApi();
+    this._api = new GithubApi(access_token);
     this._branchTree = null;
 }
 

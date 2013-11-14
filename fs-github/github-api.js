@@ -5,8 +5,8 @@ module.exports = GithubApi;
 /**
  * GitHub API v3
  */
-function GithubApi() {
-
+function GithubApi(accessToken) {
+    this._accessToken = accessToken;
 }
 
 GithubApi.prototype.API_URL = "https://api.github.com";
