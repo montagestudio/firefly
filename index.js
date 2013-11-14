@@ -65,7 +65,7 @@ function main(options) {
                 $("github/...").route(GithubAuth);
             });
 
-            $("welcome").terminate(serveFile(fs.join(options.client, "welcome", "index.html"), "text/html", fs));
+            $("projects").terminate(serveFile(fs.join(options.client, "project-list", "index.html"), "text/html", fs));
 
             // FIXME: remove this
             $("clone/...").fileTree(fs.join(__dirname, "..", "clone"));
