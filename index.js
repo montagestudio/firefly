@@ -28,22 +28,25 @@ function main(options) {
             throw new Error("Client directory '" + options.client + "' does not exist");
         }
 
+        // Need to do this because .file does not take an `fs` argument
+        var index = fs.join(options.client, "index.html");
+        function serveApp() {
+            return function (request, response) {
+                return HttpApps.file(request, index, "text/html", fs);
+            };
+        }
+
         return joey
         .log()
         .error(true) // puts stack traces on error pages. TODO disable in production
         .route(function ($) {
-            var index = fs.join(options.client, "index.html");
-            // Doing this instead of `.file(...)`, because .file does not take
-            // a file system to use
-            $("").terminate(function () {
-                return function (request, response) {
-                    return HttpApps.file(request, index, "text/html", fs);
-                };
-            });
+            $("app/adaptor/client/...").fileTree(fs.join(__dirname, "inject", "adaptor", "client"));
 
-            $("adaptor/client/...").fileTree(fs.join(__dirname, "inject", "adaptor", "client"));
+            $("app").terminate(serveApp);
+            $("app/...").fileTree(options.client, {fs: fs});
+
+            $(":user/:repo/...").terminate(serveApp);
         })
-        .fileTree(options.client, {fs: fs})
         .listen(options.port);
     })
     .then(function (server) {
