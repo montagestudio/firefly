@@ -1,10 +1,8 @@
 var https = require("https");
 var querystring = require("querystring");
 
-var Q = require("q");
-var joey = require("joey");
-var redirect = require("q-io/http-apps/redirect").redirect;
 var uuid = require("uuid");
+var redirect = require("q-io/http-apps/redirect").redirect;
 
 // var CLIENT_ID = "e3a42c8d5e2631ed7707";
 // var CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
@@ -14,7 +12,6 @@ var uuid = require("uuid");
 var CLIENT_ID = "74436b0ec02c75f65fb8";
 var CLIENT_SECRET = "8a34f992f207659a773c72d9bbbc40d23c7c51ae";
 var CALLBACK = "http://127.0.0.1:8080/auth/github/callback";
-var CALLBACK_DONE = "http://127.0.0.1:8080/auth/github/callback/done";
 
 var OAUTH_STATE = uuid.v4();
 
@@ -31,14 +28,11 @@ module.exports = function ($) {
     $("callback").app(function (request) {
         if (request.query.state !== OAUTH_STATE) {
             // It's a forgery!
-            console.log("recieved forged callback");
-            var r = redirect(request, "/");
-            console.log(r);
-            return r;
+            return redirect(request, "/");
         }
 
         var code = request.query.code;
-        console.log("code is", code);
+        // console.log("code is", code);
         var data = querystring.stringify({
             "client_id": CLIENT_ID,
             "client_secret": CLIENT_SECRET,
@@ -68,26 +62,14 @@ module.exports = function ($) {
                     console.error("Error parsing Github access token response", body);
                     return;
                 }
-                console.log("Got access token:", data.access_token);
+                // console.log("Got access token:", data.access_token);
             });
         });
         req.on('error', function(e) {
             console.error("Error POSTING to get github access token", e);
         });
-        console.log("POST data", data);
         req.end(data, "utf-8");
 
-        return {
-            status: 200,
-            headers: {
-                "content-type": "text/plain"
-            },
-            "body": [
-                "looks good"
-            ]
-        };
+        return redirect(request, "/welcome");
     });
-
-    $("callback/done").content("Done");
-
 };
