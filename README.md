@@ -1,12 +1,29 @@
 Firefly
 =======
 
-Firefly parallels the Beacon neé Lumieres project as another host for the 
+Firefly parallels the Beacon neé Lumieres project as another host for the
 Filament application.
 
 Firefly will serve Filament itself for use inside a browser and also provide
 services access to services for consumption in Filament much like Beacon does
 through its associated Environment Bridge.
+
+Running
+=======
+
+If Firefly is checked out next to filament you can run:
+
+```bash
+npm start
+```
+
+Otherwise you can run:
+
+```bash
+node index.js --client=<directory containing filament>
+```
+
+Run `node index.js` with no arguments to get a list of command line options.
 
 Contributing
 ============
