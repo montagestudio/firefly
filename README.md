@@ -17,6 +17,8 @@ If Firefly is checked out next to filament you can run:
 npm start
 ```
 
+This will start a server at http://127.0.0.1:8080/
+
 Otherwise you can run:
 
 ```bash
