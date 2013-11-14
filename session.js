@@ -1,5 +1,4 @@
 var Q = require("q");
-var Cookie = require("q-io/http-cookie");
 var uuid = require("uuid");
 
 exports = module.exports = Session;
