@@ -22,5 +22,9 @@
     "jasmine-node": "~1.11.0",
     "istanbul": "~0.1.44",
     "jshint": "~2.3.0"
+  },
+  "subdomain": "firefly",
+  "engines": {
+    "node": "0.10.x"
   }
 }
