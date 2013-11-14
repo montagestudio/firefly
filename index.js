@@ -6,6 +6,7 @@ var HttpApps = require("q-io/http-apps/fs");
 var SocketServer = require("websocket.io");
 var Connection = require("q-connection");
 
+var CookieParser = require("./cookie-parser");
 var GithubAuth = require("./auth/github");
 
 var commandOptions = {
@@ -53,6 +54,7 @@ function main(options) {
         .log()
         .error(true) // puts stack traces on error pages. TODO disable in production
         .parseQuery()
+        .tap(CookieParser)
         .route(function ($) {
             $("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
 
