@@ -1,7 +1,7 @@
 var Cookie = require("q-io/http-cookie");
 
-module.exports = CookieParser;
-function CookieParser(request) {
+module.exports = parseCookies;
+function parseCookies(request) {
     request.cookies = {};
     if (!request.headers.cookie) {
         return;

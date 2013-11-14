@@ -7,7 +7,7 @@ var SocketServer = require("websocket.io");
 var Connection = require("q-connection");
 
 var Session = require("./session");
-var CookieParser = require("./cookie-parser");
+var parseCookies = require("./parse-cookies");
 var GithubAuth = require("./auth/github");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
@@ -57,8 +57,8 @@ function main(options) {
         .log()
         .error(true) // puts stack traces on error pages. TODO disable in production
         .parseQuery()
-        .tap(CookieParser)
         .use(Session("session", SESSION_SECRET))
+        .tap(parseCookies)
         .route(function ($) {
             $("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
 
