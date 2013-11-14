@@ -1,3 +1,4 @@
+var Q = require("q");
 var https = require("https");
 var querystring = require("querystring");
 
@@ -31,6 +32,8 @@ module.exports = function ($) {
             return redirect(request, "/");
         }
 
+        var done = Q.defer();
+
         var code = request.query.code;
         // console.log("code is", code);
         var data = querystring.stringify({
@@ -61,7 +64,9 @@ module.exports = function ($) {
                     console.error("Error parsing Github access token response", body);
                     return;
                 }
-                // console.log("Got access token:", data.access_token);
+
+                request.session.githubAccessToken = data.access_token;
+                done.resolve(redirect(request, "/projects"));
             });
         });
         req.on('error', function(e) {
@@ -69,6 +74,6 @@ module.exports = function ($) {
         });
         req.end(data, "utf-8");
 
-        return redirect(request, "/projects");
+        return done.promise;
     });
 };

@@ -6,8 +6,11 @@ var HttpApps = require("q-io/http-apps/fs");
 var SocketServer = require("websocket.io");
 var Connection = require("q-connection");
 
+var Session = require("./session");
 var CookieParser = require("./cookie-parser");
 var GithubAuth = require("./auth/github");
+
+var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
 var commandOptions = {
     "client": {
@@ -55,6 +58,7 @@ function main(options) {
         .error(true) // puts stack traces on error pages. TODO disable in production
         .parseQuery()
         .tap(CookieParser)
+        .use(Session("session", SESSION_SECRET, { secure: true }))
         .route(function ($) {
             $("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
 
