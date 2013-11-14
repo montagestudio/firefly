@@ -18,10 +18,11 @@ module.exports = main;
 function main(options) {
     options = options || {};
     options.fs = options.fs || FS;
-
     options.port = options.port || commandOptions.port.default;
 
-    return options.fs.exists(options.client)
+    var fs = options.fs;
+
+    return fs.exists(options.client)
     .then(function (clientExists) {
         if (!clientExists) {
             throw new Error("Client directory '" + options.client + "' does not exist");
@@ -29,18 +30,20 @@ function main(options) {
 
         return joey
         .log()
-        .error()
+        .error(true) // puts stack traces on error pages. TODO disable in production
         .route(function ($) {
-            var index = options.fs.join(options.client, "index.html");
+            var index = fs.join(options.client, "index.html");
             // Doing this instead of `.file(...)`, because .file does not take
             // a file system to use
             $("").terminate(function () {
                 return function (request, response) {
-                    return HttpApps.file(request, index, "text/html", options.fs);
+                    return HttpApps.file(request, index, "text/html", fs);
                 };
             });
+
+            $("adaptor/client/...").fileTree(fs.join(__dirname, "inject", "adaptor", "client"));
         })
-        .fileTree(options.client, {fs: options.fs})
+        .fileTree(options.client, {fs: fs})
         .listen(options.port);
     })
     .then(function (server) {
