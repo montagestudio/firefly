@@ -20,7 +20,8 @@
     "websocket.io": "~0.2.1",
     "q-connection": "~0.5.6",
     "q": "~0.9.7",
-    "uuid": "~1.4.1"
+    "uuid": "~1.4.1",
+    "minimatch": "~0.2.12"
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",
