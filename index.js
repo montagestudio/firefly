@@ -4,12 +4,10 @@ var FS = require("q-io/fs");
 var HttpApps = require("q-io/http-apps/fs");
 var HttpContent = require("q-io/http-apps/content");
 
-var SocketServer = require("websocket.io");
-var Connection = require("q-connection");
-
 var Session = require("./session");
 var parseCookies = require("./parse-cookies");
 var GithubAuth = require("./auth/github");
+var websocket = require("./websocket");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
@@ -54,12 +52,14 @@ function main(options) {
         var index = fs.join(options.client, "index.html");
         var serveApp = serveFile(index, "text/html", fs);
 
+        var session = Session("session", SESSION_SECRET);
+
         return joey
-        .log()
+        // .log()
         .error(true) // puts stack traces on error pages. TODO disable in production
         .parseQuery()
         .tap(parseCookies)
-        .use(Session("session", SESSION_SECRET))
+        .use(session)
         .route(function (route) {
             route("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
 
@@ -80,30 +80,17 @@ function main(options) {
             // Must be last, as this is the most generic
             route(":user/:repo/...").terminate(serveApp);
         })
-        .listen(options.port);
-    })
-    .then(function (server) {
-        var socketServer = SocketServer.attach(server.node);
-        socketServer.on("connection", function (connection) {
-            console.log("websocket connection");
-            Connection(connection, {
+        .listen(options.port)
+        .then(function (server) {
+            var services = {
                 "filament-services": Q.master(filamentServices),
                 "file-services": Q.master(fileServices)
-            });
+            };
+            websocket(server, session, services);
 
-            connection.on("close", function(conn) {
-                console.warn("websocket connection closed");
-            });
-
-            connection.on("error", function(err) {
-                if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
-                    console.log("#connection error:", err);
-                }
-            });
+            console.log("Listening on http://127.0.0.1:" + options.port);
+            return server;
         });
-
-        console.log("Listening on http://127.0.0.1:" + options.port);
-        return server;
     });
 }
 

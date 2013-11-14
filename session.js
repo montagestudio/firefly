@@ -12,7 +12,7 @@ function Session(key, secret, cookie, store) {
 
     store = store || new exports.Memory();
 
-    return function (app) {
+    var result = function (app) {
         return function (request, response) {
             // self-awareness
             if (request.session) {
@@ -60,6 +60,12 @@ function Session(key, secret, cookie, store) {
             });
         };
     };
+
+    result.get = function (id) {
+        return store.get(id);
+    };
+
+    return result;
 }
 
 exports.Memory = Memory;
