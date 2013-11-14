@@ -1,9 +1,7 @@
 /* global global,opener:true */
 var Q = require("q"),
     QFS = require("q-io/fs"),
-    PATH = require('path'),
-    minimatch = require('minimatch'),
-    opener = require("opener");
+    PATH = require('path');
 
 exports.getExtensions = function(extensionFolder) {
     extensionFolder = extensionFolder || PATH.join(global.clientPath, "extensions");
