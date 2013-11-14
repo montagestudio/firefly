@@ -60,7 +60,7 @@ GithubApi.prototype.listUserRepositories = function(username) {
     });
 };
 
-// http://developer.github.com/v3/gists/#create-a-gist
+// http://developer.github.com/v3/repos/#get
 GithubApi.prototype.getRepository = function(username, repository) {
     return this._request({
         method: "GET",
@@ -76,7 +76,10 @@ GithubApi.prototype.getBranch = function(username, repository, branch) {
     });
 };
 
-// http://developer.github.com/v3/repos/#get-branch
+/**
+ * Gists
+ */
+// http://developer.github.com/v3/gists/#create-a-gist
 GithubApi.prototype.createGist = function(description, files, public) {
     return this._request({
         method: "POST",
@@ -116,11 +119,8 @@ GithubApi.prototype._request = function(request) {
     }, false);
 
     xhr.setRequestHeader("Accept", "application/vnd.github.v3" + param + "+json");
-    if (this._access_token) {
-        xhr.setRequestHeader("Authorization", "token " + this._access_token);
-    }
-    if (request.data) {
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    if (this._accessToken) {
+        xhr.setRequestHeader("Authorization", "token " + this._accessToken);
     }
     if (request.headers) {
         Object.keys(request.headers).forEach(function(header) {
@@ -129,6 +129,7 @@ GithubApi.prototype._request = function(request) {
     }
 
     if (request.data) {
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         xhr.send(JSON.stringify(request.data));
     } else {
         xhr.send();
