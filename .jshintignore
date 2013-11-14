@@ -1,2 +1,3 @@
 node_modules/**
 inject/adaptor/client/ui/native/menu.js
+fs-github/fs-boot.js

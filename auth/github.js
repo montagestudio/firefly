@@ -59,8 +59,9 @@ module.exports = function ($) {
                     console.error("Error parsing Github access token response", body);
                     return;
                 }
-
+                //jshint -W106
                 request.session.githubAccessToken = data.access_token;
+                //jshint +W106
                 done.resolve(redirect(request, "/projects"));
             });
         });

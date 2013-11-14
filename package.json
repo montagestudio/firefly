@@ -5,7 +5,7 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "test": "jshint . && istanbul test jasmine-node -- spec",
+    "test": "jshint --verbose . && istanbul test jasmine-node -- spec",
     "start": "node index.js --client=../filament",
     "update-dependencies": "rm -rf node_modules && npm install && npm dedupe && git add --update node_modules && git add node_modules"
   },
