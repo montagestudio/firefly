@@ -21,10 +21,9 @@ function Session(key, secret, cookie, store) {
             }
 
             var xxx;
-            var cookie = request.cookies[key];
-            var _id, _session;
-            if (cookie && cookie.value) {
-                _id = cookie.value;
+            var _id = request.cookies[key];
+            var _session;
+            if (_id) {
                 xxx = store.get(_id)
                 .then(function (session) {
                     if (!session) {

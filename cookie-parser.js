@@ -24,7 +24,7 @@ function CookieParser(request) {
         if (cookie.host && !hostContains(requestHost, cookie.host)) {
             delete cookie.host;
         }
-        request.cookies[cookie.key] = cookie;
+        request.cookies[cookie.key] = cookie.value;
     });
 }
 
