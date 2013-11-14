@@ -5,13 +5,8 @@ var querystring = require("querystring");
 var uuid = require("uuid");
 var redirect = require("q-io/http-apps/redirect").redirect;
 
-// var CLIENT_ID = "e3a42c8d5e2631ed7707";
-// var CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
-// var CALLBACK = "https://firefly.ngrok.com/auth/github/callback";
-// var CALLBACK_DONE = "https://firefly.ngrok.c
-
-var CLIENT_ID = "74436b0ec02c75f65fb8";
-var CLIENT_SECRET = "8a34f992f207659a773c72d9bbbc40d23c7c51ae";
+var CLIENT_ID = "e3a42c8d5e2631ed7707";
+var CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
 var CALLBACK = "http://127.0.0.1:2440/auth/github/callback";
 
 var OAUTH_STATE = uuid.v4();
