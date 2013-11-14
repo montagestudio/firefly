@@ -93,12 +93,41 @@ GithubApi.prototype.createGist = function(description, files, public) {
     });
 };
 
+GithubApi.prototype._createQueryString = function(query) {
+    return Object.keys(query).map(function(name) {
+        return encodeURIComponent(name) + "=" + encodeURIComponent(query[name]);
+    }).join("&");
+};
+
+/**
+ * @typeof RequestOptions
+ * @type {object}
+ * @property {string} url The URL to request.
+ * @property {string} method The method to use: "GET", "POST", "PATCH", etc.
+ * @property {object=} data The data as a JSON structure to send with the
+ *           request. Usually used with creating / modifying requests.
+ * @property {object=} query A dictionary with the names and values to pass in
+ *           the request as a query string.
+ * @property {object=} headers A dictionary with the name of the headers and
+ *           value to send in the request.
+ * @property {string=""} param The github param modifier for media types:
+ *           http://developer.github.com/v3/media/.
+ */
+
+/**
+ * param {RequestOptions} request
+ */
 GithubApi.prototype._request = function(request) {
     var xhr = new XMLHttpRequest(),
         deferred = Q.defer(),
-        param = request.param ? "." + request.param : "";
+        param = request.param ? "." + request.param : "",
+        queryString = "";
 
-    xhr.open(request.method, this.API_URL + request.url);
+    if (request.query) {
+        queryString = "?" + this._createQueryString(request.query);
+    }
+
+    xhr.open(request.method, this.API_URL + request.url + queryString);
     xhr.addEventListener("load", function() {
         var message;
 
