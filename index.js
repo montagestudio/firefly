@@ -58,7 +58,7 @@ function main(options) {
         .error(true) // puts stack traces on error pages. TODO disable in production
         .parseQuery()
         .tap(CookieParser)
-        .use(Session("session", SESSION_SECRET, { secure: true }))
+        .use(Session("session", SESSION_SECRET))
         .route(function ($) {
             $("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
 
