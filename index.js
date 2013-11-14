@@ -16,7 +16,7 @@ var commandOptions = {
     "port": {
         alias: "p",
         describe: "The port to run the server on",
-        default: 8080
+        default: 2440
     }
 };
 
