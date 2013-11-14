@@ -47,7 +47,9 @@ function Session(key, secret, cookie, store) {
                         if (!Array.isArray(setCookies)) {
                             setCookies = [setCookies];
                         }
-                        setCookies.push(Cookie.stringify(key, session.sessionId, cookie));
+                        // Broken because q-io encodes the path, when it shouldn't
+                        // setCookies.push(Cookie.stringify(key, session.sessionId, cookie));
+                        setCookies.push(key + "=" + _id + "; Path=/");
                         response.headers["set-cookie"] = setCookies;
                         return response;
                     });
