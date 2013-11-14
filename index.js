@@ -6,6 +6,8 @@ var HttpApps = require("q-io/http-apps/fs");
 var SocketServer = require("websocket.io");
 var Connection = require("q-connection");
 
+var GithubAuth = require("./auth/github");
+
 var commandOptions = {
     "client": {
         alias: "c",
@@ -50,6 +52,7 @@ function main(options) {
         return joey
         .log()
         .error(true) // puts stack traces on error pages. TODO disable in production
+        .parseQuery()
         .route(function ($) {
             $("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
 
@@ -57,6 +60,10 @@ function main(options) {
 
             $("app").terminate(serveApp);
             $("app/...").fileTree(options.client, {fs: fs});
+
+            $("auth/...").route(function ($) {
+                $("github/...").route(GithubAuth);
+            });
 
             $("welcome").terminate(serveFile(fs.join(options.client, "welcome", "index.html"), "text/html", fs));
 
