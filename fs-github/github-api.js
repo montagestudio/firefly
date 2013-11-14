@@ -61,6 +61,70 @@ GithubApi.prototype.listUserRepositories = function(username) {
     });
 };
 
+/**
+ * @typedef CreateRepositoryOptions
+ * @type {object}
+ * @property {string=} description A short description of the repository
+ * @property {string=} homepage A URL with more information about the repository
+ * @property {boolean=false} private Either true to create a private repository, or
+ *           false to create a public one. Creating private repositories
+ *           requires a paid GitHub account.
+ * @property {boolean=true} has_issues Either true to enable issues for this
+ *           repository, false to disable them.
+ * @property {boolean=true} has_wiki Either true to enable the wiki for this
+ *           repository, false to disable it.
+ * @property {boolean=true} has_downloads Either true to enable downloads for
+ *           this repository, false to disable them.
+ * @property {number} team_id The id of the team that will be granted access to
+ *           this repository. This is only valid when creating a repo in an
+ *           organization.
+ * @property {boolean=false} auto_init Pass true to create an initial commit
+ *           with empty README.
+ * @property {string} gitignore_template Desired language or platform .gitignore
+ *           template to apply. Use the name of the template without the
+ *           extension. For example, “Haskell”. Ignored if the auto_init
+ *           parameter is not provided.
+ */
+
+/**
+ * Create a new repository for the authenticated user. OAuth users must supply
+ * repo scope.
+ *
+ * @param {string} name The name of the repository.
+ * @param {CreateRepositoryOptions=} options
+ *
+ * http://developer.github.com/v3/repos/#create
+ */
+GithubApi.prototype.createRepository = function(name, options) {
+    options = options || {};
+    options.name = name;
+    return this._request({
+        method: "POST",
+        url: "/user/repos",
+        data: options
+    });
+};
+
+/**
+ * Create a new repository in an organization. OAuth users must supply
+ * repo scope.
+ *
+ * @param {string} name The name of the repository.
+ * @param {string} organization The name of the organization.
+ * @param {CreateRepositoryOptions} options
+ *
+ * http://developer.github.com/v3/repos/#create
+ */
+GithubApi.prototype.createRepositoryInOrganization = function(name, organization, options) {
+    options = options || {};
+    options.name = name;
+    return this._request({
+        method: "POST",
+        url: "/orgs/" + organization + "/repos",
+        data: options
+    });
+};
+
 // http://developer.github.com/v3/repos/#get
 GithubApi.prototype.getRepository = function(username, repository) {
     return this._request({
