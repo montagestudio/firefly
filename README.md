@@ -29,6 +29,8 @@ node index.js --client=<directory containing filament>
 
 Run `node index.js` with no arguments to get a list of command line options.
 
+**TEMPORARILY `/clone` serves the `clone` directory next to the firefly directory**
+
 Contributing
 ============
 - Run `jshint` on your code to ensure it conforms to Filament standards

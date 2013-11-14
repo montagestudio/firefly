@@ -53,6 +53,9 @@ function main(options) {
 
             $("welcome").terminate(serveFile(fs.join(options.client, "welcome", "index.html"), "text/html", fs));
 
+            // FIXME: remove this
+            $("clone/...").fileTree(fs.join(__dirname, "..", "clone"));
+
             // Must be last, as this is the most generic
             $(":user/:repo/...").terminate(serveApp);
         })
