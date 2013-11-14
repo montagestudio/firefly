@@ -6,6 +6,9 @@ describe("server", function () {
     beforeEach(function (done) {
         var fs = MockFs({
             "index.html": "pass",
+            "login": {
+                "index.html": "pass"
+            },
             "welcome": {
                 "index.html": "pass"
             }
@@ -41,6 +44,12 @@ describe("server", function () {
 
     });
 
+    it("serves login app at /", function (done) {
+        request("http://127.0.0.1:8080/")
+        .then(function (response) {
+            expect(response.status).toEqual(200);
+        }).then(done, done);
+    });
 
     it("serves welcome app at /welcome", function (done) {
         request("http://127.0.0.1:8080/welcome")

@@ -44,6 +44,8 @@ function main(options) {
         .log()
         .error(true) // puts stack traces on error pages. TODO disable in production
         .route(function ($) {
+            $("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
+
             $("app/adaptor/client/...").fileTree(fs.join(__dirname, "inject", "adaptor", "client"));
 
             $("app").terminate(serveApp);
