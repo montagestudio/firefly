@@ -99,7 +99,6 @@ exports.EnvironmentBridge = Montage.specialize({
     list: {
         value: function (url) {
             return this.backend.get("file-services").invoke("list", url).then(function (fileDescriptors) {
-                debugger
                 return fileDescriptors.map(function (fd) {
                     return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
                 });
