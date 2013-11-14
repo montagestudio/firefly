@@ -3,6 +3,19 @@ var Q = require("q"),
     minimatch = require("minimatch"),
     PATH = require('path');
 
+var convertProjectUrlToPath = function (url) {
+    var projectRootPath = PATH.join(process.cwd(), "..", "clone");
+    var extraPath = url.replace(/http:\/\/.+(:\d+)?\/clone\/?/, "");
+
+    return PATH.join(projectRootPath, extraPath);
+};
+
+var convertPathToProjectUrl = function (path) {
+    var projectRootPath = PATH.join(process.cwd(), "..", "clone");
+    var projectHost = "http://localhost:8081/clone";
+    return path.replace(projectRootPath, projectHost);
+};
+
 var guard = function (exclude) {
     exclude = exclude || [];
     var minimatchOpts = {matchBase: true};
@@ -30,19 +43,16 @@ exports.listTree = function (path, extraExclude) {
     return QFS.listTree(path, guard(exclude)).then(pathsToUrlStatArray);
 };
 
-exports.list = function (path) {
+exports.list = function (url) {
+    var localPath = convertProjectUrlToPath(url);
 
-    //TODO this is temporary
-    var projectRootPath = PATH.join(process.cwd(), "..", "clone");
-    var extraPath = path.replace(/http:\/\/.+(:\d+)?\/clone\/?/, "");
-    var localPath = PATH.join(projectRootPath, extraPath);
+    console.log("list", localPath);
 
     return QFS.list(localPath).then(function (filenames) {
-
         var paths = filenames.filter(function (name) {
             return !(/^\./).test(name);
         }).map(function (filename) {
-            console.log(" > ", filename);
+            console.log(" > ", filename, PATH.join(localPath, filename));
             return PATH.join(localPath, filename);
         });
 
@@ -89,8 +99,8 @@ function pathsToUrlStatArray(paths) {
             if (stat.isDirectory()) {
                 path += "/";
             }
-            //TODO this is temporary, to make sure all urls conform with the package being http://localhost:8080/clone
-            return {url: "http://localhost:8080/clone" + path, stat: stat};
+
+            return {url: convertPathToProjectUrl(path), stat: stat};
         });
     }));
 }
