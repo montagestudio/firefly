@@ -14,6 +14,14 @@ var commandOptions = {
     }
 };
 
+function serveFile(path, contentType, fs) {
+    return function () {
+        return function (request, response) {
+            return HttpApps.file(request, path, contentType, fs);
+        };
+    };
+}
+
 module.exports = main;
 function main(options) {
     options = options || {};
@@ -30,11 +38,7 @@ function main(options) {
 
         // Need to do this because .file does not take an `fs` argument
         var index = fs.join(options.client, "index.html");
-        function serveApp() {
-            return function (request, response) {
-                return HttpApps.file(request, index, "text/html", fs);
-            };
-        }
+        var serveApp = serveFile(index, "text/html", fs);
 
         return joey
         .log()
@@ -45,6 +49,9 @@ function main(options) {
             $("app").terminate(serveApp);
             $("app/...").fileTree(options.client, {fs: fs});
 
+            $("welcome").terminate(serveFile(fs.join(options.client, "welcome", "index.html"), "text/html", fs));
+
+            // Must be last, as this is the most generic
             $(":user/:repo/...").terminate(serveApp);
         })
         .listen(options.port);
