@@ -3,21 +3,6 @@ var Q = require("q"),
     QFS = require("q-io/fs"),
     PATH = require('path');
 
-exports.getExtensions = function(extensionFolder) {
-    extensionFolder = extensionFolder || PATH.join(global.clientPath, "extensions");
-
-    console.log("getExtensions from " + extensionFolder);
-    return QFS.listTree(extensionFolder, function (filePath) {
-        return PATH.extname(filePath).toLowerCase() === ".filament-extension" ? true : (filePath ===  extensionFolder ? false : null); // if false return null so directories aren't traversed
-    }).then(function (filePaths) {
-        return Q.all(filePaths.map(function (filePath) {
-            return QFS.stat(filePath).then(function (stat) {
-                return {url: "fs://localhost" + filePath, stat: stat};
-            });
-        }));
-    });
-};
-
 var guard = function (exclude) {
     exclude = exclude || [];
     var minimatchOpts = {matchBase: true};
@@ -46,17 +31,25 @@ exports.listTree = function (path, extraExclude) {
 };
 
 exports.list = function (path) {
-    return QFS.list(path).then(function (filenames) {
+
+    //TODO this is temporary
+    var projectRootPath = PATH.join(process.cwd(), "..", "clone");
+    var extraPath = path.replace(/http:\/\/.+(:\d+)?\/clone\/?/, "");
+    var localPath = PATH.join(projectRootPath, extraPath);
+
+    return QFS.list(localPath).then(function (filenames) {
 
         var paths = filenames.filter(function (name) {
             return !(/^\./).test(name);
         }).map(function (filename) {
-            return PATH.join(path, filename);
+
+                console.log(" > ", filename)
+            return PATH.join(localPath, filename);
         });
 
         return pathsToUrlStatArray(paths);
     });
-};
+}
 
 /**
  * Lists all the files in a package except node_modules, dotfiles and files
@@ -96,7 +89,8 @@ function pathsToUrlStatArray(paths) {
             if (stat.isDirectory()) {
                 path += "/";
             }
-            return {url: "fs://localhost" + path, stat: stat};
+            //TODO this is temporary, to make sure all urls conform with the package being http://localhost:8080/clone
+            return {url: "http://localhost:8080/clone" + path, stat: stat};
         });
     }));
 }

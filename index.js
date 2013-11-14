@@ -35,7 +35,8 @@ function main(options) {
 
     var fs = options.fs;
 
-    var filamentBackend = require(fs.join(options.client, "backend_plugins", "filament-backend"));
+    var filamentServices = require(fs.join(options.client, "backend_plugins", "filament-backend"));
+    var fileServices = require(fs.join(__dirname, "services", "file-services"));
 
     return fs.exists(options.client)
     .then(function (clientExists) {
@@ -72,7 +73,8 @@ function main(options) {
         socketServer.on("connection", function (connection) {
             console.log("websocket connection");
             Connection(connection, {
-                "filament-backend": Q.master(filamentBackend)
+                "filament-services": Q.master(filamentServices),
+                "file-services": Q.master(fileServices)
             });
 
             connection.on("close", function(conn) {

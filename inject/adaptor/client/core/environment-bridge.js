@@ -7,6 +7,10 @@ var Montage = require("montage").Montage,
 
 var PROJECT_PROTOCOL = "fs:";
 
+// TODO we should only inject the base prototype of generic services this environment provides
+// the hosted application may build on top of that with specific features it needs of the bridge
+// i.e. we shouldn't expect the environment bridge the host provides to know about the needs of all potential guests
+
 exports.EnvironmentBridge = Montage.specialize({
 
     constructor: {
@@ -16,9 +20,7 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     init: {
-        value: function (backendName) {
-            this._backendName = backendName;
-
+        value: function () {
             return this;
         }
     },
@@ -31,26 +33,18 @@ exports.EnvironmentBridge = Montage.specialize({
         get: function () {
             var self = this;
 
-            if (self._backend == null) {
+            if (!self._backend) {
                 var connection = adaptConnection(new WebSocket("ws://" + window.location.host));
+
                 connection.closed.then(function () {
                     self._backend = null;
-                });
+                }).done();
 
                 self._backend = Connection(connection);
-                self._backend.then(function (value) {
-                    console.log(value);
-                    debugger;
-                }).done();
+                self._backend.done();
             }
 
             return self._backend;
-        }
-    },
-
-    convertBackendUrlToPath: {
-        value: function (url) {
-            return decodeURIComponent(url.replace(/^\w+:\/\/\w*/m, ""));
         }
     },
 
@@ -72,7 +66,7 @@ exports.EnvironmentBridge = Montage.specialize({
             if (pathComponents.length >= 2) {
                 this._userName = user = pathComponents[0];
                 this._projectName = project = pathComponents[1];
-                url = PROJECT_PROTOCOL + "//github/" + user + "/" + project;
+                url = PROJECT_PROTOCOL + "//" + user + "/" + project;
             }
 
             return url;
@@ -104,9 +98,8 @@ exports.EnvironmentBridge = Montage.specialize({
 
     list: {
         value: function (url) {
-            var path = this.convertBackendUrlToPath(url);
-
-            return this.backend.get(this._backendName).invoke("list", path).then(function (fileDescriptors) {
+            return this.backend.get("file-services").invoke("list", url).then(function (fileDescriptors) {
+                debugger
                 return fileDescriptors.map(function (fd) {
                     return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
                 });
@@ -180,6 +173,12 @@ exports.EnvironmentBridge = Montage.specialize({
     createComponent: {
         value: function () {
 
+        }
+    },
+
+    openFileWithDefaultApplication: {
+        value: function (file) {
+            return Promise.resolve(null);
         }
     }
 
