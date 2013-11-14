@@ -60,7 +60,7 @@ GithubApi.prototype.listUserRepositories = function(username) {
     });
 };
 
-// http://developer.github.com/v3/repos/#get
+// http://developer.github.com/v3/gists/#create-a-gist
 GithubApi.prototype.getRepository = function(username, repository) {
     return this._request({
         method: "GET",
@@ -77,17 +77,14 @@ GithubApi.prototype.getBranch = function(username, repository, branch) {
 };
 
 // http://developer.github.com/v3/repos/#get-branch
-GithubApi.prototype.createGist = function(description, files) {
+GithubApi.prototype.createGist = function(description, files, public) {
     return this._request({
         method: "POST",
         url: "/gists",
         data: {
             description: description,
-            public: this._access_token ? false : true,
+            public: this._accessToken ? !!public : true,
             files: files
-        },
-        headers: {
-            "Content-Type": "application/json; charset=utf-8"
         }
     });
 };
