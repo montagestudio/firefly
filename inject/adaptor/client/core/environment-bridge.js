@@ -92,7 +92,7 @@ exports.EnvironmentBridge = Montage.specialize({
     dependenciesInPackage: {
         value: function (packageUrl) {
 
-            return this.backend.get("file-services").invoke("read", packageUrl + "/package.json")
+            return this.backend.get("file-service").invoke("read", packageUrl + "/package.json")
                 .then(function (content) {
                     var packageInfo = JSON.parse(content),
                         dependencyNames,
@@ -124,7 +124,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     list: {
         value: function (url) {
-            return this.backend.get("file-services").invoke("list", url).then(function (fileDescriptors) {
+            return this.backend.get("file-service").invoke("list", url).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
                     return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
                 });
@@ -147,7 +147,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     componentsInPackage: {
         value: function (url) {
-            return this.backend.get("file-services").invoke("listPackage", url, true).then(function (fileDescriptors) {
+            return this.backend.get("file-service").invoke("listPackage", url, true).then(function (fileDescriptors) {
                 return fileDescriptors.filter(function (fd) {
                     return (/\.reel\/$/).test(fd.url);
                 }).map(function (fd) {

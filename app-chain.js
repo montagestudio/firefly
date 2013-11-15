@@ -73,8 +73,8 @@ function server(options) {
         var services = Object.keys(clientServices).map(function (name) {
             return Q.master(require(fs.join(client, clientServices[name])));
         });
-        services["file-services"] = Q.master(require(fs.join(__dirname, "services", "file-services")));
-        services["extension-services"] = Q.master(require(fs.join(__dirname, "services", "extension-services")));
+        services["file-service"] = Q.master(require(fs.join(__dirname, "services", "file-service")));
+        services["extension-service"] = Q.master(require(fs.join(__dirname, "services", "extension-service")));
 
         var websocketServer = websocket(session, services);
 
