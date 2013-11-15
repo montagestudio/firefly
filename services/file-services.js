@@ -3,14 +3,14 @@ var Q = require("q"),
     minimatch = require("minimatch"),
     PATH = require('path');
 
-var convertProjectUrlToPath = function (url) {
+var convertProjectUrlToPath = exports.convertProjectUrlToPath = function (url) {
     var projectRootPath = PATH.join(process.cwd(), "..", "clone");
     var extraPath = url.replace(/http:\/\/.+(:\d+)?\/clone\/?/, "");
 
     return PATH.join(projectRootPath, extraPath);
 };
 
-var convertPathToProjectUrl = function (path) {
+var convertPathToProjectUrl = exports.convertPathToProjectUrl = function (path) {
     var projectRootPath = PATH.join(process.cwd(), "..", "clone");
     var projectHost = "http://localhost:8081/clone";
     return path.replace(projectRootPath, projectHost);
@@ -46,13 +46,10 @@ exports.listTree = function (path, extraExclude) {
 exports.list = function (url) {
     var localPath = convertProjectUrlToPath(url);
 
-    console.log("list", localPath);
-
     return QFS.list(localPath).then(function (filenames) {
         var paths = filenames.filter(function (name) {
             return !(/^\./).test(name);
         }).map(function (filename) {
-            console.log(" > ", filename, PATH.join(localPath, filename));
             return PATH.join(localPath, filename);
         });
 
