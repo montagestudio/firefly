@@ -1,3 +1,5 @@
+var log = require("logging").from(__filename);
+var httpLog = require("logging").from("app-joey");
 var Q = require("q");
 var joey = require("joey");
 var path = require("path");
@@ -29,13 +31,13 @@ function server(options) {
         }
 
         global.clientPath = path.normalize(path.join(__dirname, client));
-        console.log("Filament client path", global.clientPath);
+        log("Filament client path", global.clientPath);
 
         var index = fs.join(client, "index.html");
         var serveApp = serveFile(index, "text/html", fs);
 
         var chain = joey
-        // .log()
+        .log(httpLog, function (message) { return message; })
         .error(true) // puts stack traces on error pages. TODO disable in production
         .parseQuery()
         .tap(parseCookies)

@@ -1,3 +1,4 @@
+var log = require("logging").from(__filename);
 var Q = require("q");
 var FS = require("q-io/fs");
 
@@ -52,7 +53,7 @@ function main(options) {
                     chain.upgrade(request, socket, head);
                 });
 
-                console.log("Listening on http://localhost:" + options["app-port"]);
+                log("Listening on", {a:1}, "http://localhost:" + options["app-port"], 123, "asd");
                 return server;
             });
         }),

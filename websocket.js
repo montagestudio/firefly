@@ -1,3 +1,4 @@
+var log = require("logging").from(__filename);
 var parseCookies = require("./parse-cookies");
 var ws = require("websocket.io");
 var Connection = require("q-connection");
@@ -16,19 +17,19 @@ function websocket(session, services) {
         // websocket looks for files etc.
         session.get(connection.req.cookies.session)
         .then(function (session) {
-            console.log("websocket session:", session);
+            log("websocket session:", session);
         })
         .done();
 
         Connection(connection, services);
 
         connection.on("close", function(conn) {
-            console.warn("websocket connection closed");
+            log("websocket connection closed");
         });
 
         connection.on("error", function(err) {
             if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
-                console.log("#connection error:", err);
+                log("#connection error:", err);
             }
         });
     });
