@@ -42,6 +42,7 @@ function server(options) {
         .use(session)
         .route(function (route) {
             route("").terminate(serveFile(fs.join(client, "login", "index.html"), "text/html", fs));
+            route("favicon.ico").terminate(serveFile(fs.join(client, "favicon.ico"), "image/x-icon", fs));
 
             route("app/adaptor/client/...").fileTree(fs.join(__dirname, "inject", "adaptor", "client"));
 
