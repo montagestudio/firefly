@@ -4,3 +4,5 @@
 console.log
 npm-debug.log
 SikuliLog.txt
+/coverage
+/reports

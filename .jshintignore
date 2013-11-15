@@ -2,3 +2,4 @@ node_modules/**
 inject/adaptor/client/ui/native/menu.js
 inject/adaptor/client/core/fs-boot.js
 coverage/**
+reports/**
