@@ -2,6 +2,7 @@ var Q = require("q");
 var joey = require("joey");
 var FS = require("q-io/fs");
 var HttpApps = require("q-io/http-apps/fs");
+var HttpContent = require("q-io/http-apps/content");
 
 var SocketServer = require("websocket.io");
 var Connection = require("q-connection");
@@ -57,27 +58,27 @@ function main(options) {
         .log()
         .error(true) // puts stack traces on error pages. TODO disable in production
         .parseQuery()
-        .use(Session("session", SESSION_SECRET))
         .tap(parseCookies)
-        .route(function ($) {
-            $("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
+        .use(Session("session", SESSION_SECRET))
+        .route(function (route) {
+            route("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
 
-            $("app/adaptor/client/...").fileTree(fs.join(__dirname, "inject", "adaptor", "client"));
+            route("app/adaptor/client/...").fileTree(fs.join(__dirname, "inject", "adaptor", "client"));
 
-            $("app").terminate(serveApp);
-            $("app/...").fileTree(options.client, {fs: fs});
+            route("app").terminate(serveApp);
+            route("app/...").fileTree(options.client, {fs: fs});
 
-            $("auth/...").route(function ($) {
-                $("github/...").route(GithubAuth);
+            route("auth/...").route(function (route) {
+                route("github/...").route(GithubAuth);
             });
 
-            $("projects").terminate(serveFile(fs.join(options.client, "project-list", "index.html"), "text/html", fs));
+            route("projects").terminate(serveFile(fs.join(options.client, "project-list", "index.html"), "text/html", fs));
 
             // FIXME: remove this
-            $("clone/...").fileTree(fs.join(__dirname, "..", "clone"));
+            route("clone/...").fileTree(fs.join(__dirname, "..", "clone"));
 
             // Must be last, as this is the most generic
-            $(":user/:repo/...").terminate(serveApp);
+            route(":user/:repo/...").terminate(serveApp);
         })
         .listen(options.port);
     })

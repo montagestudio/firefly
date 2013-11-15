@@ -72,4 +72,14 @@ module.exports = function ($) {
 
         return done.promise;
     });
+
+
+    $("token").contentApp(function (request) {
+        if(!request.session.githubAccessToken) {
+            console.log("No session");
+        } else {
+            return request.session.githubAccessToken;
+        }
+    });
+
 };
