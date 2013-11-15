@@ -11,6 +11,7 @@ module.exports = server;
 function server(options) {
     options = options || {};
 
+    //jshint -W116
     if (!options.fs) throw new Error("options.fs required");
     var fs = options.fs;
     if (!options.client) throw new Error("options.client required");
@@ -21,6 +22,7 @@ function server(options) {
     var session = options.session;
     if (!options.clientServices) throw new Error("options.clientServices required");
     var clientServices = options.clientServices;
+    //jshint +W116
 
     return fs.exists(client)
     .then(function (clientExists) {
