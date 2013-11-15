@@ -1,6 +1,8 @@
+var Q = require("q");
 var FS = require("q-io/fs");
 
 var appChain = require("./app-chain");
+var projectChain = require("./project-chain");
 
 var Session = require("./session");
 
@@ -24,7 +26,7 @@ var commandOptions = {
     "project-dir": {
         alias: "d",
         describe: "The directory to clone and serve projects from",
-        default: "../firefly-projects"
+        default: "../clone"
     }
 };
 
@@ -32,23 +34,35 @@ module.exports = main;
 function main(options) {
     var session = Session("session", SESSION_SECRET);
 
-    return appChain({
-        fs: options.fs || FS,
-        client: options.client,
-        session: session,
-        clientServices: options.clientServices
-    })
-    .then(function (chain) {
-        return chain.listen(options["app-port"])
-        .then(function (server) {
-            server.node.on("upgrade", function (request, socket, head) {
-                chain.upgrade(request, socket, head);
-            });
+    var fs = options.fs || FS;
 
-            console.log("Listening on http://localhost:" + options["app-port"]);
-            return server;
-        });
-    });
+    // TODO: multiplex based on request.headers.host, instead of starting
+    // two servers on different ports
+    return Q.all([
+        appChain({
+            fs: fs,
+            client: options.client,
+            session: session,
+            clientServices: options.clientServices
+        })
+        .then(function (chain) {
+            return chain.listen(options["app-port"])
+            .then(function (server) {
+                server.node.on("upgrade", function (request, socket, head) {
+                    chain.upgrade(request, socket, head);
+                });
+
+                console.log("Listening on http://localhost:" + options["app-port"]);
+                return server;
+            });
+        }),
+        projectChain({
+            fs: fs,
+            session: session,
+            directory: fs.join(process.cwd(), options["project-dir"])
+        })
+        .listen(options["project-port"])
+    ]);
 }
 
 if (require.main === module) {

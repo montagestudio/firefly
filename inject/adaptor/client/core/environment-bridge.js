@@ -77,7 +77,7 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function () {
             //TODO use a final url when it's ready
             // var packageUrl = window.location.origin + "/" + this._userName + "/" + this._projectName + "/tree";
-            var packageUrl = "http://localhost:8081/clone";
+            var packageUrl = "http://localhost:2441";
 
             return this.dependenciesInPackage(packageUrl).then(function (dependencies) {
                 return Promise.resolve({

@@ -1,18 +1,19 @@
 var Q = require("q"),
     QFS = require("q-io/fs"),
     minimatch = require("minimatch"),
-    PATH = require('path');
+    PATH = require('path'),
+    URL = require("url");
 
 var convertProjectUrlToPath = exports.convertProjectUrlToPath = function (url) {
     var projectRootPath = PATH.join(process.cwd(), "..", "clone");
-    var extraPath = url.replace(/http:\/\/.+(:\d+)?\/clone\/?/, "");
+    var extraPath = URL.parse(url).pathname;
 
     return PATH.join(projectRootPath, extraPath);
 };
 
 var convertPathToProjectUrl = exports.convertPathToProjectUrl = function (path) {
     var projectRootPath = PATH.join(process.cwd(), "..", "clone");
-    var projectHost = "http://localhost:8081/clone";
+    var projectHost = "http://localhost:2441";
     return path.replace(projectRootPath, projectHost);
 };
 
