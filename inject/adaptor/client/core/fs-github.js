@@ -192,27 +192,28 @@ GithubFs.prototype._getFile = function(path) {
 };
 
 GithubFs.prototype._getBranchTree = function() {
-    if (this._branchTree) {
-        return Q.resolve(this._branchTree);
-    } else {
+    if (!this._branchTree) {
+        this._branchTree = Q.defer();
+
         var user = this.username,
             repo = this.repository,
             api = this._api,
             self = this;
 
-        return api.getRepository(user, repo).then(function(repository) {
+        api.getRepository(user, repo).then(function(repository) {
             //jshint -W106
             return api.getBranch(user, repo, repository.default_branch)
             //jshint +W106
             .then(function(branch) {
                 return api.getTree(user, repo, branch.commit.sha, true)
                 .then(function(tree) {
-                    self._branchTree = tree.tree;
-                    return self._branchTree;
+                    self._branchTree.resolve(tree.tree);
                 });
             });
-        });
+        }).fail(this._branchTree.reject).done();
     }
+
+    return this._branchTree.promise;
 };
 
 /**
