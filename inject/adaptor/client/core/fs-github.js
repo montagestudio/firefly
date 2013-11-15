@@ -205,15 +205,31 @@ GithubFs.prototype._getBranchTree = function() {
             self = this;
 
         api.getRepository(user, repo).then(function(repository) {
-            //jshint -W106
-            return api.getBranch(user, repo, repository.default_branch)
-            //jshint +W106
-            .then(function(branch) {
-                return api.getTree(user, repo, branch.commit.sha, true)
-                .then(function(tree) {
-                    self._branchTree.resolve(tree.tree);
-                });
-            });
+            api.listBranches(user, repo).then(function(branches) {
+                //jshint -W106
+                var defaultBranch = repository.default_branch,
+                //jshint +W106
+                    defaultBranchFound;
+
+                for (var i = 0; i < branches.length; i++) {
+                    if (branches[i].name === defaultBranch) {
+                        defaultBranchFound = true;
+                        break;
+                    }
+                }
+
+                if (defaultBranchFound) {
+                    api.getBranch(user, repo, defaultBranch)
+                    .then(function(branch) {
+                        api.getTree(user, repo, branch.commit.sha, true)
+                        .then(function(tree) {
+                            self._branchTree.resolve(tree.tree);
+                        }).done();
+                    }).done();
+                } else {
+                    self._branchTree.resolve([]);
+                }
+            }).done();
         }).fail(this._branchTree.reject).done();
     }
 
