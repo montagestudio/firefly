@@ -2,7 +2,6 @@ var Q = require("q");
 var joey = require("joey");
 var FS = require("q-io/fs");
 var HttpApps = require("q-io/http-apps/fs");
-var HttpContent = require("q-io/http-apps/content");
 
 var Session = require("./session");
 var parseCookies = require("./parse-cookies");
