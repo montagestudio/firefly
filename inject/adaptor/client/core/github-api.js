@@ -25,6 +25,18 @@ GithubApi.prototype.getBlob = function(username, repository, sha, param) {
     });
 };
 
+// http://developer.github.com/v3/git/blobs/#create-a-blob
+GithubApi.prototype.createBlob = function(username, repository, content, encoding) {
+    return this._request({
+        method: "POST",
+        url: "/repos/" + username + "/" + repository + "/git/blobs",
+        data: {
+            content: content,
+            encoding: encoding
+        }
+    });
+};
+
 // http://developer.github.com/v3/git/commits/#get-a-commit
 GithubApi.prototype.getCommit = function(username, repository, sha) {
     return this._request({
