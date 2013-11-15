@@ -31,6 +31,22 @@ Run `node index.js` with no arguments to get a list of command line options.
 
 **TEMPORARILY `/clone` serves the `clone` directory next to the firefly directory**
 
+Developing
+==========
+
+Session
+-------
+
+The session is available as `request.session`. After a Github auth it has a
+`githubAccessToken` property, containing the token.
+
+To store more data in the session just add a property to the `request.session`
+object.
+
+The session is stored in memory, and so after a server restart all sessions are
+lost (and you need to go through the Github auth again to get another access
+key).
+
 Contributing
 ============
 - Run `jshint` on your code to ensure it conforms to Filament standards
