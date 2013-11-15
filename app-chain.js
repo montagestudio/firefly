@@ -47,6 +47,9 @@ function server(options) {
 
             route("app").terminate(serveApp);
             route("app/...").fileTree(client, {fs: fs});
+            // FIXME: Some CSS has /assets hard coded, so lets just serve from
+            // the root for the moment
+            route("assets/...").fileTree(fs.join(client, "assets"), {fs: fs});
 
             route("auth/...").route(function (route) {
                 route("github/...").route(GithubAuth);
