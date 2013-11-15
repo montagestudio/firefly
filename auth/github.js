@@ -1,3 +1,4 @@
+var log = require("logging").from(__filename);
 var Q = require("q");
 var https = require("https");
 var querystring = require("querystring");
@@ -66,7 +67,7 @@ module.exports = function ($) {
                 try {
                     data = JSON.parse(body);
                 } catch (e) {
-                    console.error("Error parsing Github access token response", body);
+                    log("error", "parsing Github access token response", body);
                     return;
                 }
                 //jshint -W106
@@ -76,7 +77,7 @@ module.exports = function ($) {
             });
         });
         req.on('error', function(e) {
-            console.error("Error POSTING to get github access token", e);
+            log("error", "POSTing to get github access token", e);
         });
         req.end(data, "utf-8");
 
@@ -86,7 +87,7 @@ module.exports = function ($) {
 
     $("token").contentApp(function (request) {
         if(!request.session.githubAccessToken) {
-            console.log("No session");
+            log("No session");
         } else {
             return request.session.githubAccessToken;
         }

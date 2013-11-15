@@ -134,7 +134,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     watch: {
         value: function () {
-            console.log("watch", arguments);
+            // console.log("watch", arguments);
             return Promise.resolve(true);
         }
     },
