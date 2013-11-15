@@ -146,6 +146,14 @@ GithubApi.prototype.getRepository = function(username, repository) {
     });
 };
 
+// http://developer.github.com/v3/repos/#list-branches
+GithubApi.prototype.listBranches = function(username, repository) {
+    return this._request({
+        method: "GET",
+        url: "/repos/" + username + "/" + repository + "/branches"
+    });
+};
+
 // http://developer.github.com/v3/repos/#get-branch
 GithubApi.prototype.getBranch = function(username, repository, branch) {
     return this._request({
