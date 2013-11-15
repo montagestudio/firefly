@@ -75,17 +75,35 @@ exports.EnvironmentBridge = Montage.specialize({
 
     projectInfo: {
         value: function () {
-
             //TODO use a final url when it's ready
             // var packageUrl = window.location.origin + "/" + this._userName + "/" + this._projectName + "/tree";
             var packageUrl = "http://localhost:8081/clone";
-            var dependencies = [];
 
-            return Promise.resolve({
-                "fileUrl": this.projectUrl,
-                "packageUrl": packageUrl,
-                "dependencies": dependencies
+            return this.dependenciesInPackage(packageUrl).then(function (dependencies) {
+                return Promise.resolve({
+                    "fileUrl": this.projectUrl,
+                    "packageUrl": packageUrl,
+                    "dependencies": dependencies
+                });
             });
+        }
+    },
+
+    dependenciesInPackage: {
+        value: function (packageUrl) {
+
+            return this.backend.get("file-services").invoke("read", packageUrl + "/package.json")
+                .then(function (content) {
+                    var packageInfo = JSON.parse(content),
+                        dependencyNames = Object.keys(packageInfo.dependencies);
+
+                    //TODO implement mapping in addition to just dependencies
+                    //TODO also report the version of the dependency
+
+                    return dependencyNames.map(function (dependencyName) {
+                        return {"dependency": dependencyName, "url": packageUrl + "/node_modules/" + dependencyName};
+                    });
+                });
         }
     },
 
@@ -120,8 +138,14 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     componentsInPackage: {
-        value: function () {
-            return Promise.resolve(null);
+        value: function (url) {
+            return this.backend.get("file-services").invoke("listPackage", url, true).then(function (fileDescriptors) {
+                return fileDescriptors.filter(function (fd) {
+                    return (/\.reel\/$/).test(fd.url);
+                }).map(function (fd) {
+                    return fd.url;
+                });
+            });
         }
     },
 

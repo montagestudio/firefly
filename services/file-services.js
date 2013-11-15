@@ -16,6 +16,11 @@ var convertPathToProjectUrl = exports.convertPathToProjectUrl = function (path) 
     return path.replace(projectRootPath, projectHost);
 };
 
+exports.read = function (url) {
+    var localPath = convertProjectUrlToPath(url);
+    return QFS.read(localPath);
+};
+
 var guard = function (exclude) {
     exclude = exclude || [];
     var minimatchOpts = {matchBase: true};
@@ -63,8 +68,10 @@ exports.list = function (url) {
  * @param  {string} path An absolute path to the package directory to list.
  * @return {Promise.<Array.<string>>} A promise for an array of paths.
  */
-exports.listPackage = function (path) {
+exports.listPackage = function (url) {
     var exclude = ["node_modules", ".*"];
+
+    var path = convertProjectUrlToPath(url);
 
     return QFS.read(PATH.join(path, "package.json")).then(function (contents) {
         var pkg = JSON.parse(contents);
