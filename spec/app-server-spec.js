@@ -1,7 +1,8 @@
-var index = require("../index");
+var appServer = require("../app-server");
 var MockFs = require("q-io/fs-mock");
+var MockSession = require("../mocks/session");
 
-describe("server", function () {
+describe("app server", function () {
     var request, server;
     beforeEach(function (done) {
         var fs = MockFs({
@@ -13,7 +14,13 @@ describe("server", function () {
                 "index.html": "pass"
             }
         });
-        return index({fs: fs, client: "/"})
+        return appServer({
+            fs: fs,
+            client: "/",
+            port: 2440,
+            session: MockSession({}),
+            clientServices: {}
+        })
         .then(function (_server) {
             server = _server;
             request = require("joey").client();

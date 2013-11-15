@@ -2,12 +2,10 @@ var Q = require("q");
 var joey = require("joey");
 var FS = require("q-io/fs");
 var HttpApps = require("q-io/http-apps/fs");
-var path = require("path");
+
+var appServer = require("./app-server");
 
 var Session = require("./session");
-var parseCookies = require("./parse-cookies");
-var GithubAuth = require("./auth/github");
-var websocket = require("./websocket");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
@@ -16,87 +14,33 @@ var commandOptions = {
         alias: "c",
         describe: "A directory containing filament"
     },
-    "port": {
+    "app-port": {
         alias: "p",
-        describe: "The port to run the server on",
+        describe: "The port to run the app server on",
         default: 2440
+    },
+    "project-port": {
+        alias: "P",
+        describe: "The port to run the project server on",
+        default: 2441
+    },
+    "project-dir": {
+        alias: "d",
+        describe: "The directory to clone and serve projects from",
+        default: "../firefly-projects"
     }
 };
 
-// Need to do this because .file does not take an `fs` argument
-function serveFile(path, contentType, fs) {
-    return function () {
-        return function (request, response) {
-            return HttpApps.file(request, path, contentType, fs);
-        };
-    };
-}
-
 module.exports = main;
 function main(options) {
-    options = options || {};
-    options.fs = options.fs || FS;
-    options.port = options.port || commandOptions.port.default;
+    var session = Session("session", SESSION_SECRET);
 
-    options.clientServices = options.clientServices || {};
-
-    var fs = options.fs;
-
-    return fs.exists(options.client)
-    .then(function (clientExists) {
-        if (!clientExists) {
-            throw new Error("Client directory '" + options.client + "' does not exist");
-        }
-
-        global.clientPath = path.normalize(path.join(__dirname, options.client));
-        console.log("Filament client path", global.clientPath);
-
-        var index = fs.join(options.client, "index.html");
-        var serveApp = serveFile(index, "text/html", fs);
-
-        var session = Session("session", SESSION_SECRET);
-
-        return joey
-        // .log()
-        .error(true) // puts stack traces on error pages. TODO disable in production
-        .parseQuery()
-        .tap(parseCookies)
-        .use(session)
-        .route(function (route) {
-            route("").terminate(serveFile(fs.join(options.client, "login", "index.html"), "text/html", fs));
-
-            route("app/adaptor/client/...").fileTree(fs.join(__dirname, "inject", "adaptor", "client"));
-
-            route("app").terminate(serveApp);
-            route("app/...").fileTree(options.client, {fs: fs});
-
-            route("auth/...").route(function (route) {
-                route("github/...").route(GithubAuth);
-            });
-
-            route("projects").terminate(serveFile(fs.join(options.client, "project-list", "index.html"), "text/html", fs));
-
-            // FIXME: remove this
-            route("clone/...").fileTree(fs.join(__dirname, "..", "clone"));
-
-            // Must be last, as this is the most generic
-            route(":user/:repo/...").terminate(serveApp);
-        })
-        .listen(options.port)
-        .then(function (server) {
-            // These services should be customized per websocket connection, to
-            // encompass the session information
-            var services = Object.keys(options.clientServices).map(function (name) {
-                return Q.master(require(fs.join(options.client, options.clientServices[name])));
-            });
-            services["file-services"] = Q.master(require(fs.join(__dirname, "services", "file-services")));
-            services["extension-services"] = Q.master(require(fs.join(__dirname, "services", "extension-services")));
-
-            websocket(server, session, services);
-
-            console.log("Listening on http://127.0.0.1:" + options.port);
-            return server;
-        });
+    return appServer({
+        fs: options.fs || FS,
+        client: options.client,
+        port: options["app-port"],
+        session: session,
+        clientServices: options.clientServices
     });
 }
 
