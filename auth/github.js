@@ -16,7 +16,7 @@ module.exports = function ($) {
         querystring.stringify({
             "client_id": CLIENT_ID,
             "redirect_uri": CALLBACK,
-            "scope": ["user:email", "public_repo"].join(","),
+            "scope": ["user:email", "repo"].join(","),
             "state": OAUTH_STATE
         })
     );
