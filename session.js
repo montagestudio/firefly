@@ -19,11 +19,11 @@ function Session(key, secret, cookie, store) {
                 return app(request, response);
             }
 
-            var xxx;
+            var done;
             var _id = request.cookies[key];
             var _session;
             if (_id) {
-                xxx = store.get(_id)
+                done = store.get(_id)
                 .then(function (session) {
                     if (!session) {
                         return create();
@@ -32,7 +32,7 @@ function Session(key, secret, cookie, store) {
                     return app(request, response);
                 });
             } else {
-                xxx = create();
+                done = create();
             }
 
             function create() {
@@ -55,7 +55,7 @@ function Session(key, secret, cookie, store) {
                 });
             }
 
-            return xxx.then(function (response) {
+            return done.then(function (response) {
                 return store.set(_id, _session).thenResolve(response);
             });
         };
