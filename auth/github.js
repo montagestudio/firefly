@@ -27,6 +27,16 @@ module.exports = function ($) {
             return redirect(request, "/");
         }
 
+        if (request.query.error) {
+            return {
+                status: 400,
+                headers: {
+                    "content-type": "text/plain"
+                },
+                body: ["Github error. Please try again."]
+            };
+        }
+
         var done = Q.defer();
 
         var code = request.query.code;
