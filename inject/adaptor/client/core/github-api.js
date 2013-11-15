@@ -46,10 +46,11 @@ GithubApi.prototype.getTree = function(username, repository, sha, recursive) {
  */
 
 // http://developer.github.com/v3/repos/#list-your-repositories
-GithubApi.prototype.listRepositories = function() {
+GithubApi.prototype.listRepositories = function(options) {
     return this._request({
         method: "GET",
-        url: "/user/repos"
+        url: "/user/repos",
+        query: options
     });
 };
 
