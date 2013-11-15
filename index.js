@@ -53,7 +53,7 @@ function main(options) {
                     chain.upgrade(request, socket, head);
                 });
 
-                log("Listening on", {a:1}, "http://localhost:" + options["app-port"], 123, "asd");
+                log("Listening on", "http://localhost:" + options["app-port"]);
                 return server;
             });
         }),
