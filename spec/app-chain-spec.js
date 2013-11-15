@@ -1,8 +1,8 @@
-var appServer = require("../app-server");
+var appChain = require("../app-chain");
 var MockFs = require("q-io/fs-mock");
 var MockSession = require("../mocks/session");
 
-describe("app server", function () {
+describe("app chain", function () {
     var request, server;
     beforeEach(function (done) {
         var fs = MockFs({
@@ -14,17 +14,20 @@ describe("app server", function () {
                 "index.html": "pass"
             }
         });
-        return appServer({
+        return appChain({
             fs: fs,
             client: "/",
-            port: 2440,
             session: MockSession({}),
             clientServices: {}
+        })
+        .then(function (chain) {
+            return chain.listen(2440);
         })
         .then(function (_server) {
             server = _server;
             request = require("joey").client();
-        }).then(done, done);
+        })
+        .then(done, done);
     });
 
     afterEach(function (done) {

@@ -3,8 +3,8 @@ var ws = require("websocket.io");
 var Connection = require("q-connection");
 
 module.exports = websocket;
-function websocket(server, session, services) {
-    var socketServer = ws.attach(server.node);
+function websocket(session, services) {
+    var socketServer = new ws.Server();
     socketServer.on("connection", function (connection) {
         // The request has the session cookies, but hasn't gone through
         // the joey chain, and so they haven't been parsed into .cookies
@@ -32,4 +32,6 @@ function websocket(server, session, services) {
             }
         });
     });
+
+    return socketServer;
 }

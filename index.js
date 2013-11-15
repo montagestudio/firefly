@@ -1,9 +1,7 @@
-var Q = require("q");
-var joey = require("joey");
 var FS = require("q-io/fs");
 var HttpApps = require("q-io/http-apps/fs");
 
-var appServer = require("./app-server");
+var appChain = require("./app-chain");
 
 var Session = require("./session");
 
@@ -35,12 +33,22 @@ module.exports = main;
 function main(options) {
     var session = Session("session", SESSION_SECRET);
 
-    return appServer({
+    return appChain({
         fs: options.fs || FS,
         client: options.client,
-        port: options["app-port"],
         session: session,
         clientServices: options.clientServices
+    })
+    .then(function (chain) {
+        return chain.listen(options["app-port"])
+        .then(function (server) {
+            server.node.on("upgrade", function (request, socket, head) {
+                chain.upgrade(request, socket, head);
+            });
+
+            console.log("Listening on http://localhost:" + options["app-port"]);
+            return server;
+        });
     });
 }
 
