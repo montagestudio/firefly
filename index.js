@@ -1,5 +1,4 @@
 var FS = require("q-io/fs");
-var HttpApps = require("q-io/http-apps/fs");
 
 var appChain = require("./app-chain");
 
