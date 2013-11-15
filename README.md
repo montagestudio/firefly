@@ -34,6 +34,17 @@ Run `node index.js` with no arguments to get a list of command line options.
 Developing
 ==========
 
+Logging
+-------
+
+```javascript
+var log = require("logging").from(__filename);
+
+log("string", {object: 1}, 123, "http://example.com");
+```
+
+Only use `console.log` while developing.
+
 Session
 -------
 
