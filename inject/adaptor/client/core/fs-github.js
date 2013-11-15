@@ -30,14 +30,18 @@ GithubFs.prototype.read = function(path, options) {
         param = binary ? "json" : "raw";
 
     return this._getFile(path).then(function(file) {
-        return self._api.getBlob(self.username, self.repository, file.sha, param)
-        .then(function(blob) {
-            if (param === "raw") {
-                return blob;
-            } else {
-                throw new Error("TODO: implement 'b' mode in read()");
-            }
-        });
+        if (file === null) {
+            throw new Error("File " + path + " does not exist on " + self.username + "/" + self.repository);
+        } else {
+            return self._api.getBlob(self.username, self.repository, file.sha, param)
+            .then(function(blob) {
+                if (param === "raw") {
+                    return blob;
+                } else {
+                    throw new Error("TODO: implement 'b' mode in read()");
+                }
+            });
+        }
     });
 };
 
