@@ -3,16 +3,44 @@ var Q = require("q"),
     QFS = require("q-io/fs"),
     PATH = require('path');
 
+var extensionsRoot = PATH.join(global.clientPath, "extensions");
+
+/**
+ * Convert a path on the system that specifies a path to an available extension
+ * to a safe URI for consumption by a potentially malicious client.
+ *
+ * Extensions should be able to be loaded and run, with varying degrees of trust
+ * from a number of locations. They should all be reachable by an extension url.
+ *
+ * Extensions may be discovered from within:
+ *  - Filament itself
+ *  - Packages loaded by the user in the course of working on a project
+ *  - From a marketplace
+ *  - From a user's own selection of available extensions
+ */
+var convertPathToExtensionUrl = exports.convertPathToExtensionUrl = function (path) {
+    var projectHost = "http://localhost:2440/app/extensions",
+        url = null;
+
+    if (new RegExp(extensionsRoot).test(path)) {
+        url = projectHost + path.replace(extensionsRoot, "");
+    }
+
+    return url;
+};
+
+//TODO add way to convert extensionUrl back to path
+
 exports.getExtensions = function(extensionFolder) {
     extensionFolder = extensionFolder || PATH.join(global.clientPath, "extensions");
 
-    console.log("getExtensions from " + extensionFolder);
     return QFS.listTree(extensionFolder, function (filePath) {
-        return PATH.extname(filePath).toLowerCase() === ".filament-extension" ? true : (filePath ===  extensionFolder ? false : null); // if false return null so directories aren't traversed
+        // if false return null so directories aren't traversed
+        return PATH.extname(filePath).toLowerCase() === ".filament-extension" ? true : (filePath ===  extensionFolder ? false : null);
     }).then(function (filePaths) {
             return Q.all(filePaths.map(function (filePath) {
                 return QFS.stat(filePath).then(function (stat) {
-                    return {url: "fs://localhost" + filePath, stat: stat};
+                    return {url: convertPathToExtensionUrl(filePath), stat: stat};
                 });
             }));
         });

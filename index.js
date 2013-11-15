@@ -2,6 +2,7 @@ var Q = require("q");
 var joey = require("joey");
 var FS = require("q-io/fs");
 var HttpApps = require("q-io/http-apps/fs");
+var path = require("path");
 
 var Session = require("./session");
 var parseCookies = require("./parse-cookies");
@@ -47,6 +48,9 @@ function main(options) {
             throw new Error("Client directory '" + options.client + "' does not exist");
         }
 
+        global.clientPath = path.normalize(path.join(__dirname, options.client));
+        console.log("Filament client path", global.clientPath);
+
         var index = fs.join(options.client, "index.html");
         var serveApp = serveFile(index, "text/html", fs);
 
@@ -86,6 +90,7 @@ function main(options) {
                 return Q.master(require(fs.join(options.client, options.clientServices[name])));
             });
             services["file-services"] = Q.master(require(fs.join(__dirname, "services", "file-services")));
+            services["extension-services"] = Q.master(require(fs.join(__dirname, "services", "extension-services")));
 
             websocket(server, session, services);
 

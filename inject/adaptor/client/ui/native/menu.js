@@ -314,14 +314,16 @@ var Menu = exports.Menu = Montage.specialize({
                 var iItem,
                     i;
 
-                for (i = 0; (iItem = menu.items[i]); i++) {
-                    if (iItem.identifier === identifier) {
-                        return iItem;
-                    } else {
-                        if (iItem.items) {
-                            iItem = searchItemsTree(iItem, identifier);
-                            if (iItem) {
-                                return iItem;
+                if (menu && menu.items) {
+                    for (i = 0; (iItem = menu.items[i]); i++) {
+                        if (iItem.identifier === identifier) {
+                            return iItem;
+                        } else {
+                            if (iItem.items) {
+                                iItem = searchItemsTree(iItem, identifier);
+                                if (iItem) {
+                                    return iItem;
+                                }
                             }
                         }
                     }
