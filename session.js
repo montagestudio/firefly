@@ -1,3 +1,4 @@
+var log = require("logging").from(__filename);
 var Q = require("q");
 var uuid = require("uuid");
 
@@ -38,6 +39,7 @@ function Session(key, secret, cookie, store) {
             function create() {
                 return store.create()
                 .then(function (session) {
+                    log("Created: " + session.sessionId);
                     _id = session.sessionId;
                     _session = request.session = session;
 
