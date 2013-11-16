@@ -2,24 +2,24 @@ var fs = require("q-io/fs");
 var Git = require("../git");
 
 describe("Git", function () {
-    var git;
+    var git, tmpPath;
     beforeEach(function () {
         var accessToken = "xxx";
         git = new Git(fs, accessToken);
+        tmpPath = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
     });
 
     describe("init", function () {
         it("works", function (done) {
-            var tmp = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
-            git.init(tmp)
+            git.init(tmpPath)
             .then(function () {
-                return git.isCloned(tmp);
+                return git.isCloned(tmpPath);
             })
             .then(function (isCloned) {
                 expect(isCloned).toBe(true);
             })
             .finally(function () {
-                return fs.removeTree(tmp);
+                return fs.removeTree(tmpPath);
             })
             .then(done, done);
         });
@@ -27,16 +27,15 @@ describe("Git", function () {
 
     describe("clone", function () {
         it("works", function (done) {
-            var tmp = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
-            git.clone("https://github.com/montagejs/mousse.git", tmp)
+            git.clone("https://github.com/montagejs/mousse.git", tmpPath)
             .then(function () {
-                return git.isCloned(tmp);
+                return git.isCloned(tmpPath);
             })
             .then(function (isCloned) {
                 expect(isCloned).toBe(true);
             })
             .finally(function () {
-                return fs.removeTree(tmp);
+                return fs.removeTree(tmpPath);
             })
             .then(done, done);
         });
