@@ -57,7 +57,8 @@ function main(options) {
             session: session,
             checkSession: CheckSession,
             setupProjectWorkspace: SetupProjectWorkspace,
-            directory: fs.join(process.cwd(), options["project-dir"])
+            directory: fs.join(process.cwd(), options["project-dir"]),
+            minitPath: fs.join(process.cwd(), "node_modules", "minit", "minit")
         })
         .spread(function (app, project) {
             app.server.node.on("upgrade", function (request, socket, head) {

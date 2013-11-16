@@ -23,6 +23,8 @@ function server(options) {
     var setupProjectWorkspace = options.setupProjectWorkspace;
     if (!options.directory) throw new Error("options.directory required");
     var directory = options.directory;
+    if (!options.minitPath) throw new Error("options.minitPath required");
+    var minitPath = options.minitPath;
     //jshint +W116
 
     return Q.resolve(joey
@@ -30,7 +32,7 @@ function server(options) {
     .use(session)
     .cors("*", "*", "*")
     .use(checkSession)
-    .use(setupProjectWorkspace(fs, directory))
+    .use(setupProjectWorkspace(fs, directory, minitPath))
     .methods(function(method) {
         method("GET")
         .app(function(request) {

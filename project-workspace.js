@@ -4,10 +4,11 @@ var Git = require("./git");
 
 module.exports = ProjectWorkspace;
 
-function ProjectWorkspace(fs, directory, session) {
+function ProjectWorkspace(fs, directory, session, minitPath) {
     this._fs = fs;
     this._root = fs.join(directory, session.username);
     this._session = session;
+    this._minitPath = minitPath;
 }
 
 ProjectWorkspace.prototype.getPath = function(pathname) {
