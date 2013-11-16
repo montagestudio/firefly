@@ -75,6 +75,7 @@ function server(options) {
         });
         services["file-service"] = require("./services/file-service");
         services["extension-service"] = require("./services/extension-service");
+        services["env-service"] = require("./services/env-service");
 
         var websocketServer = websocket(session, services);
 

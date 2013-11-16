@@ -56,6 +56,20 @@ exports.EnvironmentBridge = Montage.specialize({
         value: null
     },
 
+    _packageUrl: {
+        value: null
+    },
+
+    packageUrl: {
+        get: function () {
+            if(!this._packageUrl) {
+                this._packageUrl = this.backend.get("env-service").invoke("getEnv", "projectUrl");
+            }
+            return this._packageUrl;
+        }
+    },
+
+
     projectUrl: {
         get: function () {
             var pathComponents = window.location.pathname.replace(/^\//, "").split("/"),
@@ -75,15 +89,18 @@ exports.EnvironmentBridge = Montage.specialize({
 
     projectInfo: {
         value: function () {
+            var self = this;
             //TODO use a final url when it's ready
             // var packageUrl = window.location.origin + "/" + this._userName + "/" + this._projectName + "/tree";
-            var packageUrl = "http://localhost:2441";
+            // var packageUrl = "http://localhost:2441";
 
-            return this.dependenciesInPackage(packageUrl).then(function (dependencies) {
-                return Promise.resolve({
-                    "fileUrl": this.projectUrl,
-                    "packageUrl": packageUrl,
-                    "dependencies": dependencies
+            return self.packageUrl.then(function (packageUrl) {
+                return self.dependenciesInPackage(packageUrl).then(function (dependencies) {
+                    return {
+                        "fileUrl": this.projectUrl,
+                        "packageUrl": packageUrl,
+                        "dependencies": dependencies
+                    };
                 });
             });
         }

@@ -1,3 +1,4 @@
+var Env = require("./environment");
 var log = require("logging").from(__filename);
 var FS = require("q-io/fs");
 
@@ -17,12 +18,12 @@ var commandOptions = {
     "app-port": {
         alias: "p",
         describe: "The port to run the app server on",
-        default: 2440
+        default: Env.app.port
     },
     "project-port": {
         alias: "P",
         describe: "The port to run the project server on",
-        default: 2441
+        default: Env.project.port
     },
     "project-dir": {
         alias: "d",
@@ -58,7 +59,7 @@ function main(options) {
             app.server.node.on("upgrade", function (request, socket, head) {
                 app.chain.upgrade(request, socket, head);
             });
-            log("Listening on http://localhost:" + options["app-port"]);
+            log("Listening on http://"+Env.app.host+":" + options["app-port"]);
         });
 }
 

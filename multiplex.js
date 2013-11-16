@@ -1,23 +1,21 @@
+var Env = require("./environment");
 var Q = require("q");
 var joey = require("joey");
 
-var production = process.env.NODE_ENV;
-var appHost = process.env.APP_HOST || "localhost:*";
-var projectHost = process.env.PROJECT_HOST || "127.0.0.1:*";
 
 module.exports = multiplex;
 function multiplex(options, appChainFactory, appChainOptions, projectChainFactory, projectChainOptions) {
 
-    if(production) {
+    if(Env.production) {
         return Q.all([
                 appChainFactory(appChainOptions),
                 projectChainFactory(projectChainOptions)
             ])
             .spread(function (appChain, projectChain) {
-                return joey.host(appHost, projectHost)
+                return joey.host(Env.app.host+":*", Env.project.host+":*")
                     .hosts(function (branch) {
-                        branch(appHost).app(appChain.end());
-                        branch(projectHost).app(projectChain).end();
+                        branch(Env.app.host+":*").app(appChain.end());
+                        branch(Env.project.host+":*").app(projectChain).end();
                     })
                     .listen(2440)
                     .then(function (server) {

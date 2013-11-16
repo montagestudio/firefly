@@ -15,7 +15,7 @@ var guard = function (exclude) {
 };
 
 module.exports = FileService;
-function FileService(fs) {
+function FileService(fs, environment) {
     // Returned service
     var service = {};
 
@@ -24,7 +24,7 @@ function FileService(fs) {
     };
 
     var convertPathToProjectUrl = exports.convertPathToProjectUrl = function (path) {
-        var projectHost = "http://localhost:2441";
+        var projectHost = environment.projectUrl;
         return projectHost + path;
     };
 

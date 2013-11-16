@@ -1,3 +1,4 @@
+var Env = require("./environment");
 var log = require("logging").from(__filename);
 
 var Q = require("q");
@@ -66,7 +67,7 @@ function makeServices(fs, services) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
-        var service = services[name](fs);
+        var service = services[name](fs, Env);
         connectionServices[name] = Q.master(service);
     });
     return connectionServices;
