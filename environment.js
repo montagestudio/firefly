@@ -54,7 +54,6 @@ if(production) {
             url = "http://" + url;
         }
         var hostname = URL.parse(url).hostname;
-        console.log("getDetailsfromProjectUrl", hostname);
 
         var match = hostname.match(/([a-z]+)-([a-z]+)\./i);
         var owner = match[1];
@@ -79,7 +78,6 @@ if(production) {
         return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
     };
     env.getProjectPathFromSessionAndProjectUrl = function (session, url) {
-        console.log("getProjectPathFromSessionAndProjectUrl", url);
         var details = this.getDetailsfromProjectUrl(url);
 
         // FIXME not to use FS
