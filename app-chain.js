@@ -1,6 +1,5 @@
 var log = require("logging").from(__filename);
 var httpLog = require("logging").from("app-joey");
-var Q = require("q");
 var joey = require("joey");
 var path = require("path");
 
@@ -70,11 +69,12 @@ function server(options) {
 
         // These services should be customized per websocket connection, to
         // encompass the session information
-        var services = Object.keys(clientServices).map(function (name) {
-            return Q.master(require(fs.join(client, clientServices[name])));
-        });
-        services["file-service"] = Q.master(require(fs.join(__dirname, "services", "file-service")));
-        services["extension-service"] = Q.master(require(fs.join(__dirname, "services", "extension-service")));
+        var services = {};
+        // Object.keys(clientServices).forEach(function (name) {
+        //     services[name] = Q.master(require(fs.join(client, clientServices[name])));
+        // });
+        services["file-service"] = require("./services/file-service");
+        services["extension-service"] = require("./services/extension-service");
 
         var websocketServer = websocket(session, services);
 
