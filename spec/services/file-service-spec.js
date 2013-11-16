@@ -11,7 +11,11 @@ describe("file-service", function () {
             "package.json": "{}"
         });
 
-        service = FileService(fs, {projectUrl:"http://localhost:2441"});
+        service = FileService(fs, {
+            getProjectUrl: function () {
+                return "http://localhost:2441";
+            }
+        });
     });
 
     describe("list", function () {
