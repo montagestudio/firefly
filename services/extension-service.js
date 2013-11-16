@@ -1,5 +1,6 @@
 /* global global */
 var Q = require("q");
+var QFS = require("q-io/fs");
 var PATH = require('path');
 
 var extensionsRoot = PATH.join(global.clientPath, "extensions");
@@ -35,15 +36,15 @@ function ExtensionService(fs) {
 
     //TODO add way to convert extensionUrl back to path
 
-    exports.getExtensions = function(extensionFolder) {
+    service.getExtensions = function(extensionFolder) {
         extensionFolder = extensionFolder || PATH.join(global.clientPath, "extensions");
 
-        return fs.listTree(extensionFolder, function (filePath) {
+        return QFS.listTree(extensionFolder, function (filePath) {
             // if false return null so directories aren't traversed
             return PATH.extname(filePath).toLowerCase() === ".filament-extension" ? true : (filePath ===  extensionFolder ? false : null);
         }).then(function (filePaths) {
                 return Q.all(filePaths.map(function (filePath) {
-                    return fs.stat(filePath).then(function (stat) {
+                    return QFS.stat(filePath).then(function (stat) {
                         return {url: convertPathToExtensionUrl(filePath), stat: stat};
                     });
                 }));

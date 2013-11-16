@@ -195,7 +195,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     availableExtensions: {
         get: function () {
-            return this.backend.get("extension-services").invoke("getExtensions");
+            return this.backend.get("extension-service").invoke("getExtensions");
         }
     },
 
