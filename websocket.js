@@ -65,8 +65,9 @@ function getFs(session, path) {
 function makeServices(fs, services) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
-        var x = services[name](fs);
-        connectionServices[name] = Q.master(x);
+        log("Creating", name);
+        var service = services[name](fs);
+        connectionServices[name] = Q.master(service);
     });
     return connectionServices;
 }

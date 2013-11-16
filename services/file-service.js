@@ -17,8 +17,6 @@ var guard = function (exclude) {
 
 module.exports = FileService;
 function FileService(fs) {
-    log("creating service");
-
     // Returned service
     var service = {};
 

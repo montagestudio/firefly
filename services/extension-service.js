@@ -7,8 +7,7 @@ var extensionsRoot = PATH.join(global.clientPath, "extensions");
 
 module.exports = ExtensionService;
 function ExtensionService(fs) {
-    log("creating service");
-
+    // Returned service
     var service = {};
 
     /**
