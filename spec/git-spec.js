@@ -13,10 +13,10 @@ describe("Git", function () {
             var tmp = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
             git.clone("https://github.com/montagejs/mousse.git", tmp)
             .then(function () {
-                return fs.exists(tmp + "/.git");
+                return git.isCloned(tmp);
             })
-            .then(function (gitExists) {
-                expect(gitExists).toBe(true);
+            .then(function (isCloned) {
+                expect(isCloned).toBe(true);
             })
             .finally(function () {
                 return fs.removeTree(tmp);

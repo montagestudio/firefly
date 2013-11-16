@@ -1,9 +1,9 @@
 var Q = require("q");
+var fs = require("q-io/fs");
 var exec = require("./exec");
 
 module.exports = Git;
 function Git(fs, accessToken) {
-    this._fs = fs;
     this._accessToken = accessToken;
 }
 
@@ -14,8 +14,8 @@ Git.prototype.clone = function(cloneUrl, path) {
     return exec("git", ["clone", cloneUrl, path], "/");
 };
 
-Git.prototype.isCloned = function(repoPath) {
-    var dotGitPath = this._fs.join(repoPath, ".git");
+Git.prototype.isCloned = function(path) {
+    var dotGitPath = fs.join(path, ".git");
 
-    return this._fs.isDirectory(dotGitPath);
+    return fs.isDirectory(dotGitPath);
 };
