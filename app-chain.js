@@ -70,9 +70,9 @@ function server(options) {
         // These services should be customized per websocket connection, to
         // encompass the session information
         var services = {};
-        // Object.keys(clientServices).forEach(function (name) {
-        //     services[name] = Q.master(require(fs.join(client, clientServices[name])));
-        // });
+        Object.keys(clientServices).forEach(function (name) {
+            services[name] = require(fs.join(client, clientServices[name]));
+        });
         services["file-service"] = require("./services/file-service");
         services["extension-service"] = require("./services/extension-service");
 
