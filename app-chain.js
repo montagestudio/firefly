@@ -36,8 +36,8 @@ function server(options) {
         var serveApp = serveFile(index, "text/html", fs);
 
         var chain = joey
-        .log(httpLog, function (message) { return message; })
         .error(true) // puts stack traces on error pages. TODO disable in production
+        .log(httpLog, function (message) { return message; })
         .parseQuery()
         .tap(parseCookies)
         .use(session)
