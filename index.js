@@ -7,6 +7,7 @@ var appChain = require("./app-chain");
 var projectChain = require("./project-chain");
 
 var Session = require("./session");
+var CheckSession = require("./check-session");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
@@ -53,6 +54,7 @@ function main(options) {
         {
             fs: fs,
             session: session,
+            checkSession: CheckSession,
             directory: fs.join(process.cwd(), options["project-dir"])
         })
         .spread(function (app, project) {

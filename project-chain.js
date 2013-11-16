@@ -12,6 +12,8 @@ function server(options) {
     var fs = options.fs;
     if (!options.session) throw new Error("options.session required");
     var session = options.session;
+    if (!options.checkSession) throw new Error("options.checkSession required");
+    var checkSession = options.checkSession;
     if (!options.directory) throw new Error("options.directory required");
     var directory = options.directory;
     //jshint +W116
@@ -21,4 +23,5 @@ function server(options) {
     .use(session)
     .cors("*", "*", "*")
     .fileTree(directory, {fs: fs}));
+    .use(checkSession)
 }
