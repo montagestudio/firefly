@@ -4,7 +4,6 @@ var Montage = require("montage").Montage,
     Connection = require("q-connection"),
     adaptConnection = require("q-connection/adapt"),
     FileDescriptor = require("./file-descriptor").FileDescriptor,
-    HostComponentConstructor = require("../ui/menu.reel").Menu,
     mainMenu = require("adaptor/client/core/menu").defaultMenu;
 
 var PROJECT_PROTOCOL = "fs:";
