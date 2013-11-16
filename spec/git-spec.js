@@ -98,4 +98,36 @@ describe("Git", function () {
             .then(done, done);
         });
     });
+
+    describe("config", function () {
+        it("configures name", function (done) {
+            git.init(tmpPath)
+            .then(function () {
+                return git.config(tmpPath, "user.name", "John Doe");
+            })
+            .then(function () {
+                return fs.read(fs.join(tmpPath, ".git", "config"));
+            })
+            .then(function (config) {
+                expect(config.indexOf('[user]')).not.toBe(-1);
+                expect(config.indexOf("name = John Doe")).not.toBe(-1);
+            })
+            .then(done, done);
+        });
+
+        it("configures email", function (done) {
+            git.init(tmpPath)
+            .then(function () {
+                return git.config(tmpPath, "user.email", "noreply@declarativ.com");
+            })
+            .then(function () {
+                return fs.read(fs.join(tmpPath, ".git", "config"));
+            })
+            .then(function (config) {
+                expect(config.indexOf('[user]')).not.toBe(-1);
+                expect(config.indexOf("email = noreply@declarativ.com")).not.toBe(-1);
+            })
+            .then(done, done);
+        });
+    });
 });
