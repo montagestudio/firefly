@@ -13,6 +13,18 @@ function GithubApi(accessToken) {
 GithubApi.prototype.API_URL = "https://api.github.com";
 
 /**
+ * Users
+ */
+
+// http://developer.github.com/v3/users/#get-the-authenticated-user
+GithubApi.prototype.getUser = function() {
+    return this._request({
+        method: "GET",
+        url: "/user"
+    });
+};
+
+/**
  * Git Data
  */
 
