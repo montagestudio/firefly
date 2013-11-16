@@ -14,6 +14,8 @@ function server(options) {
     var session = options.session;
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
+    if (!options.setupProjectWorkspace) throw new Error("options.setupProjectWorkspace required");
+    var setupProjectWorkspace = options.setupProjectWorkspace;
     if (!options.directory) throw new Error("options.directory required");
     var directory = options.directory;
     //jshint +W116
@@ -24,4 +26,5 @@ function server(options) {
     .cors("*", "*", "*")
     .fileTree(directory, {fs: fs}));
     .use(checkSession)
+    .use(setupProjectWorkspace(fs, directory))
 }
