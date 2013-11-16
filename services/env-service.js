@@ -1,13 +1,12 @@
-var Env = require("../environment");
-
-
 module.exports = EnvService;
-function EnvService() {
+function EnvService(_, environment, pathname) {
     // Returned service
     var service = {};
 
+    service.projectUrl = environment.getProjectUrl(pathname);
+
     service.getEnv = function (key) {
-        return Env[key];
+        return environment[key];
     };
 
     return service;

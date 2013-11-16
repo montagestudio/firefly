@@ -65,7 +65,7 @@ exports.EnvironmentBridge = Montage.specialize({
     packageUrl: {
         get: function () {
             if(!this._packageUrl) {
-                this._packageUrl = this.backend.get("env-service").invoke("getEnv", "projectUrl");
+                this._packageUrl = this.backend.get("env-service").get("projectUrl");
             }
             return this._packageUrl;
         }

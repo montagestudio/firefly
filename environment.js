@@ -16,6 +16,9 @@ if(production) {
         port: process.env.FIREFLY_PROJECT_PORT || 2440,
         protocol: process.env.FIREFLY_PROJECT_PROTOCOL || "http"
     };
+    env.getProjectUrl = function (pathname) {
+        throw new Error("TODO");
+    };
 } else {
     env.app = {
         host: "localhost",
@@ -27,17 +30,8 @@ if(production) {
         port: 2441,
         protocol: "http"
     };
-}
-
-Object.defineProperty(env, "appUrl", {
-    get: function () {
-        return this.app.protocol + "://" + this.app.host + ":" + this.app.port;
-    }
-});
-Object.defineProperty(env, "projectUrl", {
-    get: function () {
+    env.getProjectUrl = function (pathname) {
         return this.project.protocol + "://" + this.project.host + ":" + this.project.port;
-    }
-});
-
+    };
+}
 

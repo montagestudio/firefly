@@ -29,7 +29,7 @@ function websocket(sessions, services) {
             return getFs(session, path);
         })
         .then(function (fs) {
-            return makeServices(fs, services);
+            return makeServices(services, fs, Env, pathname);
         });
 
 
@@ -63,11 +63,11 @@ function getFs(session, path) {
     return FS.reroot(path);
 }
 
-function makeServices(fs, services) {
+function makeServices(services, fs, env, pathname) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
-        var service = services[name](fs, Env);
+        var service = services[name](fs, env, pathname);
         connectionServices[name] = Q.master(service);
     });
     return connectionServices;

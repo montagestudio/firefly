@@ -15,7 +15,7 @@ var guard = function (exclude) {
 };
 
 module.exports = FileService;
-function FileService(fs, environment) {
+function FileService(fs, environment, pathname) {
     // Returned service
     var service = {};
 
@@ -24,7 +24,7 @@ function FileService(fs, environment) {
     };
 
     var convertPathToProjectUrl = exports.convertPathToProjectUrl = function (path) {
-        var projectHost = environment.projectUrl;
+        var projectHost = environment.getProjectUrl(pathname);
         return projectHost + path;
     };
 
