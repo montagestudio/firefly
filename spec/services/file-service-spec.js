@@ -12,7 +12,7 @@ describe("file-service", function () {
         });
 
         service = FileService(fs, {
-            getProjectUrl: function () {
+            getProjectUrlFromAppUrl: function () {
                 return "http://localhost:2441";
             }
         });
