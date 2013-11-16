@@ -5,6 +5,7 @@ var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var JsonApps = require("q-io/http-apps/json");
 var sanitize = require("./sanitize");
+var environment = require("./environment");
 
 var parseCookies = require("./parse-cookies");
 
@@ -28,12 +29,42 @@ function server(options) {
     //jshint +W116
 
     return Q.resolve(joey
+    .cors(environment.getAppUrl(), "*", "*")
+    .headers({"Access-Control-Allow-Credentials": true})
+    .methods(function (method) {
+        method("POST")
+        .route(function (route) {
+            // This endpoint recieves a POST request with a session ID as the
+            // payload. It then "echos" this back as a set-cookie, so that
+            // the project domain now has the session cookie from the app domain
+            route("session").use(function (next) {
+                return function (request, response) {
+                    if (request.headers.origin === environment.getAppUrl()) {
+                        return request.body.read()
+                        .then(function (content) {
+                            var sessionId = content.toString("utf8");
+                            return {
+                                status: 200,
+                                headers: {
+                                    // TODO do this through the session object
+                                    "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
+                                },
+                                body: []
+                            };
+                        });
+                    } else {
+                        log("Invalid request to /session from origin", request.headers.origin);
+                        return next(request, response);
+                    }
+                };
+            });
+        });
+    })
     .tap(parseCookies)
     .use(session)
-    .cors("*", "*", "*")
     .use(checkSession)
     .use(setupProjectWorkspace(fs, directory, minitPath))
-    .methods(function(method) {
+    .methods(function (method) {
         method("GET")
         .app(function (request) {
             var path = environment.getProjectPathFromSessionAndProjectUrl(request.session, request.headers.host);
