@@ -1,4 +1,4 @@
-var production = process.env.NODE_ENV;
+var production = process.env.NODE_ENV === "production";
 
 var env = {
     production: !!production
