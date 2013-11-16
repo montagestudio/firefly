@@ -23,7 +23,8 @@
     "uuid": "~1.4.1",
     "minimatch": "~0.2.12",
     "logging": "~2.0.21",
-    "xmlhttprequest": "~1.6.0"
+    "xmlhttprequest": "~1.6.0",
+    "minit": "~0.3.10"
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",
