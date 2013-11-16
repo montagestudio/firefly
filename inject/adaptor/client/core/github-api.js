@@ -1,6 +1,12 @@
 /* global XMLHttpRequest */
 var Q = require("q");
 
+if (typeof window === "undefined") {
+    //jshint -W020
+    XMLHttpRequest = require/**/("xmlhttprequest").XMLHttpRequest;
+    //jshint +W020
+}
+
 module.exports = GithubApi;
 
 /**
