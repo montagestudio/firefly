@@ -1,30 +1,40 @@
 var log = require("logging").from(__filename);
-var parseCookies = require("./parse-cookies");
+
+var Q = require("q");
+var URL = require("url");
+var FS = require("q-io/fs");
 var ws = require("websocket.io");
 var Connection = require("q-connection");
+var parseCookies = require("./parse-cookies");
 
 module.exports = websocket;
-function websocket(session, services) {
+function websocket(sessions, services) {
+    log("Websocket given services", Object.keys(services));
+
     var socketServer = new ws.Server();
     socketServer.on("connection", function (connection) {
-        // The request has the session cookies, but hasn't gone through
-        // the joey chain, and so they haven't been parsed into .cookies
-        // Do that manually here
-        parseCookies(connection.req);
+        var request = connection.req;
+        var pathname = URL.parse(request.url).pathname;
+        // used for logging
+        var remoteAddress = connection.socket.remoteAddress;
 
-        // Use the above session id to get the session
-        // TODO: unused at the moment, will be used to change where the
-        // websocket looks for files etc.
-        session.get(connection.req.cookies.session)
+        log("websocket connection", remoteAddress, pathname);
+
+        var connectionServices = getSession(sessions, request)
         .then(function (session) {
-            log("websocket session:", session);
+            var path = getPath(session, pathname);
+            log("Limiting", remoteAddress, pathname, "to", path);
+            return getFs(session, path);
         })
-        .done();
+        .then(function (fs) {
+            return makeServices(fs, services);
+        });
 
-        Connection(connection, services);
+
+        Connection(connection, connectionServices);
 
         connection.on("close", function(conn) {
-            log("websocket connection closed");
+            log("websocket connection closed", remoteAddress, pathname);
         });
 
         connection.on("error", function(err) {
@@ -35,4 +45,32 @@ function websocket(session, services) {
     });
 
     return socketServer;
+}
+
+function getSession(sessions, request) {
+    // The request has the session cookies, but hasn't gone through
+    // the joey chain, and so they haven't been parsed into .cookies
+    // Do that manually here
+    parseCookies(request);
+
+    // Use the above session id to get the session
+    return sessions.get(request.cookies.session);
+}
+
+// TODO move into its own module
+function getPath(session, pathname) {
+    return FS.join(process.cwd(), "..", "clone");
+}
+
+function getFs(session, path) {
+    return FS.reroot(path);
+}
+
+function makeServices(fs, services) {
+    var connectionServices = {};
+    Object.keys(services).forEach(function (name) {
+        var x = services[name](fs);
+        connectionServices[name] = Q.master(x);
+    });
+    return connectionServices;
 }
