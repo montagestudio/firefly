@@ -18,7 +18,10 @@ module.exports = function exec(command, args, cwd) {
         cwd: cwd,
         stdio: global.DEBUG ? "inherit" : "ignore"
     });
-    proc.on('exit', function(code) {
+    proc.on("error", function (error) {
+        deferred.reject(error);
+    });
+    proc.on("exit", function(code) {
         if (code !== 0) {
             deferred.reject(new Error("'" + command + " " + args.join(" ") + "' in " + cwd + " exited with code " + code));
         } else {
