@@ -19,7 +19,9 @@ If Firefly is checked out next to filament you can run:
 npm start
 ```
 
-This will start a server at http://127.0.0.1:2440/
+Go to the server at http://app.127.0.0.1.xip.io:2440/ (This is a pass-through
+service that allows us to use subdomains in development. It's a fake DNS server
+that resolves all subdomains to whatever IP address you give it.)
 
 Otherwise you can run:
 
