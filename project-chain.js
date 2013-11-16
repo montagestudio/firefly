@@ -1,3 +1,4 @@
+var Q = require("q");
 var joey = require("joey");
 
 var parseCookies = require("./parse-cookies");
@@ -15,9 +16,9 @@ function server(options) {
     var directory = options.directory;
     //jshint +W116
 
-    return joey
+    return Q.resolve(joey
     .tap(parseCookies)
     .use(session)
     .cors("*", "*", "*")
-    .fileTree(directory, {fs: fs});
+    .fileTree(directory, {fs: fs}));
 }

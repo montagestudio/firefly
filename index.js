@@ -2,6 +2,7 @@ var log = require("logging").from(__filename);
 var Q = require("q");
 var FS = require("q-io/fs");
 
+var multiplex = require("./multiplex");
 var appChain = require("./app-chain");
 var projectChain = require("./project-chain");
 
@@ -39,31 +40,27 @@ function main(options) {
 
     // TODO: multiplex based on request.headers.host, instead of starting
     // two servers on different ports
-    return Q.all([
-        appChain({
+    return multiplex(
+        options,
+        appChain,
+        {
             fs: fs,
             client: options.client,
             session: session,
             clientServices: options.clientServices
-        })
-        .then(function (chain) {
-            return chain.listen(options["app-port"])
-            .then(function (server) {
-                server.node.on("upgrade", function (request, socket, head) {
-                    chain.upgrade(request, socket, head);
-                });
-
-                log("Listening on", "http://localhost:" + options["app-port"]);
-                return server;
-            });
-        }),
-        projectChain({
+        },
+        projectChain,
+        {
             fs: fs,
             session: session,
             directory: fs.join(process.cwd(), options["project-dir"])
         })
-        .listen(options["project-port"])
-    ]);
+        .spread(function (app, project) {
+            app.server.node.on("upgrade", function (request, socket, head) {
+                app.chain.upgrade(request, socket, head);
+            });
+            console.log("Listening on http://localhost:" + options["app-port"]);
+        });
 }
 
 if (require.main === module) {
