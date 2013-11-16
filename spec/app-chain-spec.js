@@ -6,7 +6,7 @@ describe("app chain", function () {
     var request, server;
     beforeEach(function (done) {
         var fs = MockFs({
-            "index.html": "pass",
+            "firefly-index.html": "pass",
             "login": {
                 "index.html": "pass"
             },
@@ -34,9 +34,9 @@ describe("app chain", function () {
         server.stop().then(done, done);
     });
 
-    describe("index", function () {
+    describe("firefly index", function () {
 
-        it("serves index.html at /app", function (done) {
+        it("serves firefly-index.html at /app", function (done) {
             request("http://127.0.0.1:2440/app")
             .then(function (response) {
                 expect(response.status).toEqual(200);
@@ -44,7 +44,7 @@ describe("app chain", function () {
             .then(done, done);
         });
 
-        it("serves index.html at /user/repo", function (done) {
+        it("serves firefly-index.html at /user/repo", function (done) {
             request("http://127.0.0.1:2440/declarativ/filament")
             .then(function (response) {
                 expect(response.status).toEqual(200);
