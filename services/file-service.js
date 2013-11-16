@@ -1,4 +1,3 @@
-var log = require("logging").from(__filename);
 var Q = require("q");
 var minimatch = require("minimatch");
 var PATH = require('path');
