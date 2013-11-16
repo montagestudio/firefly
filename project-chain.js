@@ -1,7 +1,10 @@
 var Q = require("q");
+var log = require("logging").from(__filename);
 var joey = require("joey");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
+var JsonApps = require("q-io/http-apps/json");
+var sanitize = require("./sanitize");
 
 var parseCookies = require("./parse-cookies");
 
@@ -44,6 +47,40 @@ function server(options) {
             });
         });
 
+        method("POST")
+        .route(function(route) {
+            route(":owner/:repo/init")
+            .app(function(request) {
+                var owner = sanitize.sanitizeDirectoryName(request.params.owner),
+                    repo = sanitize.sanitizeDirectoryName(request.params.repo);
+
+                return request.projectWorkspace.initRepository(owner, repo)
+                .then(function() {
+                    return JsonApps.json({
+                        message: "initialized",
+                        owner: owner,
+                        repository: repo
+                    });
+                })
+                .fail(function(reason) {
+                    if (reason.status === 404) {
+                        log("repository not found: " + owner + "/" + repo);
+                        return JsonApps.json({
+                            error: "not found",
+                            owner: owner,
+                            repository: repo
+                        });
+                    } else {
+                        log("repository init error: " + owner + "/" + repo);
+                        return JsonApps.json({
+                            error: "error",
+                            owner: owner,
+                            repository: repo
+                        });
+                    }
+                });
+            });
+        });
     }));
 }
 
