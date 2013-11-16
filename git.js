@@ -17,6 +17,11 @@ Git.prototype.init = function(repoPath) {
     return exec("git", ["init", repoPath], "/");
 };
 
+Git.prototype.config = function(repoPath, option, value) {
+    log("config " + option + " " + value);
+    return exec("git", ["config", option, value], repoPath);
+};
+
 Git.prototype.addRemote = function (repoPath, url) {
     log("remote add origin " + url);
     return exec("git", ["remote", "add", "origin", url], repoPath);
