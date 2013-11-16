@@ -10,7 +10,6 @@ var GithubApi = require("../inject/adaptor/client/core/github-api");
 
 var CLIENT_ID = "e3a42c8d5e2631ed7707";
 var CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
-var CALLBACK = "http://localhost:2440/auth/github/callback";
 
 var OAUTH_STATE = uuid.v4();
 
@@ -18,7 +17,6 @@ module.exports = function ($) {
     $("").redirect("https://github.com/login/oauth/authorize?" +
         querystring.stringify({
             "client_id": CLIENT_ID,
-            "redirect_uri": CALLBACK,
             "scope": ["user:email", "repo"].join(","),
             "state": OAUTH_STATE
         })
