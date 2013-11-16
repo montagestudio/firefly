@@ -7,6 +7,10 @@ function Git(fs, accessToken) {
     this._accessToken = accessToken;
 }
 
+Git.prototype.init = function(path) {
+    return exec("git", ["init", path], "/");
+};
+
 Git.prototype.clone = function(cloneUrl, path) {
     if (!/^https:\/\//.test(cloneUrl)) {
         return Q.reject(new Error("Clone url must be https://, not " + cloneUrl));
