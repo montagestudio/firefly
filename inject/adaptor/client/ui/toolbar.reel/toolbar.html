@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="toolbar.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "toolbar"}
+            }
+        },
+
+        "undoMenuItem": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "undoMenuItem"}
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@owner.undoMenuItemModel"}
+            }
+        },
+
+        "redoMenuItem": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "redoMenuItem"}
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@owner.redoMenuItemModel"}
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="toolbar" class="Toolbar">
+        <div data-montage-id="undoMenuItem"></div>
+        <div data-montage-id="redoMenuItem"></div>
+    </div>
+</body>
+</html>
