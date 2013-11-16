@@ -64,7 +64,15 @@ exports.EnvironmentBridge = Montage.specialize({
     packageUrl: {
         get: function () {
             if(!this._packageUrl) {
-                this._packageUrl = this.backend.get("env-service").get("projectUrl");
+                this._packageUrl = this.backend.get("env-service").get("projectUrl")
+                .then(function (url) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.withCredentials = true;
+                    xhr.open("post", url + "/session");
+                    xhr.send(document.cookie.match(/session=([^;]+)/)[1]);
+
+                    return url;
+                });
             }
             return this._packageUrl;
         }
