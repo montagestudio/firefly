@@ -1,5 +1,7 @@
 var Q = require("q");
 var joey = require("joey");
+var HttpApps = require("q-io/http-apps/fs");
+var StatusApps = require("q-io/http-apps/status");
 
 var parseCookies = require("./parse-cookies");
 
@@ -24,7 +26,24 @@ function server(options) {
     .tap(parseCookies)
     .use(session)
     .cors("*", "*", "*")
-    .fileTree(directory, {fs: fs}));
     .use(checkSession)
     .use(setupProjectWorkspace(fs, directory))
+    .methods(function(method) {
+        method("GET")
+        .app(function(request) {
+            var username = request.session.username;
+
+            return fs.reroot(fs.join(directory, username)).then(function(fs) {
+                return fs.isFile(request.path).then(function(isFile) {
+                    if (isFile) {
+                        return HttpApps.file(request, request.path, null, fs);
+                    } else {
+                        return StatusApps.notFound(request);
+                    }
+                });
+            });
+        });
+
+    }));
 }
+
