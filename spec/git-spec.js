@@ -36,7 +36,7 @@ describe("Git", function () {
             })
             .then(function (config) {
                 expect(config.indexOf('[remote "origin"]')).not.toBe(-1);
-                expect(config.indexOf("url = https://xxx:x-oauth-basic@github.com/montagejs/mousse.git")).not.toBe(-1);
+                expect(config.indexOf("url = https://github.com/montagejs/mousse.git")).not.toBe(-1);
             })
             .then(done, done);
         });

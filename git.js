@@ -1,3 +1,4 @@
+var log = require("logging").from(__filename);
 var Q = require("q");
 var fs = require("q-io/fs");
 var URL = require("url");
@@ -12,25 +13,34 @@ function Git(fs, accessToken) {
 }
 
 Git.prototype.init = function(repoPath) {
+    log("init " + repoPath);
     return exec("git", ["init", repoPath], "/");
 };
 
 Git.prototype.addRemote = function (repoPath, url) {
-    url = this._addAccessToken(url);
+    log("remote add origin " + url);
     return exec("git", ["remote", "add", "origin", url], repoPath);
 };
 
 Git.prototype.add = function(repoPath, paths) {
+    log("add " + paths);
     var args = ["add"].concat(paths);
     return exec("git", args, repoPath);
 };
 
 Git.prototype.commit = function (repoPath, message) {
-    return exec("git", ["commit", "-m", message], repoPath);
+    var args = ["commit", "-m", message];
+    log("commit ", args);
+    return exec("git", args, repoPath);
 };
 
-Git.prototype.push = function(repoPath, branch) {
-    var args = ["push", "origin"];
+Git.prototype.push = function(repoPath, repositoryUrl, branch) {
+    if (!/^https:\/\//.test(repositoryUrl)) {
+        return Q.reject(new Error("Push url must be https://, not " + repositoryUrl));
+    }
+    log("push " + repositoryUrl + (branch ? " " + branch : ""));
+    repositoryUrl = this._addAccessToken(repositoryUrl);
+    var args = ["push", repositoryUrl];
     if (typeof branch === "string") {
         args.push(branch);
     }
@@ -47,7 +57,6 @@ Git.prototype.clone = function(cloneUrl, repoPath) {
     if (!/^https:\/\//.test(cloneUrl)) {
         return Q.reject(new Error("Clone url must be https://, not " + cloneUrl));
     }
-    cloneUrl = this._addAccessToken(cloneUrl);
     return exec("git", ["clone", cloneUrl, repoPath], "/");
 };
 
