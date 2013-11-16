@@ -32,7 +32,7 @@ function server(options) {
         global.clientPath = path.normalize(path.join(__dirname, client));
         log("Filament client path", global.clientPath);
 
-        var index = fs.join(client, "index.html");
+        var index = fs.join(client, "firefly-index.html");
         var serveApp = serveFile(index, "text/html", fs);
 
         var chain = joey
