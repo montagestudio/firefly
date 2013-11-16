@@ -6,6 +6,8 @@ var querystring = require("querystring");
 var uuid = require("uuid");
 var redirect = require("q-io/http-apps/redirect").redirect;
 
+var GithubApi = require("../inject/adaptor/client/core/github-api");
+
 var CLIENT_ID = "e3a42c8d5e2631ed7707";
 var CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
 var CALLBACK = "http://127.0.0.1:2440/auth/github/callback";
@@ -73,7 +75,13 @@ module.exports = function ($) {
                 //jshint -W106
                 request.session.githubAccessToken = data.access_token;
                 //jshint +W106
-                done.resolve(redirect(request, "/projects"));
+
+                var githubApi = new GithubApi(request.session.githubAccessToken);
+                githubApi.getUser().then(function(user) {
+                    request.session.githubUser = user;
+                    request.session.username = user.login;
+                    done.resolve(redirect(request, "/projects"));
+                }).done();
             });
         });
         req.on('error', function(e) {
