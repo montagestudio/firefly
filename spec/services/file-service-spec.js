@@ -11,7 +11,7 @@ describe("file-service", function () {
             "package.json": "{}"
         });
 
-        service = FileService(fs);
+        service = FileService(fs, {projectUrl:"http://localhost:2441"});
     });
 
     describe("list", function () {
