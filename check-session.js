@@ -1,5 +1,3 @@
-var ContentApps = require("q-io/http-apps/content");
-
 exports = module.exports = CheckSession;
 
 function CheckSession(next) {
@@ -9,7 +7,13 @@ function CheckSession(next) {
         if (user) {
             return next(request, response);
         } else {
-            return ContentApps.content("Not logged in!");
+            return {
+                status: 403,
+                headers: {
+                    "content-type": "text/plain",
+                },
+                body: ["Not logged in"]
+            };
         }
     };
 }
