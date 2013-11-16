@@ -6,6 +6,7 @@ var FS = require("q-io/fs");
 var ws = require("websocket.io");
 var Connection = require("q-connection");
 var parseCookies = require("./parse-cookies");
+var getProjectPath = require("./get-project-path");
 
 module.exports = websocket;
 function websocket(sessions, services) {
@@ -22,7 +23,7 @@ function websocket(sessions, services) {
 
         var connectionServices = getSession(sessions, request)
         .then(function (session) {
-            var path = getPath(session, pathname);
+            var path = getProjectPath(session, pathname);
             log("Limiting", remoteAddress, pathname, "to", path);
             return getFs(session, path);
         })
@@ -55,11 +56,6 @@ function getSession(sessions, request) {
 
     // Use the above session id to get the session
     return sessions.get(request.cookies.session);
-}
-
-// TODO move into its own module
-function getPath(session, pathname) {
-    return FS.join(process.cwd(), "..", "clone");
 }
 
 function getFs(session, path) {
