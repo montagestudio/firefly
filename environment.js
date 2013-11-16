@@ -32,12 +32,44 @@ if(production) {
         port: 2441,
         protocol: "http"
     };
-    env.getProjectUrl = function (pathname) {
-        var url = Object.create(this.project);
+    env.getDetailsFromAppUrl = function (url) {
+        var pathname = URL.parse(url).pathname;
+
         var match = pathname.match(/\/?([^\/]+)\/([^\/]+)/);
-        url.hostname = match[1] + "-" + match[2] + "." + url.hostname;
-        return URL.format(url);
+        var owner = match[1];
+        var repo = match[2];
+
+        return {
+            owner: owner,
+            repo: repo
+        };
     };
+    env.getDetailsfromProjectUrl = function (url) {
+        var hostname = URL.parse(url).hostname;
+
+        var match = hostname.match(/([a-z]+)-([a-z]+)\./i);
+        var owner = match[1];
+        var repo = match[2];
+
+        return {
+            owner: owner,
+            repo: repo
+        };
+    };
+    env.getProjectUrlFromAppUrl = function (url) {
+        var details = this.getDetailsFromAppUrl(url);
+        var urlObj = Object.create(this.project);
+        urlObj.hostname = details.owner + "-" + details.repo + "." + urlObj.hostname;
+        return URL.format(urlObj);
+    };
+    env.getProjectPathFromSessionAndAppUrl = function (session, url) {
+        var details = this.getDetailsFromAppUrl(url);
+
+        // FIXME not to use FS
+        var FS = require("q-io/fs");
+        return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
+    };
+
 }
 
 env.getAppUrl = function () {

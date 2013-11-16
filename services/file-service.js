@@ -24,7 +24,7 @@ function FileService(fs, environment, pathname) {
     };
 
     var convertPathToProjectUrl = exports.convertPathToProjectUrl = function (path) {
-        var projectHost = environment.getProjectUrl(pathname);
+        var projectHost = environment.getProjectUrlFromAppUrl(pathname);
         return projectHost + path;
     };
 

@@ -7,7 +7,6 @@ var FS = require("q-io/fs");
 var ws = require("websocket.io");
 var Connection = require("q-connection");
 var parseCookies = require("./parse-cookies");
-var getProjectPath = require("./get-project-path");
 
 module.exports = websocket;
 function websocket(sessions, services) {
@@ -24,7 +23,7 @@ function websocket(sessions, services) {
 
         var connectionServices = getSession(sessions, request)
         .then(function (session) {
-            var path = getProjectPath(session, pathname);
+            var path = Env.getProjectPathFromSessionAndAppUrl(session, pathname);
             log("Limiting", remoteAddress, pathname, "to", path);
             return getFs(session, path);
         })
