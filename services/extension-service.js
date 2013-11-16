@@ -6,7 +6,7 @@ var PATH = require('path');
 var extensionsRoot = PATH.join(global.clientPath, "extensions");
 
 module.exports = ExtensionService;
-function ExtensionService(fs) {
+function ExtensionService(fs, environment) {
     // Returned service
     var service = {};
 
@@ -24,7 +24,7 @@ function ExtensionService(fs) {
      *  - From a user's own selection of available extensions
      */
     var convertPathToExtensionUrl = exports.convertPathToExtensionUrl = function (path) {
-        var projectHost = "http://localhost:2440/app/extensions",
+        var projectHost = environment.getAppUrl() + "/app/extensions",
             url = null;
 
         if (new RegExp(extensionsRoot).test(path)) {

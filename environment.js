@@ -23,17 +23,20 @@ if(production) {
     };
 } else {
     env.app = {
-        hostname: "localhost",
+        hostname: "app.127.0.0.1.xip.io",
         port: 2440,
         protocol: "http"
     };
     env.project = {
-        hostname: "localhost",
+        hostname: "project.127.0.0.1.xip.io",
         port: 2441,
         protocol: "http"
     };
     env.getProjectUrl = function (pathname) {
-        return URL.format(this.project);
+        var url = Object.create(this.project);
+        var match = pathname.match(/\/?([^\/]+)\/([^\/]+)/);
+        url.hostname = match[1] + "-" + match[2] + "." + url.hostname;
+        return URL.format(url);
     };
 }
 
