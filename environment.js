@@ -45,7 +45,16 @@ if(production) {
         };
     };
     env.getDetailsfromProjectUrl = function (url) {
+        // Needed because node's URL.parse interprets
+        // a.b.c.com:1234
+        // as
+        // protocol: "a.b.c.d.com"
+        // hostname: "2440"
+        if (!/^https?:\/\//.test(url)) {
+            url = "http://" + url;
+        }
         var hostname = URL.parse(url).hostname;
+        console.log("getDetailsfromProjectUrl", hostname);
 
         var match = hostname.match(/([a-z]+)-([a-z]+)\./i);
         var owner = match[1];
@@ -69,7 +78,14 @@ if(production) {
         var FS = require("q-io/fs");
         return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
     };
+    env.getProjectPathFromSessionAndProjectUrl = function (session, url) {
+        console.log("getProjectPathFromSessionAndProjectUrl", url);
+        var details = this.getDetailsfromProjectUrl(url);
 
+        // FIXME not to use FS
+        var FS = require("q-io/fs");
+        return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
+    };
 }
 
 env.getAppUrl = function () {

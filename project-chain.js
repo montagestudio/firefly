@@ -35,10 +35,11 @@ function server(options) {
     .use(setupProjectWorkspace(fs, directory, minitPath))
     .methods(function(method) {
         method("GET")
-        .app(function(request) {
-            var username = request.session.username;
+        .app(function (request) {
+            var path = environment.getProjectPathFromSessionAndProjectUrl(request.session, request.headers.host);
 
-            return fs.reroot(fs.join(directory, username)).then(function(fs) {
+            log("rerooting to", fs.join(path));
+            return fs.reroot(fs.join(path)).then(function(fs) {
                 return fs.isFile(request.path).then(function(isFile) {
                     if (isFile) {
                         return HttpApps.file(request, request.path, null, fs);
