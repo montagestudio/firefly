@@ -197,6 +197,17 @@ GithubApi.prototype._createQueryString = function(query) {
 };
 
 /**
+ * Not part of Github API but they are helper functions
+ */
+
+GithubApi.prototype.isRepositoryEmpty = function(username, repository) {
+    return this.listBranches(username, repository)
+    .then(function(branches) {
+        return branches.length === 0;
+    });
+};
+
+/**
  * @typeof RequestOptions
  * @type {object}
  * @property {string} url The URL to request.
