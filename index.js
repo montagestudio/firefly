@@ -1,5 +1,4 @@
 var log = require("logging").from(__filename);
-var Q = require("q");
 var FS = require("q-io/fs");
 
 var multiplex = require("./multiplex");
@@ -59,7 +58,7 @@ function main(options) {
             app.server.node.on("upgrade", function (request, socket, head) {
                 app.chain.upgrade(request, socket, head);
             });
-            console.log("Listening on http://localhost:" + options["app-port"]);
+            log("Listening on http://localhost:" + options["app-port"]);
         });
 }
 

@@ -1,5 +1,4 @@
 var Q = require("q");
-var FS = require("q-io/fs");
 var joey = require("joey");
 
 var production = process.env.NODE_ENV;
