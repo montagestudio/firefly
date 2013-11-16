@@ -63,7 +63,7 @@ function main(options) {
             app.server.node.on("upgrade", function (request, socket, head) {
                 app.chain.upgrade(request, socket, head);
             });
-            log("Listening on http://"+Env.app.host+":" + options["app-port"]);
+            log("Listening on", "http://"+Env.app.hostname+":" + options["app-port"]);
         });
 }
 

@@ -12,10 +12,10 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
                 projectChainFactory(projectChainOptions)
             ])
             .spread(function (appChain, projectChain) {
-                return joey.host(Env.app.host+":*", Env.project.host+":*")
+                return joey.host(Env.app.hostname+":*", Env.project.hostname+":*")
                     .hosts(function (branch) {
-                        branch(Env.app.host+":*").app(appChain.end());
-                        branch(Env.project.host+":*").app(projectChain).end();
+                        branch(Env.app.hostname+":*").app(appChain.end());
+                        branch(Env.project.hostname+":*").app(projectChain).end();
                     })
                     .listen(2440)
                     .then(function (server) {
