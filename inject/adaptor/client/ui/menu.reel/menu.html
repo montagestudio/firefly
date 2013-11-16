@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="menu.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "menu"}
+            }
+        },
+
+        "undoMenuItem": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "undoMenuItem"}
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@owner.undoMenuItemModel"}
+            }
+        },
+
+        "redoMenuItem": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "redoMenuItem"}
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@owner.redoMenuItemModel"}
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="menu" class="Menu">
+        <div data-montage-id="undoMenuItem"></div>
+        <div data-montage-id="redoMenuItem"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="menu-item.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "menuItem"}
+            }
+        },
+
+        "menuButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "menuButton"}
+            },
+            "bindings": {
+                "label": {"<-": "@owner.menuItemModel.title"}
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="menuItem" class="MenuItem">
+        <input type="button" data-montage-id="menuButton">
+    </div>
+</body>
+</html>
