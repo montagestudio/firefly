@@ -45,7 +45,7 @@ function server(options) {
 
         var chain = joey
         .error(true) // puts stack traces on error pages. TODO disable in production
-        //.log(httpLog, function (message) { return message; })
+        .log(httpLog, function (message) { return message; })
         .parseQuery()
         .tap(parseCookies)
         .use(session)
@@ -133,7 +133,7 @@ function server(options) {
                             });
                         });
                     });
-                })
+                });
             });
 
             // Must be last, as this is the most generic
