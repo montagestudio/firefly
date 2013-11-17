@@ -29,14 +29,74 @@
             "bindings": {
                 "menuItemModel": {"<-": "@owner.redoMenuItemModel"}
             }
+        },
+        
+        "newButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "newButton"}
+            }
+        },
+        
+        "openButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "openButton"}
+            }
+        },
+        
+        "sourceButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "sourceButton"}
+            }
+        },
+        
+        "avatar": {
+            "prototype": "matte/ui/image.reel",
+            "properties": {
+                "element": {"#": "avatar"},
+                "src": "https://0.gravatar.com/avatar/61bfa3de1db650d1d4bd32525dc451ea"
+            }
+        },
+        
+        "username": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "username"},
+                "value": "António Afonso"
+            }
+        },
+        
+        "logoutButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "logoutButton"}
+            }
         }
     }
     </script>
 </head>
 <body>
     <div data-montage-id="toolbar" class="Toolbar">
-        <div data-montage-id="undoMenuItem"></div>
-        <div data-montage-id="redoMenuItem"></div>
+        
+        <div class="matte-ButtonGroup">
+            <button data-montage-id="newButton" class="Button Toolbar-button">New</button>
+            <button data-montage-id="openButton" class="Button Toolbar-button">Open</button>
+        </div>
+        
+        <div class="matte-ButtonGroup">
+            <div data-montage-id="undoMenuItem"></div>
+            <div data-montage-id="redoMenuItem"></div>
+        </div>
+        
+        <div class="Toolbar-group">
+            <button data-montage-id="sourceButton" class="Button Toolbar-button">Source</button>
+            <img data-montage-id="avatar" class="Toolbar-avatar">
+            <span data-montage-id="username" class="Toolbar-username"></span>
+            <button data-montage-id="logoutButton" class="Button Toolbar-button">Logout</button>
+        </div>
+        
     </div>
 </body>
 </html>

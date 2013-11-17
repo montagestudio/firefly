@@ -1,3 +1,7 @@
 .MenuItem {
 
 }
+
+.MenuItem-button {
+    display: block;
+}
