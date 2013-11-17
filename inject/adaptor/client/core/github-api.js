@@ -213,6 +213,18 @@ GithubApi.prototype.isRepositoryEmpty = function(username, repository) {
     });
 };
 
+GithubApi.prototype.repositoryExists = function(username, repository) {
+    return this.listUserRepositories(username)
+    .then(function(repos) {
+        for (var i = 0; i < repos.length; i++) {
+            if (repos[i].name === repository) {
+                return true;
+            }
+        }
+        return false;
+    });
+};
+
 /**
  * @typeof RequestOptions
  * @type {object}
