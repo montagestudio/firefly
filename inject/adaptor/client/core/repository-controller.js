@@ -3,6 +3,19 @@ var Montage = require("montage").Montage;
 var Promise = require("montage/core/promise").Promise;
 var github = require("./github");
 
+/**
+ * The functions provided by this file should be converted into a service.
+ * Everything that requires a session token should definitely be provided by
+ * the backend to avoid exposing the token to the client ever.
+ * However, we can still offload some of the git related work to the client
+ * if the repository we're working with is public.
+ *
+ * It's also worth considering splitting the services provided by this file into
+ * two: project related operations and git repo related operations.
+ * It's possible that we need information on a particular git repo that isn't
+ * a project.
+ */
+
 exports.RepositoryController = Montage.specialize({
     owner: {
         value: null
@@ -43,6 +56,35 @@ exports.RepositoryController = Montage.specialize({
             return github.githubApi()
             .then(function(githubApi) {
                 return githubApi.isRepositoryEmpty(self.owner, self.repo);
+            });
+        }
+    },
+
+    isMontageRepository: {
+        value: function() {
+            return github.githubFs(this.owner, this.repo)
+            .then(function(githubFs) {
+                return githubFs.exists("/package.json").then(function(exists) {
+                    if (exists) {
+                        return githubFs.read("/package.json").then(function(content) {
+                            var packageDescription;
+                            try {
+                                packageDescription = JSON.parse(content);
+                            } catch(ex) {
+                                // not a JSON file
+                                return false;
+                            }
+                            if (packageDescription.dependencies &&
+                                "montage" in packageDescription.dependencies) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        });
+                    } else {
+                        return false;
+                    }
+                });
             });
         }
     },

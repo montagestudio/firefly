@@ -275,6 +275,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    isMontageRepository: {
+        value: function() {
+            return this.repositoryController.isMontageRepository();
+        }
+    },
+
     repositoryExists: {
         value: function() {
             return this.repositoryController.repositoryExists();
