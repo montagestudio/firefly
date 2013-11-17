@@ -15,7 +15,8 @@ function ProjectWorkspace(fs, directory, session, minitPath) {
 }
 
 ProjectWorkspace.prototype.init = function() {
-    return this._fs.makeDirectory(this._root);
+    // TODO: move this to session create
+    return this._fs.makeTree(this._root);
 };
 
 ProjectWorkspace.prototype.getPath = function(pathname) {
