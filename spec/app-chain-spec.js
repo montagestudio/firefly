@@ -78,7 +78,7 @@ describe("app chain", function () {
     });
 
     it("serves client adaptor at adaptor/client", function (done) {
-        request("http://127.0.0.1:2440/adaptor/client/ui/native/menu.js")
+        request("http://127.0.0.1:2440/app/adaptor/client/core/menu.js")
         .then(function (response) {
             expect(response.status).toEqual(200);
         }).then(done, done);
