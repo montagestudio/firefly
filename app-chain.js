@@ -7,6 +7,8 @@ var serveFile = require("./serve-file");
 var parseCookies = require("./parse-cookies");
 var GithubAuth = require("./auth/github");
 var websocket = require("./websocket");
+var JsonApps = require("q-io/http-apps/json");
+var sanitize = require("./sanitize");
 
 module.exports = server;
 function server(options) {
@@ -21,6 +23,12 @@ function server(options) {
     var session = options.session;
     if (!options.clientServices) throw new Error("options.clientServices required");
     var clientServices = options.clientServices;
+    if (!options.setupProjectWorkspace) throw new Error("options.setupProjectWorkspace required");
+    var setupProjectWorkspace = options.setupProjectWorkspace;
+    if (!options.directory) throw new Error("options.directory required");
+    var directory = options.directory;
+    if (!options.minitPath) throw new Error("options.minitPath required");
+    var minitPath = options.minitPath;
     //jshint +W116
 
     return fs.exists(client)
@@ -62,8 +70,44 @@ function server(options) {
             // FIXME: remove this
             route("clone/...").fileTree(fs.join(__dirname, "..", "clone"));
 
+            route(":owner/:repo/init")
+            .methods(function (method) {
+                method("GET")
+                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .app(function (request) {
+                    var owner = sanitize.sanitizeDirectoryName(request.params.owner),
+                        repo = sanitize.sanitizeDirectoryName(request.params.repo);
+
+                    return request.projectWorkspace.initRepository(owner, repo)
+                    .then(function() {
+                        return JsonApps.json({
+                            message: "initialized",
+                            owner: owner,
+                            repository: repo
+                        });
+                    })
+                    .fail(function(reason) {
+                        if (reason.status === 404) {
+                            log("repository not found: " + owner + "/" + repo);
+                            return JsonApps.json({
+                                error: "not found",
+                                owner: owner,
+                                repository: repo
+                            });
+                        } else {
+                            log("repository init error: " + owner + "/" + repo);
+                            return JsonApps.json({
+                                error: reason.stack,
+                                owner: owner,
+                                repository: repo
+                            });
+                        }
+                    });
+                });
+            });
+
             // Must be last, as this is the most generic
-            route(":user/:repo/...").terminate(serveApp);
+            route(":user/:repo").terminate(serveApp);
 
         });
 
