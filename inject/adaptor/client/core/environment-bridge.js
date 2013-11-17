@@ -275,6 +275,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    repositoryExists: {
+        value: function() {
+            return this.repositoryController.repositoryExists();
+        }
+    },
+
     saveFile: {
         value: function(filename, contents) {
             return this.repositoryController.saveFile(filename, contents);

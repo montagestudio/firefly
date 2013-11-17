@@ -47,6 +47,17 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
+    repositoryExists: {
+        value: function() {
+            var self = this;
+
+            return github.githubApi()
+            .then(function(githubApi) {
+                return githubApi.repositoryExists(self.owner, self.repo);
+            });
+        }
+    },
+
     createComponent: {
         value: function(name) {
             return this._request({
