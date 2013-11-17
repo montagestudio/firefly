@@ -14,6 +14,10 @@ function ProjectWorkspace(fs, directory, session, minitPath) {
     this._git = new Git(this._fs, this._session.githubAccessToken);
 }
 
+ProjectWorkspace.prototype.init = function() {
+    return this._fs.makeDirectory(this._root);
+};
+
 ProjectWorkspace.prototype.getPath = function(pathname) {
     return this._fs.join(this._root, this._fs.resolve(pathname));
 };
