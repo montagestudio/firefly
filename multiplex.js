@@ -187,5 +187,5 @@ var Constrain = function (Using) {
             });
             return Using(types);
         });
-    }
+    };
 };
