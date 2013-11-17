@@ -1,3 +1,5 @@
+var env = require("./environment");
+
 exports = module.exports = CheckSession;
 
 function CheckSession(next) {
@@ -8,11 +10,10 @@ function CheckSession(next) {
             return next(request, response);
         } else {
             return {
-                status: 403,
+                status: 301,
                 headers: {
-                    "content-type": "text/plain",
-                },
-                body: ["Not logged in"]
+                    "Location": env.app.protocol + "://" + env.app.hostname + ":" + env.app.port
+                }
             };
         }
     };
