@@ -10,9 +10,9 @@ function CheckSession(next) {
             return next(request, response);
         } else {
             return {
-                status: 301,
+                status: 302,
                 headers: {
-                    "Location": env.app.protocol + "://" + env.app.hostname + ":" + env.app.port
+                    "Location": env.getAppUrl()
                 }
             };
         }
