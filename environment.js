@@ -55,7 +55,7 @@ if(production) {
         }
         var hostname = URL.parse(url).hostname;
 
-        var match = hostname.match(/([a-z]+)-([a-z]+)\./i);
+        var match = hostname.match(/([a-z\-]+)-([a-z]+)\./i);
         var owner = match[1];
         var repo = match[2];
 
