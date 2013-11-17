@@ -17,6 +17,11 @@ exports.EnvironmentBridge = Montage.specialize({
     constructor: {
         value: function EnvironmentBridge() {
             this.super();
+            var pathComponents = window.location.pathname.replace(/^\//, "").split("/");
+            if (pathComponents.length >= 2) {
+                this._userName = pathComponents[0];
+                this._projectName = pathComponents[1];
+            }
         }
     },
 
@@ -81,14 +86,11 @@ exports.EnvironmentBridge = Montage.specialize({
 
     projectUrl: {
         get: function () {
-            var pathComponents = window.location.pathname.replace(/^\//, "").split("/"),
-                user,
-                project,
+            var user = this._userName,
+                project = this._projectName,
                 url = null;
 
-            if (pathComponents.length >= 2) {
-                this._userName = user = pathComponents[0];
-                this._projectName = project = pathComponents[1];
+            if (user && project) {
                 url = PROJECT_PROTOCOL + "//" + user + "/" + project;
             }
 
