@@ -1,13 +1,14 @@
 {
   "name": "firefly",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.0-4",
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
     "test": "istanbul test jasmine-node -- --junitreport spec && jshint --verbose .",
     "start": "node index.js --client=../filament",
-    "update-dependencies": "rm -rf node_modules && npm install && npm dedupe && git add --update node_modules && git add node_modules"
+    "update-dependencies": "rm -rf node_modules && npm install && npm dedupe && git add --update node_modules && git add node_modules",
+    "predeploy": "cp -R ../filament/ ./app/filament/"
   },
   "repository": {
     "type": "git",
@@ -34,5 +35,9 @@
   "subdomain": "firefly",
   "engines": {
     "node": "0.10.x"
-  }
+  },
+  "domains": [
+    "firefly.declarativ.net",
+    "project.declarativ.net"
+  ]
 }

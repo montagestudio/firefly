@@ -115,7 +115,7 @@ function server(options) {
         // encompass the session information
         var services = {};
         Object.keys(clientServices).forEach(function (name) {
-            services[name] = require(fs.join(client, clientServices[name]));
+            services[name] = require("./"+fs.join(client, clientServices[name]));
         });
         services["file-service"] = require("./services/file-service");
         services["extension-service"] = require("./services/extension-service");

@@ -17,7 +17,7 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
                         branch(Env.app.hostname+":*").app(appChain.end());
                         branch(Env.project.hostname+":*").app(projectChain).end();
                     })
-                    .listen(2440)
+                    .listen(Env.app.port)
                     .then(function (server) {
                         return [
                             {

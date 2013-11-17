@@ -39,9 +39,9 @@ function main(options) {
     var session = Session("session", SESSION_SECRET);
 
     var fs = options.fs || FS;
-
-    // TODO: multiplex based on request.headers.host, instead of starting
-    // two servers on different ports
+    if(Env.production) {
+        options.client = "./app/filament";
+    }
     return multiplex(
         options,
         appChain,
