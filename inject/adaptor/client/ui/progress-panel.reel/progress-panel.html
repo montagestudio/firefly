@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="progress-panel.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "progressPanel"}
+            }
+        },
+
+        "messageLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "messageLabel"}
+            },
+            "bindings": {
+                "value": {"<-": "@owner.message"}
+            }
+        },
+
+        "progressBar": {
+            "prototype": "matte/ui/progress.reel",
+            "properties": {
+                "element": {"#": "progressBar"}
+            },
+            "bindings": {
+                "max": {"<-": "@owner.progressMax"},
+                "value": {"<-": "@owner.progress"}
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="progressPanel" class="ProgressPanel">
+        <p data-montage-id="messageLabel"></p>
+        <div data-montage-id="progressBar"></div>
+    </div>
+</body>
+</html>
