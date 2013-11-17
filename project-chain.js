@@ -5,6 +5,7 @@ var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var environment = require("./environment");
 
+var LogStackTraces = require("./log-stack-traces");
 var parseCookies = require("./parse-cookies");
 
 module.exports = server;
@@ -21,6 +22,9 @@ function server(options) {
     //jshint +W116
 
     return Q.resolve(joey
+    .error()
+    .log(log, function (message) { return message; })
+    .use(LogStackTraces(log))
     .cors(environment.getAppUrl(), "*", "*")
     .headers({"Access-Control-Allow-Credentials": true})
     .methods(function (method) {
