@@ -144,6 +144,32 @@ function server(options) {
                 });
             });
 
+            route(":owner/:repo/workspace")
+            .methods(function (method) {
+                method("GET")
+                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .app(function (request) {
+                    var owner = sanitize.sanitizeDirectoryName(request.params.owner),
+                        repo = sanitize.sanitizeDirectoryName(request.params.repo);
+
+                    return request.projectWorkspace.existsRepository(owner, repo)
+                    .then(function(exists) {
+                        return JsonApps.json({
+                            owner: owner,
+                            repository: repo,
+                            created: exists
+                        });
+                    })
+                    .fail(function(reason) {
+                        return JsonApps.json({
+                            error: reason.message,
+                            owner: owner,
+                            repository: repo
+                        });
+                    });
+                });
+            });
+
             // Must be last, as this is the most generic
             route(":owner/:repo")
             .methods(function (method) {
