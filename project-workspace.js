@@ -84,7 +84,7 @@ ProjectWorkspace.prototype.initEmptyRepository = function(repositoryUrl, reposit
     }).then(function() {
         return self._git.addRemote(repoPath, repositoryUrl);
     }).then(function() {
-        return self._commitAllRepositoryFiles(owner, repo);
+        return self._commitAllRepositoryFiles(owner, repo, "Initial commit");
     }).then(function() {
         return self._git.push(repoPath, repositoryUrl, repositoryBranch);
     });
@@ -107,7 +107,7 @@ ProjectWorkspace.prototype._commitAllRepositoryFiles = function(owner, repo) {
 
     return this._git.add(repoPath, "--all")
     .then(function() {
-        return self._git.commit(repoPath, "Initial commit");
+        return self._git.commit(repoPath, message);
     });
 };
 
