@@ -29,7 +29,7 @@ function websocket(sessions, services) {
         })
         .then(function (fs) {
             return makeServices(services, fs, Env, pathname);
-        });
+        }).done();
 
 
         Connection(connection, connectionServices);
