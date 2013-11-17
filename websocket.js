@@ -29,8 +29,12 @@ function websocket(sessions, services) {
         })
         .then(function (fs) {
             return makeServices(services, fs, Env, pathname);
-        }).done();
+        });
 
+        // Throw errors if they happen in establishing services
+        // This is not included in the chain of resolving connectionService
+        // as we'd then be using done to set the connectionServices to undefined
+        connectionServices.done();
 
         Connection(connection, connectionServices);
 
