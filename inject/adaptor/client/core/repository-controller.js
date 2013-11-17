@@ -100,6 +100,18 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
+    workspaceExists: {
+        value: function() {
+            return this._request({
+                method: "GET",
+                url: "/" + this.owner + "/" + this.repo + "/workspace"
+            })
+            .then(function(message) {
+                return message.created;
+            });
+        }
+    },
+
     createComponent: {
         value: function(name) {
             return this._request({

@@ -288,6 +288,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    projectExists: {
+        value: function() {
+            return this.repositoryController.workspaceExists();
+        }
+    },
+
     saveFile: {
         value: function(filename, contents) {
             return this.repositoryController.saveFile(filename, contents);
