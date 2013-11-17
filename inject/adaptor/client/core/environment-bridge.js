@@ -273,6 +273,12 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function() {
             return this.repositoryController.isRepositoryEmpty();
         }
+    },
+
+    saveFile: {
+        value: function(filename, contents) {
+            return this.repositoryController.saveFile(filename, contents);
+        }
     }
 
 });

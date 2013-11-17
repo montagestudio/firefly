@@ -59,6 +59,19 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
+    saveFile: {
+        value: function(filename, contents) {
+            return this._request({
+                method: "PUT",
+                url: "/" + this.owner + "/" + this.repo,
+                data: {
+                    "filename": filename,
+                    "contents": contents
+                }
+            });
+        }
+    },
+
     _request: {
         value: function(request) {
             var xhr = new XMLHttpRequest(),
