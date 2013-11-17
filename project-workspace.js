@@ -6,6 +6,7 @@ var path = require("path");
 
 module.exports = ProjectWorkspace;
 
+// TODO: receive owner/repo
 function ProjectWorkspace(fs, directory, session, minitPath) {
     this._fs = fs;
     this._root = fs.join(directory, session.username);
@@ -101,7 +102,32 @@ ProjectWorkspace.prototype.cloneRepository = function(repositoryUrl, owner, repo
     });
 };
 
-ProjectWorkspace.prototype._commitAllRepositoryFiles = function(owner, repo) {
+ProjectWorkspace.prototype.createComponent = function(owner, repo, name) {
+    var self = this;
+    var repoPath = this.getRepositoryPath(owner, repo);
+    var githubApi = new GithubApi(this._session.githubAccessToken);
+    var minit = new Minit(this._minitPath);
+
+    if (!name) {
+        throw new Error("Name missing.");
+    }
+
+    log("create component in: " + repoPath);
+    return minit.createComponent(name, repoPath)
+    .then(function() {
+        return self._commitAllRepositoryFiles(owner, repo, "Add component " + name);
+    })
+    .then(function() {
+        return githubApi.getRepository(owner, repo);
+    })
+    .then(function(repository) {
+        //jshint -W106
+        return self._git.push(repoPath, repository.clone_url, repository.default_branch);
+        //jshint +W106
+    });
+};
+
+ProjectWorkspace.prototype._commitAllRepositoryFiles = function(owner, repo, message) {
     var self = this;
     var repoPath = this.getRepositoryPath(owner, repo);
 
