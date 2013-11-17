@@ -10,3 +10,8 @@ Minit.prototype.createApp = function(name, path) {
     log(path + "$ create:app -n " + name);
     return exec(this._path, ["create:app", "-n", name], path);
 };
+
+Minit.prototype.createComponent = function(name, path) {
+    log(path + "$ create:component -n " + name);
+    return exec(this._path, ["create:component", "-n", name], path);
+};
