@@ -72,7 +72,7 @@ function server(options) {
 
             route(":owner/:repo/init")
             .methods(function (method) {
-                method("GET")
+                method("POST")
                 .use(setupProjectWorkspace(fs, directory, minitPath))
                 .app(function (request) {
                     var owner = sanitize.sanitizeDirectoryName(request.params.owner),
