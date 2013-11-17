@@ -24,6 +24,12 @@ ProjectWorkspace.prototype.getPath = function(pathname) {
     return this._fs.join(this._root, this._fs.resolve(pathname));
 };
 
+ProjectWorkspace.prototype.existsRepository = function(owner, repo) {
+    var repoPath = this.getRepositoryPath(owner, repo);
+
+    return this._fs.exists(repoPath);
+};
+
 ProjectWorkspace.prototype.initRepository = function(owner, repo) {
     var self = this;
     var repoPath = this.getRepositoryPath(owner, repo);
