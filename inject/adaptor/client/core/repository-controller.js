@@ -40,7 +40,7 @@ exports.RepositoryController = Montage.specialize({
         value: function() {
             var self = this;
 
-            return getGithubApi()
+            return getGithubApi.githubApi()
             .then(function(githubApi) {
                 return githubApi.isRepositoryEmpty(self.owner, self.repo);
             });
