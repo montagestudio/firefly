@@ -127,6 +127,35 @@ ProjectWorkspace.prototype.createComponent = function(owner, repo, name) {
     });
 };
 
+ProjectWorkspace.prototype.saveFile = function(owner, repo, filename, contents) {
+    var self = this;
+    var repoPath = this.getRepositoryPath(owner, repo);
+    var githubApi = new GithubApi(this._session.githubAccessToken);
+
+    if (!filename) {
+        throw new Error("Filename missing.");
+    }
+
+    if (!contents) {
+        throw new Error("Contents missing.");
+    }
+
+    log("save file: " + repoPath + "/" + filename);
+    return this._fs.reroot(repoPath)
+    .then(function(fs) {
+        return fs.write(filename, contents);
+    })
+    .then(function() {
+        return self._commitAllRepositoryFiles(owner, repo, "Changed file " + filename);
+    }).then(function() {
+        return githubApi.getRepository(owner, repo);
+    }).then(function(repository) {
+        //jshint -W106
+        return self._git.push(repoPath, repository.clone_url, repository.default_branch);
+        //jshint +W106
+    });
+};
+
 ProjectWorkspace.prototype._commitAllRepositoryFiles = function(owner, repo, message) {
     var self = this;
     var repoPath = this.getRepositoryPath(owner, repo);
