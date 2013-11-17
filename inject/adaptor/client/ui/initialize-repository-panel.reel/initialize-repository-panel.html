@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="initialize-repository-panel.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "initializeRepositoryPanel"}
+            }
+        },
+        "initializeButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "initializeButton"},
+                "label": "Initialize Repository"
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="initializeRepositoryPanel" class="InitializeRepositoryPanel">
+        <input type="button" data-montage-id="initializeButton">
+    </div>
+</body>
+</html>
