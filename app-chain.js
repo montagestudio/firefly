@@ -45,7 +45,7 @@ function server(options) {
 
         var chain = joey
         .error(true) // puts stack traces on error pages. TODO disable in production
-        .log(httpLog, function (message) { return message; })
+        //.log(httpLog, function (message) { return message; })
         .parseQuery()
         .tap(parseCookies)
         .use(session)
@@ -104,6 +104,36 @@ function server(options) {
                         }
                     });
                 });
+            });
+
+            route(":owner/:repo/components")
+            .methods(function (method) {
+                method("POST")
+                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .app(function (request) {
+                    return request.body.read()
+                    .then(function(body) {
+                        var owner = sanitize.sanitizeDirectoryName(request.params.owner),
+                            repo = sanitize.sanitizeDirectoryName(request.params.repo);
+                        options = JSON.parse(body.toString());
+
+                        return request.projectWorkspace.createComponent(owner, repo, options.name)
+                        .then(function() {
+                            return JsonApps.json({
+                                message: "created",
+                                owner: owner,
+                                repository: repo
+                            });
+                        })
+                        .fail(function(reason) {
+                            return JsonApps.json({
+                                error: reason.message,
+                                owner: owner,
+                                repository: repo
+                            });
+                        });
+                    });
+                })
             });
 
             // Must be last, as this is the most generic
