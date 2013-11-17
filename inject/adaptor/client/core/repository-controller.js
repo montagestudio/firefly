@@ -47,6 +47,18 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
+    createComponent: {
+        value: function(name) {
+            return this._request({
+                method: "POST",
+                url: "/" + this.owner + "/" + this.repo + "/components",
+                data: {
+                    "name": name
+                }
+            });
+        }
+    },
+
     _request: {
         value: function(request) {
             var xhr = new XMLHttpRequest(),

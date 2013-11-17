@@ -231,8 +231,8 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     createComponent: {
-        value: function () {
-
+        value: function (name) {
+            return this.repositoryController.createComponent(name);
         }
     },
 
