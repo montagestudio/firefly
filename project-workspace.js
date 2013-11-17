@@ -73,8 +73,10 @@ ProjectWorkspace.prototype.initEmptyRepository = function(repositoryUrl, reposit
     var minit = new Minit(this._minitPath);
 
     log("init empty repository: " + repoPath);
-    return minit.createApp(repo, parentPath)
+    return this._fs.makeTree(parentPath)
     .then(function() {
+        return minit.createApp(repo, parentPath);
+    }).then(function() {
         return self._git.init(repoPath);
     }).then(function() {
         return self.setupRepositoryWorkspace(owner, repo);
