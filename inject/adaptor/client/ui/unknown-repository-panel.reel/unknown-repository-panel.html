@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="unknown-repository-panel.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "unknownRepositoryPanel"}
+            }
+        },
+        "createButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "createButton"},
+                "label": "Create Repository"
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        },
+
+        "cancelButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "cancelButton"},
+                "label": "Cancel"
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="unknownRepositoryPanel" class="UnknownRepositoryPanel">
+        <p>Github repository <em>user/repo</em> does not exist.</p>
+
+        <p>Create and initialize with a Montage Project?</p>
+        <input type="button" data-montage-id="cancelButton">
+        <input type="button" data-montage-id="createButton">
+    </div>
+</body>
+</html>
