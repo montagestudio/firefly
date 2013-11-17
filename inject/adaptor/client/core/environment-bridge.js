@@ -70,14 +70,15 @@ exports.EnvironmentBridge = Montage.specialize({
     packageUrl: {
         get: function () {
             if(!this._packageUrl) {
+                var self = this;
                 this._packageUrl = this.backend.get("env-service").get("projectUrl")
                 .then(function (url) {
-                    var xhr = new XMLHttpRequest();
-                    xhr.withCredentials = true;
-                    xhr.open("post", url + "/session");
-                    xhr.send(document.cookie.match(/session=([^;]+)/)[1]);
-
-                    return url;
+                    return self.repositoryController._request({
+                        method: "POST",
+                        url: url + "/session",
+                        withCredentials: true,
+                        data: document.cookie.match(/session=([^;]+)/)[1]
+                    }).thenResolve(url);
                 });
             }
             return this._packageUrl;

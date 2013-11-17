@@ -130,6 +130,10 @@ exports.RepositoryController = Montage.specialize({
             var xhr = new XMLHttpRequest(),
                 deferred = Promise.defer();
 
+            if (request.withCredentials) {
+                xhr.withCredentials = true;
+            }
+
             xhr.open(request.method, request.url);
             xhr.addEventListener("load", function() {
                 var message;

@@ -37,8 +37,8 @@ function server(options) {
                 return function (request, response) {
                     if (request.headers.origin === environment.getAppUrl()) {
                         return request.body.read()
-                        .then(function (content) {
-                            var sessionId = content.toString("utf8");
+                        .then(function (body) {
+                            var sessionId = JSON.parse(body.toString("utf8"));
                             return {
                                 status: 200,
                                 headers: {
