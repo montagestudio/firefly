@@ -3,7 +3,7 @@ var MockFs = require("q-io/fs-mock");
 var MockSession = require("../mocks/session");
 
 describe("app chain", function () {
-    var request, server;
+    var request, server, sessions;
     beforeEach(function (done) {
         var fs = MockFs({
             "firefly-index.html": "pass",
@@ -14,10 +14,11 @@ describe("app chain", function () {
                 "index.html": "pass"
             }
         });
+        sessions = {};
         return appChain({
             fs: fs,
             client: "/",
-            session: MockSession({}),
+            session: MockSession(sessions),
             clientServices: {},
             setupProjectWorkspace: function (fs, directory, minitPath) {
                 return function(next) {
@@ -45,43 +46,72 @@ describe("app chain", function () {
 
     describe("firefly index", function () {
 
-        it("serves firefly-index.html at /app", function (done) {
-            request("http://127.0.0.1:2440/app")
-            .then(function (response) {
-                expect(response.status).toEqual(200);
-            })
-            .then(done, done);
+        describe("when not authenticated", function () {
+
+            it("serves login app at /", function (done) {
+                request("http://127.0.0.1:2440/")
+                .then(function (response) {
+                    expect(response.status).toEqual(200);
+                }).then(done, done);
+            });
+
+            it("serves firefly-index.html at /app", function (done) {
+                request("http://127.0.0.1:2440/app")
+                .then(function (response) {
+                    expect(response.status).toEqual(200);
+                })
+                .then(done, done);
+            });
+
+            it("redirects /user/repo", function (done) {
+                request("http://127.0.0.1:2440/declarativ/filament")
+                .then(function (response) {
+                    expect(response.status).toEqual(302);
+                })
+                .then(done, done);
+            });
+
+            it("serves client adaptor at adaptor/client", function (done) {
+                request("http://127.0.0.1:2440/app/adaptor/client/core/menu.js")
+                .then(function (response) {
+                    expect(response.status).toEqual(200);
+                }).then(done, done);
+            });
         });
 
-        it("serves firefly-index.html at /user/repo", function (done) {
-            request("http://127.0.0.1:2440/declarativ/filament")
-            .then(function (response) {
-                expect(response.status).toEqual(200);
-            })
-            .then(done, done);
+        describe("when authenticated", function () {
+            var headers;
+            beforeEach(function () {
+                sessions["abc-123"] = {
+                    githubUser: "test"
+                };
+                headers = {
+                    "cookie": "session=abc-123"
+                };
+            });
+
+            it("redirects / to /projects");
+
+            it("serves firefly-index.html at /user/repo", function (done) {
+                request({
+                    url: "http://127.0.0.1:2440/declarativ/filament",
+                    headers: headers
+                })
+                .then(function (response) {
+                    expect(response.status).toEqual(200);
+                })
+                .then(done, done);
+            });
+
+            it("serves project-list app at /projects", function (done) {
+                request({
+                    url: "http://127.0.0.1:2440/projects",
+                    headers: headers
+                })
+                .then(function (response) {
+                    expect(response.status).toEqual(200);
+                }).then(done, done);
+            });
         });
-
     });
-
-    it("serves login app at /", function (done) {
-        request("http://127.0.0.1:2440/")
-        .then(function (response) {
-            expect(response.status).toEqual(200);
-        }).then(done, done);
-    });
-
-    it("serves project-list app at /projects", function (done) {
-        request("http://127.0.0.1:2440/projects")
-        .then(function (response) {
-            expect(response.status).toEqual(200);
-        }).then(done, done);
-    });
-
-    it("serves client adaptor at adaptor/client", function (done) {
-        request("http://127.0.0.1:2440/app/adaptor/client/core/menu.js")
-        .then(function (response) {
-            expect(response.status).toEqual(200);
-        }).then(done, done);
-    });
-
 });
