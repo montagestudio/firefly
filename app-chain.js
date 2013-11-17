@@ -137,8 +137,38 @@ function server(options) {
             });
 
             // Must be last, as this is the most generic
-            route(":user/:repo").terminate(serveApp);
+            route(":owner/:repo")
+            .methods(function (method) {
+                method("PUT")
+                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .app(function (request) {
+                    return request.body.read()
+                    .then(function(body) {
+                        var owner = sanitize.sanitizeDirectoryName(request.params.owner),
+                            repo = sanitize.sanitizeDirectoryName(request.params.repo);
+                        options = JSON.parse(body.toString());
 
+                        // TODO: support binaries with base64
+                        return request.projectWorkspace.saveFile(owner, repo, options.filename, options.contents)
+                        .then(function() {
+                            return JsonApps.json({
+                                message: "saved",
+                                owner: owner,
+                                repository: repo
+                            });
+                        })
+                        .fail(function(reason) {
+                            return JsonApps.json({
+                                error: reason.message,
+                                owner: owner,
+                                repository: repo
+                            });
+                        });
+                    });
+                });
+
+                method("GET").terminate(serveApp);
+            });
         });
 
         // These services should be customized per websocket connection, to
