@@ -10,6 +10,7 @@ var websocket = require("./websocket");
 var JsonApps = require("q-io/http-apps/json");
 var sanitize = require("./sanitize");
 var checkSession = require("./check-session");
+var LogStackTraces = require("./log-stack-traces");
 
 module.exports = server;
 function server(options) {
@@ -45,8 +46,9 @@ function server(options) {
         var serveApp = serveFile(index, "text/html", fs);
 
         var chain = joey
-        .error(true) // puts stack traces on error pages. TODO disable in production
+        .error()
         .log(httpLog, function (message) { return message; })
+        .use(LogStackTraces(httpLog))
         .parseQuery()
         .tap(parseCookies)
         .use(session)
