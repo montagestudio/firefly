@@ -1,7 +1,7 @@
 /* global XMLHttpRequest */
 var Montage = require("montage").Montage;
 var Promise = require("montage/core/promise").Promise;
-var getGithubApi = require("./github");
+var github = require("./github");
 
 exports.RepositoryController = Montage.specialize({
     owner: {
@@ -40,7 +40,7 @@ exports.RepositoryController = Montage.specialize({
         value: function() {
             var self = this;
 
-            return getGithubApi.githubApi()
+            return github.githubApi()
             .then(function(githubApi) {
                 return githubApi.isRepositoryEmpty(self.owner, self.repo);
             });
