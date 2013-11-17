@@ -34,7 +34,9 @@ function websocket(sessions, services) {
         // Throw errors if they happen in establishing services
         // This is not included in the chain of resolving connectionService
         // as we'd then be using done to set the connectionServices to undefined
-        connectionServices.done();
+        connectionServices.catch(function (error) {
+            log("*" + error.stack + "*");
+        });
 
         Connection(connection, connectionServices);
 
