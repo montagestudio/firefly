@@ -1,3 +1,4 @@
+/* global XMLHttpRequest */
 var Promise = require("montage/core/promise").Promise;
 var GithubFs = require("./fs-github");
 var GithubApi = require("./github-api");
