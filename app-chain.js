@@ -9,6 +9,7 @@ var GithubAuth = require("./auth/github");
 var websocket = require("./websocket");
 var JsonApps = require("q-io/http-apps/json");
 var sanitize = require("./sanitize");
+var checkSession = require("./check-session");
 
 module.exports = server;
 function server(options) {
@@ -50,6 +51,8 @@ function server(options) {
         .tap(parseCookies)
         .use(session)
         .route(function (route) {
+            // Public routes only
+
             route("").terminate(serveFile(fs.join(client, "login", "index.html"), "text/html", fs));
             route("favicon.ico").terminate(serveFile(fs.join(client, "favicon.ico"), "image/x-icon", fs));
 
@@ -64,11 +67,14 @@ function server(options) {
             route("auth/...").route(function (route) {
                 route("github/...").route(GithubAuth);
             });
+        })
+        //////////////////////////////////////////////////////////////////////
+        .use(checkSession)
+        //////////////////////////////////////////////////////////////////////
+        .route(function (route) {
+            // Private/authenticated routes
 
             route("projects").terminate(serveFile(fs.join(client, "project-list", "index.html"), "text/html", fs));
-
-            // FIXME: remove this
-            route("clone/...").fileTree(fs.join(__dirname, "..", "clone"));
 
             route(":owner/:repo/init")
             .methods(function (method) {
