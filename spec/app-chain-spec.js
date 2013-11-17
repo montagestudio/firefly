@@ -18,7 +18,16 @@ describe("app chain", function () {
             fs: fs,
             client: "/",
             session: MockSession({}),
-            clientServices: {}
+            clientServices: {},
+            setupProjectWorkspace: function (fs, directory, minitPath) {
+                return function(next) {
+                    return function(request, response) {
+                        return next(request, response);
+                    };
+                };
+            },
+            directory: ".",
+            minitPath: "."
         })
         .then(function (chain) {
             return chain.listen(2440);
