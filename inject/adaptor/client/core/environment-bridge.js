@@ -4,7 +4,8 @@ var Montage = require("montage").Montage,
     Connection = require("q-connection"),
     adaptConnection = require("q-connection/adapt"),
     FileDescriptor = require("./file-descriptor").FileDescriptor,
-    mainMenu = require("adaptor/client/core/menu").defaultMenu;
+    mainMenu = require("adaptor/client/core/menu").defaultMenu,
+    RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController;
 
 var PROJECT_PROTOCOL = "fs:";
 
@@ -244,6 +245,33 @@ exports.EnvironmentBridge = Montage.specialize({
     mainMenu: {
         get: function () {
             return Promise.resolve(mainMenu);
+        }
+    },
+
+    _repositoryController: {
+        value: null
+    },
+
+    repositoryController: {
+        get: function() {
+            if (!this._repositoryController) {
+                this._repositoryController = new RepositoryController()
+                    .init(this._userName, this._projectName);
+            }
+
+            return this._repositoryController;
+        }
+    },
+
+    initializeProject: {
+        value: function() {
+            return this.repositoryController.initializeRepositoryWorkspace();
+        }
+    },
+
+    isProjectEmpty: {
+        value: function() {
+            return this.repositoryController.isRepositoryEmpty();
         }
     }
 
