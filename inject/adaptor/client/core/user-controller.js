@@ -18,6 +18,7 @@ var UserController = Montage.specialize({
             })
             .then(function(user) {
                 self.name = user.name || user.login;
+                self.login = user.login;
                 //jshint -W106
                 self.avatarUrl = user.avatar_url;
                 self.url = user.html_url;
