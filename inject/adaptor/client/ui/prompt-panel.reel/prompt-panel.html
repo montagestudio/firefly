@@ -21,10 +21,13 @@
             }
         },
 
-        "userInput": {
-            "prototype": "montage/ui/text.reel",
+        "inputField": {
+            "prototype": "matte/ui/input-text.reel",
             "properties": {
-                "element": {"#": "userInput"}
+                "element": {"#": "inputField"}
+            },
+            "bindings": {
+                "value": {"<->": "@owner.value"}
             }
         },
 
@@ -66,7 +69,7 @@
 <body>
     <div data-montage-id="promptPanel" class="PromptPanel">
         <p data-montage-id="messageLabel"></p>
-        <input type="text" data-montage-id="userInput">
+        <input type="text" data-montage-id="inputField">
         <input type="button" data-montage-id="cancelButton">
         <input type="button" data-montage-id="submitButton">
     </div>
