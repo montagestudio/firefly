@@ -5,7 +5,8 @@ var Montage = require("montage").Montage,
     adaptConnection = require("q-connection/adapt"),
     FileDescriptor = require("./file-descriptor").FileDescriptor,
     mainMenu = require("adaptor/client/core/menu").defaultMenu,
-    RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController;
+    RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
+    URL = require("core/url");
 
 var PROJECT_PROTOCOL = "fs:";
 
@@ -220,6 +221,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    refreshPreview: {
+        value: function () {
+            return Promise.resolve();
+        }
+    },
+
     setDocumentDirtyState: {
         value: function () {
         }
@@ -343,8 +350,19 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     saveFile: {
-        value: function(filename, contents) {
-            return this.repositoryController.saveFile(filename, contents);
+        value: function(contents, location) {
+            return this.repositoryController.saveFile(URL.parse(location).pathname, contents).then(function (response) {
+                if (response.error) {
+                    throw new Error(response.error);
+                }
+                return response;
+            });
+        }
+    },
+
+    save: {
+        value: function (editingDocument, location) {
+            return editingDocument.save(location, this.saveFile.bind(this));
         }
     }
 
