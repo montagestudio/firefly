@@ -144,6 +144,36 @@ function server(options) {
                 });
             });
 
+            route(":owner/:repo/modules")
+            .methods(function (method) {
+                method("POST")
+                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .app(function (request) {
+                    return request.body.read()
+                    .then(function(body) {
+                        var owner = sanitize.sanitizeDirectoryName(request.params.owner),
+                            repo = sanitize.sanitizeDirectoryName(request.params.repo);
+                        options = JSON.parse(body.toString());
+
+                        return request.projectWorkspace.createModule(owner, repo, options.name, options.extendsModuleId, options.extendsName)
+                        .then(function() {
+                            return JsonApps.json({
+                                message: "created",
+                                owner: owner,
+                                repository: repo
+                            });
+                        })
+                        .fail(function(reason) {
+                            return JsonApps.json({
+                                error: reason.message,
+                                owner: owner,
+                                repository: repo
+                            });
+                        });
+                    });
+                });
+            });
+
             route(":owner/:repo/workspace")
             .methods(function (method) {
                 method("GET")
