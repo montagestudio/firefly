@@ -39,8 +39,7 @@ exports.ProgressPanel = Component.specialize(/** @lends ProgressPanel# */ {
                 this._activityPromise.then(
                     this._acceptSuccess.bind(this),
                     this._acceptFailure.bind(this),
-                    this._acceptProgress.bind(this)
-                )
+                    this._acceptProgress.bind(this));
             }
         }
     },
