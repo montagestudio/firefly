@@ -2,7 +2,8 @@ var log = require("logging").from(__filename);
 var GithubApi = require("./inject/adaptor/client/core/github-api");
 var Git = require("./git");
 var Minit = require("./minit");
-var path = require("path");
+var PATH = require("path");
+var exec = require("./exec");
 
 module.exports = ProjectWorkspace;
 
@@ -71,13 +72,15 @@ ProjectWorkspace.prototype.setupRepositoryWorkspace = function(owner, repo) {
     return this._git.config(repoPath, "user.name", name)
     .then(function() {
         return self._git.config(repoPath, "user.email", email);
+    }).then(function () {
+        self.npmInstall(owner, repo);
     });
 };
 
 ProjectWorkspace.prototype.initEmptyRepository = function(repositoryUrl, repositoryBranch, owner, repo) {
     var self = this;
     var repoPath = this.getRepositoryPath(owner, repo);
-    var parentPath = path.normalize(this._fs.join(repoPath, ".."));
+    var parentPath = PATH.normalize(this._fs.join(repoPath, ".."));
     var minit = new Minit(this._minitPath);
 
     log("init empty repository: " + repoPath);
@@ -106,6 +109,14 @@ ProjectWorkspace.prototype.cloneRepository = function(repositoryUrl, owner, repo
     .then(function() {
         return self.setupRepositoryWorkspace(owner, repo);
     });
+};
+
+ProjectWorkspace.prototype.npmInstall = function (owner, repo) {
+    var repoPath = this.getRepositoryPath(owner, repo);
+
+    // Only installing these packages to avoid security issues with unknown
+    // packages' post install scripts, etc.
+    exec("npm", ["install", "montage", "digit", "matte"], repoPath);
 };
 
 ProjectWorkspace.prototype.createComponent = function(owner, repo, name) {
