@@ -27,6 +27,17 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 this.menuItemModel.dispatchMenuEvent("menuAction");
             }
         }
+    },
+
+    // To prevent dispatching events from itself, preserve the
+    // activeTarget
+    // TODO while clever, we might need to actually accept activeTarget for usability
+    // and instead store whom to dispatch from once we've "stolen" the activeTarget status
+    acceptsActiveTarget: {
+        get: function () {
+            this.nextTarget = this.eventManager.activeTarget;
+            return false;
+        }
     }
 
 });
