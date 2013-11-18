@@ -67,6 +67,10 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
         value: null
     },
 
+    _needsFocus: {
+        value: false
+    },
+
     getResponse: {
         value: function (message, defaultValue, submitLabel, cancelLabel) {
             if (this._deferredResponse) {
@@ -78,9 +82,20 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
             this.value = defaultValue;
             this.submitLabel = submitLabel || DEFAULT_SUBMIT_LABEL;
             this.cancelLabel = cancelLabel || DEFAULT_CANCEL_LABEL;
+            this._needsFocus = true;
+            this.needsDraw = true;
 
             this._deferredResponse = Promise.defer();
             return this._deferredResponse.promise;
+        }
+    },
+
+    draw: {
+        value: function () {
+            if (this._needsFocus) {
+                this.templateObjects.inputField.element.select();
+                this._needsFocus = false;
+            }
         }
     }
 });
