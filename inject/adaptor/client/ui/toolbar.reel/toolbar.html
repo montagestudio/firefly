@@ -36,7 +36,10 @@
             "prototype": "matte/ui/button.reel",
             "properties": {
                 "element": {"#": "newButton"}
-            }
+            },
+            "listeners": [
+                {"type": "action", "listener": {"@": "owner"}}
+            ]
         },
 
         "openButton": {

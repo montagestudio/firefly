@@ -36,6 +36,12 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
         }
     },
 
+    handleNewButtonAction: {
+        value: function (event) {
+            this.environmentBridge.openHttpUrl(this.location.origin + "/projects#new");
+        }
+    },
+
     undoMenuItemModel: {
         value: null
     },
