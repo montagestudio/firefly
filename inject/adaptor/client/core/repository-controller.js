@@ -124,6 +124,20 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
+    createModule: {
+        value: function(name, extendsModuleId, extendsName) {
+            return this._request({
+                method: "POST",
+                url: "/" + this.owner + "/" + this.repo + "/modules",
+                data: {
+                    "name": name,
+                    "extendsModuleId": extendsModuleId,
+                    "extendsName": extendsName
+                }
+            });
+        }
+    },
+
     saveFile: {
         value: function(filename, contents) {
             return this._request({
