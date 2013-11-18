@@ -147,8 +147,8 @@ exports.EnvironmentBridge = Montage.specialize({
 
     previewUrl: {
         get: function () {
-            //TODO replace with a url when available
-            return window.location.origin + "/clone/index.html";
+            var url = this.packageUrl.inspect().value;
+            return url ? url + "/index.html" : void 0;
         }
     },
 
@@ -188,8 +188,14 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     registerPreview: {
+        value: function (name, url) {
+            return Promise.resolve();
+        }
+    },
+
+    unregisterPreview: {
         value: function () {
-            return Promise.resolve("");
+            return Promise.resolve();
         }
     },
 
