@@ -101,15 +101,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     projectUrl: {
         get: function () {
-            var user = this._userName,
-                project = this._projectName,
-                url = null;
-
-            if (user && project) {
-                url = PROJECT_PROTOCOL + "//" + user + "/" + project;
-            }
-
-            return url;
+            return this.packageUrl;
         }
     },
 
@@ -123,7 +115,7 @@ exports.EnvironmentBridge = Montage.specialize({
             return self.packageUrl.then(function (packageUrl) {
                 return self.dependenciesInPackage(packageUrl).then(function (dependencies) {
                     return {
-                        "fileUrl": this.projectUrl,
+                        "fileUrl": packageUrl,
                         "packageUrl": packageUrl,
                         "dependencies": dependencies
                     };
