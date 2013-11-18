@@ -253,13 +253,23 @@ exports.EnvironmentBridge = Montage.specialize({
 
     createComponent: {
         value: function (name) {
-            return this.repositoryController.createComponent(name);
+            var promise = this.repositoryController.createComponent(name);
+
+            this.progressPanel.message = "Creating " + name;
+            this.progressPanel.activityPromise = promise;
+
+            return promise;
         }
     },
 
     createModule: {
         value: function (name) {
-            return this.repositoryController.createModule(name);
+            var promise = this.repositoryController.createModule(name);
+
+            this.progressPanel.message = "Creating " + name;
+            this.progressPanel.activityPromise = promise;
+
+            return promise;
         }
     },
 
