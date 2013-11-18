@@ -46,7 +46,10 @@
             "prototype": "matte/ui/button.reel",
             "properties": {
                 "element": {"#": "openButton"}
-            }
+            },
+            "listeners": [
+                {"type": "action", "listener": {"@": "owner"}}
+            ]
         },
 
         "saveMenuItem": {
