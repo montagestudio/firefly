@@ -116,16 +116,21 @@ Montage.defineProperty(exports, "defaultMenu", {
             //TODO clean up this whole initialization
             Promise.nextTick(function () {
                 var undoMenuItem = new MenuItemModule.MenuItem(),
-                    redoMenuItem = new MenuItemModule.MenuItem();
+                    redoMenuItem = new MenuItemModule.MenuItem(),
+                    saveMenuItem = new MenuItemModule.MenuItem();
 
                 undoMenuItem.title = "Undo";
-                redoMenuItem.title = "Redo";
-
                 undoMenuItem.identifier = "undo";
+
+                redoMenuItem.title = "Redo";
                 redoMenuItem.identifier = "redo";
 
-                _defaultMenu.insertItem(undoMenuItem, 0).done();
-                _defaultMenu.insertItem(redoMenuItem, 1).done();
+                saveMenuItem.title = "Save";
+                saveMenuItem.identifier = "save";
+
+                _defaultMenu.insertItem(saveMenuItem).done();
+                _defaultMenu.insertItem(undoMenuItem).done();
+                _defaultMenu.insertItem(redoMenuItem).done();
             });
         }
         return _defaultMenu;

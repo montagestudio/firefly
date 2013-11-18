@@ -44,6 +44,16 @@
                 "element": {"#": "openButton"}
             }
         },
+
+        "saveMenuItem": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "saveMenuItem"}
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@owner.saveMenuItemModel"}
+            }
+        },
         
         "sourceButton": {
             "prototype": "matte/ui/button.reel",
@@ -83,6 +93,7 @@
         <div class="matte-ButtonGroup">
             <button data-montage-id="newButton" class="Button Toolbar-button">New</button>
             <button data-montage-id="openButton" class="Button Toolbar-button">Open</button>
+            <div data-montage-id="saveMenuItem"></div>
         </div>
         
         <div class="matte-ButtonGroup">

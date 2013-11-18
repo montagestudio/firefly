@@ -26,6 +26,7 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
             if (menuModel) {
                 this.undoMenuItemModel = menuModel.menuItemForIdentifier("undo");
                 this.redoMenuItemModel = menuModel.menuItemForIdentifier("redo");
+                this.saveMenuItemModel = menuModel.menuItemForIdentifier("save");
             }
         }
     },
