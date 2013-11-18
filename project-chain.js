@@ -15,8 +15,8 @@ function server(options) {
     //jshint -W116
     if (!options.fs) throw new Error("options.fs required");
     var fs = options.fs;
-    if (!options.session) throw new Error("options.session required");
-    var session = options.session;
+    if (!options.sessions) throw new Error("options.sessions required");
+    var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
     //jshint +W116
@@ -57,7 +57,7 @@ function server(options) {
         });
     })
     .tap(parseCookies)
-    .use(session)
+    .use(sessions)
     .use(checkSession)
     .methods(function (method) {
         method("GET")

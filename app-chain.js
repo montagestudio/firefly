@@ -21,8 +21,8 @@ function server(options) {
     var fs = options.fs;
     if (!options.client) throw new Error("options.client required");
     var client = options.client;
-    if (!options.session) throw new Error("options.session required");
-    var session = options.session;
+    if (!options.sessions) throw new Error("options.sessions required");
+    var sessions = options.sessions;
     if (!options.clientServices) throw new Error("options.clientServices required");
     var clientServices = options.clientServices;
     if (!options.setupProjectWorkspace) throw new Error("options.setupProjectWorkspace required");
@@ -51,7 +51,7 @@ function server(options) {
         .use(LogStackTraces(httpLog))
         .parseQuery()
         .tap(parseCookies)
-        .use(session)
+        .use(sessions)
         .route(function (route) {
             // Public routes only
 
@@ -215,7 +215,7 @@ function server(options) {
         services["extension-service"] = require("./services/extension-service");
         services["env-service"] = require("./services/env-service");
 
-        var websocketServer = websocket(session, services);
+        var websocketServer = websocket(sessions, services);
 
         chain.upgrade = function (request, socket, head) {
             websocketServer.handleUpgrade(request, socket, head);

@@ -18,7 +18,7 @@ describe("app chain", function () {
         return appChain({
             fs: fs,
             client: "/",
-            session: MockSession(sessions),
+            sessions: MockSession(sessions),
             clientServices: {},
             setupProjectWorkspace: function (fs, directory, minitPath) {
                 return function(next) {

@@ -36,7 +36,7 @@ var commandOptions = {
 
 module.exports = main;
 function main(options) {
-    var session = Session("session", SESSION_SECRET);
+    var sessions = Session("session", SESSION_SECRET);
 
     var fs = options.fs || FS;
     if(Env.production) {
@@ -48,7 +48,7 @@ function main(options) {
         {
             fs: fs,
             client: options.client,
-            session: session,
+            sessions: sessions,
             clientServices: options.clientServices,
             setupProjectWorkspace: SetupProjectWorkspace,
             directory: fs.join(process.cwd(), options["project-dir"]),
@@ -57,7 +57,7 @@ function main(options) {
         projectChain,
         {
             fs: fs,
-            session: session,
+            sessions: sessions,
             checkSession: CheckSession
         })
         .spread(function (app, project) {
