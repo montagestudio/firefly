@@ -144,6 +144,31 @@ ProjectWorkspace.prototype.createComponent = function(owner, repo, name) {
     });
 };
 
+ProjectWorkspace.prototype.createModule = function(owner, repo, name, extendsModuleId, extendsName) {
+    var self = this;
+    var repoPath = this.getRepositoryPath(owner, repo);
+    var githubApi = new GithubApi(this._session.githubAccessToken);
+    var minit = new Minit(this._minitPath);
+
+    if (!name) {
+        throw new Error("Name missing.");
+    }
+
+    log("create module in: " + repoPath);
+    return minit.createModule(repoPath, name, extendsModuleId, extendsName)
+    .then(function() {
+        return self._commitAllRepositoryFiles(owner, repo, "Add module " + name);
+    })
+    .then(function() {
+        return githubApi.getRepository(owner, repo);
+    })
+    .then(function(repository) {
+        //jshint -W106
+        return self._git.push(repoPath, repository.clone_url, repository.default_branch);
+        //jshint +W106
+    });
+};
+
 ProjectWorkspace.prototype.saveFile = function(owner, repo, filename, contents) {
     var self = this;
     var repoPath = this.getRepositoryPath(owner, repo);
