@@ -25,10 +25,10 @@ function websocket(sessions, services) {
         .then(function (session) {
             var path = Env.getProjectPathFromSessionAndAppUrl(session, pathname);
             log("Limiting", remoteAddress, pathname, "to", path);
-            return getFs(session, path);
-        })
-        .then(function (fs) {
-            return makeServices(services, fs, Env, pathname);
+            return getFs(session, path)
+            .then(function (fs) {
+                return makeServices(services, fs, Env, pathname, path);
+            });
         });
 
         // Throw errors if they happen in establishing services
@@ -68,11 +68,11 @@ function getFs(session, path) {
     return FS.reroot(path);
 }
 
-function makeServices(services, fs, env, pathname) {
+function makeServices(services, fs, env, pathname, fsPath) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
-        var service = services[name](fs, env, pathname);
+        var service = services[name](fs, env, pathname, fsPath);
         connectionServices[name] = Q.master(service);
     });
     return connectionServices;
