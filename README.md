@@ -84,3 +84,14 @@ npm run update-dependencies
 This will remove all the existing dependencies, install and dedupe, and stage
 the node_modules. At this point you should test and rollback any dependencies
 that you don't want to update.
+
+Deploying
+=========
+
+* Install Vagrant from http://www.vagrantup.com/
+* Run `vagrant plugin install vagrant-digitalocean`
+* To communicate with the Digital Ocean API, you need to intall some certificates: `brew install curl-ca-bundle` (using Homebrew)
+    * **You may need to edit the Vagrant file to point `provider.ca_path` to the output from the above command**
+* Run `vagrant up` (this currently deploys to Stuart's DigitalOcean account)
+* Run `vagrant ssh` to ssh into the machine, then run `forever start --append -l /srv/forever.log -o /srv/firefly-out.log -e /srv/firefly-err.log /srv/firefly/index.js`
+
