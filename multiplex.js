@@ -21,7 +21,7 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
                     branch(Env.project.hostname+":*").app(projectChain.end());
                 });
                 return multiplex
-                    .listen(Env.app.port)
+                    .listen(process.env.FIREFLY_APP_PORT)
                     .then(function (server) {
                         return [
                             {

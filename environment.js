@@ -31,12 +31,10 @@ function Env(options) {
     if ( env.production) {
         env.app = {
             hostname: process.env.FIREFLY_APP_HOST || "app.127.0.0.1.xip.io",
-            port: process.env.FIREFLY_APP_PORT || 2440,
             protocol: process.env.FIREFLY_APP_PROTOCOL || "http"
         };
         env.project = {
             hostname: process.env.FIREFLY_PROJECT_HOST || "*.project.127.0.0.1.xip.io",
-            port: process.env.FIREFLY_PROJECT_PORT || 2440,
             protocol: process.env.FIREFLY_PROJECT_PROTOCOL || "http"
         };
 
