@@ -65,16 +65,20 @@
         "avatar": {
             "prototype": "matte/ui/image.reel",
             "properties": {
-                "element": {"#": "avatar"},
-                "src": "https://0.gravatar.com/avatar/61bfa3de1db650d1d4bd32525dc451ea"
+                "element": {"#": "avatar"}
+            },
+            "bindings": {
+                "src": {"<-": "@owner.userController.avatarUrl"}
             }
         },
         
         "username": {
             "prototype": "montage/ui/text.reel",
             "properties": {
-                "element": {"#": "username"},
-                "value": "António Afonso"
+                "element": {"#": "username"}
+            },
+            "bindings": {
+                "value": {"<-": "@owner.userController.name"}
             }
         },
         

@@ -3,7 +3,7 @@
  * @requires montage/ui/component
  */
 var Component = require("montage/ui/component").Component;
-
+var userController = require("adaptor/client/core/user-controller").userController;
 /**
  * @class Toolbar
  * @extends Component
@@ -11,9 +11,14 @@ var Component = require("montage/ui/component").Component;
 exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
     constructor: {
         value: function Toolbar() {
+            var self = this;
+
             this.super();
 
             this.addPathChangeListener("mainMenu", this, "handleMainMenuChange");
+            userController.then(function(userController) {
+                self.userController = userController;
+            });
         }
     },
 
@@ -36,6 +41,10 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
     },
 
     redoMenuItemModel: {
+        value: null
+    },
+
+    userController: {
         value: null
     }
 });
