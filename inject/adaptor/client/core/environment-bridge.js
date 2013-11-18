@@ -386,7 +386,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
             return editingDocument.save(location, this.saveFile.bind(this))
             .then(function() {
-                return self.flushProject("Updated component " + name);
+                return self.flushProject("Update component " + name);
             });
         }
     }
