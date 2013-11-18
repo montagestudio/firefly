@@ -42,6 +42,10 @@ exports.EnvironmentBridge = Montage.specialize({
         value: null
     },
 
+    applicationDelegate: {
+        value: null
+    },
+
     _backend: {
         value: null
     },
@@ -237,11 +241,16 @@ exports.EnvironmentBridge = Montage.specialize({
 
     promptForSave: {
         value: function (options) {
+            var appDelegate = this.applicationDelegate;
+            appDelegate.currentPanelKey = "prompt";
+            appDelegate.showModal = true;
+
             return this.promptPanel.getResponse(options.prompt, options.defaultName, options.submitLabel).then(function (response) {
                 //TODO sanitize input
                 if (response) {
                     response = options.defaultDirectory + "/" + response;
                 }
+                appDelegate.showModal = false;
                 return response;
             });
         }
@@ -264,10 +273,17 @@ exports.EnvironmentBridge = Montage.specialize({
 
     createComponent: {
         value: function (name) {
-            var promise = this.repositoryController.createComponent(name);
+            var promise = this.repositoryController.createComponent(name),
+                appDelegate = this.applicationDelegate;
 
             this.progressPanel.message = "Creating " + name;
             this.progressPanel.activityPromise = promise;
+            appDelegate.currentPanelKey = "progress";
+            appDelegate.showModal = true;
+
+            promise.then(function () {
+                appDelegate.showModal = false;
+            }).done();
 
             return promise;
         }
@@ -275,10 +291,17 @@ exports.EnvironmentBridge = Montage.specialize({
 
     createModule: {
         value: function (name) {
-            var promise = this.repositoryController.createModule(name);
+            var promise = this.repositoryController.createModule(name),
+                appDelegate = this.applicationDelegate;
 
             this.progressPanel.message = "Creating " + name;
             this.progressPanel.activityPromise = promise;
+            appDelegate.currentPanelKey = "progress";
+            appDelegate.showModal = true;
+
+            promise.then(function () {
+                appDelegate.showModal = false;
+            }).done();
 
             return promise;
         }
