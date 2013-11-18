@@ -2,14 +2,22 @@ var log = require("logging").from(__filename);
 var Q = require("q");
 var https = require("https");
 var querystring = require("querystring");
+var Env = require("../environment");
 
 var uuid = require("uuid");
 var redirect = require("q-io/http-apps/redirect").redirect;
 
 var GithubApi = require("../inject/adaptor/client/core/github-api");
 
-var CLIENT_ID = "e3a42c8d5e2631ed7707";
-var CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
+var CLIENT_ID,CLIENT_SECRET;
+if(Env.production) {
+    CLIENT_ID = "a71946dca4f6dceef99c";
+    CLIENT_SECRET = "e5e4d25d79575f37fd6fc870888706bd7a0c4e7d";
+} else {
+    CLIENT_ID = "e3a42c8d5e2631ed7707";
+    CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
+
+}
 
 var OAUTH_STATE = uuid.v4();
 
