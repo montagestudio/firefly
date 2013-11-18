@@ -68,10 +68,12 @@
 </head>
 <body>
     <div data-montage-id="promptPanel" class="PromptPanel">
-        <p data-montage-id="messageLabel"></p>
+        <p data-montage-id="messageLabel" class="modalOverlay-message"></p>
         <input type="text" data-montage-id="inputField">
-        <input type="button" data-montage-id="cancelButton">
-        <input type="button" data-montage-id="submitButton">
+        <footer class="modalOverlay-footer">
+            <input type="button" data-montage-id="cancelButton" class="Button">
+            <input type="button" data-montage-id="submitButton" class="Button Button--action">
+        </footer>
     </div>
 </body>
 </html>

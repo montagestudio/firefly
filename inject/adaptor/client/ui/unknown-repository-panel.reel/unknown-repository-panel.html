@@ -42,11 +42,12 @@
 </head>
 <body>
     <div data-montage-id="unknownRepositoryPanel" class="UnknownRepositoryPanel">
-        <p>Github repository <em>user/repo</em> does not exist.</p>
-
-        <p>Create and initialize with a Montage Project?</p>
-        <input type="button" data-montage-id="cancelButton">
-        <input type="button" data-montage-id="createButton">
+        <h2 class="modalOverlay-warning">Github repository <em>user/repo</em> does not exist.</h2>
+        <p class="modalOverlay-message">Create and initialize with a Montage Project?</p>
+        <footer class="modalOverlay-footer">
+            <input type="button" data-montage-id="cancelButton" class="Button">
+            <input type="button" data-montage-id="createButton" class="Button Button--action">
+        </footer>
     </div>
 </body>
 </html>

@@ -42,11 +42,12 @@
 </head>
 <body>
     <div data-montage-id="initializeRepositoryPanel" class="InitializeRepositoryPanel">
-        <p>Github repository <em>user/repo</em> exists but has no content.</p>
-
-        <p>Initialize with a Montage Project?</p>
-        <input type="button" data-montage-id="cancelButton">
-        <input type="button" data-montage-id="initializeButton">
+        <h2 class="modalOverlay-warning">Github repository <em>user/repo</em> exists but has no content.</h2>
+        <p class="modalOverlay-message">Initialize with a Montage Project?</p>
+        <footer class="modalOverlay-footer">
+            <input type="button" data-montage-id="cancelButton" class="Button">
+            <input type="button" data-montage-id="initializeButton" class="Button Button--action">
+        </footer>
     </div>
 </body>
 </html>

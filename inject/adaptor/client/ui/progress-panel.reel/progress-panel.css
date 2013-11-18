@@ -1,3 +1,7 @@
 .ProgressPanel {
 
 }
+
+.ProgressPanel .Progress {
+    width: 100%;
+}
