@@ -9,8 +9,6 @@ var Montage = require("montage").Montage,
     RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
     URL = require("core/url");
 
-var PROJECT_PROTOCOL = "fs:";
-
 // TODO we should only inject the base prototype of generic services this environment provides
 // the hosted application may build on top of that with specific features it needs of the bridge
 // i.e. we shouldn't expect the environment bridge the host provides to know about the needs of all potential guests
