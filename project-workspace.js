@@ -86,7 +86,7 @@ ProjectWorkspace.prototype.initEmptyRepository = function(repositoryUrl, reposit
     log("init empty repository: " + repoPath);
     return this._fs.makeTree(parentPath)
     .then(function() {
-        return minit.createApp(repo, parentPath);
+        return minit.createApp(parentPath, repo);
     }).then(function() {
         return self._git.init(repoPath);
     }).then(function() {
@@ -130,7 +130,7 @@ ProjectWorkspace.prototype.createComponent = function(owner, repo, name) {
     }
 
     log("create component in: " + repoPath);
-    return minit.createComponent(name, repoPath)
+    return minit.createComponent(repoPath, name)
     .then(function() {
         return self._commitAllRepositoryFiles(owner, repo, "Add component " + name);
     })
