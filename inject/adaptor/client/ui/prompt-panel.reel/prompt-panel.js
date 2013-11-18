@@ -38,14 +38,14 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
     handleCancelButtonAction: {
         value: function (evt) {
             this._deferredResponse.resolve();
-            this.reset();
+            this._reset();
         }
     },
 
     handleSubmitButtonAction: {
         value: function (evt) {
             this._deferredResponse.resolve(this.value);
-            this.reset();
+            this._reset();
         }
     },
 
