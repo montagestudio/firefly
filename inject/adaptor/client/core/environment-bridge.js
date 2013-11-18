@@ -1,4 +1,5 @@
 /*jshint browser:true */
+/*global URL:true */
 var Montage = require("montage").Montage,
     Promise = require("montage/core/promise").Promise,
     Connection = require("q-connection"),
