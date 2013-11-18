@@ -7,8 +7,8 @@ function Minit(path) {
 }
 
 Minit.prototype.createApp = function(path, name) {
-    log(path + "$ create:app -n " + name);
-    return exec(this._path, ["create:app", "-n", name], path);
+    log(path + "$ create:digit -n " + name);
+    return exec(this._path, ["create:digit", "-n", name], path);
 };
 
 Minit.prototype.createComponent = function(path, name) {
