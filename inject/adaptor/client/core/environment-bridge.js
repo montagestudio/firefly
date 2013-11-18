@@ -325,7 +325,7 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function() {
             var promise = this.repositoryController.initializeRepositoryWorkspace();
 
-            this.progressPanel.message = "Populating Project";
+            this.progressPanel.message = "Fetching Project";
             this.progressPanel.activityPromise = promise;
 
             return promise;
