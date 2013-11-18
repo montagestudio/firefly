@@ -100,6 +100,22 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
+    getRepositoryUrl: {
+        value: function() {
+            var self = this;
+
+            return github.githubApi()
+            .then(function(githubApi) {
+                return githubApi.getRepository(self.owner, self.repo);
+            })
+            .then(function(repo) {
+                // jshint -W106
+                return repo.html_url;
+                // jshint +W106
+            });
+        }
+    },
+
     workspaceExists: {
         value: function() {
             return this._request({
