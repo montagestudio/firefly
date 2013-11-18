@@ -12,21 +12,30 @@ var Q = require("q");
  */
 module.exports = function exec(command, args, cwd) {
     var deferred = Q.defer();
-    log(command, "'" + args.join("' '") + "'", "# in", cwd);
 
-    var proc = spawn(command, args, {
-        cwd: cwd,
-        stdio: global.DEBUG ? "inherit" : "ignore"
+
+    var proc = spawn(command, args, { cwd: cwd });
+    log("["+proc.pid+"]", "(" + command + " '" + args.join("' '") + "')", "# in", cwd);
+
+    var stderr = "";
+    proc.stderr.on("data", function (chunk) {
+        stderr += chunk.toString("utf8");
     });
+
     proc.on("error", function (error) {
         deferred.reject(error);
     });
-    proc.on("exit", function(code) {
+
+    proc.on("exit", function (code) {
+        if (stderr) {
+            log("["+proc.pid+"]", "stderr", "*" + stderr + "*");
+        }
         if (code !== 0) {
             deferred.reject(new Error("'" + command + " " + args.join(" ") + "' in " + cwd + " exited with code " + code));
         } else {
             deferred.resolve();
         }
     });
+
     return deferred.promise;
 };
