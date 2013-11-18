@@ -1,7 +1,9 @@
+var log = require("logging").from(__filename);
 var Q = require("q");
 var minimatch = require("minimatch");
 var PATH = require('path');
 var URL = require("url");
+var watchr = require("watchr");
 
 var guard = function (exclude) {
     exclude = exclude || [];
@@ -15,7 +17,7 @@ var guard = function (exclude) {
 };
 
 module.exports = FileService;
-function FileService(fs, environment, pathname) {
+function FileService(fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
 
@@ -108,6 +110,45 @@ function FileService(fs, environment, pathname) {
         // opener(thing, done.makeNodeResolver());
         done.reject(new Error("TODO Implement me"));
         return done.promise;
+    };
+
+    service.watch = function (url, ignoreSubPaths, handlers) {
+        var ignorePaths = ignoreSubPaths.map(function (ignorePath) {
+            return PATH.resolve(fsPath, ignorePath) + PATH.sep;
+        });
+
+        //TODO make sure we return whatever watcher handle we need to stop watching, probably
+        return Q.invoke(watchr, "watch", {
+            path: fsPath,
+            ignorePaths: ignorePaths,
+            ignoreCommonPatterns: true,
+            listeners: {
+                change: function(changeType, filePath, fileCurrentStat, filePreviousStat) {
+
+                    //The client expects directories to have a trailing slash
+                    var fileStat = fileCurrentStat || filePreviousStat;
+                    if (fileStat.isDirectory() && !/\/$/.test(filePath)) {
+                        filePath += "/";
+                    }
+
+                    filePath = filePath.replace(fsPath, "");
+                    var url = convertPathToProjectUrl(filePath);
+
+                    // FIXME Don't pass in the stat objects, because they could
+                    // be used for nefarious purposes
+                    handlers.handleChange.fcall(changeType, url, fileCurrentStat)
+                    .catch(function (error) {
+                        log("handleChange", "*" + error.stack + "*");
+                    });
+                },
+                error: function(err) {
+                    handlers.handleChange.fcall(err)
+                    .catch(function (error) {
+                        log("handleError", "*" + error.stack + "*");
+                    });
+                }
+            }
+        });
     };
 
     return service;

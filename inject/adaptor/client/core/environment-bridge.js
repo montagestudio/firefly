@@ -172,9 +172,13 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     watch: {
-        value: function () {
-            // console.log("watch", arguments);
-            return Promise.resolve(true);
+        value: function (url, ignoreSubPaths, changeHandler, errorHandler) {
+            var handlers = {
+                handleChange: Promise.master(changeHandler),
+                handleError: Promise.master(errorHandler)
+            };
+
+            return this.backend.get("file-service").invoke("watch", url, ignoreSubPaths, handlers);
         }
     },
 
