@@ -71,7 +71,7 @@ exports.ProgressPanel = Component.specialize(/** @lends ProgressPanel# */ {
         value: 0
     },
 
-    progressIsIndeterminite: {
+    progressIsIndeterminate: {
         value: false
     }
 });
