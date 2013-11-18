@@ -257,6 +257,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    createModule: {
+        value: function (name) {
+            return this.repositoryController.createModule(name);
+        }
+    },
+
     openFileWithDefaultApplication: {
         value: function (file) {
             return Promise.resolve(null);
