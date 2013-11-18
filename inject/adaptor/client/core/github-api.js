@@ -206,6 +206,9 @@ GithubApi.prototype._createQueryString = function(query) {
  * Not part of Github API but they are helper functions
  */
 
+/**
+ * An empty repository doesn't have branches.
+ */
 GithubApi.prototype.isRepositoryEmpty = function(username, repository) {
     return this.listBranches(username, repository)
     .then(function(branches) {
