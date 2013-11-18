@@ -7,10 +7,13 @@
     bottom: 0;
     z-index: 100;
     background-color: hsla(0, 0%, 25%, 0.9);
+    opacity: 1;
+    -webkit-transition: opacity 300ms ease-in-out;
 }
 
 .ModalOverlay.ModalOverlay-noDisplay {
-    display: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .ModalOverlay-box {
