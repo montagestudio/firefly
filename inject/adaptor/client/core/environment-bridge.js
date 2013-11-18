@@ -32,6 +32,14 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    progressPanel: {
+        value: null
+    },
+
+    promptPanel: {
+        value: null
+    },
+
     _backend: {
         value: null
     },
@@ -217,8 +225,14 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     promptForSave: {
-        value: function () {
-            return Promise.resolve(null);
+        value: function (options) {
+            return this.promptPanel.getResponse(options.prompt, options.defaultName, options.submitLabel).then(function (response) {
+                //TODO sanitize input
+                if (response) {
+                    response = options.defaultDirectory + "/" + response;
+                }
+                return response;
+            });
         }
     },
 
