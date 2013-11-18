@@ -1,3 +1,4 @@
+/*global window */
 /**
  * @module ui/toolbar.reel
  * @requires montage/ui/component
