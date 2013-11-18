@@ -15,8 +15,8 @@ function Env(options) {
         var repo = match[2];
 
         return {
-            owner: owner,
-            repo: repo
+            owner: owner.toLowerCase(),
+            repo: repo.toLowerCase()
         };
     };
     env.getProjectPathFromSessionAndAppUrl = function (session, url) {
@@ -88,8 +88,8 @@ function Env(options) {
             var project = projectList[parseInt(number, 10)];
 
             return {
-                owner: project.owner,
-                repo: project.repo
+                owner: project.owner.toLowerCase(),
+                repo: project.repo.toLowerCase()
             };
         };
         env.getProjectUrlFromAppUrl = function (url) {
@@ -126,8 +126,8 @@ function Env(options) {
             var repo = match[2];
 
             return {
-                owner: owner,
-                repo: repo
+                owner: owner.toLowerCase(),
+                repo: repo.toLowerCase()
             };
         };
         env.getDetailsfromProjectUrl = function (url) {
@@ -146,8 +146,8 @@ function Env(options) {
             var repo = match[2];
 
             return {
-                owner: owner,
-                repo: repo
+                owner: owner.toLowerCase(),
+                repo: repo.toLowerCase()
             };
         };
         env.getProjectUrlFromAppUrl = function (url) {
