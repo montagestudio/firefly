@@ -44,6 +44,15 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
         }
     },
 
+    handleInputFieldAction: {
+        value: function (evt) {
+            if (this._deferredResponse) {
+                this._deferredResponse.resolve(this.value);
+                this._reset();
+            }
+        }
+    },
+
     handleSubmitButtonAction: {
         value: function (evt) {
             if (this._deferredResponse) {

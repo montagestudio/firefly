@@ -28,7 +28,13 @@
             },
             "bindings": {
                 "value": {"<->": "@owner.value"}
-            }
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
         },
 
         "submitButton": {
