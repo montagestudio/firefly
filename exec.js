@@ -12,7 +12,7 @@ var Q = require("q");
  */
 module.exports = function exec(command, args, cwd) {
     var deferred = Q.defer();
-    log(command, args.join(" "), "# in", cwd);
+    log(command, "'" + args.join("' '") + "'", "# in", cwd);
 
     var proc = spawn(command, args, {
         cwd: cwd,
