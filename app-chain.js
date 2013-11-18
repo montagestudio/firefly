@@ -131,6 +131,25 @@ function server(options) {
                 });
             });
 
+            route(":owner/:repo/flush")
+            .methods(function (method) {
+                method("POST")
+                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .app(function (request) {
+                    return request.body.read()
+                    .then(function(body) {
+                        var options = JSON.parse(body.toString());
+
+                        return handleEndpoint(request, function(owner, repo) {
+                            return request.projectWorkspace.flushRepository(
+                                owner, repo, options.message);
+                        }, function() {
+                            return {message: "flushed"};
+                        });
+                    });
+                });
+            });
+
             route(":owner/:repo/workspace")
             .methods(function (method) {
                 method("GET")

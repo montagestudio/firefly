@@ -170,9 +170,7 @@ ProjectWorkspace.prototype.createModule = function(owner, repo, name, extendsMod
 };
 
 ProjectWorkspace.prototype.saveFile = function(owner, repo, filename, contents) {
-    var self = this;
     var repoPath = this.getRepositoryPath(owner, repo);
-    var githubApi = new GithubApi(this._session.githubAccessToken);
 
     if (!filename) {
         throw new Error("Filename missing.");
@@ -186,12 +184,19 @@ ProjectWorkspace.prototype.saveFile = function(owner, repo, filename, contents) 
     return this._fs.reroot(repoPath)
     .then(function(fs) {
         return fs.write(filename, contents);
-    })
+    });
+};
+
+ProjectWorkspace.prototype.flushRepository = function(owner, repo, message) {
+    var self = this;
+    var repoPath = this.getRepositoryPath(owner, repo);
+    var githubApi = new GithubApi(this._session.githubAccessToken);
+
+    return this._commitAllRepositoryFiles(owner, repo, message)
     .then(function() {
-        return self._commitAllRepositoryFiles(owner, repo, "Changed file " + filename);
-    }).then(function() {
         return githubApi.getRepository(owner, repo);
-    }).then(function(repository) {
+    })
+    .then(function(repository) {
         //jshint -W106
         return self._git.push(repoPath, repository.clone_url, repository.default_branch);
         //jshint +W106

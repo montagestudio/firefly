@@ -151,6 +151,18 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
+    flush: {
+        value: function(message) {
+            return this._request({
+                method: "POST",
+                url: "/" + this.owner + "/" + this.repo + "/flush",
+                data: {
+                    message: message
+                }
+            });
+        }
+    },
+
     _request: {
         value: function(request) {
             var xhr = new XMLHttpRequest(),

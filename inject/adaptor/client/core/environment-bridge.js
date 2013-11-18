@@ -356,6 +356,18 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    /**
+     * Pushes all commits to remote repository.
+     */
+    flushProject: {
+        value: function(message) {
+            return this.repositoryController.flush(message);
+        }
+    },
+
+    /**
+     * Saves a file and creates a new commit for the change.
+     */
     saveFile: {
         value: function(contents, location) {
             return this.repositoryController.saveFile(URL.parse(location).pathname, contents).then(function (response) {
@@ -369,7 +381,13 @@ exports.EnvironmentBridge = Montage.specialize({
 
     save: {
         value: function (editingDocument, location) {
-            return editingDocument.save(location, this.saveFile.bind(this));
+            var self = this;
+            var name = URL.parse(editingDocument.url).pathname;
+
+            return editingDocument.save(location, this.saveFile.bind(this))
+            .then(function() {
+                return self.flushProject("Updated component " + name);
+            });
         }
     }
 
