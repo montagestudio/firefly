@@ -37,15 +37,19 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
 
     handleCancelButtonAction: {
         value: function (evt) {
-            this._deferredResponse.resolve();
-            this._reset();
+            if (this._deferredResponse) {
+                this._deferredResponse.resolve();
+                this._reset();
+            }
         }
     },
 
     handleSubmitButtonAction: {
         value: function (evt) {
-            this._deferredResponse.resolve(this.value);
-            this._reset();
+            if (this._deferredResponse) {
+                this._deferredResponse.resolve(this.value);
+                this._reset();
+            }
         }
     },
 
@@ -55,6 +59,7 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
             this.value = null;
             this.submitLabel = DEFAULT_SUBMIT_LABEL;
             this.cancelLabel = DEFAULT_CANCEL_LABEL;
+            this._deferredResponse = null;
         }
     },
 
