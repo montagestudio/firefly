@@ -20,6 +20,14 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
             userController.then(function(userController) {
                 self.userController = userController;
             });
+            this.addPathChangeListener("environmentBridge", function(value) {
+                if (value) {
+                    value.repositoryController.getRepositoryUrl()
+                    .then(function(url) {
+                        self.sourceUrl = url;
+                    }).done();
+                }
+            });
         }
     },
 
@@ -47,6 +55,16 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
         value: function (event) {
             this.environmentBridge.openHttpUrl(window.location.origin + "/projects");
         }
+    },
+
+    handleSourceButtonAction: {
+        value: function() {
+            window.open(this.sourceUrl);
+        }
+    },
+
+    sourceUrl: {
+        value: null
     },
 
     undoMenuItemModel: {

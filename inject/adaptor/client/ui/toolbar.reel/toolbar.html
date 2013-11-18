@@ -66,7 +66,11 @@
             "prototype": "matte/ui/button.reel",
             "properties": {
                 "element": {"#": "sourceButton"}
-            }
+            },
+            "listeners": [{
+                "type": "action",
+                "listener": {"@": "owner"}
+            }]
         },
 
         "avatar": {
