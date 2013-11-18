@@ -4,4 +4,11 @@
 
 .ProgressPanel .Progress {
     width: 100%;
+    background-image: linear-gradient(to right, hsla(0, 0%, 0%, 0.15) 4px, hsla(0, 0%, 0%, 0) 4px );
+    background-size: 8px 10px;
+    -webkit-animation: ProgressPanel--ani .5s linear 360; /* Limit animation to 3 min */
+}
+
+@-webkit-keyframes ProgressPanel--ani {
+    100% { background-position-x: -8px; }
 }
