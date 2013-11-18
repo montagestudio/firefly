@@ -37,17 +37,24 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
 
     handleCancelButtonAction: {
         value: function (evt) {
-            this.message = null;
-            this.value = null;
-            this.submitLabel = DEFAULT_SUBMIT_LABEL;
-            this.cancelLabel = DEFAULT_CANCEL_LABEL;
             this._deferredResponse.resolve();
+            this.reset();
         }
     },
 
     handleSubmitButtonAction: {
         value: function (evt) {
             this._deferredResponse.resolve(this.value);
+            this.reset();
+        }
+    },
+
+    _reset: {
+        value: function () {
+            this.message = null;
+            this.value = null;
+            this.submitLabel = DEFAULT_SUBMIT_LABEL;
+            this.cancelLabel = DEFAULT_CANCEL_LABEL;
         }
     },
 
