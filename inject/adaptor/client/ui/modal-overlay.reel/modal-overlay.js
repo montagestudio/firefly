@@ -13,5 +13,9 @@ exports.ModalOverlay = Component.specialize(/** @lends ModalOverlay# */ {
         value: function ModalOverlay() {
             this.super();
         }
+    },
+
+    visible: {
+        value: true
     }
 });

@@ -9,6 +9,10 @@
     background-color: hsla(0, 0%, 25%, 0.9);
 }
 
+.ModalOverlay.ModalOverlay-noDisplay {
+    display: none;
+}
+
 .ModalOverlay-box {
     margin: auto;
     max-width: 400px;
