@@ -81,6 +81,9 @@ exports.EnvironmentBridge = Montage.specialize({
                 var self = this;
                 this._packageUrl = this.backend.get("env-service").get("projectUrl")
                 .then(function (url) {
+                    // The PreviewController depends on this changing
+                    self.dispatchOwnPropertyChange("previewUrl", self.previewUrl);
+
                     return self.repositoryController._request({
                         method: "POST",
                         url: url + "/session",
@@ -155,8 +158,12 @@ exports.EnvironmentBridge = Montage.specialize({
 
     previewUrl: {
         get: function () {
-            var url = this.packageUrl.inspect().value;
-            return url ? url + "/index.html" : void 0;
+            // Don't indirectly kick off a connection to the backend, because
+            // this must be delayed until the local clone exists
+            if (this._packageUrl) {
+                var url = this._packageUrl.inspect().value;
+                return url ? url + "/index.html" : void 0;
+            }
         }
     },
 
