@@ -25,7 +25,8 @@
     "minimatch": "~0.2.12",
     "logging": "~2.0.21",
     "xmlhttprequest": "~1.6.0",
-    "minit": "~0.3.10"
+    "minit": "~0.3.10",
+    "watchr": "2.3.3"
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",
