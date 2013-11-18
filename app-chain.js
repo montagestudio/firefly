@@ -83,33 +83,11 @@ function server(options) {
                 method("POST")
                 .use(setupProjectWorkspace(fs, directory, minitPath))
                 .app(function (request) {
-                    var owner = sanitize.sanitizeDirectoryName(request.params.owner),
-                        repo = sanitize.sanitizeDirectoryName(request.params.repo);
-
-                    return request.projectWorkspace.initRepository(owner, repo)
-                    .then(function() {
-                        return JsonApps.json({
-                            message: "initialized",
-                            owner: owner,
-                            repository: repo
-                        });
-                    })
-                    .fail(function(reason) {
-                        if (reason.status === 404) {
-                            log("repository not found: " + owner + "/" + repo);
-                            return JsonApps.json({
-                                error: "not found",
-                                owner: owner,
-                                repository: repo
-                            });
-                        } else {
-                            log("repository init error: " + owner + "/" + repo);
-                            return JsonApps.json({
-                                error: reason.stack,
-                                owner: owner,
-                                repository: repo
-                            });
-                        }
+                    return handleEndpoint(request, function(owner, repo) {
+                        return request.projectWorkspace.initRepository(
+                            owner, repo);
+                    }, function() {
+                        return {message: "initialized"};
                     });
                 });
             });
@@ -121,24 +99,13 @@ function server(options) {
                 .app(function (request) {
                     return request.body.read()
                     .then(function(body) {
-                        var owner = sanitize.sanitizeDirectoryName(request.params.owner),
-                            repo = sanitize.sanitizeDirectoryName(request.params.repo);
-                        options = JSON.parse(body.toString());
+                        var options = JSON.parse(body.toString());
 
-                        return request.projectWorkspace.createComponent(owner, repo, options.name)
-                        .then(function() {
-                            return JsonApps.json({
-                                message: "created",
-                                owner: owner,
-                                repository: repo
-                            });
-                        })
-                        .fail(function(reason) {
-                            return JsonApps.json({
-                                error: reason.message,
-                                owner: owner,
-                                repository: repo
-                            });
+                        return handleEndpoint(request, function(owner, repo) {
+                            return request.projectWorkspace.createComponent(
+                                owner, repo, options.name);
+                        }, function() {
+                            return {message: "created"};
                         });
                     });
                 });
@@ -151,24 +118,14 @@ function server(options) {
                 .app(function (request) {
                     return request.body.read()
                     .then(function(body) {
-                        var owner = sanitize.sanitizeDirectoryName(request.params.owner),
-                            repo = sanitize.sanitizeDirectoryName(request.params.repo);
-                        options = JSON.parse(body.toString());
+                        var options = JSON.parse(body.toString());
 
-                        return request.projectWorkspace.createModule(owner, repo, options.name, options.extendsModuleId, options.extendsName)
-                        .then(function() {
-                            return JsonApps.json({
-                                message: "created",
-                                owner: owner,
-                                repository: repo
-                            });
-                        })
-                        .fail(function(reason) {
-                            return JsonApps.json({
-                                error: reason.message,
-                                owner: owner,
-                                repository: repo
-                            });
+                        return handleEndpoint(request, function(owner, repo) {
+                            return request.projectWorkspace.createModule(
+                                owner, repo, options.name,
+                                options.extendsModuleId, options.extendsName);
+                        }, function() {
+                            return {message: "created"};
                         });
                     });
                 });
@@ -179,23 +136,11 @@ function server(options) {
                 method("GET")
                 .use(setupProjectWorkspace(fs, directory, minitPath))
                 .app(function (request) {
-                    var owner = sanitize.sanitizeDirectoryName(request.params.owner),
-                        repo = sanitize.sanitizeDirectoryName(request.params.repo);
-
-                    return request.projectWorkspace.existsRepository(owner, repo)
-                    .then(function(exists) {
-                        return JsonApps.json({
-                            owner: owner,
-                            repository: repo,
-                            created: exists
-                        });
-                    })
-                    .fail(function(reason) {
-                        return JsonApps.json({
-                            error: reason.message,
-                            owner: owner,
-                            repository: repo
-                        });
+                    return handleEndpoint(request, function(owner, repo) {
+                        return request.projectWorkspace.existsRepository(
+                            owner, repo);
+                    }, function(exists) {
+                        return {created: exists};
                     });
                 });
             });
@@ -208,25 +153,14 @@ function server(options) {
                 .app(function (request) {
                     return request.body.read()
                     .then(function(body) {
-                        var owner = sanitize.sanitizeDirectoryName(request.params.owner),
-                            repo = sanitize.sanitizeDirectoryName(request.params.repo);
-                        options = JSON.parse(body.toString());
+                        var options = JSON.parse(body.toString());
 
-                        // TODO: support binaries with base64
-                        return request.projectWorkspace.saveFile(owner, repo, options.filename, options.contents)
-                        .then(function() {
-                            return JsonApps.json({
-                                message: "saved",
-                                owner: owner,
-                                repository: repo
-                            });
-                        })
-                        .fail(function(reason) {
-                            return JsonApps.json({
-                                error: reason.message,
-                                owner: owner,
-                                repository: repo
-                            });
+                        return handleEndpoint(request, function(owner, repo) {
+                            return request.projectWorkspace.saveFile(
+                                owner, repo,
+                                options.filename, options.contents);
+                        }, function() {
+                            return {message: "saved"};
                         });
                     });
                 });
@@ -252,5 +186,53 @@ function server(options) {
         };
 
         return chain;
+    });
+}
+
+/**
+ * Endpoints (to be moved to another file in the future)
+ */
+
+/**
+ * Executes an operation and depending on the result creates a success or error
+ * message to send back to the browser.
+ * The message is in the shape: {"owner": ..., "repo": ...}
+ *
+ * @param {function} endpointCallback The function that performs the operation
+ *        of the endpoint, returns a promise to the completion of the operation.
+ *        The function receives the owner and the repo as arguments.
+ *        If the operation succeeds then {@link successCallback} is called with
+ *        the resolved value. If the operation fails then an error message is
+ *        returned.
+ * @param {function} successCallback The function that receives the value of
+ *        that the operation resolved it and is expected to return the message
+ *        that will be turned into a response back to the browser.
+ */
+function handleEndpoint(request, endpointCallback, successCallback) {
+    var owner = sanitize.sanitizeDirectoryName(request.params.owner),
+        repo = sanitize.sanitizeDirectoryName(request.params.repo);
+
+    var createMessage = function(message) {
+        message.owner = owner;
+        message.repo = repo;
+        return message;
+    };
+
+    return endpointCallback(owner, repo)
+    .then(function() {
+        var successMessage;
+
+        if (successCallback) {
+            successMessage = successCallback(arguments[0]);
+        } else {
+            successMessage = {};
+        }
+
+        return JsonApps.json(createMessage(successMessage));
+    })
+    .fail(function(reason) {
+        return JsonApps.json(createMessage({
+            error: reason.message
+        }));
     });
 }
