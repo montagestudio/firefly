@@ -127,6 +127,7 @@ Montage.defineProperty(exports, "defaultMenu", {
 
                 saveMenuItem.title = "Save";
                 saveMenuItem.identifier = "save";
+                saveMenuItem.keyEquivalent = "command+s";
 
                 _defaultMenu.insertItem(saveMenuItem).done();
                 _defaultMenu.insertItem(undoMenuItem).done();

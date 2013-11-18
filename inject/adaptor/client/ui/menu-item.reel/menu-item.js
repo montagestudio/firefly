@@ -2,7 +2,8 @@
  * @module ui/menu-item.reel
  * @requires montage/ui/component
  */
-var Component = require("montage/ui/component").Component;
+var Component = require("montage/ui/component").Component,
+    KeyComposer = require("montage/composer/key-composer").KeyComposer;
 
 /**
  * @class MenuItem
@@ -15,8 +16,53 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         }
     },
 
-    menuItemModel: {
+    _keyComposer: {
         value: null
+    },
+
+    _menuItemModel: {
+        value: null
+    },
+
+    menuItemModel: {
+        get: function () {
+            return this._menuItemModel;
+        },
+        set: function (value) {
+            if (value === this._menuItemModel) {
+                return;
+            }
+
+            if (this._menuItemModel) {
+                throw new Error("MenuItem already associated with a MenuItemModel");
+            }
+
+            this._menuItemModel = value;
+
+            if (this._menuItemModel) {
+                var keyEquivalent = this._menuItemModel.keyEquivalent;
+
+                if (keyEquivalent) {
+                    this._keyComposer = new KeyComposer();
+                    this._keyComposer.component = this;
+                    this._keyComposer.keys = keyEquivalent;
+                    this._keyComposer.identifier = "menuAction";
+                    this.addComposer(this._keyComposer);
+                    this._keyComposer.element = window;
+
+                    this.addEventListener("keyPress", this, false);
+                    this._keyComposer.addEventListener("keyPress", null, false);
+                }
+            }
+        }
+    },
+
+    handleKeyPress: {
+        value: function(event) {
+            if (event.identifier === "menuAction" && this.menuItemModel) {
+                this.menuItemModel.dispatchMenuEvent("menuAction");
+            }
+        }
     },
 
     //TODO handle menuValidate event
