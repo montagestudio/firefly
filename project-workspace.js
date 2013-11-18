@@ -116,7 +116,7 @@ ProjectWorkspace.prototype.npmInstall = function (owner, repo) {
 
     // Only installing these packages to avoid security issues with unknown
     // packages' post install scripts, etc.
-    exec("npm", ["install", "montage", "digit", "matte"], repoPath);
+    return exec("npm", ["install", "montage", "digit"], repoPath);
 };
 
 ProjectWorkspace.prototype.createComponent = function(owner, repo, name) {
