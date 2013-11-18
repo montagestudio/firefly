@@ -35,8 +35,34 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
         value: DEFAULT_CANCEL_LABEL
     },
 
+    handleKeyPress: {
+        value: function(evt) {
+            if ("cancelEditing" === evt.identifier) {
+                this._discard();
+            }
+        }
+    },
+
     handleCancelButtonAction: {
         value: function (evt) {
+            this._discard();
+        }
+    },
+
+    handleInputFieldAction: {
+        value: function (evt) {
+            this._submit();
+        }
+    },
+
+    handleSubmitButtonAction: {
+        value: function (evt) {
+            this._submit();
+        }
+    },
+
+    _discard: {
+        value: function () {
             if (this._deferredResponse) {
                 this._deferredResponse.resolve();
                 this._reset();
@@ -44,17 +70,8 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
         }
     },
 
-    handleInputFieldAction: {
-        value: function (evt) {
-            if (this._deferredResponse) {
-                this._deferredResponse.resolve(this.value);
-                this._reset();
-            }
-        }
-    },
-
-    handleSubmitButtonAction: {
-        value: function (evt) {
+    _submit: {
+        value: function () {
             if (this._deferredResponse) {
                 this._deferredResponse.resolve(this.value);
                 this._reset();

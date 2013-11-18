@@ -249,6 +249,7 @@ exports.EnvironmentBridge = Montage.specialize({
                     response = options.defaultDirectory + "/" + response;
                 }
                 appDelegate.showModal = false;
+                appDelegate.currentPanelKey = null;
                 return response;
             });
         }
