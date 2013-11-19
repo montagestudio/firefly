@@ -1,3 +1,4 @@
+/*jshint browser:true */
 /**
  * @module ui/menu-item.reel
  * @requires montage/ui/component
