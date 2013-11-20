@@ -166,6 +166,9 @@ ProjectWorkspace.prototype.saveFile = function(filename, contents) {
     return this._fs.reroot(this._workspacePath)
     .then(function(fs) {
         return fs.write(filename, contents);
+    })
+    .fail(function() {
+        throw new Error("Save file failed.");
     });
 };
 
@@ -268,7 +271,10 @@ ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
 ProjectWorkspace.prototype._npmInstall = function () {
     // Only installing these packages to avoid security issues with unknown
     // packages' post install scripts, etc.
-    return exec("npm", ["install", "montage", "digit"], this._workspacePath);
+    return exec("npm", ["install", "montage", "digit"], this._workspacePath)
+    .fail(function() {
+        throw new Error("npm install failed.");
+    });
 };
 
 

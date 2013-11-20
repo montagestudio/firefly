@@ -14,29 +14,44 @@ function Git(fs, accessToken) {
 
 Git.prototype.init = function(repoPath) {
     log("init " + repoPath);
-    return exec("git", ["init", repoPath], "/");
+    return exec("git", ["init", repoPath], "/")
+    .fail(function() {
+        throw new Error("git init failed.");
+    });
 };
 
 Git.prototype.config = function(repoPath, option, value) {
     log("config " + option + " " + value);
-    return exec("git", ["config", "--file", ".git/config", option, value], repoPath);
+    return exec("git", ["config", "--file", ".git/config", option, value], repoPath)
+    .fail(function() {
+        throw new Error("git config failed.");
+    });
 };
 
 Git.prototype.addRemote = function (repoPath, url) {
     log("remote add origin " + url);
-    return exec("git", ["remote", "add", "origin", url], repoPath);
+    return exec("git", ["remote", "add", "origin", url], repoPath)
+    .fail(function() {
+        throw new Error("git add origin failed.");
+    });
 };
 
 Git.prototype.add = function(repoPath, paths) {
     log("add " + paths);
     var args = ["add"].concat(paths);
-    return exec("git", args, repoPath);
+    return exec("git", args, repoPath)
+    .fail(function() {
+        throw new Error("git add failed.");
+    });
 };
 
 Git.prototype.commit = function (repoPath, message) {
     var args = ["commit", "-m", message];
     log("commit ", args);
-    return exec("git", args, repoPath);
+    return exec("git", args, repoPath)
+    .fail(function() {
+        throw new Error("git commit failed.");
+    });
 };
 
 Git.prototype.push = function(repoPath, repositoryUrl, branch) {
@@ -50,7 +65,10 @@ Git.prototype.push = function(repoPath, repositoryUrl, branch) {
         args.push(branch);
     }
     // The remote has already been set with the accessToken in Git#clone
-    return exec("git", args, repoPath);
+    return exec("git", args, repoPath)
+    .fail(function() {
+        throw new Error("git push failed.");
+    });
 };
 
 // FIXME to avoid writing the accessToken to disk in .git/config do
@@ -62,7 +80,10 @@ Git.prototype.clone = function(cloneUrl, repoPath) {
     if (!/^https:\/\//.test(cloneUrl)) {
         return Q.reject(new Error("Clone url must be https://, not " + cloneUrl));
     }
-    return exec("git", ["clone", cloneUrl, repoPath], "/");
+    return exec("git", ["clone", cloneUrl, repoPath], "/")
+    .fail(function() {
+        throw new Error("git clone failed.");
+    });
 };
 
 Git.prototype.isCloned = function(repoPath) {
