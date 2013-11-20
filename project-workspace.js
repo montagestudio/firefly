@@ -74,11 +74,11 @@ Object.defineProperties(ProjectWorkspace.prototype, {
 /**
  * Workspace setup operations
  */
-var _info;
+ProjectWorkspace.prototype._info = null;
 ProjectWorkspace.prototype.getInfo = function() {
-    if (!_info) {
+    if (!this._info) {
         var deferred = Q.defer();
-        _info = deferred.promise;
+        this._info = deferred.promise;
         this._githubApi.getRepository(this._owner, this._repo)
         .then(function(repository) {
             deferred.resolve({
@@ -91,7 +91,7 @@ ProjectWorkspace.prototype.getInfo = function() {
         .fail(deferred.reject);
     }
 
-    return _info;
+    return this._info;
 };
 
 ProjectWorkspace.prototype.existsWorkspace = function() {
