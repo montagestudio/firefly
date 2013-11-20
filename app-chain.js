@@ -81,11 +81,10 @@ function server(options) {
             route(":owner/:repo/init")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
-                    return handleEndpoint(request, function(owner, repo) {
-                        return request.projectWorkspace.initRepository(
-                            owner, repo);
+                    return handleEndpoint(request, function() {
+                        return request.projectWorkspace.initializeWorkspace();
                     }, function() {
                         return {message: "initialized"};
                     });
@@ -95,15 +94,15 @@ function server(options) {
             route(":owner/:repo/components")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
                     return request.body.read()
                     .then(function(body) {
                         var options = JSON.parse(body.toString());
 
-                        return handleEndpoint(request, function(owner, repo) {
+                        return handleEndpoint(request, function() {
                             return request.projectWorkspace.createComponent(
-                                owner, repo, options.name);
+                                options.name);
                         }, function() {
                             return {message: "created"};
                         });
@@ -114,16 +113,16 @@ function server(options) {
             route(":owner/:repo/modules")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
                     return request.body.read()
                     .then(function(body) {
                         var options = JSON.parse(body.toString());
 
-                        return handleEndpoint(request, function(owner, repo) {
+                        return handleEndpoint(request, function() {
                             return request.projectWorkspace.createModule(
-                                owner, repo, options.name,
-                                options.extendsModuleId, options.extendsName);
+                                options.name, options.extendsModuleId,
+                                options.extendsName);
                         }, function() {
                             return {message: "created"};
                         });
@@ -134,15 +133,15 @@ function server(options) {
             route(":owner/:repo/flush")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
                     return request.body.read()
                     .then(function(body) {
                         var options = JSON.parse(body.toString());
 
-                        return handleEndpoint(request, function(owner, repo) {
-                            return request.projectWorkspace.flushRepository(
-                                owner, repo, options.message);
+                        return handleEndpoint(request, function() {
+                            return request.projectWorkspace.flushWorkspace(
+                                options.message);
                         }, function() {
                             return {message: "flushed"};
                         });
@@ -153,11 +152,10 @@ function server(options) {
             route(":owner/:repo/workspace")
             .methods(function (method) {
                 method("GET")
-                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
-                    return handleEndpoint(request, function(owner, repo) {
-                        return request.projectWorkspace.existsRepository(
-                            owner, repo);
+                    return handleEndpoint(request, function() {
+                        return request.projectWorkspace.existsWorkspace();
                     }, function(exists) {
                         return {created: exists};
                     });
@@ -168,15 +166,14 @@ function server(options) {
             route(":owner/:repo")
             .methods(function (method) {
                 method("PUT")
-                .use(setupProjectWorkspace(fs, directory, minitPath))
+                .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
                     return request.body.read()
                     .then(function(body) {
                         var options = JSON.parse(body.toString());
 
-                        return handleEndpoint(request, function(owner, repo) {
+                        return handleEndpoint(request, function() {
                             return request.projectWorkspace.saveFile(
-                                owner, repo,
                                 options.filename, options.contents);
                         }, function() {
                             return {message: "saved"};
@@ -237,7 +234,7 @@ function handleEndpoint(request, endpointCallback, successCallback) {
         return message;
     };
 
-    return endpointCallback(owner, repo)
+    return endpointCallback()
     .then(function() {
         var successMessage;
 

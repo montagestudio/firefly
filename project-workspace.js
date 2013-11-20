@@ -1,177 +1,159 @@
 var log = require("logging").from(__filename);
-var GithubApi = require("./inject/adaptor/client/core/github-api");
-var Git = require("./git");
-var Minit = require("./minit");
 var PATH = require("path");
 var exec = require("./exec");
+var Q = require("q");
+var GithubApi = require("./inject/adaptor/client/core/github-api");
+var Minit = require("./minit");
+var Git = require("./git");
+var fs = require("q-io/fs");
+
+var INITIAL_COMMIT_MSG = "Initial commit";
+var DEFAULT_GIT_EMAIL = "noreply";
 
 module.exports = ProjectWorkspace;
 
-// TODO: receive owner/repo
-function ProjectWorkspace(fs, directory, session, minitPath) {
+/**
+ * This object represents a project workspace and provides the operations needed
+ * to intialize it and manage it.
+ * A project workspace is a directory will all the files of a specific project.
+ * The workspace can be initialized from a remote git repository or it can be
+ * created from scratch and pushed to a remote git repository. Either way, the
+ * workspace is meant to be synchronized with a remote git repository.
+ *
+ * The operations provided are:
+ * - Initialize the workspace
+ * - Save a file to the workspace
+ * - Create a montage component and add it to the workspace
+ * - Create a montage module and add it to the workspace
+ * - Flush the workspace (sends all local changes to the remote git repository)
+ */
+function ProjectWorkspace(session, workspacePath, owner, repo, minitPath) {
     this._fs = fs;
-    this._root = fs.join(directory, session.username);
     this._session = session;
+    this._workspacePath = workspacePath;
+    this._owner = owner;
+    this._repo = repo;
+
+    this._gitUrl = null;
+    this._gitBranch = null;
+
     this._minitPath = minitPath;
-    this._git = new Git(this._fs, this._session.githubAccessToken);
 }
 
-ProjectWorkspace.prototype.init = function() {
-    // TODO: move this to session create
-    return this._fs.makeTree(this._root);
-};
-
-ProjectWorkspace.prototype.getPath = function(pathname) {
-    return this._fs.join(this._root, this._fs.resolve(pathname));
-};
-
-ProjectWorkspace.prototype.existsRepository = function(owner, repo) {
-    var repoPath = this.getRepositoryPath(owner, repo);
-
-    return this._fs.exists(repoPath);
-};
-
-ProjectWorkspace.prototype.initRepository = function(owner, repo) {
-    var self = this;
-    var repoPath = this.getRepositoryPath(owner, repo);
-    var githubApi = new GithubApi(this._session.githubAccessToken);
-
-    return githubApi.getRepository(owner, repo)
-    .then(function(repository) {
-        return self._git.isCloned(repoPath)
-        .then(function(isCloned) {
-            if (!isCloned) {
-                return githubApi.isRepositoryEmpty(owner, repo)
-                .then(function(isEmpty) {
-                    if (isEmpty) {
-                        //jshint -W106
-                        return self.initEmptyRepository(
-                            repository.clone_url, repository.default_branch,
-                            owner, repo);
-                        //jshint +W106
-                    } else {
-                        //jshint -W106
-                        return self.cloneRepository(repository.clone_url, owner, repo);
-                        //jshint +W106
-                    }
-                });
+Object.defineProperties(ProjectWorkspace.prototype, {
+    __git: {
+        writable: true,
+        value: null
+    },
+    _git: {
+        get: function() {
+            if (!this.__git) {
+                this.__git = new Git(this._fs, this._session.githubAccessToken);
             }
-        });
+
+            return this.__git;
+        }
+    },
+
+    __githubApi: {
+        writable: true,
+        value: null
+    },
+
+    _githubApi: {
+        get: function() {
+            if (!this.__githubApi) {
+                this.__githubApi = new GithubApi(this._session.githubAccessToken);
+            }
+
+            return this.__githubApi;
+        }
+    }
+});
+
+/**
+ * Workspace setup operations
+ */
+var _info;
+ProjectWorkspace.prototype.getInfo = function() {
+    if (!_info) {
+        var deferred = Q.defer();
+        _info = deferred.promise;
+        this._githubApi.getRepository(this._owner, this._repo)
+        .then(function(repository) {
+            deferred.resolve({
+                //jshint -W106
+                gitUrl: repository.clone_url,
+                gitBranch: repository.default_branch
+                //jshint +W106
+            });
+        })
+        .fail(deferred.reject);
+    }
+
+    return _info;
+};
+
+ProjectWorkspace.prototype.existsWorkspace = function() {
+    return this._fs.exists(this._workspacePath);
+};
+
+ProjectWorkspace.prototype.initializeWorkspace = function() {
+    var self = this;
+
+    return this._githubApi.isRepositoryEmpty(this._owner, this._repo)
+    .then(function(isEmpty) {
+        if (isEmpty) {
+            return self.initializeWithEmptyProject();
+        } else {
+            return self.initializeWithRepository();
+        }
     });
 };
 
 /**
- * Creates the git config with the user name and email to be used for commits.
+ * Initializes the workspace by creating an empty app and pushing it to the
+ * remote repository.
  */
-ProjectWorkspace.prototype.setupRepositoryWorkspace = function(owner, repo) {
-    var self = this,
-        repoPath = this.getRepositoryPath(owner, repo),
-        name = self._session.githubUser.name || self._session.githubUser.login,
-        email = self._session.githubUser.email || "noreply";
-
-    return this._git.config(repoPath, "user.name", name)
-    .then(function() {
-        return self._git.config(repoPath, "user.email", email);
-    }).then(function () {
-        self.npmInstall(owner, repo);
-    });
-};
-
-ProjectWorkspace.prototype.initEmptyRepository = function(repositoryUrl, repositoryBranch, owner, repo) {
+ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
     var self = this;
-    var repoPath = this.getRepositoryPath(owner, repo);
-    var parentPath = PATH.normalize(this._fs.join(repoPath, ".."));
+    var parentPath = PATH.normalize(this._fs.join(this._workspacePath, ".."));
     var minit = new Minit(this._minitPath);
 
-    log("init empty repository: " + repoPath);
-    return this._fs.makeTree(parentPath)
+    return minit.createApp(self._repo, parentPath)
     .then(function() {
-        return minit.createApp(parentPath, repo);
+        return self._git.init(self._workspacePath);
     }).then(function() {
-        return self._git.init(repoPath);
+        return self.getInfo();
+    }).then(function(info) {
+        return self._git.addRemote(self._workspacePath, info.gitUrl);
     }).then(function() {
-        return self.setupRepositoryWorkspace(owner, repo);
+        return self._setupWorkspaceRepository();
     }).then(function() {
-        return self._git.addRemote(repoPath, repositoryUrl);
-    }).then(function() {
-        return self._commitAllRepositoryFiles(owner, repo, "Initial commit");
-    }).then(function() {
-        return self._git.push(repoPath, repositoryUrl, repositoryBranch);
+        return self.flushWorkspace(INITIAL_COMMIT_MSG);
     });
 };
 
-ProjectWorkspace.prototype.cloneRepository = function(repositoryUrl, owner, repo) {
+/**
+ * Initializes the workspace by cloning the remote repository.
+ */
+ProjectWorkspace.prototype.initializeWithRepository = function() {
     var self = this;
-    var repoPath = this.getRepositoryPath(owner, repo);
 
-    log("clone into: " + repoPath);
-    return self._git.clone(repositoryUrl, repoPath)
+    return this.getInfo()
+    .then(function(info) {
+        return self._git.clone(info.gitUrl, self._workspacePath);
+    })
     .then(function() {
-        return self.setupRepositoryWorkspace(owner, repo);
+        return self._setupWorkspaceRepository();
     });
 };
 
-ProjectWorkspace.prototype.npmInstall = function (owner, repo) {
-    var repoPath = this.getRepositoryPath(owner, repo);
+/**
+ * File related operations
+ */
 
-    // Only installing these packages to avoid security issues with unknown
-    // packages' post install scripts, etc.
-    return exec("npm", ["install", "montage", "digit"], repoPath);
-};
-
-ProjectWorkspace.prototype.createComponent = function(owner, repo, name) {
-    var self = this;
-    var repoPath = this.getRepositoryPath(owner, repo);
-    var githubApi = new GithubApi(this._session.githubAccessToken);
-    var minit = new Minit(this._minitPath);
-
-    if (!name) {
-        throw new Error("Name missing.");
-    }
-
-    log("create component in: " + repoPath);
-    return minit.createComponent(repoPath, name)
-    .then(function() {
-        return self._commitAllRepositoryFiles(owner, repo, "Add component " + name);
-    })
-    .then(function() {
-        return githubApi.getRepository(owner, repo);
-    })
-    .then(function(repository) {
-        //jshint -W106
-        return self._git.push(repoPath, repository.clone_url, repository.default_branch);
-        //jshint +W106
-    });
-};
-
-ProjectWorkspace.prototype.createModule = function(owner, repo, name, extendsModuleId, extendsName) {
-    var self = this;
-    var repoPath = this.getRepositoryPath(owner, repo);
-    var githubApi = new GithubApi(this._session.githubAccessToken);
-    var minit = new Minit(this._minitPath);
-
-    if (!name) {
-        throw new Error("Name missing.");
-    }
-
-    log("create module in: " + repoPath);
-    return minit.createModule(repoPath, name, extendsModuleId, extendsName)
-    .then(function() {
-        return self._commitAllRepositoryFiles(owner, repo, "Add module " + name);
-    })
-    .then(function() {
-        return githubApi.getRepository(owner, repo);
-    })
-    .then(function(repository) {
-        //jshint -W106
-        return self._git.push(repoPath, repository.clone_url, repository.default_branch);
-        //jshint +W106
-    });
-};
-
-ProjectWorkspace.prototype.saveFile = function(owner, repo, filename, contents) {
-    var repoPath = this.getRepositoryPath(owner, repo);
-
+ProjectWorkspace.prototype.saveFile = function(filename, contents) {
     if (!filename) {
         throw new Error("Filename missing.");
     }
@@ -180,39 +162,113 @@ ProjectWorkspace.prototype.saveFile = function(owner, repo, filename, contents) 
         throw new Error("Contents missing.");
     }
 
-    log("save file: " + repoPath + "/" + filename);
-    return this._fs.reroot(repoPath)
+    log("save file: " + this._workspacePath + "/" + filename);
+    return this._fs.reroot(this._workspacePath)
     .then(function(fs) {
         return fs.write(filename, contents);
     });
 };
 
-ProjectWorkspace.prototype.flushRepository = function(owner, repo, message) {
-    var self = this;
-    var repoPath = this.getRepositoryPath(owner, repo);
-    var githubApi = new GithubApi(this._session.githubAccessToken);
+/**
+ * Montage related operations
+ */
 
-    return this._commitAllRepositoryFiles(owner, repo, message)
+ProjectWorkspace.prototype.createComponent = function(name) {
+    var self = this;
+    var minit = new Minit(this._minitPath);
+
+    if (!name) {
+        throw new Error("Name missing.");
+    }
+
+    log("create component in: " + this._workspacePath);
+    return minit.createComponent(this._workspacePath, name)
     .then(function() {
-        return githubApi.getRepository(owner, repo);
+        return self.flushWorkspace("Add component " + name);
+    });
+};
+
+ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extendsName) {
+    var self = this;
+    var minit = new Minit(this._minitPath);
+
+    if (!name) {
+        throw new Error("Name missing.");
+    }
+
+    log("create module in: " + this._workspacePath);
+    return minit.createModule(this._workspacePath, name, extendsModuleId, extendsName)
+    .then(function() {
+        return self.flushWorkspace("Add module " + name);
+    });
+};
+
+/**
+ * Git related operations
+ */
+
+/**
+ * Creates a single commit with all changes in the workspace and pushes it to
+ * the default remote.
+ */
+ProjectWorkspace.prototype.flushWorkspace = function(message) {
+    var self = this;
+
+    return this._commitWorkspace(message)
+    .then(function() {
+        return self._pushWorkspace();
+    });
+};
+
+/**
+ * Push all commits to the default remote.
+ */
+ProjectWorkspace.prototype._pushWorkspace = function(message) {
+    var self = this;
+
+    return this.getInfo()
+    .then(function(info) {
+        return self._git.push(self._workspacePath, info.gitUrl, info.gitBranch);
+    });
+};
+
+/**
+ * Creates a commit with all modified files.
+ */
+ProjectWorkspace.prototype._commitWorkspace = function(message) {
+    var self = this;
+
+    return this._git.add(this._workspacePath, "--all")
+    .then(function() {
+        return self._git.commit(self._workspacePath, message);
+    });
+};
+
+/**
+ * Creates the git config with the user name and email to be used for commits.
+ * Installs the needed node modules.
+ */
+ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
+    var self = this,
+        name = this._session.githubUser.name || this._session.githubUser.login,
+        email = this._session.githubUser.email || DEFAULT_GIT_EMAIL;
+
+    return this._git.config(this._workspacePath, "user.name", name)
+    .then(function() {
+        return self._git.config(self._workspacePath, "user.email", email);
     })
-    .then(function(repository) {
-        //jshint -W106
-        return self._git.push(repoPath, repository.clone_url, repository.default_branch);
-        //jshint +W106
-    });
-};
-
-ProjectWorkspace.prototype._commitAllRepositoryFiles = function(owner, repo, message) {
-    var self = this;
-    var repoPath = this.getRepositoryPath(owner, repo);
-
-    return this._git.add(repoPath, "--all")
     .then(function() {
-        return self._git.commit(repoPath, message);
+        return self._npmInstall();
     });
 };
 
-ProjectWorkspace.prototype.getRepositoryPath = function(owner, repo) {
-    return this.getPath(this._fs.join(owner, repo));
+/**
+ * NPM related operations
+ */
+ProjectWorkspace.prototype._npmInstall = function () {
+    // Only installing these packages to avoid security issues with unknown
+    // packages' post install scripts, etc.
+    return exec("npm", ["install", "montage", "digit"], this._workspacePath);
 };
+
+
