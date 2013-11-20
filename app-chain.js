@@ -96,16 +96,11 @@ function server(options) {
                 method("POST")
                 .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
-                    return request.body.read()
-                    .then(function(body) {
-                        var options = JSON.parse(body.toString());
-
-                        return handleEndpoint(request, function() {
-                            return request.projectWorkspace.createComponent(
-                                options.name);
-                        }, function() {
-                            return {message: "created"};
-                        });
+                    return handleEndpoint(request, function(data) {
+                        return request.projectWorkspace.createComponent(
+                            data.name);
+                    }, function() {
+                        return {message: "created"};
                     });
                 });
             });
@@ -115,17 +110,12 @@ function server(options) {
                 method("POST")
                 .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
-                    return request.body.read()
-                    .then(function(body) {
-                        var options = JSON.parse(body.toString());
-
-                        return handleEndpoint(request, function() {
-                            return request.projectWorkspace.createModule(
-                                options.name, options.extendsModuleId,
-                                options.extendsName);
-                        }, function() {
-                            return {message: "created"};
-                        });
+                    return handleEndpoint(request, function(data) {
+                        return request.projectWorkspace.createModule(
+                            data.name, data.extendsModuleId,
+                            data.extendsName);
+                    }, function() {
+                        return {message: "created"};
                     });
                 });
             });
@@ -135,16 +125,11 @@ function server(options) {
                 method("POST")
                 .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
-                    return request.body.read()
-                    .then(function(body) {
-                        var options = JSON.parse(body.toString());
-
-                        return handleEndpoint(request, function() {
-                            return request.projectWorkspace.flushWorkspace(
-                                options.message);
-                        }, function() {
-                            return {message: "flushed"};
-                        });
+                    return handleEndpoint(request, function(data) {
+                        return request.projectWorkspace.flushWorkspace(
+                            data.message);
+                    }, function() {
+                        return {message: "flushed"};
                     });
                 });
             });
@@ -168,16 +153,11 @@ function server(options) {
                 method("PUT")
                 .use(setupProjectWorkspace(directory, minitPath))
                 .app(function (request) {
-                    return request.body.read()
-                    .then(function(body) {
-                        var options = JSON.parse(body.toString());
-
-                        return handleEndpoint(request, function() {
-                            return request.projectWorkspace.saveFile(
-                                options.filename, options.contents);
-                        }, function() {
-                            return {message: "saved"};
-                        });
+                    return handleEndpoint(request, function(data) {
+                        return request.projectWorkspace.saveFile(
+                            data.filename, data.contents);
+                    }, function() {
+                        return {message: "saved"};
                     });
                 });
 
@@ -234,7 +214,22 @@ function handleEndpoint(request, endpointCallback, successCallback) {
         return message;
     };
 
-    return endpointCallback()
+    return request.body.read()
+    .then(function(body) {
+        var data;
+
+        if (body.length > 0) {
+            try {
+                data = JSON.parse(body.toString());
+            } catch(ex) {
+                throw new Error("Malformed JSON message received.");
+            }
+        } else {
+            data = {};
+        }
+
+        return endpointCallback(data);
+    })
     .then(function() {
         var successMessage;
 
