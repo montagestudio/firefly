@@ -11,12 +11,11 @@ var GithubApi = require("../inject/adaptor/client/core/github-api");
 
 var CLIENT_ID,CLIENT_SECRET;
 if(Env.production) {
-    CLIENT_ID = "a71946dca4f6dceef99c";
-    CLIENT_SECRET = "e5e4d25d79575f37fd6fc870888706bd7a0c4e7d";
+    CLIENT_ID = "c2d13124d5566c5ef023";
+    CLIENT_SECRET = "a99147c10e65aad393c927cf65eb8dab94b12219";
 } else {
     CLIENT_ID = "e3a42c8d5e2631ed7707";
     CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
-
 }
 
 var OAUTH_STATE = uuid.v4();

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-export FIREFLY_APP_HOST="app.162.243.148.146.xip.io"
+export IP_ADDRESS=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
+export NODE_ENV="semiproduction"
 export FIREFLY_APP_PORT=2440
-
-export FIREFLY_PROJECT_HOST="project.162.243.148.146.xip.io"
-export FIREFLY_PROJECT_PORT=2440
+export FIREFLY_APP_HOST="app.$IP_ADDRESS.xip.io"
+export FIREFLY_PROJECT_HOST="project.$IP_ADDRESS.xip.io"
 
 # Curl
 apt-get install -y curl
@@ -29,3 +29,14 @@ iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port $F
 mkdir -p /srv/clone
 chown montage:montage /srv/clone
 chown montage:montage /srv
+
+# Launch Firefly
+
+cd /srv/firefly
+# Just in case we're rerunning this provisioner
+sudo -u montage forever stopall
+sudo -u montage forever start -a -l /srv/forever.log -o /srv/out.log -e /srv/err.log index.js --client="../filament"
+
+echo
+echo "Done"
+echo

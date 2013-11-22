@@ -1,8 +1,9 @@
 *$py.class
 .DS_Store
 .idea
+.vagrant
+/coverage
+/reports
 console.log
 npm-debug.log
 SikuliLog.txt
-/coverage
-/reports

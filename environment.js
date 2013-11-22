@@ -116,6 +116,19 @@ function Env(options) {
             port: 2441,
             protocol: "http"
         };
+
+        if (process.env.NODE_ENV === "semiproduction") {
+            env.app = {
+                hostname: process.env.FIREFLY_APP_HOST,
+                protocol: "http"
+            };
+            env.project = {
+                hostname: process.env.FIREFLY_PROJECT_HOST,
+                protocol: "http",
+                port: 2441
+            };
+        }
+
         env.getDetailsFromAppUrl = function (url) {
             var pathname = URL.parse(url).pathname;
 

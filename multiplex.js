@@ -59,7 +59,7 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
         return Q.all([
             appChainFactory(appChainOptions)
             .then(function (chain) {
-                return chain.listen(options["app-port"]).then(function (server) {
+                return chain.listen(options["app-port"] || 2440).then(function (server) {
                     return {
                         chain: chain,
                         server: server

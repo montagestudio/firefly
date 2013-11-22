@@ -39,9 +39,6 @@ function main(options) {
     var sessions = Session("session", SESSION_SECRET);
 
     var fs = options.fs || FS;
-    if(Env.production) {
-        options.client = "./app/filament";
-    }
     return multiplex(
         options,
         appChain,
