@@ -93,5 +93,5 @@ Deploying
 * To communicate with the Digital Ocean API, you need to intall some certificates: `brew install curl-ca-bundle` (using Homebrew)
     * **You may need to edit the Vagrant file to point `provider.ca_path` to the output from the above command**
 * Run `vagrant up` (this currently deploys to Stuart's DigitalOcean account)
-* Run `vagrant ssh` to ssh into the machine, then run `forever start --append -l /srv/forever.log -o /srv/firefly-out.log -e /srv/firefly-err.log /srv/firefly/index.js`
+* Run `vagrant ssh` to ssh into the machine, then run the commented out commands at the bottom of `provision.sh`. Idealy this would happen automatically, but for some reason Firefly doesn't work when launched this way.
 

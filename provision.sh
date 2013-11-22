@@ -32,10 +32,14 @@ chown montage:montage /srv
 
 # Launch Firefly
 
-cd /srv/firefly
-# Just in case we're rerunning this provisioner
-sudo -u montage forever stopall
-sudo -u montage forever start -a -l /srv/forever.log -o /srv/out.log -e /srv/err.log index.js --client="../filament"
+# These steps need to be run manually.
+# 1. Run `vagrant ssh`
+# 2. Copy and paste the environment variables from the top of this file
+# 3. Run the 3 commands below
+
+# cd /srv/firefly
+# sudo -u montage forever stopall
+# sudo -u montage forever start -a -l /srv/forever.log -o /srv/out.log -e /srv/err.log index.js --client="../filament"
 
 echo
 echo "Done"
