@@ -2,6 +2,9 @@ var log = require("logging").from(__filename);
 var Q = require("q");
 var uuid = require("uuid");
 
+var COOKIE_TIMEOUT_DAYS = 30;
+var COOKIE_TIMEOUT_MS = COOKIE_TIMEOUT_DAYS * (1000 * 60 * 60 * 24);
+
 exports = module.exports = Session;
 function Session(key, secret, cookie, store) {
     if (!key || ! secret) {
@@ -73,7 +76,9 @@ function Session(key, secret, cookie, store) {
                     } else {
                         if (_created) {
                             log("created: " + _id);
-                            setSessionCookie(response, _id);
+                            var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
+                            setSessionCookie(response, _id, timeoutDate);
+
                         }
                         return store.set(_id, _session).thenResolve(response);
                     }
