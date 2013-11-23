@@ -30,11 +30,11 @@ function Env(options) {
     // PRODUCTION
     if ( env.production) {
         env.app = {
-            hostname: process.env.FIREFLY_APP_HOST || "local-firefly.declarativ.net",
+            hostname: process.env.FIREFLY_APP_HOST || "app.127.0.0.1.xip.io",
             protocol: process.env.FIREFLY_APP_PROTOCOL || "http"
         };
         env.project = {
-            hostname: process.env.FIREFLY_PROJECT_HOST || "*.local-project.declarativ.net",
+            hostname: process.env.FIREFLY_PROJECT_HOST || "*.project.127.0.0.1.xip.io",
             protocol: process.env.FIREFLY_PROJECT_PROTOCOL || "http"
         };
 
@@ -107,12 +107,12 @@ function Env(options) {
     } else {
 
         env.app = {
-            hostname: "local-firefly.declarativ.net",
+            hostname: "app.127.0.0.1.xip.io",
             port: 2440,
             protocol: "http"
         };
         env.project = {
-            hostname: "local-project.declarativ.net",
+            hostname: "project.127.0.0.1.xip.io",
             port: 2441,
             protocol: "http"
         };
