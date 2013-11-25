@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 export IP_ADDRESS=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
-export NODE_ENV="semiproduction"
-export FIREFLY_APP_PORT=2440
-export FIREFLY_APP_HOST="app.$IP_ADDRESS.xip.io"
-export FIREFLY_PROJECT_HOST="project.$IP_ADDRESS.xip.io"
+export NODE_ENV="production"
+export FIREFLY_APP_HOSTNAME="staging-firefly.declarativ.net"
+export FIREFLY_PROJECT_HOSTNAME="staging-project.declarativ.net"
+export FIREFLY_PORT="2440"
+# export FIREFLY_PROJECT_HOSTNAME="project.$IP_ADDRESS.xip.io"
 
 # Curl
 apt-get install -y curl
@@ -23,7 +24,7 @@ apt-get install -y nodejs
 npm install -g forever
 
 # Port 80 to Firefly port
-iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port $FIREFLY_APP_PORT
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port $FIREFLY_PORT
 
 # Create the clone directory
 mkdir -p /srv/clone

@@ -3,6 +3,8 @@ var URL = require("url");
 function Env(options) {
     var env = options || {  production: process.env.NODE_ENV === "production" };
 
+    env.port = process.env.FIREFLY_PORT || 2440;
+
     env.app = URL.parse(process.env.FIREFLY_APP_URL || "http://local-firefly.declarativ.net:2440");
     // Remove `host` so that `URL.format` uses `hostname` and `port` instead.
     // Remove `pathname` so that `URL.format` doesn't add "/" to the end,

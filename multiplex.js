@@ -30,8 +30,7 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
                 }
             };
         })
-        // .listen(process.env.FIREFLY_APP_PORT)
-        .listen(2440)
+        .listen(environment.port)
         .then(function (server) {
             return [
                 {
