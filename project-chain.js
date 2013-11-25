@@ -33,26 +33,28 @@ function server(options) {
             // This endpoint recieves a POST request with a session ID as the
             // payload. It then "echos" this back as a set-cookie, so that
             // the project domain now has the session cookie from the app domain
-            route("session").use(function (next) {
-                return function (request, response) {
-                    if (request.headers.origin === environment.getAppUrl()) {
-                        return request.body.read()
-                        .then(function (body) {
-                            var sessionId = JSON.parse(body.toString("utf8"));
-                            return {
-                                status: 200,
-                                headers: {
-                                    // TODO do this through the session object
-                                    "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
-                                },
-                                body: []
-                            };
-                        });
-                    } else {
-                        log("Invalid request to /session from origin", request.headers.origin);
-                        return next(request, response);
-                    }
-                };
+            route("session").app(function (request, response) {
+                if (request.headers.origin === environment.getAppUrl()) {
+                    return request.body.read()
+                    .then(function (body) {
+                        var sessionId = JSON.parse(body.toString("utf8"));
+                        return {
+                            status: 200,
+                            headers: {
+                                // TODO do this through the session object
+                                "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
+                            },
+                            body: []
+                        };
+                    });
+                } else {
+                    log("Invalid request to /session from origin", request.headers.origin);
+                    return {
+                        status: 403,
+                        headers: {},
+                        body: ["Bad origin"]
+                    };
+                }
             });
         });
     })
