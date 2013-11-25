@@ -2,10 +2,10 @@
 
 export IP_ADDRESS=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
 export NODE_ENV="production"
-export FIREFLY_APP_HOSTNAME="staging-firefly.declarativ.net"
-export FIREFLY_PROJECT_HOSTNAME="staging-project.declarativ.net"
 export FIREFLY_PORT="2440"
-# export FIREFLY_PROJECT_HOSTNAME="project.$IP_ADDRESS.xip.io"
+export FIREFLY_APP_URL="http://staging-firefly.declarativ.net"
+# export FIREFLY_PROJECT_URL="http://staging-project.declarativ.net"
+export FIREFLY_PROJECT_URL="http://project.$IP_ADDRESS.xip.io"
 
 # Curl
 apt-get install -y curl
