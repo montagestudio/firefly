@@ -163,6 +163,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    logoutUrl: {
+        get: function () {
+            return "/logout";
+        }
+    },
+
     list: {
         value: function (url) {
             return this.backend.get("file-service").invoke("list", url).then(function (fileDescriptors) {
