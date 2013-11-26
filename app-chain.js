@@ -2,6 +2,7 @@ var log = require("logging").from(__filename);
 var httpLog = require("logging").from("app-joey");
 var joey = require("joey");
 var path = require("path");
+var env = require("./environment");
 
 var serveFile = require("./serve-file");
 var parseCookies = require("./parse-cookies");
@@ -75,6 +76,11 @@ function server(options) {
         //////////////////////////////////////////////////////////////////////
         .route(function (route) {
             // Private/authenticated routes
+            route("logout")
+            .tap(function (request) {
+                return sessions.destroy(request.session);
+            })
+            .redirect(env.getAppUrl());
 
             route("projects").terminate(serveFile(fs.join(client, "project-list", "index.html"), "text/html", fs));
 

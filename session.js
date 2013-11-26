@@ -2,6 +2,9 @@ var log = require("logging").from(__filename);
 var Q = require("q");
 var uuid = require("uuid");
 
+var COOKIE_TIMEOUT_DAYS = 30;
+var COOKIE_TIMEOUT_MS = COOKIE_TIMEOUT_DAYS * (1000 * 60 * 60 * 24);
+
 exports = module.exports = Session;
 function Session(key, secret, cookie, store) {
     if (!key || ! secret) {
@@ -13,6 +16,25 @@ function Session(key, secret, cookie, store) {
 
     store = store || new exports.Memory();
 
+    var setSessionCookie = function(response, id, expiresDate) {
+        var setCookies = response.headers["set-cookie"] || [];
+        if (!Array.isArray(setCookies)) {
+            setCookies = [setCookies];
+        }
+        // Broken because q-io encodes the path, when it shouldn't
+        // setCookies.push(Cookie.stringify(key, session.sessionId, cookie));
+
+        var cookie = key + "=" + id + "; Path=/;";
+        if (expiresDate) {
+            cookie += " Expires=" + expiresDate;
+        }
+
+        setCookies.push(cookie);
+        response.headers["set-cookie"] = setCookies;
+
+        return response;
+    };
+
     var result = function (app) {
         return function (request, response) {
             // self-awareness
@@ -23,6 +45,7 @@ function Session(key, secret, cookie, store) {
             var done;
             var _id = request.cookies[key];
             var _session;
+            var _created;
             if (_id) {
                 done = store.get(_id)
                 .then(function (session) {
@@ -30,7 +53,6 @@ function Session(key, secret, cookie, store) {
                         return create();
                     }
                     _session = request.session = session;
-                    return app(request, response);
                 });
             } else {
                 done = create();
@@ -39,32 +61,40 @@ function Session(key, secret, cookie, store) {
             function create() {
                 return store.create()
                 .then(function (session) {
-                    log("Created: " + session.sessionId);
                     _id = session.sessionId;
                     _session = request.session = session;
-
-                    return Q.when(app(request, response), function (response) {
-                        var setCookies = response.headers["set-cookie"] || [];
-                        if (!Array.isArray(setCookies)) {
-                            setCookies = [setCookies];
-                        }
-                        // Broken because q-io encodes the path, when it shouldn't
-                        // setCookies.push(Cookie.stringify(key, session.sessionId, cookie));
-                        setCookies.push(key + "=" + _id + "; Path=/");
-                        response.headers["set-cookie"] = setCookies;
-                        return response;
-                    });
+                    _created = true;
                 });
             }
 
-            return done.then(function (response) {
-                return store.set(_id, _session).thenResolve(response);
+            return done.then(function () {
+                return Q.when(app(request, response), function (response) {
+                    if (_session._destroyed) {
+                        log("destroyed: " + _id);
+                        setSessionCookie(response, "", new Date(0));
+                        return store.destroy(_id).thenResolve(response);
+                    } else {
+                        if (_created) {
+                            log("created: " + _id);
+                            var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
+                            setSessionCookie(response, _id, timeoutDate);
+
+                        }
+                        return store.set(_id, _session).thenResolve(response);
+                    }
+                });
             });
         };
     };
 
     result.get = function (id) {
         return store.get(id);
+    };
+
+    result.destroy = function(session) {
+        return Q.fcall(function() {
+            session._destroyed = true;
+        });
     };
 
     return result;
@@ -105,3 +135,9 @@ Memory.prototype.create = function create() {
     });
 };
 
+Memory.prototype.destroy = function destroy(id) {
+    var self = this;
+    return Q.fcall(function() {
+        delete self.sessions[id];
+    });
+};
