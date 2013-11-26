@@ -97,7 +97,11 @@
             "prototype": "matte/ui/button.reel",
             "properties": {
                 "element": {"#": "logoutButton"}
-            }
+            },
+            "listeners": [{
+                "type": "action",
+                "listener": {"@": "owner"}
+            }]
         }
     }
     </script>

@@ -63,6 +63,12 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
         }
     },
 
+    handleLogoutButtonAction: {
+        value: function() {
+            window.location.href = this.environmentBridge.logoutUrl;
+        }
+    },
+
     sourceUrl: {
         value: null
     },
