@@ -185,6 +185,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    read: {
+        value: function (url) {
+            return this.backend.get("file-service").invoke("read", url);
+        }
+    },
+
     dependenciesInPackage: {
         value: function (packageUrl) {
 
