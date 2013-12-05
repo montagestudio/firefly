@@ -63,7 +63,7 @@ function Env(options) {
         }
         var hostname = URL.parse(url).hostname;
 
-        var match = hostname.match(/([a-z\-]+)-([a-z]+)\./i);
+        var match = hostname.match(/([0-9a-z]+)-([a-z\-]+)\./i);
         var owner = match[1];
         var repo = match[2];
 
