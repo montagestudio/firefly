@@ -39,8 +39,8 @@ chown montage:montage /srv
 # 3. Run the 3 commands below
 
 # cd /srv/firefly
-# sudo -u montage forever stopall
-# sudo -u montage forever start -a -l /srv/forever.log -o /srv/out.log -e /srv/err.log index.js --client="../filament"
+# forever stopall
+# forever start -a -l /srv/forever.log -o /srv/out.log -e /srv/err.log index.js --client="../filament"
 
 echo
 echo "Done"
