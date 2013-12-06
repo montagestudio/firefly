@@ -11,27 +11,30 @@ through its associated Environment Bridge.
 Running
 =======
 
-Filament needs to be on the "firefly" branch (for now)
+Next to Firefly both Filament must be checked out and a directory called
+"clone" must exist:
 
-If Firefly is checked out next to filament you can run:
+```
+clone/
+filament/
+firefly/
+```
+
+To start Firefly run:
 
 ```bash
 npm start
 ```
 
-Go to the server at http://app.127.0.0.1.xip.io:2440/ (This is a pass-through
-service that allows us to use subdomains in development. It's a fake DNS server
-that resolves all subdomains to whatever IP address you give it.)
+This will output the URL where the server is running.
 
-Otherwise you can run:
+You can configure where Filament lives by running:
 
 ```bash
 node index.js --client=<directory containing filament>
 ```
 
 Run `node index.js` with no arguments to get a list of command line options.
-
-**TEMPORARILY `/clone` serves the `clone` directory next to the firefly directory**
 
 Developing
 ==========
@@ -93,5 +96,7 @@ Deploying
 * To communicate with the Digital Ocean API, you need to intall some certificates: `brew install curl-ca-bundle` (using Homebrew)
     * **You may need to edit the Vagrant file to point `provider.ca_path` to the output from the above command**
 * Run `vagrant up` (this currently deploys to Stuart's DigitalOcean account)
-* Run `vagrant ssh` to ssh into the machine, then run the commented out commands at the bottom of `provision.sh`. Idealy this would happen automatically, but for some reason Firefly doesn't work when launched this way.
-
+* Run `vagrant ssh` to ssh into the machine
+    * Copy the environment variables from the top of `provision.sh` into the command prompt
+    * Run the commented out commands at the bottom of `provision.sh`
+    * Idealy this would happen automatically, but for some reason Firefly doesn't work when launched automatically.
