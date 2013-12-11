@@ -8,6 +8,8 @@ var ws = require("websocket.io");
 var Connection = require("q-connection");
 var parseCookies = require("./parse-cookies");
 
+var websocketConnections = 0;
+
 module.exports = websocket;
 function websocket(sessions, services) {
     log("Websocket given services", Object.keys(services));
@@ -19,7 +21,7 @@ function websocket(sessions, services) {
         // used for logging
         var remoteAddress = connection.socket.remoteAddress;
 
-        log("websocket connection", remoteAddress, pathname);
+        log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
         var connectionServices = getSession(sessions, request)
         .then(function (session) {
@@ -41,12 +43,12 @@ function websocket(sessions, services) {
         Connection(connection, connectionServices);
 
         connection.on("close", function(conn) {
-            log("websocket connection closed", remoteAddress, pathname);
+            log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
 
         connection.on("error", function(err) {
             if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
-                log("#connection error:", err);
+                log("#connection error:", err, "open connections:", --websocketConnections);
             }
         });
     });
