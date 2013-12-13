@@ -107,24 +107,27 @@
     </script>
 </head>
 <body>
-    <div data-montage-id="toolbar" class="Toolbar">
+    <div data-montage-id="toolbar" class="Toolbar Toolbar--dark">
 
         <div class="Toolbar-group">
-            <button data-montage-id="newButton" class="Button Toolbar-button">New</button>
-            <button data-montage-id="openButton" class="Button Toolbar-button">Open</button>
-            <div data-montage-id="saveMenuItem"></div>
+            <button data-montage-id="newButton" class="Toolbar-button">New</button>
+            <button data-montage-id="openButton" class="Toolbar-button">Open</button>
         </div>
-
+        
+        <div class="Toolbar-group">
+            <div data-montage-id="saveMenuItem"></div>
+            <button data-montage-id="sourceButton" class="Toolbar-button">Source</button>
+        </div>
+        
         <div class="Toolbar-group">
             <div data-montage-id="undoMenuItem"></div>
             <div data-montage-id="redoMenuItem"></div>
         </div>
 
         <div class="Toolbar-group">
-            <button data-montage-id="sourceButton" class="Button Toolbar-button">Source</button>
-            <img data-montage-id="avatar" class="Toolbar-avatar">
             <span data-montage-id="username" class="Toolbar-username"></span>
-            <button data-montage-id="logoutButton" class="Button Toolbar-button">Logout</button>
+            <img data-montage-id="avatar" class="Toolbar-avatar">
+            <button data-montage-id="logoutButton" class="Toolbar-button">Logout</button>
         </div>
 
     </div>

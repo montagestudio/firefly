@@ -8,7 +8,7 @@
 }
 
 .Toolbar-avatar {
-    margin-left: 8px;
+    margin-right: 8px;
     width: 24px;
     height: 24px;
     border-radius: 4px;
@@ -16,8 +16,8 @@
 }
 
 .Toolbar-username {
-    margin: 0 8px 0 8px;
     font-size: 13px;
+    margin: 0 8px 0 8px;
     vertical-align: middle;
     color: hsl(0, 0%, 50%);
 }
