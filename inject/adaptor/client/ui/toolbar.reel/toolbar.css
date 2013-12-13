@@ -7,6 +7,19 @@
     -webkit-align-items: center;
 }
 
+.Toolbar-logo {
+    margin: 0 4px 0 8px;
+    width: 19px;
+    height: 19px;
+    vertical-align: middle;
+}
+
+.Toolbar-name {
+    font-size: 13px;
+    vertical-align: middle;
+    color: hsl(0, 0%, 50%);
+}
+
 .Toolbar-avatar {
     margin-right: 8px;
     width: 24px;
