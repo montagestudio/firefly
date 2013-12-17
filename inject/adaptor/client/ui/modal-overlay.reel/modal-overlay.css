@@ -14,6 +14,7 @@
 .ModalOverlay.ModalOverlay-noDisplay {
     opacity: 0;
     pointer-events: none;
+    visibility: hidden;
 }
 
 .ModalOverlay-box {
