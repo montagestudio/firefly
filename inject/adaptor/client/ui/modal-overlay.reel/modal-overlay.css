@@ -5,7 +5,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 100;
+    z-index: 1000;
     background-color: hsla(0, 0%, 25%, 0.9);
     opacity: 1;
     -webkit-transition: opacity 300ms ease-in-out;
