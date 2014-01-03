@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-export IP_ADDRESS=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
-export NODE_ENV="production"
-export FIREFLY_PORT="2440"
-export FIREFLY_APP_URL="http://staging-firefly.declarativ.net"
-# export FIREFLY_PROJECT_URL="http://staging-project.declarativ.net"
-export FIREFLY_PROJECT_URL="http://project.$IP_ADDRESS.xip.io"
-
 # Curl
 apt-get install -y curl
 
@@ -20,27 +13,22 @@ add-apt-repository ppa:chris-lea/node.js
 apt-get update
 apt-get install -y nodejs
 
-# Run with forever to restart the server if it crashes
-npm install -g forever
+# Run with naught for zero-downtime deploys
+npm install -g naught
 
 # Port 80 to Firefly port
+export FIREFLY_PORT="2440"
 iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port $FIREFLY_PORT
 
+# Create the montage user that the server will run under
+adduser --disabled-password --gecos "" montage
+mkdir /home/montage/.ssh
+cp $HOME/.ssh/authorized_keys /home/montage/.ssh
+chown -R montage:montage /home/montage/.ssh/
+
 # Create the clone directory
-mkdir -p /srv/clone
-chown montage:montage /srv/clone
-chown montage:montage /srv
-
-# Launch Firefly
-
-# These steps need to be run manually.
-# 1. Run `vagrant ssh`
-# 2. Copy and paste the environment variables from the top of this file
-# 3. Run the 3 commands below
-
-# cd /srv/firefly
-# forever stopall
-# forever start -a -l /srv/forever.log -o /srv/out.log -e /srv/err.log index.js --client="../filament"
+mkdir -p /srv
+chown -R montage:montage /srv
 
 echo
 echo "Done"
