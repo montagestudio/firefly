@@ -4,6 +4,9 @@ var minimatch = require("minimatch");
 var PATH = require('path');
 var URL = require("url");
 var watchr = require("watchr");
+var mmm = require("mmmagic");
+var Magic = mmm.Magic;
+var htmlparser = require("htmlparser2");
 
 var guard = function (exclude) {
     exclude = exclude || [];
@@ -82,6 +85,113 @@ function FileService(fs, environment, pathname, fsPath) {
 
             return pathsToUrlStatArray(paths);
         });
+    };
+
+    /**
+     * Lists all the asset files in the given path except node_modules and dotfiles.
+     * @param  {string} url - Location where to operate.
+     * @param  {(string|Array)} extraExclude - Some additional locations to exclude.
+     * @return {Promise.<Array.<string>>} A promise for an array of paths.
+     */
+    service.listAsset = function (url, extraExclude) {
+        var exclude = ["node_modules", ".*"],
+            localPath = convertProjectUrlToPath(url);
+
+        if (extraExclude) {
+            if (!Array.isArray(extraExclude)) {
+                extraExclude = [extraExclude];
+            }
+            exclude.push.apply(exclude, extraExclude);
+        }
+
+        var excludeGuard = guard(exclude);
+
+        return fs.listTree(localPath, function (path, stat) {
+            return excludeGuard(path, stat) && !stat.isDirectory();
+        }).then(function (paths) {
+                return Q.all(paths.map(function (path) {
+                    return fs.stat(path).then(function (stat) {
+                        return detectMimeTypeAtPath(path).then(function (mimeType) {
+                            return {url: convertPathToProjectUrl(path), stat: stat, mimeType: mimeType};
+                        });
+                    });
+                }));
+            });
+    };
+
+    function isMontageSerializationMimeType (path) {
+        return fs.read(path).then(JSON.parse).then(function (result) {
+            return result.hasOwnProperty('owner');
+        });
+    }
+
+    function isMontageTemplateMimeType (path) {
+        return fs.read(path, "r").then(function (content) {
+            var isTemplate = false,
+                parser = new htmlparser.Parser({
+                    onopentag: function(tagName, attributes){
+                        if (tagName === "script" && attributes.type === "text/montage-serialization") {
+                            isTemplate = true;
+                            parser.parseComplete();
+                        }
+                    }
+                });
+
+            return Q.invoke(parser, "write", content).then(function () {
+                parser.end();
+                return isTemplate;
+            });
+        });
+    }
+
+    function isColladaMimeType (path) {
+        return fs.read(path, "r").then(function (content) {
+            var isCollada = false,
+                parser = new htmlparser.Parser({
+                    onopentagname: function(tagName){
+                        isCollada = tagName === "collada";
+                        parser.parseComplete(); // collada must be the root element.
+                    }
+                });
+
+            return Q.invoke(parser, "write", content).then(function () {
+                parser.end();
+                return isCollada;
+            });
+        });
+    }
+
+    function detectMimeTypeAtPath (path) {
+        var magic = new Magic(mmm.MAGIC_MIME_TYPE),
+            fsFilePath = PATH.join(fsPath, path);
+
+        return Q.ninvoke(magic, "detectFile", fsFilePath).then(function (mimeType) {
+            var parts = path.split('/'),
+                fileName =   parts[parts.length - 1];
+
+            if (mimeType === "application/xml" && /\.dae$/.test(fileName)) {
+
+                return isColladaMimeType(path).then(function (isColladaFile) {
+                    return !!isColladaFile ? "model/vnd.collada+xml" : mimeType;
+                });
+            } else if (mimeType === "text/html" && /^(?!index\.html$)(?=(.+\.html)$)/.test(fileName)) {
+
+                return isMontageTemplateMimeType(path).then(function (isMontageTemplate) {
+                    return !!isMontageTemplate ? "text/montage-template" : mimeType;
+                });
+            } else if (mimeType === "text/plain" && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
+
+                return isMontageSerializationMimeType(path).then(function (isMontageSerialization) {
+                    return !!isMontageSerialization ? "text/montage-serialization" : mimeType;
+                });
+            }
+
+            return mimeType;
+        });
+    }
+
+    service.detectMimeTypeAtUrl = function (url) {
+        return detectMimeTypeAtPath(convertProjectUrlToPath(url));
     };
 
     /**

@@ -179,6 +179,26 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    listAssetAtUrl: {
+        value: function (url, exclude) {
+            return this.backend.get("file-service").invoke("listAsset", url, exclude).then(function (fileDescriptors) {
+                return fileDescriptors.map(function (fd) {
+                    var fileDescriptor = FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    fileDescriptor.mimeType = fd.mimeType;
+                    return fileDescriptor;
+                }, function (error) {
+                    debugger
+                } );
+            });
+        }
+    },
+
+    detectMimeTypeAtUrl: {
+        value: function (url) {
+            return this.backend.get("file-service").invoke("detectMimeTypeAtUrl", url);
+        }
+    },
+
     watch: {
         value: function (url, ignoreSubPaths, changeHandler, errorHandler) {
             var handlers = {
