@@ -25,6 +25,8 @@
     "logging": "~2.0.21",
     "xmlhttprequest": "~1.6.0",
     "minit": "~0.3.10",
+    "htmlparser2": "3.4.0",
+    "mmmagic": "0.3.5",
     "watchr": "2.3.3"
   },
   "devDependencies": {
