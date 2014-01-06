@@ -132,15 +132,15 @@ function FileService(fs, environment, pathname, fsPath) {
                     onopentag: function(tagName, attributes){
                         if (tagName === "script" && attributes.type === "text/montage-serialization") {
                             isTemplate = true;
-                            parser.parseComplete();
+                            parser.reset();
                         }
                     }
                 });
 
-            return Q.invoke(parser, "write", content).then(function () {
-                parser.end();
-                return isTemplate;
-            });
+            parser.write(content);
+            parser.end();
+
+            return isTemplate;
         });
     }
 
@@ -150,14 +150,14 @@ function FileService(fs, environment, pathname, fsPath) {
                 parser = new htmlparser.Parser({
                     onopentagname: function(tagName){
                         isCollada = tagName === "collada";
-                        parser.parseComplete(); // collada must be the root element.
+                        parser.reset(); // collada must be the root element.
                     }
                 });
 
-            return Q.invoke(parser, "write", content).then(function () {
-                parser.end();
-                return isCollada;
-            });
+            parser.write(content);
+            parser.end();
+
+            return isCollada;
         });
     }
 
@@ -171,14 +171,12 @@ function FileService(fs, environment, pathname, fsPath) {
 
             if (mimeType === "application/xml" && /\.dae$/.test(fileName)) {
 
-                return isColladaMimeType(path).then(function (isColladaFile) {
-                    return !!isColladaFile ? "model/vnd.collada+xml" : mimeType;
-                });
+                return !!isColladaMimeType(path) ? "model/vnd.collada+xml" : mimeType;
+
             } else if (mimeType === "text/html" && /^(?!index\.html$)(?=(.+\.html)$)/.test(fileName)) {
 
-                return isMontageTemplateMimeType(path).then(function (isMontageTemplate) {
-                    return !!isMontageTemplate ? "text/montage-template" : mimeType;
-                });
+                return !!isMontageTemplateMimeType(path) ? "text/montage-template" : mimeType;
+
             } else if (mimeType === "text/plain" && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
 
                 return isMontageSerializationMimeType(path).then(function (isMontageSerialization) {
