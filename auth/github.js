@@ -11,8 +11,8 @@ var GithubApi = require("../inject/adaptor/client/core/github-api");
 
 var CLIENT_ID,CLIENT_SECRET;
 if(Env.production) {
-    CLIENT_ID = "c2d13124d5566c5ef023";
-    CLIENT_SECRET = "a99147c10e65aad393c927cf65eb8dab94b12219";
+    CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+    CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 } else {
     CLIENT_ID = "e3a42c8d5e2631ed7707";
     CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
