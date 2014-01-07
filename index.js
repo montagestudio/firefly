@@ -1,3 +1,4 @@
+var Q = require("q");
 var Env = require("./environment");
 var log = require("logging").from(__filename);
 var FS = require("q-io/fs");
@@ -62,6 +63,25 @@ function main(options) {
                 app.chain.upgrade(request, socket, head);
             });
             log("Listening on", Env.app.href);
+
+            // for naught
+            if (process.send) {
+                process.on("message", function(message) {
+                    if (message === "shutdown") {
+                        // TODO gracefully shutdown the websocket connections
+                        Q.all([app.server.stop(), project.server.stop()])
+                        .catch(function (error) {
+                            console.error("Error shutting down", error.stack);
+                            throw error;
+                        })
+                        .finally(function () {
+                            process.exit(0);
+                        });
+                    }
+                });
+
+                process.send("online");
+            }
         });
 }
 
