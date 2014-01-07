@@ -243,6 +243,18 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    listLibraryItemUrls: {
+        value: function (extensionUrl, packageName) {
+            return this.backend.get("extension-service").invoke("listLibraryItemUrls", extensionUrl, packageName);
+        }
+    },
+
+    listModuleIconUrls: {
+        value: function (extensionUrl, packageName) {
+            return this.backend.get("extension-service").invoke("listModuleIconUrls", extensionUrl, packageName);
+        }
+    },
+
     promptForSave: {
         value: function (options) {
             var appDelegate = this.applicationDelegate;
