@@ -68,6 +68,7 @@ function main(options) {
             if (process.send) {
                 process.on("message", function(message) {
                     if (message === "shutdown") {
+                        log("shutdown message from Naught");
                         // TODO gracefully shutdown the websocket connections
                         Q.all([app.server.stop(), project.server.stop()])
                         .catch(function (error) {
@@ -75,6 +76,7 @@ function main(options) {
                             throw error;
                         })
                         .finally(function () {
+                            log("goodbye.");
                             process.exit(0);
                         });
                     }
