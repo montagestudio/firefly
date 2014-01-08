@@ -72,7 +72,7 @@ function main(options) {
                         // TODO gracefully shutdown the websocket connections
                         Q.all([app.server.stop(), project.server.stop()])
                         .catch(function (error) {
-                            console.error("Error shutting down", error.stack);
+                            global.console.error("Error shutting down", error.stack);
                             throw error;
                         })
                         .finally(function () {
