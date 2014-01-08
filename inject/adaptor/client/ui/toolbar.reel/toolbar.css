@@ -1,10 +1,22 @@
 .Toolbar {
-
+    display: -webkit-flex;
+    -webkit-justify-content: space-between;
+    -webkit-align-items: center;
+    height: 34px;
+    padding-bottom: 1px; /* Fixes vertical centering */
+    border-top: 1px solid hsla(0, 0%, 100%, .1);
+    border-bottom: 1px solid hsla(0, 0%, 0%, .2);
+    background-color: hsl(0, 0%, 25%);
 }
 
 .Toolbar-group {
     display: -webkit-flex;
     -webkit-align-items: center;
+    border-right: 1px solid hsla(0, 0%, 0%, 0.2);
+}
+
+.Toolbar-group:first-child {
+    border-right: none;
 }
 
 .Toolbar-logo {
@@ -33,4 +45,67 @@
     margin: 0 8px 0 8px;
     vertical-align: middle;
     color: hsl(0, 0%, 50%);
+}
+
+.Toolbar .matte-ButtonGroup {
+    display: -webkit-flex;
+    margin: 0 7px;
+    line-height: 0;
+}
+
+/* Toolbar Button */
+
+.Toolbar-button.matte-Button {
+    display: inline-block;
+    height: 33px;
+    margin: 0;
+    font-family: inherit;
+    font-size: 11px;
+    color: hsl(0, 0%, 50%);
+    text-shadow: none;
+    box-shadow: none;
+    border-radius: 0;
+    border: none;
+    border-left: 1px solid hsla(0, 0%, 0%, 0.2);
+    background: hsla(0,0%,0%,0);
+}
+
+.Toolbar-button.matte-Button:hover {
+    background: hsl(0, 0%, 28%);
+}
+
+.Toolbar-button.matte-Button.active {
+    background: hsl(0, 0%, 20%);
+}
+
+.Toolbar-button.matte-Button:focus {
+    border-color: hsla(0, 0%, 0%, 0.3);
+}
+
+
+
+/* Icons */
+
+/* TODO: Refactor. Better to use only buttons */
+
+.Toolbar-button[data-icon],
+.MenuItem[data-icon] {
+    position: relative;
+}
+
+.Toolbar-button[data-icon],
+.MenuItem[data-icon] .Toolbar-button {
+    padding-left: 30px;
+}
+
+.Toolbar-button[data-icon]:before,
+.MenuItem[data-icon]:before {
+    right: auto;
+    left: 12px;
+    width: 12px;
+    font-size: 26px;
+    line-height: 33px;
+    text-align: center;
+    color: hsl(0, 0%, 80%);
+    pointer-events: none;
 }
