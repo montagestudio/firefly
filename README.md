@@ -91,12 +91,16 @@ that you don't want to update.
 Deploying
 =========
 
-* Install Vagrant from http://www.vagrantup.com/
-* Run `vagrant plugin install vagrant-digitalocean`
-* To communicate with the Digital Ocean API, you need to intall some certificates: `brew install curl-ca-bundle` (using Homebrew)
-    * **You may need to edit the Vagrant file to point `provider.ca_path` to the output from the above command**
-* Run `vagrant up` (this currently deploys to Stuart's DigitalOcean account)
-* Run `vagrant ssh` to ssh into the machine
-    * Copy the environment variables from the top of `provision.sh` into the command prompt
-    * Run the commented out commands at the bottom of `provision.sh`
-    * Idealy this would happen automatically, but for some reason Firefly doesn't work when launched automatically.
+Deploying in managed through Jenkins at https://build.declarativ.com/jenkins/view/Aurora/job/Deploy%20Aurora/.
+
+The server that is being deployed to must have the following environment variables set:
+
+ * `IP_ADDRESS`
+ * `NODE_ENV="production"`
+ * `FIREFLY_PORT`
+ * `FIREFLY_APP_URL`
+ * `FIREFLY_PROJECT_URL`
+ * `GITHUB_CLIENT_ID`
+ * `GITHUB_CLIENT_SECRET`
+
+The script currently used to deploy is available in `deploy.sh`.
