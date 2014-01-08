@@ -186,9 +186,7 @@ exports.EnvironmentBridge = Montage.specialize({
                     var fileDescriptor = FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
                     fileDescriptor.mimeType = fd.mimeType;
                     return fileDescriptor;
-                }, function (error) {
-                    debugger
-                } );
+                });
             });
         }
     },
