@@ -26,6 +26,8 @@ update ()
     then
       git fetch
       git checkout "\$2"
+      # Rebuild binary modules
+      npm rebuild
     fi
     # Tag every deploy regardless of whether the code was updated or not
     git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"
