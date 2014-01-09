@@ -3,10 +3,11 @@ var Q = require("q");
 var QFS = require("q-io/fs");
 var PATH = require('path');
 
-var extensionsRoot = PATH.join(global.clientPath, "extensions");
 
 module.exports = ExtensionService;
 function ExtensionService(fs, environment) {
+    var extensionsRoot = PATH.join(global.clientPath, "extensions");
+
     // Returned service
     var service = {};
 
@@ -36,18 +37,17 @@ function ExtensionService(fs, environment) {
 
     var convertExtensionUrlToPath = function (url) {
         var projectHost = environment.getAppUrl() + "/app/extensions",
-            extensionRoot = PATH.join(global.clientPath, "extensions"),
             path = null;
 
         if (new RegExp(projectHost).test(url)) {
-            path = extensionRoot + url.replace(projectHost, "");
+            path = extensionsRoot + url.replace(projectHost, "");
         }
 
         return path;
     };
 
     service.getExtensions = function(extensionFolder) {
-        extensionFolder = extensionFolder || PATH.join(global.clientPath, "extensions");
+        extensionFolder = extensionFolder || extensionsRoot;
 
         return QFS.listTree(extensionFolder, function (filePath) {
             // if false return null so directories aren't traversed
