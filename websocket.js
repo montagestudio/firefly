@@ -70,6 +70,8 @@ function getFs(session, path) {
     return FS.reroot(path);
 }
 
+// export for testing
+module.exports.makeServices = makeServices;
 function makeServices(services, fs, env, pathname, fsPath, clientPath) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
