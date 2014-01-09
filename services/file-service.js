@@ -4,6 +4,7 @@ var minimatch = require("minimatch");
 var PATH = require('path');
 var URL = require("url");
 var watchr = require("watchr");
+var detectMimeType = require("../detect-mime-type");
 
 var guard = function (exclude) {
     exclude = exclude || [];
@@ -82,6 +83,43 @@ function FileService(fs, environment, pathname, fsPath) {
 
             return pathsToUrlStatArray(paths);
         });
+    };
+
+    /**
+     * Lists all the asset files in the given path except node_modules and dotfiles.
+     * @param  {string} url - Location where to operate.
+     * @param  {(string|Array)} extraExclude - Some additional locations to exclude.
+     * @return {Promise.<Array.<string>>} A promise for an array of paths.
+     */
+    service.listAsset = function (url, extraExclude) {
+        var exclude = ["node_modules", ".*"],
+            localPath = convertProjectUrlToPath(url);
+
+        if (extraExclude) {
+            if (!Array.isArray(extraExclude)) {
+                extraExclude = [extraExclude];
+            }
+            exclude.push.apply(exclude, extraExclude);
+        }
+
+        var excludeGuard = guard(exclude);
+
+        return fs.listTree(localPath, function (path, stat) {
+            return excludeGuard(path, stat) && !stat.isDirectory();
+        }).then(function (paths) {
+                return Q.all(paths.map(function (path) {
+                    return fs.stat(path).then(function (stat) {
+                        return detectMimeType(fs, path, fsPath).then(function (mimeType) {
+                            return {url: convertPathToProjectUrl(path), stat: stat, mimeType: mimeType};
+                        });
+                    });
+                }));
+            });
+    };
+
+    service.detectMimeTypeAtUrl = function (url) {
+        var path = convertProjectUrlToPath(url);
+        return detectMimeType(fs, path, fsPath);
     };
 
     /**

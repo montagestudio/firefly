@@ -42,6 +42,10 @@ var FileDescriptor = exports.FileDescriptor = Montage.specialize({
         value: null
     },
 
+    mimeType: {
+        value: null
+    },
+
     name: {
         value: null
     },
