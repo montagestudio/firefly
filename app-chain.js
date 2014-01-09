@@ -40,8 +40,8 @@ function server(options) {
             throw new Error("Client directory '" + client + "' does not exist");
         }
 
-        global.clientPath = path.normalize(path.join(__dirname, client));
-        log("Filament client path", global.clientPath);
+        var clientPath = path.normalize(path.join(__dirname, client));
+        log("Filament client path", clientPath);
 
         var index = fs.join(client, "firefly-index.html");
         var serveApp = serveFile(index, "text/html", fs);
@@ -181,7 +181,7 @@ function server(options) {
         services["extension-service"] = require("./services/extension-service");
         services["env-service"] = require("./services/env-service");
 
-        var websocketServer = websocket(sessions, services);
+        var websocketServer = websocket(sessions, services, clientPath);
 
         chain.upgrade = function (request, socket, head) {
             websocketServer.handleUpgrade(request, socket, head);

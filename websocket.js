@@ -11,7 +11,7 @@ var parseCookies = require("./parse-cookies");
 var websocketConnections = 0;
 
 module.exports = websocket;
-function websocket(sessions, services) {
+function websocket(sessions, services, clientPath) {
     log("Websocket given services", Object.keys(services));
 
     var socketServer = new ws.Server();
@@ -29,7 +29,7 @@ function websocket(sessions, services) {
             log("Limiting", remoteAddress, pathname, "to", path);
             return getFs(session, path)
             .then(function (fs) {
-                return makeServices(services, fs, Env, pathname, path);
+                return makeServices(services, fs, Env, pathname, path, clientPath);
             });
         });
 
@@ -70,11 +70,11 @@ function getFs(session, path) {
     return FS.reroot(path);
 }
 
-function makeServices(services, fs, env, pathname, fsPath) {
+function makeServices(services, fs, env, pathname, fsPath, clientPath) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
-        var service = services[name](fs, env, pathname, fsPath);
+        var service = services[name](fs, env, pathname, fsPath, clientPath);
         connectionServices[name] = Q.master(service);
     });
     return connectionServices;

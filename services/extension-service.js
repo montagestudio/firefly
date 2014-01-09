@@ -1,12 +1,11 @@
-/* global global */
 var Q = require("q");
 var QFS = require("q-io/fs");
 var PATH = require('path');
 
 
 module.exports = ExtensionService;
-function ExtensionService(fs, environment) {
-    var extensionsRoot = PATH.join(global.clientPath, "extensions");
+function ExtensionService(fs, environment, _, __, clientPath) {
+    var extensionsRoot = PATH.join(clientPath, "extensions");
 
     // Returned service
     var service = {};

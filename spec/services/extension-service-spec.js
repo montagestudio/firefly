@@ -12,14 +12,16 @@ describe("file-service", function () {
             "package.json": "{}"
         });
 
-        global.clientPath = PATH.join(__dirname, "..", "fixtures");
-
-        service = ExtensionService(null, {
-            // clientPath:
-            getAppUrl: function () {
-                return "http://example.com";
-            }
-        });
+        service = ExtensionService(null,
+            {
+                getAppUrl: function () {
+                    return "http://example.com";
+                },
+            },
+            null,
+            null,
+            PATH.join(__dirname, "..", "fixtures")
+        );
     });
 
     describe("getExtensions", function () {
