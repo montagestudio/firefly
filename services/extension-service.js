@@ -23,7 +23,7 @@ function ExtensionService(fs, environment) {
      *  - From a marketplace
      *  - From a user's own selection of available extensions
      */
-    var convertPathToExtensionUrl = exports.convertPathToExtensionUrl = function (path) {
+    var convertPathToExtensionUrl = function (path) {
         var projectHost = environment.getAppUrl() + "/app/extensions",
             url = null;
 
@@ -34,7 +34,17 @@ function ExtensionService(fs, environment) {
         return url;
     };
 
-    //TODO add way to convert extensionUrl back to path
+    var convertExtensionUrlToPath = function (url) {
+        var projectHost = environment.getAppUrl() + "/app/extensions",
+            extensionRoot = PATH.join(global.clientPath, "extensions"),
+            path = null;
+
+        if (new RegExp(projectHost).test(url)) {
+            path = extensionRoot + url.replace(projectHost, "");
+        }
+
+        return path;
+    };
 
     service.getExtensions = function(extensionFolder) {
         extensionFolder = extensionFolder || PATH.join(global.clientPath, "extensions");
@@ -49,6 +59,32 @@ function ExtensionService(fs, environment) {
                     });
                 }));
             });
+    };
+
+    service.listLibraryItemUrls = function (extensionUrl, packageName) {
+        var libraryItemsPath = PATH.join(convertExtensionUrlToPath(extensionUrl), "library-items", packageName);
+
+        return QFS.listTree(libraryItemsPath, function (filePath) {
+            return PATH.extname(filePath).toLowerCase() === ".library-item" ? true : (filePath ===  libraryItemsPath ? false : null);
+        }).then(function (filePaths) {
+            return Q.all(filePaths.map(function (filePath) {
+                return QFS.stat(filePath).then(function (stat) {
+                    return convertPathToExtensionUrl(filePath) + (stat.isDirectory() ? "/" : "");
+                });
+            }));
+        });
+    };
+
+    service.listModuleIconUrls = function (extensionUrl, packageName) {
+        var iconsPath = PATH.join(convertExtensionUrlToPath(extensionUrl), "icons", packageName);
+
+        return QFS.listTree(iconsPath, function (filePath) {
+            return PATH.extname(filePath).toLowerCase() === ".png";
+        }).then(function (filePaths) {
+            return filePaths.map(function (filePath) {
+                return convertPathToExtensionUrl(filePath);
+            });
+        });
     };
 
     return service;
