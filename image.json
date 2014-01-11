@@ -1,0 +1,31 @@
+{
+    "variables": {
+        "do_api_key": "",
+        "do_client_id": "",
+        "snapshot_name": ""
+    },
+
+    "builders": [{
+        "type": "digitalocean",
+        "api_key": "{{.Do_api_key}}",
+        "client_id": "{{.Do_client_id}}",
+        "image_id": 1505447,
+        "region_id": 4,
+        "size_id": 66,
+        "private_networking": false,
+        "snapshot_name": "{{.Snapshot_name}}",
+        "droplet_name": "firefly"
+    }],
+
+    "provisioners": [{
+        "type": "shell",
+        "inline": ["sleep 30"]
+    }, {
+        "type": "shell",
+        "environment_vars": [
+            "FILAMENT_HASH={{.Filament_hash}}",
+            "FIREFLY_HASH={{.Firefly_hash}}"
+        ],
+        "script": "provision.sh"
+    }]
+}
