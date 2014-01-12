@@ -75,6 +75,10 @@ exports.EnvironmentBridge = Montage.specialize({
         value: null
     },
 
+    _previewUrl: {
+        value: null
+    },
+
     _packageUrl: {
         value: null
     },
@@ -228,25 +232,31 @@ exports.EnvironmentBridge = Montage.specialize({
 
     registerPreview: {
         value: function (name, url) {
-            return Promise.resolve();
+            this._previewUrl = url;
+            return this.backend.get("preview-service").invoke("register", {name: name, url: url});
         }
     },
 
     unregisterPreview: {
         value: function () {
-            return Promise.resolve();
+            var self = this;
+
+            return this.backend.get("preview-service").invoke("unregister", this._previewUrl)
+            .then(function() {
+                self._previewUrl = null;
+            });
         }
     },
 
     launchPreview: {
         value: function () {
-            return Promise.resolve(true);
+            return this.backend.get("preview-service").invoke("launch", this._previewUrl);
         }
     },
 
     refreshPreview: {
         value: function () {
-            return Promise.resolve();
+            return this.backend.get("preview-service").invoke("refresh", this._previewUrl);
         }
     },
 
