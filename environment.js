@@ -16,6 +16,10 @@ function Env(options) {
     delete env.project.host;
     delete env.project.pathname;
 
+    env.getAppHost = function() {
+        return getHost(this.app.hostname, this.app.port);
+    };
+
     env.getAppUrl = function () {
         return URL.format(this.app);
     };
@@ -93,8 +97,16 @@ function Env(options) {
         return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
     };
 
+    env.getProjectHost = function() {
+        return getHost(this.project.hostname, this.project.port);
+    };
+
     // }
     return env;
+}
+
+function getHost(hostname, port) {
+    return hostname + ":" + port;
 }
 
 module.exports = Env();
