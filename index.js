@@ -59,9 +59,6 @@ function main(options) {
             checkSession: CheckSession
         })
         .spread(function (app, project) {
-            app.server.node.on("upgrade", function (request, socket, head) {
-                app.chain.upgrade(request, socket, head);
-            });
             log("Listening on", Env.app.href);
 
             // for naught
