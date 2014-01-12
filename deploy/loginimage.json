@@ -15,7 +15,7 @@
         "size_id": 66,
         "private_networking": false,
         "snapshot_name": "{{user `snapshot_name`}}",
-        "droplet_name": "firefly-base"
+        "droplet_name": "firefly-login"
     }],
 
     "provisioners": [{
@@ -27,6 +27,6 @@
             "FILAMENT_HASH={{.Filament_hash}}",
             "FIREFLY_HASH={{.Firefly_hash}}"
         ],
-        "script": "{{user `home`}}/deploy/baseprovision.sh"
+        "script": "{{user `home`}}/deploy/loginprovision.sh"
     }]
 }
