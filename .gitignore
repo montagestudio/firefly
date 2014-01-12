@@ -2,8 +2,10 @@
 .DS_Store
 .idea
 .vagrant
+.gem
 /coverage
 /reports
+/build
 console.log
 npm-debug.log
 SikuliLog.txt
