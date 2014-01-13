@@ -23,6 +23,6 @@
         "inline": ["sleep 30"]
     }, {
         "type": "shell",
-        "script": "{{user `home`}}/deploy/baseprovision.sh"
+        "script": "{{user `home`}}/deploy/provision/base.sh"
     }]
 }

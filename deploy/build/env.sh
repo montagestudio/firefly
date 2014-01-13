@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# Make sure we are at the root of the project
-export HOME=`echo ${HOME} | sed s_/deploy__`
+# Root is 2 directories up from here
+export HOME="$(dirname $(dirname ${HOME}))"
 
-export BUILD=${HOME}/build
+export BUILD=${HOME}/.install
 
 export GEM_HOME=${BUILD}/digitalocean
 export GEM_PATH=${GEM_HOME}/gems:/Library/Ruby/Gems/2.0.0

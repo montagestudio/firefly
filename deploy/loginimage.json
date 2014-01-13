@@ -23,6 +23,9 @@
         "inline": ["sleep 30"]
     }, {
         "type": "shell",
-        "script": "{{user `home`}}/deploy/loginprovision.sh"
+        "script": "{{user `home`}}/deploy/provision/base.sh"
+    }, {
+        "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/login.sh"
     }]
 }

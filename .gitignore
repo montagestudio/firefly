@@ -6,7 +6,7 @@
 .tugboat
 /coverage
 /reports
-/build
+/.install
 console.log
 npm-debug.log
 SikuliLog.txt

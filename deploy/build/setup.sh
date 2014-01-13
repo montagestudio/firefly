@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
-HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# Make sure we are at the root of the project
-export HOME=`echo ${HOME} | sed s_/deploy__`
-
-source ${HOME}/deploy/env.sh
+source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
 pushd ${HOME}
 
@@ -32,5 +28,5 @@ curl -LO https://dl.bintray.com/mitchellh/packer/0.5.1_darwin_amd64.zip
 unzip 0.5.1_darwin_amd64.zip -d ${BUILD}/packerio
 
 rm -rf 0.5.1_darwin_amd64.zip
-	
+
 popd
