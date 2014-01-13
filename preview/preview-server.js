@@ -1,5 +1,6 @@
 /*global module, unescape*/
 var log = require("logging").from(__filename);
+var Q = require("q");
 var FS = require("q-io/fs");
 var URL = require("url");
 var HttpApps = require("q-io/http-apps/fs");
@@ -85,7 +86,11 @@ function servePreviewClientFile(request, response) {
     return clientFs.then(function(fs) {
         path = path.slice(("/" + CLIENT_FILES + "/").length);
 
-        if (path === "preview.js") {
+        if (path === "") {
+            var deferredResponse = Q.defer();
+            preview.registerDeferredResponse(request.headers.host, deferredResponse);
+            return deferredResponse.promise;
+        } else if (path === "preview.js") {
             return HttpApps.file(request, path, null, fs);
         }
 

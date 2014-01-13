@@ -1,5 +1,5 @@
 /*jshint browser:true */
-/*global confirm */
+/*global confirm, console */
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
@@ -20,6 +20,25 @@
         return event;
     }
 
+    function processIncomingData(data) {
+        var command = data.substring(0, data.indexOf(":")),
+            param = data.substring(data.indexOf(":") + 1);
+
+        // REFRESH
+        if (command === "refresh") {
+            var event = dispatchEvent("lumieresRefresh");
+            if (!event.defaultPrevented) {
+                document.location.reload();
+            }
+        }
+
+        // LAUNCH
+        else if (command === "launch") {
+            var newLocation = document.location.origin + "/" + param + "/";
+            document.location.href = newLocation;
+        }
+    }
+
     function websocketRefresh() {
         var ws = new WebSocket("ws://" + document.location.host);
 
@@ -27,31 +46,55 @@
         };
 
         ws.onmessage = function(message) {
-            var data = message.data,
-                command = data.substring(0, data.indexOf(":")),
-                param = data.substring(data.indexOf(":") + 1);
-
-            /// REFRESH
-            if (command === "refresh") {
-                var event = dispatchEvent("lumieresRefresh");
-                if (!event.defaultPrevented) {
-                    document.location.reload();
-                }
-            }
-
-            /// LAUNCH
-            else if (command === "launch") {
-                var newLocation = document.location.origin + "/" + param + "/";
-                document.location.href = newLocation;
-            }
+            processIncomingData(message.data);
         };
 
         ws.onclose = function() {
             if (confirm(kDeconnectionMessage) === true) {
-                dispatchEvent("lumieresConnect");
+                websocketRefresh();
+            }
+        };
+    }
+
+    function httpRefresh() {
+        var xhr = new XMLHttpRequest();
+
+        xhr.open('GET', '{$PREVIEW}/', true);
+        xhr.responseType = 'text';
+
+        xhr.onload = function(event) {
+            try {
+                if (this.status === 200) {
+                    processIncomingData(this.responseText);
+                    httpRefresh();
+                } else if (this.status === 404) {
+                    if (confirm("404: " + kDeconnectionMessage) === true) {
+                        httpRefresh();
+                    }
+                } else {
+                    httpRefresh();
+                }
+            } catch(error) {
+                console.log(error);
             }
         };
 
+        xhr.onerror = function(event) {
+            if (confirm(kDeconnectionMessage) === true) {
+                httpRefresh();
+            }
+        };
+
+        xhr.onabort = function(event) {
+        };
+
+        xhr.ontimeout = function(event) {
+            if (confirm(kDeconnectionMessage) === true) {
+                httpRefresh();
+            }
+        };
+
+        xhr.send();
     }
 
     function setup() {
@@ -60,8 +103,11 @@
         }
 
         if (typeof(WebSocket) === "function" || typeof(WebSocket) === "object") {
-            window.addEventListener("lumieresConnect", websocketRefresh);
             websocketRefresh();
+        } else {
+            // Wait a bit more to not consume right away one of the http
+            // connections allowed by the browser or server.
+            setTimeout(httpRefresh, 2000);
         }
 
         if (typeof _montageWillLoad === "function") {

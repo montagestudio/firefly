@@ -1,7 +1,10 @@
 var log = require("logging").from(__filename);
 var environment = require("../environment");
+var APPS = require("q-io/http-apps");
 
 var _previews = {"/": {name:"/", path:"/", default:"index.html"}};
+var registerDeferredRequestTimer;
+var DEFERRED_REQUEST_TIMEOUT = 10000;
 
 exports._previews = _previews;
 
@@ -37,6 +40,58 @@ exports.unregisterConnection = function(connection) {
                 connections.splice(i, 1);
             }
         }
+    }
+};
+
+exports.registerDeferredResponse = function(url, responseDeferred) {
+    var previewId = exports.getPreviewIdFromUrl(url),
+        preview = _previews[previewId];
+
+    if (preview) {
+        var info = {
+            response: responseDeferred,
+            date: Math.round(new Date().getTime() / 1000)
+        };
+
+        if (!preview.requests) {
+            preview.requests = [info];
+        } else {
+            preview.requests.push(info);
+        }
+
+        log("new deferred response stored");
+
+        if (!registerDeferredRequestTimer) {
+            // Setup a time to reject old requests
+            registerDeferredRequestTimer = setInterval(function() {
+                var currentTime = Math.round(new Date().getTime() / 1000);
+
+                Object.keys(_previews).forEach(function(previewId) {
+                    var preview = _previews[previewId],
+                        cutIndex;
+
+                    if (preview.requests) {
+                        for (var j = 0, info; (info = preview.requests[j]); j++) {
+                            if (Math.abs(currentTime - info.date) > 30) {
+                                info.response.reject();
+                                cutIndex = j;
+                            }
+                        }
+
+                        if (typeof cutIndex !== "undefined") {
+                            // Trim the array of all expired requests
+                            preview.requests.splice(0, j + 1);
+                            if (preview.requests.length === 0) {
+                                delete preview.requests;
+                            }
+                        }
+                    }
+                });
+            }, DEFERRED_REQUEST_TIMEOUT);
+        }
+    } else {
+        log("registerDeferredRequest: invalid previewID", previewId);
+        responseDeferred.reject(new Error("Invalid previewID: " + previewId));
     }
 };
 
@@ -90,8 +145,18 @@ function PreviewService() {
 
         if (preview) {
             // Websocket connections
-            for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-                preview.connections[i].send(content);
+            if (preview.connections) {
+                for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+                    preview.connections[i].send(content);
+                }
+            }
+            // HTTP requests
+            if (preview.requests) {
+                //jshint -W004
+                for (var i = 0, ii = preview.requests.length; i < ii; i++) {
+                    preview.requests[i].response.resolve(APPS.ok(content));
+                }
+                //jshint +W004
             }
         }
     }

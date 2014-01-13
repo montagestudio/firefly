@@ -1,3 +1,4 @@
+var Q = require("q");
 var PreviewService = require("../../services/preview-service");
 var environment = new require("../../environment").Env();
 
@@ -58,6 +59,29 @@ describe("preview-service", function () {
                 expect(connection1.send).toHaveBeenCalledWith("refresh:");
                 expect(connection2.send).toHaveBeenCalledWith("refresh:");
             });
+
+            it("should refresh all preview's clients on http", function() {
+                var deferred1 = {resolve: function() {}};
+                var deferred2 = {resolve: function() {}};
+                var expectedResponse = {
+                    status: 200,
+                    headers: {
+                        'content-type': 'text/plain'
+                    },
+                    body: ['refresh:']
+                };
+
+                spyOn(deferred1, "resolve");
+                spyOn(deferred2, "resolve");
+                spyOn(global, "setInterval");
+                PreviewService.registerDeferredResponse(host, deferred1);
+                PreviewService.registerDeferredResponse(host, deferred2);
+
+                service.refresh(host);
+
+                expect(deferred1.resolve).toHaveBeenCalledWith(expectedResponse);
+                expect(deferred2.resolve).toHaveBeenCalledWith(expectedResponse);
+            });
         });
     });
 
@@ -83,6 +107,16 @@ describe("preview-service", function () {
             PreviewService.unregisterConnection(connection);
 
             expect(previews['local-project'].connections.length).toBe(0);
+        });
+
+        it("should register a new deferred response from a preview", function() {
+            var deferred = Q.defer();
+
+            spyOn(global, "setInterval");
+            PreviewService.registerDeferredResponse(
+                environment.getProjectHost(), deferred);
+
+            expect(previews['local-project'].requests.length).toBe(1);
         });
     });
 
