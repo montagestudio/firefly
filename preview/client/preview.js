@@ -21,8 +21,8 @@
     }
 
     function processIncomingData(data) {
-        var command = data.substring(0, data.indexOf(":")),
-            param = data.substring(data.indexOf(":") + 1);
+        var command = data.substring(0, data.indexOf(":"));
+        //var param = data.substring(data.indexOf(":") + 1);
 
         // REFRESH
         if (command === "refresh") {
@@ -30,12 +30,6 @@
             if (!event.defaultPrevented) {
                 document.location.reload();
             }
-        }
-
-        // LAUNCH
-        else if (command === "launch") {
-            var newLocation = document.location.origin + "/" + param + "/";
-            document.location.href = newLocation;
         }
     }
 

@@ -250,7 +250,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     launchPreview: {
         value: function () {
-            return this.backend.get("preview-service").invoke("launch", this._previewUrl);
+            return Promise.resolve();
         }
     },
 
