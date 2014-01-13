@@ -23,10 +23,6 @@
         "inline": ["sleep 30"]
     }, {
         "type": "shell",
-        "environment_vars": [
-            "FILAMENT_HASH={{.Filament_hash}}",
-            "FIREFLY_HASH={{.Firefly_hash}}"
-        ],
         "script": "{{user `home`}}/deploy/baseprovision.sh"
     }]
 }
