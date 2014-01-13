@@ -23,6 +23,13 @@ var execNpm = function execNpm(command, args, npmfs) {
     if (Array.isArray(args) && args.length > 0) {
         var requestedPackage = args[0];
 
+        switch (command) {
+            case COMMANDS.VIEW:
+                procChild = fork(__dirname + '/npm-view-command.js', [requestedPackage, npmfs]);
+                break;
+        }
+    }
+
     if (procChild) {
         var result = null;
 

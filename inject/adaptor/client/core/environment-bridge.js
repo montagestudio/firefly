@@ -413,6 +413,12 @@ exports.EnvironmentBridge = Montage.specialize({
                 return self.flushProject("Update component " + name);
             });
         }
+    },
+
+    gatherPackageInformation: {
+        value: function (requestedPackage) {
+            return this.backend.get("package-manager-service").invoke("gatherPackageInformation", requestedPackage);
+        }
     }
 
 });
