@@ -18,16 +18,19 @@ var fork = require('child_process').fork,
  */
 var execNpm = function execNpm(command, args, npmfs) {
     var deferred = Q.defer(),
+        requestedPackage = null,
         procChild = null;
 
     if (Array.isArray(args) && args.length > 0) {
-        var requestedPackage = args[0];
+        requestedPackage = args[0];
+    }
 
-        switch (command) {
-            case COMMANDS.VIEW:
+    switch (command) {
+        case COMMANDS.VIEW:
+            if (requestedPackage) {
                 procChild = fork(__dirname + '/npm-view-command.js', [requestedPackage, npmfs]);
-                break;
-        }
+            }
+            break;
     }
 
     if (procChild) {
