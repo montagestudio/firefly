@@ -3,6 +3,7 @@
 .idea
 .vagrant
 .gem
+.tugboat
 /coverage
 /reports
 /build
