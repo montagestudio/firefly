@@ -1,47 +1,29 @@
-/*global describe,it,expect,waitsFor,runs,__dirname*/
+/*global describe,it,expect,__dirname*/
 
-var execNpm = require('../../../package-manager/exec-npm'),
-    TIME_OUT = 5000;
+var execNpm = require('../../../package-manager/exec-npm');
 
 describe("npm view command", function () {
 
-    it('should throw an error if the request is not valid.', function() {
-        var error = null;
+    it('should throw an error if the request is not valid.', function(done) {
 
-        runs(function() {
-            execNpm(execNpm.COMMANDS.VIEW, ["montage@1.0"], __dirname).then(function () {
-            }, function (errorThrew) {
-                error = errorThrew;
-            });
-        });
+        execNpm(execNpm.COMMANDS.VIEW, ["montage@1.0"], __dirname).then(function () {}, function (errorThrew) {
 
-        waitsFor(function() {
-            return !!error;
-        }, "[Timeout] npm view command ", TIME_OUT);
+            expect(errorThrew.code).toEqual(3001);
 
-        runs(function() {
-            expect(error.code).toEqual(3001);
-        });
+        }).then(done, done);
+
     });
 
-    it("should get some information about montage@0.13.0.", function() {
-        var module = null;
+    it("should get some information about montage@0.13.0.", function(done) {
 
-        runs(function() {
-            execNpm(execNpm.COMMANDS.VIEW, ["montage@0.13.0"], __dirname).then(function (moduleRequested) {
-                module = moduleRequested;
-            });
-        });
+        execNpm(execNpm.COMMANDS.VIEW, ["montage@0.13.0"], __dirname).then(function (moduleRequested) {
 
-        waitsFor(function() {
-            return !!module;
-        }, "[Timeout] npm view command ", TIME_OUT);
+            expect(typeof moduleRequested === 'object').toBeDefined();
+            expect(moduleRequested.name).toEqual('montage');
+            expect(moduleRequested.version).toEqual('0.13.0');
 
-        runs(function() {
-            expect(typeof module === 'object').toBeDefined();
-            expect(module.name).toEqual('montage');
-            expect(module.version).toEqual('0.13.0');
-        });
+        }).then(done, done);
+
     });
 
 });
