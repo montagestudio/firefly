@@ -1,0 +1,40 @@
+{
+    "variables": {
+        "do_api_key": null,
+        "do_client_id": null,
+        "snapshot_name": null,
+        "home": "{{env `HOME`}}",
+        "build": "{{env `BUILD`}}"
+    },
+
+    "builders": [{
+        "type": "digitalocean",
+        "api_key": "{{user `do_api_key`}}",
+        "client_id": "{{user `do_client_id`}}",
+        "image_id": 1505447,
+        "region_id": 4,
+        "size_id": 66,
+        "private_networking": false,
+        "snapshot_name": "{{user `snapshot_name`}}",
+        "droplet_name": "firefly-staging"
+    }],
+
+    "provisioners": [{
+        "type": "shell",
+        "inline": ["sleep 30"]
+    }, {
+        "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/base.sh"
+    }, {
+      "type": "file",
+      "source": "{{user `build`}}/filament",
+      "destination": "/srv/filament"
+    }, {
+      "type": "file",
+      "source": "{{user `build`}}/firefly",
+      "destination": "/srv/firefly"
+    }, {
+        "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/firefly.sh"
+    }]
+}

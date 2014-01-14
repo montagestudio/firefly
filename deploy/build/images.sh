@@ -6,13 +6,11 @@ source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 ${HOME}/deploy/build/setup.sh
 
 # Build the base image
-${HOME}/deploy/build/base-image.sh
+# Not needed for the moment as each image runs the base steps itself
+# ${HOME}/deploy/build/base-image.sh
 
 # Build the Load Balancer Image
-${HOME}/deploy/build/load-balancer-image.sh
+#${HOME}/deploy/build/load-balancer-image.sh
 
-# Buid Login Application Image
-${HOME}/deploy/build/login-image.sh
-
-# Buid Project Application Image
-${HOME}/deploy/build/project-image.sh
+# Buid Firefly Application Image
+${HOME}/deploy/build/firefly-image.sh
