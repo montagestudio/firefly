@@ -85,6 +85,9 @@ module.exports = function ($) {
                 githubApi.getUser().then(function(user) {
                     request.session.githubUser = user;
                     request.session.username = user.login.toLowerCase();
+
+                    // change the current session id to be the github token and username
+                    request.session.sessionId = request.session.githubAccessToken + "/" + request.session.username;
                     done.resolve(redirect(request, "/projects"));
                 }).done();
             });

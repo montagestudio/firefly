@@ -60,7 +60,7 @@ function server(options) {
     })
     .tap(parseCookies)
     .use(sessions)
-    .use(checkSession)
+    .use(checkSession(sessions.getKey()))
     .methods(function (method) {
         method("GET")
         .app(function (request) {
