@@ -1,6 +1,18 @@
 Firefly deployment
 ==================
 
-To go from zero-to-images run `./build/setup.sh`.
+To go from zero-to-images run `./build/setup.sh`. This will install `packer` and `tugboat` in the .deploy directory.
 
-If you already have [Packer](http://www.packer.io/) installed then you can build just one image, for example, `./build/base-image.sh`.
+## Directories
+
+### build/
+
+Run one of these scripts to start the build of an image.
+
+### provision/
+
+Scripts that are run inside of a new VM to set up all the packages and code that are needed.
+
+### ../.deploy/
+
+This directory is created in the root of firefly to store the `packer` and `tugboat` binaries
