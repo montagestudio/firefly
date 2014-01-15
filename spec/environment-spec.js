@@ -22,6 +22,14 @@ describe("environment", function () {
             });
         });
 
+        describe("getProjectPathFromProjectUrl", function () {
+            it("returns a path", function () {
+                var path = environment.getProjectPathFromProjectUrl("http://owner-repo.local-project.127.0.0.1.xip.io:2440");
+
+                expect(path.match(/\/owner\/owner\/repo$/)).toBeDefined();
+            });
+        });
+
         describe("getAppHost", function () {
             it("returns a host", function () {
                 expect(environment.getAppHost()).toEqual("local-firefly.declarativ.net:2440");
