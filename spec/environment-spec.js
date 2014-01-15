@@ -20,6 +20,18 @@ describe("environment", function () {
                 expect(environment.getProjectUrlFromAppUrl("/owner/repo/fail")).toEqual("http://owner-repo.local-project.127.0.0.1.xip.io:2440");
             });
         });
+
+        describe("getAppHost", function () {
+            it("returns a host", function () {
+                expect(environment.getAppHost()).toEqual("local-firefly.declarativ.net:2440");
+            });
+        });
+
+        describe("getProjectHost", function () {
+            it("returns a host", function () {
+                expect(environment.getProjectHost()).toEqual("local-project.127.0.0.1.xip.io:2440");
+            });
+        });
     });
 
 });

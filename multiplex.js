@@ -32,6 +32,19 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
         })
         .listen(environment.port)
         .then(function (server) {
+            server.node.on("upgrade", function (request, socket, head) {
+                var host = request.headers.host;
+
+                if (endsWith(host, environment.getAppHost())) {
+                    appChain.upgrade(request, socket, head);
+                } else if (endsWith(host, environment.getProjectHost())) {
+                    projectChain.upgrade(request, socket, head);
+                } else {
+                    log("*Unrecognized host*", host);
+                    return Status.notAcceptable(request);
+                }
+            });
+
             return [
                 {
                     chain: appChain,

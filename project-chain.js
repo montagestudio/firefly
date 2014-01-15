@@ -1,9 +1,9 @@
-var Q = require("q");
 var log = require("logging").from(__filename);
 var joey = require("joey");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var environment = require("./environment");
+var Preview = require("./preview/preview-server").Preview;
 
 var LogStackTraces = require("./log-stack-traces");
 var parseCookies = require("./parse-cookies");
@@ -20,8 +20,9 @@ function server(options) {
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
     //jshint +W116
+    var preview = Preview(sessions);
 
-    return Q.resolve(joey
+    var chain = joey
     .error()
     .log(log, function (message) { return message; })
     .use(LogStackTraces(log))
@@ -61,6 +62,7 @@ function server(options) {
     .tap(parseCookies)
     .use(sessions)
     .use(checkSession)
+    .use(preview)
     .methods(function (method) {
         method("GET")
         .app(function (request) {
@@ -77,6 +79,11 @@ function server(options) {
                 });
             });
         });
-    }));
-}
+    });
 
+    chain.upgrade = function (request, socket, head) {
+        preview.wsServer.handleUpgrade(request, socket, head);
+    };
+
+    return chain;
+}
