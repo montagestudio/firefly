@@ -15,5 +15,9 @@ function Session(sessions) {
         return sessions[id];
     };
 
+    result.getKey = function() {
+        return "session";
+    };
+
     return result;
 }
