@@ -1,6 +1,7 @@
 var env = require("./environment");
 var Q = require("q");
 var GithubApi = require("./inject/adaptor/client/core/github-api");
+var cryptoService = require("./crypto-service");
 
 exports = module.exports = CheckSession;
 
@@ -16,7 +17,13 @@ function CheckSession(key) {
                 var done = Q();
                 var _validUser = false;
                 var sessionID = request.cookies[key];
-                var githubLoginInfo = typeof sessionID === "string" && sessionID.match(/^([0-9a-f]+)\/(.+)/);
+                var githubLoginInfo;
+
+                if (typeof sessionID === "string" && sessionID.length >= 128) {
+                    var crypto = cryptoService();
+                    var decryptedSessionID = crypto.decryptData(sessionID);
+                    githubLoginInfo = typeof decryptedSessionID === "string" && decryptedSessionID.match(/^([0-9a-f]+)\/(.+)/);
+                }
 
                 if (githubLoginInfo && githubLoginInfo.length === 3) {
                     var githubApi = new GithubApi(githubLoginInfo[1]);
