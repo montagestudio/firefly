@@ -13,7 +13,7 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
     }
 
     service.listDependenciesAtUrl = function (url) {
-        var path = convertProjectUrlToPath(url).replace(/package.json$/, "");
+        var path = convertProjectUrlToPath(url).replace(/package\.json$/, "");
 
         return listDependencies(fs, path);
     };
