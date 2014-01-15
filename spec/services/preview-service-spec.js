@@ -27,6 +27,15 @@ describe("preview-service", function () {
             expect(previews['local-project']).toBeDefined();
         });
 
+        it("should create an access code when registering a new preview", function() {
+            service.register({
+                name: "preview",
+                url: environment.project.hostname
+            });
+
+            expect(previews['local-project'].accessCode).toBeDefined();
+        });
+
         it("should unregister a preview", function () {
             service.register({
                 name: "preview",
@@ -125,5 +134,17 @@ describe("preview-service", function () {
         var previewId = PreviewService.getPreviewIdFromUrl(url);
 
         expect(previewId).toBe("repo-user");
+    });
+
+    it("should get the preview access code from a url", function() {
+        var url = "http://repo-user.domain.com",
+            accessCode;
+
+        previews["repo-user"] = {
+            accessCode: "leCode"
+        };
+        accessCode = PreviewService.getPreviewAccessCodeFromUrl(url);
+
+        expect(accessCode).toBe("leCode");
     });
 });

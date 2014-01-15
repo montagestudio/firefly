@@ -95,6 +95,15 @@ exports.registerDeferredResponse = function(url, responseDeferred) {
     }
 };
 
+exports.getPreviewAccessCodeFromUrl = function(url) {
+    var previewId = exports.getPreviewIdFromUrl(url),
+        preview = _previews[previewId];
+
+    if (preview) {
+        return preview.accessCode;
+    }
+};
+
 exports.getPreviewIdFromUrl = function(url) {
     var details = environment.getDetailsfromProjectUrl(url);
 
@@ -120,9 +129,10 @@ function PreviewService() {
         log("register new preview", previewId);
         _previews[previewId] = {
             name: name,
-            url: url
+            url: url,
+            accessCode: generateAccessCode()
         };
-
+        log("access code: ", _previews[previewId].accessCode);
         //saveMap();
     };
 
@@ -159,6 +169,28 @@ function PreviewService() {
                 //jshint +W004
             }
         }
+    }
+
+    var accessCodeTable = [];
+    //jshint -W004
+    for (var i = 0; i < 26; i++) {
+        accessCodeTable.push(String.fromCharCode(65+i), String.fromCharCode(97+i));
+    }
+    for (var i = 0; i < 10; i++) {
+        accessCodeTable.push(""+i);
+    }
+    //jshint +W004
+
+    function generateAccessCode() {
+        // FIXME: This is easy to defeat.
+        var code = [];
+
+        for (var i = 0; i < 5; i++) {
+            var ix = Math.floor(Math.random() * accessCodeTable.length);
+            code.push(accessCodeTable[ix]);
+        }
+
+        return code.join("");
     }
 
     return service;
