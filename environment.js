@@ -96,6 +96,18 @@ function Env(options) {
         var FS = require("q-io/fs");
         return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
     };
+    /**
+     * Assumes that the username is the same as the owner.
+     * This is temporary while we build support for accessing repos that are not
+     * forked to the user github.
+     */
+    env.getProjectPathFromProjectUrl = function (url) {
+        var details = this.getDetailsfromProjectUrl(url);
+
+        // FIXME not to use FS
+        var FS = require("q-io/fs");
+        return FS.join(process.cwd(), "..", "clone", details.owner, details.owner, details.repo);
+    };
 
     env.getProjectHost = function() {
         return getHost(this.project.hostname, this.project.port);
