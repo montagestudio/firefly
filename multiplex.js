@@ -40,7 +40,7 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
                 } else if (endsWith(host, environment.getProjectHost())) {
                     projectChain.upgrade(request, socket, head);
                 } else {
-                    log("*Unrecognized hostname*", host, "expected", environment.app.hostname, "or", environment.project.hostname);
+                    log("*Unrecognized hostname*", host, "expected", environment.getAppHost(), "or", environment.getProjectHost());
                     return Status.notAcceptable(request);
                 }
             });
