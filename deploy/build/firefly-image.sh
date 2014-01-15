@@ -13,27 +13,34 @@ get ()
 
   rm -rf ${BUILD}/$1
   git clone git@$GITHUBDECLARATIV:declarativ/$1.git ${BUILD}/$1
-  pushd ${BUILD}/$1
-    git config user.name "Declarativ Bot"
-    git config user.email dev@declarativ.com
+  if [[ -e ${BUILD}/$1 ]]; then 
+	pushd ${BUILD}/$1
+		git config user.name "Declarativ Bot"
+		git config user.email dev@declarativ.com
 
-    # if commit hash is set then check it out
-    if [ "$2" ];
-    then
-      git checkout "$2"
-    fi
+		# if commit hash is set then check it out
+		if [ "$2" ]; then
+			git checkout "$2"
+		fi
 
-    # Tag every deploy
-    # git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"
-    # git push --tags
+		# Tag every deploy
+		# git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"
+		# git push --tags
 
-    # Create a file with the git hash so that given just an image we know what
-    # code is in it
-    git rev-parse HEAD > GIT_HASH
+		# Create a file with the git hash so that given just an image we know what
+		# code is in it
+		git rev-parse HEAD > GIT_HASH
 
-    # Remove git directory before uploading to server to reduce size
-    rm -rf .git
-  popd
+		# Remove git directory before uploading to server to reduce size
+		rm -rf .git
+	popd
+	pushd ${BUILD}
+		tar -czf $1.tgz $1
+	popd
+  else
+	  echo "Cannot clone git repository: "${BUILD}/$1
+	  exit -1
+  fi
 }
 
 get filament $FILAMENT_COMMIT
@@ -46,4 +53,6 @@ ${BUILD}/packerio/packer build \
 	${HOME}/deploy/firefly-image.json
 
 rm -rf ${BUILD}/filament
+rm -rf ${BUILD}/filament.tgz
 rm -rf ${BUILD}/firefly
+rm -rf ${BUILD}/firefly.tgz

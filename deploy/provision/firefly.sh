@@ -6,10 +6,17 @@ iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port $F
 
 cd /srv
 
-pushd filament
-  npm rebuild
-popd
-
-pushd firefly
-  npm rebuild
-popd
+if [[ -e "/srv/filament.tgz" ]]; then
+	tar -xzf filament.tgz
+	pushd filament
+	  npm rebuild
+	popd
+	chown -R montage:montage filament
+fi
+if [[ -e "/srv/firefly.tgz" ]]; then
+	tar -xzf firefly.tgz
+	pushd firefly
+	  npm rebuild
+	popd
+	chown -R montage:montage filament
+fi

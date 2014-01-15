@@ -16,7 +16,7 @@
         "size_id": 66,
         "private_networking": false,
         "snapshot_name": "{{user `snapshot_name`}}",
-        "droplet_name": "firefly-staging"
+        "droplet_name": "firefly-image"
     }],
 
     "provisioners": [{
@@ -35,12 +35,12 @@
         "script": "{{user `home`}}/deploy/provision/base.sh"
     }, {
       "type": "file",
-      "source": "{{user `build`}}/filament",
-      "destination": "/srv/filament"
+      "source": "{{user `build`}}/filament.tgz",
+      "destination": "/srv/filament.tgz"
     }, {
       "type": "file",
-      "source": "{{user `build`}}/firefly",
-      "destination": "/srv/firefly"
+      "source": "{{user `build`}}/firefly.tgz",
+      "destination": "/srv/firefly.tgz"
     }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/firefly.sh"
