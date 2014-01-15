@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# set -xe
 set -xe
 
 HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

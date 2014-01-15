@@ -2,13 +2,17 @@
 
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
+if [[ $GITHUBDECLARATIV == "" ]]; then
+	export GITHUBDECLARATIV="github.com"
+fi
+
 get ()
 {
   # $1 is directory
   # $2 is commit hash
 
   rm -rf ${BUILD}/$1
-  git clone git@github.com:declarativ/$1.git ${BUILD}/$1
+  git clone git@$GITHUBDECLARATIV:declarativ/$1.git ${BUILD}/$1
   pushd ${BUILD}/$1
     git config user.name "Declarativ Bot"
     git config user.email dev@declarativ.com

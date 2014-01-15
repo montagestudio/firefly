@@ -22,6 +22,14 @@
         "type": "shell",
         "inline": ["sleep 30"]
     }, {
+        "type": "file",
+	    "source": "{{user `home`}}/deploy/provision/authorized_keys",
+	    "destination": "/tmp/authorized_keys"
+    }, {
+        "type": "file",
+	    "source": "{{user `home`}}/deploy/provision/sudoers",
+	    "destination": "/etc/sudoers.d/sudoers"
+    }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/base.sh"
     }, {

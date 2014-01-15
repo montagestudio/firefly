@@ -10,7 +10,7 @@ ${HOME}/deploy/build/setup.sh
 # ${HOME}/deploy/build/base-image.sh
 
 # Build the Load Balancer Image
-#${HOME}/deploy/build/load-balancer-image.sh
+${HOME}/deploy/build/load-balancer-image.sh
 
 # Buid Firefly Application Image
 ${HOME}/deploy/build/firefly-image.sh

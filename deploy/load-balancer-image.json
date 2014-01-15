@@ -15,7 +15,7 @@
         "size_id": 66,
         "private_networking": false,
         "snapshot_name": "{{user `snapshot_name`}}",
-        "droplet_name": "firefly-base"
+        "droplet_name": "firefly-load-balancing"
     }],
 
     "provisioners": [{
@@ -32,5 +32,8 @@
     }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/base.sh"
+    }, {
+        "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/load-balancer.sh"
     }]
 }
