@@ -25,7 +25,7 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
                 } else if (endsWith(hostname, environment.project.hostname)) {
                     return projectHandler(request);
                 } else {
-                    log("*Unrecognized hostname*", hostname);
+                    log("*Unrecognized hostname*", hostname, "expected", environment.app.hostname, "or", environment.project.hostname);
                     return Status.notAcceptable(request);
                 }
             };
