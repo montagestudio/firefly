@@ -106,9 +106,10 @@ function Env(options) {
 }
 
 function getHost(hostname, port) {
-    return hostname + ":" + port;
+    return hostname + (port ? ":" + port : "");
 }
 
 module.exports = Env();
 // for testing
 module.exports.Env = Env;
+module.exports.getHost = getHost;
