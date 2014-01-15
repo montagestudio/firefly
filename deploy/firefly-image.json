@@ -36,5 +36,9 @@
     }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/firefly.sh"
+    }, {
+      "type": "file",
+      "source": "{{user `home`}}/deploy/services/firefly.conf",
+      "destination": "/etc/init/firefly.conf"
     }]
 }

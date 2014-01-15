@@ -13,5 +13,3 @@ popd
 pushd firefly
   npm rebuild
 popd
-
-# upstart
