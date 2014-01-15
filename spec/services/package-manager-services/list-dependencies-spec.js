@@ -17,7 +17,7 @@ describe("list dependencies", function () {
     var mockFS, service, nodesPosition;
 
     function _runListDependencies () {
-        return service.listDependencies().then(function _handleListDependencies (tree) {
+        return service.listDependenciesAtUrl('/').then(function _handleListDependencies (tree) {
             nodesPosition = {};
 
             var children = tree.children,
@@ -45,7 +45,7 @@ describe("list dependencies", function () {
 
         it('should gather some correct information about the project.', function (done) {
 
-            service.listDependencies().then(function (dependencyTree) {
+            _runListDependencies().then(function (dependencyTree) {
 
                 expect(typeof dependencyTree).toEqual("object");
                 expect(dependencyTree.name).toEqual(DEFAULT_PROJECT_APP);
@@ -229,7 +229,7 @@ describe("list dependencies", function () {
                 jsonFileError: true
             }));
 
-            PackageManagerService(mockFS).listDependencies().then(function (dependencyTree) {
+            PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
                 expect(dependencyTree.jsonFileError).toEqual(true);
 
             }).then(done, done);
@@ -243,7 +243,7 @@ describe("list dependencies", function () {
                 version: '0.1.1'
             }));
 
-            PackageManagerService(mockFS).listDependencies().then(function (dependencyTree) {
+            PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
                 expect(dependencyTree.children.regular.length).toEqual(0);
 
             }).then(done, done);
@@ -256,7 +256,7 @@ describe("list dependencies", function () {
                 "package.json": "{}"
             });
 
-            PackageManagerService(mockFS).listDependencies().then(function (dependencyTree) {
+            PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
                 expect(dependencyTree.jsonFileMissing).toEqual(true);
 
             }).then(done, done);
