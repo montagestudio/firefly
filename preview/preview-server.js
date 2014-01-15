@@ -7,7 +7,6 @@ var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var ws = require("websocket.io");
 var preview = require("./../services/preview-service");
-var parseCookies = require("../parse-cookies");
 
 var CLIENT_FILES = "{$PREVIEW}";
 
@@ -108,8 +107,8 @@ function startWsServer(sessions) {
         var pathname = URL.parse(request.url).pathname;
         var remoteAddress = connection.socket.remoteAddress;
 
-        getSession(sessions, request)
-        .then(function (session) {
+
+        sessions.getSession(request, function(session) {
             if (session) {
                 log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
@@ -130,14 +129,4 @@ function startWsServer(sessions) {
     });
 
     return wsServer;
-}
-
-function getSession(sessions, request) {
-    // The request has the session cookies, but hasn't gone through
-    // the joey chain, and so they haven't been parsed into .cookies
-    // Do that manually here
-    parseCookies(request);
-
-    // Use the above session id to get the session
-    return sessions.get(request.cookies.session);
 }

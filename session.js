@@ -1,6 +1,7 @@
 var log = require("logging").from(__filename);
 var Q = require("q");
 var uuid = require("uuid");
+var parseCookies = require("./parse-cookies");
 
 var COOKIE_TIMEOUT_DAYS = 30;
 var COOKIE_TIMEOUT_MS = COOKIE_TIMEOUT_DAYS * (1000 * 60 * 60 * 24);
@@ -94,6 +95,34 @@ function Session(key, secret, cookie, store) {
     result.destroy = function(session) {
         return Q.fcall(function() {
             session._destroyed = true;
+        });
+    };
+
+    /**
+     * Receives a request object and a callback function that receives the
+     * session found in the request cookies.
+     * The callback should return a promise that will be propagated to the
+     * promise returned by the getSession function itself.
+     * When the promise returned by the callback is resolved the session object
+     * should not be modified anymore as those changes will not be stored.
+     */
+    result.getSession = function(request, callback) {
+        var _session;
+        // The request has the session cookies, but hasn't gone through
+        // the joey chain, and so they haven't been parsed into .cookies
+        // Do that manually here
+        parseCookies(request);
+
+        return this.get(request.cookies[key]).then(function(session) {
+            _session = session;
+            return callback(session);
+        }).then(function(result) {
+            if (_session) {
+                // Save session new state.
+                return store.set(_session.sessionId, _session).thenResolve(result);
+            } else {
+                return result;
+            }
         });
     };
 
