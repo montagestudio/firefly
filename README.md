@@ -65,7 +65,8 @@ key).
 
 Contributing
 ============
-- Run `jshint` on your code to ensure it conforms to Filament standards
+- Run the specs (npm test) at the project's root and make sure there is no `jshint` errors and all spec tests pass successfully.
+  Note: make sure there is no firefly session running prior running the test.
 
 - Make sure all commit messages follow the 50 character subject/72 character
 body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
