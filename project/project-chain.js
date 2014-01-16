@@ -5,6 +5,7 @@ var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var environment = require("../environment");
 var PreviewServer = require("./preview/preview-server");
+var checkPreviewAccess = require("./preview/check-preview-access");
 
 var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
@@ -80,9 +81,8 @@ function server(options) {
 
         POST("access").app(PreviewServer.processAccessRequest);
     })
-    .use(checkSession)
     .use(function (next) {
-        var serveProject = preview(function (request) {
+        var serveProject = checkPreviewAccess(preview(function (request) {
             var path = environment.getProjectPathFromProjectUrl(request.headers.host);
 
             log("rerooting to", fs.join(path));
@@ -95,7 +95,7 @@ function server(options) {
                     }
                 });
             });
-        });
+        }));
 
         return function (request, response) {
             if (endsWith(request.headers.host, environment.getProjectHost())) {
@@ -106,6 +106,7 @@ function server(options) {
             }
         };
     })
+    .use(checkSession)
     .route(function (route) {
         route("api/...").app(api(setupProjectWorkspace, directory, minitPath).end());
     });

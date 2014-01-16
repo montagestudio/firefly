@@ -17,6 +17,7 @@ var CLIENT_ROOT = __dirname + "/client/";
 var clientFs = FS.reroot(CLIENT_ROOT);
 
 module.exports.Preview = Preview;
+module.exports.servePreviewAccessForm = servePreviewAccessForm;
 module.exports.processAccessRequest = processAccessRequest;
 // for testing
 module.exports.injectPreviewJs = injectPreviewJs;
@@ -97,6 +98,12 @@ function servePreviewClientFile(request, response) {
         }
 
         return StatusApps.notFound(request);
+    });
+}
+
+function servePreviewAccessForm(request) {
+    return clientFs.then(function(fs) {
+        return HttpApps.file(request, "access.html", null, fs);
     });
 }
 
