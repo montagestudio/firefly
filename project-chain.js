@@ -4,7 +4,7 @@ var APPS = require("q-io/http-apps");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var environment = require("./environment");
-var Preview = require("./preview/preview-server").Preview;
+var PreviewServer = require("./preview/preview-server");
 
 var LogStackTraces = require("./log-stack-traces");
 var parseCookies = require("./parse-cookies");
@@ -21,7 +21,7 @@ function server(options) {
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
     //jshint +W116
-    var preview = Preview(sessions);
+    var preview = PreviewServer.Preview(sessions);
 
     var chain = joey
     .error()
@@ -56,6 +56,8 @@ function server(options) {
                     };
                 }
             });
+
+            route("access").app(PreviewServer.processAccessRequest);
         });
     })
     .use(checkSession)
