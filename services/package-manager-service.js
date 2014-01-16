@@ -1,7 +1,6 @@
 var listDependencies = require('../package-manager/list-dependencies');
 var fileService = require('./file-service');
 var execNpm = require('../package-manager/exec-npm');
-var URL = require("url");
 
 module.exports = PackageManagerService;
 
