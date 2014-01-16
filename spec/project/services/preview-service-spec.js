@@ -124,6 +124,21 @@ describe("preview-service", function () {
                 expect(deferred1.resolve).toHaveBeenCalledWith(expectedResponse);
                 expect(deferred2.resolve).toHaveBeenCalledWith(expectedResponse);
             });
+
+            it("should issue setObjectProperties", function() {
+                var args = {
+                    label: "label",
+                    ownerModuleId: "ownerModuleId",
+                    properties: {property: "value"}
+                };
+                spyOn(connection1, "send");
+                spyOn(connection2, "send");
+
+                service.setObjectProperties(host, args.label, args.ownerModuleId, args.properties);
+
+                expect(connection1.send).toHaveBeenCalledWith(
+                    "setObjectProperties:" + JSON.stringify(args));
+            });
         });
     });
 
