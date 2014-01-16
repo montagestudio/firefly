@@ -14,3 +14,7 @@ export GEM_PATH=${GEM_HOME}/gems:/Library/Ruby/Gems/2.0.0
 export GEM_CACHE=${BUILD}/digitalocean/cache
 
 export PATH=${PATH}:${BUILD}/digitalocean/bin:${BUILD}/packerio
+
+if [[ $BUILD_NUMBER == "" ]]; then
+	export BUILD_NUMBER=`whoami`
+fi

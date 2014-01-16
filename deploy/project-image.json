@@ -16,7 +16,7 @@
         "size_id": 66,
         "private_networking": false,
         "snapshot_name": "{{user `snapshot_name`}}",
-        "droplet_name": "firefly-login-image"
+        "droplet_name": "firefly-project-image"
     }],
 
     "provisioners": [{

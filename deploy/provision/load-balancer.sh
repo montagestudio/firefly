@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-export HAPROXY="haproxy-1.4.24-pcre-40kses-linux-i586.stripped"
-
 # Download HAProxy
-apt-get install haproxy
+apt-get --yes install haproxy
 
 # Set the startup script
 rm /etc/default/haproxy

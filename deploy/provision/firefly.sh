@@ -18,5 +18,5 @@ if [[ -e "/srv/firefly.tgz" ]]; then
 	pushd firefly
 	  npm rebuild
 	popd
-	chown -R montage:montage filament
+	chown -R montage:montage firefly
 fi
