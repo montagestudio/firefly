@@ -21,7 +21,7 @@ module.exports.Preview = Preview;
 module.exports.servePreviewAccessForm = servePreviewAccessForm;
 module.exports.processAccessRequest = processAccessRequest;
 // for testing
-module.exports.injectPreviewJs = injectPreviewJs;
+module.exports.injectPreviewScripts = injectPreviewScripts;
 module.exports.servePreviewClientFile = servePreviewClientFile;
 
 /**
@@ -46,7 +46,7 @@ function Preview(sessions) {
 
             return Q.when(next(request, response), function(response) {
                 if (response.body && path === "/index.html") {
-                    return injectPreviewJs(request, response);
+                    return injectPreviewScripts(request, response);
                 } else {
                     return response;
                 }
@@ -70,14 +70,17 @@ function injectScriptInHtml(src, html) {
     return html;
 }
 
-function injectPreviewJs(request, response) {
+function injectPreviewScripts(request, response) {
     return response.body.then(function(body) {
         return body.read();
     })
     .then(function(body) {
         var html = body.toString();
-        var src = request.scheme + "://" + request.host + "/" + CLIENT_FILES + "/preview.js";
-        html = injectScriptInHtml(src, html);
+        var liveEditSrc = request.scheme + "://" + request.host + "/" + CLIENT_FILES + "/live-edit.js";
+        var previewSrc = request.scheme + "://" + request.host + "/" + CLIENT_FILES + "/preview.js";
+
+        html = injectScriptInHtml(liveEditSrc, html);
+        html = injectScriptInHtml(previewSrc, html);
         response.body = [html];
         response.headers['content-length'] = html.length;
         return response;
@@ -94,7 +97,7 @@ function servePreviewClientFile(request, response) {
             var deferredResponse = Q.defer();
             preview.registerDeferredResponse(request.headers.host, deferredResponse);
             return deferredResponse.promise;
-        } else if (path === "preview.js") {
+        } else if (path === "preview.js" || path === "live-edit.js") {
             return HttpApps.file(request, path, null, fs);
         }
 

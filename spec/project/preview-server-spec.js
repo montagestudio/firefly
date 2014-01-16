@@ -12,7 +12,7 @@ describe("preview-server", function () {
         PreviewService.unregisterAllConnections();
     });
 
-    it("should inject the preview js scripts into the html file", function(done) {
+    it("should inject the preview scripts into the html file", function(done) {
         var request = {
             scheme: "http",
             host: "owner-repo.local-project.montagestudio.com:2440"
@@ -26,21 +26,29 @@ describe("preview-server", function () {
             headers: {}
         };
 
-        PreviewServer.injectPreviewJs(request, response)
+        PreviewServer.injectPreviewScripts(request, response)
         .then(function(response) {
-            var found = false;
+            var hostname = request.scheme + "://" + request.host;
+            var foundPreview = false;
+            var foundLiveEdit = false;
             var body = response.body[0];
             var parser = new htmlparser.Parser({
                 onopentag: function(name, attribs){
-                    if(name === "script" && attribs.src === "http://owner-repo.local-project.montagestudio.com:2440/{$PREVIEW}/preview.js"){
-                        found = true;
+                    if (name === "script") {
+                        if (attribs.src === hostname + "/{$PREVIEW}/preview.js") {
+                            foundPreview = true;
+                        }
+                        if (attribs.src === hostname + "/{$PREVIEW}/live-edit.js") {
+                            foundLiveEdit = true;
+                        }
                     }
                 }
             });
             parser.write(body);
             parser.end();
 
-            expect(found).toBe(true);
+            expect(foundPreview).toBe(true);
+            expect(foundLiveEdit).toBe(true);
             expect(response.headers['content-length']).toBe(body.length);
         })
         .then(done, done);
