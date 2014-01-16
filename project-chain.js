@@ -63,7 +63,7 @@ function server(options) {
     .methods(function (method) {
         method("GET")
         .app(function (request) {
-            var path = environment.getProjectPathFromSessionAndProjectUrl(request.session, request.headers.host);
+            var path = environment.getProjectPathFromProjectUrl(request.headers.host);
 
             log("rerooting to", fs.join(path));
             return fs.reroot(fs.join(path)).then(function(fs) {
