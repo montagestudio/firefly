@@ -1,4 +1,4 @@
-/*global process*/
+/*global process,module*/
 
 var PackageManagerTools = require("./package-manager-tools"),
     PackageManagerError = require("./package-manager-error"),
@@ -64,7 +64,7 @@ function _formatPackageInformationRaw (packageInformationRaw) {
     };
 }
 
-if (Arguments.length === 4) {
+if (require.main === module && Arguments.length === 4) {
     var request = Arguments[2],
         fsPath = Arguments[3];
 
