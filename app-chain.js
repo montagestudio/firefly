@@ -181,6 +181,7 @@ function server(options) {
         services["extension-service"] = require("./services/extension-service");
         services["env-service"] = require("./services/env-service");
         services["preview-service"] = require("./services/preview-service").service;
+        services["package-manager-service"] = require("./services/package-manager-service");
 
         var websocketServer = websocket(sessions, services, clientPath);
 

@@ -435,6 +435,36 @@ exports.EnvironmentBridge = Montage.specialize({
                 return self.flushProject("Update component " + name);
             });
         }
+    },
+
+    listDependenciesAtUrl: {
+        value: function (packageUrl) {
+            return this.backend.get("package-manager-service").invoke("listDependenciesAtUrl", packageUrl);
+        }
+    },
+
+    removePackage: {
+        value: function (packageName) {
+            return this.backend.get("package-manager-service").invoke("removePackage", packageName);
+        }
+    },
+
+    findOutdatedDependency: {
+        value: function () {
+            return this.backend.get("package-manager-service").invoke("findOutdatedDependency");
+        }
+    },
+
+    installPackage: {
+        value: function (requestedPackage) {
+            return this.backend.get("package-manager-service").invoke("installPackage", requestedPackage);
+        }
+    },
+
+    gatherPackageInformation: {
+        value: function (requestedPackage) {
+            return this.backend.get("package-manager-service").invoke("gatherPackageInformation", requestedPackage);
+        }
     }
 
 });

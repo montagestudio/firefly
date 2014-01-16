@@ -17,7 +17,8 @@ var guard = function (exclude) {
     };
 };
 
-module.exports = FileService;
+module.exports = exports = FileService;
+
 function FileService(fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
