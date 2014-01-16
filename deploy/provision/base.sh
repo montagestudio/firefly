@@ -43,3 +43,14 @@ fi
 # Create the clone directory
 mkdir -p /srv
 chown -R montage:montage /srv
+
+# Install Serf from http://www.serfdom.io/
+#
+apt-get install --yes zip
+pushd /tmp
+    SERF="0.3.0_linux_amd64.zip"
+    curl -LO https://dl.bintray.com/mitchellh/serf/${SERF}
+    unzip ${SERF}
+    rm -rf ${SERF}
+    mv serf /usr/bin/.
+popd

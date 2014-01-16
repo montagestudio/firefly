@@ -30,10 +30,18 @@
         "source": "{{user `home`}}/deploy/services/sudoers",
         "destination": "/etc/sudoers.d/sudoers"
     }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/services/30-haproxy.conf",
+        "destination": "/etc/rsyslog.d/30-haproxy.conf"
+    }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/base.sh"
     }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/load-balancer.sh"
+    }, {
+        "type": "file",
+	    "source": "{{user `home`}}/deploy/services/haproxy.cfg",
+	    "destination": "/etc/haproxy/haproxy.cfg"
     }]
 }

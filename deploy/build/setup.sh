@@ -23,10 +23,9 @@ if [[ -d ${BUILD}/packerio ]]; then
 fi
 mkdir ${BUILD}/packerio
 
-curl -LO https://dl.bintray.com/mitchellh/packer/0.5.1_darwin_amd64.zip
-
-unzip 0.5.1_darwin_amd64.zip -d ${BUILD}/packerio
-
-rm -rf 0.5.1_darwin_amd64.zip
+PACKER="0.5.1_darwin_amd64.zip"
+curl -LO https://dl.bintray.com/mitchellh/packer/$(PACKER)
+unzip $(PACKER) -d ${BUILD}/packerio
+rm -rf $(PACKER)
 
 popd

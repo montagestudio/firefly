@@ -10,7 +10,9 @@ if [[ -e "/srv/filament.tgz" ]]; then
     pushd filament
       npm rebuild
     popd
-    chown -R montage:montage filament
+	mv filament app
+    chown -R montage:montage app
+	rm -rf filament.tgz
 fi
 
 popd

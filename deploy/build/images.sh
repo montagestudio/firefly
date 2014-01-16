@@ -13,7 +13,7 @@ ${HOME}/deploy/build/setup.sh
 ${HOME}/deploy/build/load-balancer-image.sh
 
 # Buid Firefly Filament Web Server Image
-${HOME}/deploy/build/login-image.sh
+${HOME}/deploy/build/web-server-image.sh
 
 # Buid Firefly Login Application Image
 ${HOME}/deploy/build/login-image.sh
