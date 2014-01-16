@@ -1,12 +1,9 @@
 var log = require("logging").from(__filename);
 var environment = require("./environment");
 var Q = require("q");
+var URL = require("url");
 var joey = require("joey");
 var Status = require("q-io/http-apps/status");
-
-function endsWith(str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1;
-}
 
 module.exports = multiplex;
 function multiplex(options, appChainFactory, appChainOptions, projectChainFactory, projectChainOptions) {
@@ -19,30 +16,21 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
         var projectHandler = projectChain.end();
         return joey.use(function (next) {
             return function (request) {
-                var hostname = request.hostname;
-                if (endsWith(hostname, environment.app.hostname)) {
+                return selectChain(request, function() {
                     return appHandler(request);
-                } else if (endsWith(hostname, environment.project.hostname)) {
+                }, function() {
                     return projectHandler(request);
-                } else {
-                    log("*Unrecognized hostname*", hostname, "expected", environment.app.hostname, "or", environment.project.hostname);
-                    return Status.notAcceptable(request);
-                }
+                });
             };
         })
         .listen(environment.port)
         .then(function (server) {
             server.node.on("upgrade", function (request, socket, head) {
-                var host = request.headers.host;
-
-                if (endsWith(host, environment.getAppHost())) {
+                return selectChain(request, function() {
                     appChain.upgrade(request, socket, head);
-                } else if (endsWith(host, environment.getProjectHost())) {
+                }, function() {
                     projectChain.upgrade(request, socket, head);
-                } else {
-                    log("*Unrecognized hostname*", host, "expected", environment.getAppHost(), "or", environment.getProjectHost());
-                    return Status.notAcceptable(request);
-                }
+                });
             });
 
             return [
@@ -58,3 +46,26 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
         });
     });
 }
+
+function selectChain(request, appCallback, projectCallback) {
+    var hostname;
+
+    if (request.hostname) {
+        hostname = request.hostname;
+    } else {
+        var url = URL.parse("http://" + request.headers.host);
+        hostname = url.hostname;
+    }
+
+    if (environment.matchesAppHostname(hostname)) {
+        return appCallback();
+    } else if (environment.matchesProjectHostname(hostname)) {
+        return projectCallback();
+    } else {
+        log("*Unrecognized hostname*", hostname, "expected", environment.app.hostname, "or", environment.project.hostname);
+        return Status.notAcceptable(request);
+    }
+}
+
+// for testing
+module.exports.selectChain = selectChain;
