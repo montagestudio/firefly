@@ -31,6 +31,11 @@ var execNpm = function execNpm(command, args, npmfs) {
                 procChild = fork(__dirname + '/npm-view-command.js', [requestedPackage, npmfs]);
             }
             break;
+        case COMMANDS.INSTALL:
+            if (requestedPackage) {
+                procChild = fork(__dirname + '/npm-install-command.js', [requestedPackage, npmfs]);
+            }
+            break;
         case COMMANDS.OUTDATED:
             procChild = fork(__dirname + '/npm-outdated-command.js', [npmfs]);
             break;

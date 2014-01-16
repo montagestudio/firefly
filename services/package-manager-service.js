@@ -26,6 +26,10 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
         return execNpm(execNpm.COMMANDS.VIEW, [requestedPackage], fsPath);
     };
 
+    service.installPackage = function (requestedPackage) {
+        return execNpm(execNpm.COMMANDS.INSTALL, [requestedPackage], fsPath);
+    };
+
     service.removePackage= function (packageName) {
         return RemovePackage(FS, packageName, fsPath);
     };
