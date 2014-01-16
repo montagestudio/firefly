@@ -86,10 +86,14 @@ body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-abou
 e.g. Prefer "Clear selection when clicking templateExplorer" over
 "Cleared selection when clicking templateExplorer"
 
+- Turn on "strip trailing whitespace on save" or equivalent in your editor
+
+- Indent by 4 spaces, not tabs
+
 Updating dependencies
 ---------------------
 
-The dependencies are checked in [as recomended](http://www.futurealoof.com/posts/nodemodules-in-git.html)
+The dependencies are checked in [as recommendedd](http://www.futurealoof.com/posts/nodemodules-in-git.html)
 by members of the community. To update them run:
 
 ```bash
