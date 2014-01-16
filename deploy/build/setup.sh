@@ -5,12 +5,12 @@ source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 pushd ${HOME}
 
 if [[ ! -d ${BUILD} ]]; then
-	mkdir ${BUILD}
+    mkdir ${BUILD}
 fi
 
 # Install tugboat for digitalocean
 if [[ -d ${BUILD}/digitalocean ]]; then
-	rm -rf ${BUILD}/digitalocean
+    rm -rf ${BUILD}/digitalocean
 fi
 mkdir ${BUILD}/digitalocean
 
@@ -19,7 +19,7 @@ gem install tugboat --install-dir ${GEM_HOME}
 
 # Install packer io
 if [[ -d ${BUILD}/packerio ]]; then
-	rm -rf ${BUILD}/packerio
+    rm -rf ${BUILD}/packerio
 fi
 mkdir ${BUILD}/packerio
 

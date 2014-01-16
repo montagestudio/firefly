@@ -3,7 +3,7 @@
         "do_api_key": null,
         "do_client_id": null,
         "snapshot_name": null,
-		"home": "{{env `HOME`}}"
+        "home": "{{env `HOME`}}"
     },
 
     "builders": [{
@@ -23,12 +23,12 @@
         "inline": ["sleep 30"]
     }, {
         "type": "file",
-	    "source": "{{user `home`}}/deploy/services/authorized_keys",
-	    "destination": "/tmp/authorized_keys"
+        "source": "{{user `home`}}/deploy/services/authorized_keys",
+        "destination": "/tmp/authorized_keys"
     }, {
         "type": "file",
-	    "source": "{{user `home`}}/deploy/services/sudoers",
-	    "destination": "/etc/sudoers.d/sudoers"
+        "source": "{{user `home`}}/deploy/services/sudoers",
+        "destination": "/etc/sudoers.d/sudoers"
     }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/base.sh"

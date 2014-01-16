@@ -8,11 +8,11 @@ iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port $F
 pushd /srv
 
 if [[ -e "/srv/firefly.tgz" ]]; then
-	tar -xzf firefly.tgz
-	pushd firefly
-	  npm rebuild
-	popd
-	chown -R montage:montage firefly
+    tar -xzf firefly.tgz
+    pushd firefly
+      npm rebuild
+    popd
+    chown -R montage:montage firefly
 fi
 
 popd
