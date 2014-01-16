@@ -13,7 +13,7 @@ Run one of these scripts to start the build of an image.
 
 Scripts that are run inside of a new VM to set up all the packages and code that are needed.
 
-### services
+### services/
 
 These are configuration files for [Upstart](http://upstart.ubuntu.com/), to launch services when a machine boots. See the [manual](http://upstart.ubuntu.com/cookbook/).
 
