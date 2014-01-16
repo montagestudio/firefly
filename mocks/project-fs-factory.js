@@ -1,6 +1,52 @@
 /* jshint camelcase: false */
+/*global module*/
 
 var DEPENDENCY_CATEGORIES = require("../package-manager/dependency-node").DEPENDENCY_CATEGORIES;
+
+/*
+ * Transforms a "Project FS" object into a object usable for Qfs-mock.
+ *
+ * A "Project FS" Object, is a set of dependencies with a few properties such as a name,
+ * a version or its own dependencies, in order to build a simplified "npm module" file system tree.
+ *
+ * ex: the following "Project FS" Object:
+ *  {
+ *      name: a,
+ *      version: "1.0.0",
+ *      dependencies: [
+ *          {
+ *              name: b,
+ *              version: "1.0.0"
+ *          },
+ *          {
+ *              name: c,
+ *              version: "1.2.0"
+ *          }
+ *      ]
+ *  }
+ *
+ *  will be transformed into this following object:
+ *
+ *  {
+ *      "package.json": "{ name: "a", "version": "1.0.0", dependencies:{ "b": "1.0.0", "c": "1.2.0"} }",
+ *      "node_modules": {
+ *          "b":{
+ *              "package.json": "{ name: "b", "version": "1.0.0", dependencies:{} }",
+ *              "node_modules": {}
+ *          },
+ *          "c":{
+ *              "package.json": "{ name: "c", "version": "1.2.0", dependencies:{} }",
+ *              "node_modules": {}
+ *          }
+ *      }
+ *  }
+ *
+ *  Moreover, you can specify any type of dependencies, or even simulate errors,
+ *  such as a missing or extraneous dependency.
+ *
+ *  Can find a complete example here: project-fs-sample.js
+ *
+ */
 
 module.exports = function ProjectFSMocksFactory (project) {
 

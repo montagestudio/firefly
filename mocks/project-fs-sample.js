@@ -13,12 +13,12 @@ module.exports = function ProjectFSSample (name, error) {
             {
                 name: 'digit',
                 version: '0.0.1',
-                missing: !!error ? error : false
+                missing: !!error
             },
             {
                 name: 'filament',
                 version: '0.0.3',
-                extraneous: !!error ? error : false,
+                extraneous: !!error,
                 dependencies: [
                     {
                         name: 'npm',
@@ -38,7 +38,7 @@ module.exports = function ProjectFSSample (name, error) {
                                 name: 'filament',
                                 version: '0.0.3',
                                 missing: true,
-                                invalid: !!error ? error : false
+                                invalid: !!error
                             },
                             {
                                 name: 'q',
@@ -48,12 +48,12 @@ module.exports = function ProjectFSSample (name, error) {
                             {
                                 name: 'zip',
                                 version: '0.0.3',
-                                missing: !!error ? error : false
+                                missing: !!error
                             }
                         ]
                     }
                 ],
-                invalid: !!error ? error : false
+                invalid: !!error
             },
             {
                 name: 'zip',
@@ -63,19 +63,19 @@ module.exports = function ProjectFSSample (name, error) {
             {
                 name: 'zy',
                 version: '1.1.1',
-                jsonFileMissing: !!error ? error : false
+                jsonFileMissing: !!error
             },
             {
                 name: 'zx',
                 version: '1.1.1',
-                jsonFileError: !!error ? error : false
+                jsonFileError: !!error
             }
         ],
         optionalDependencies: [
             {
                 name: 'montage-testing',
                 version: '0.0.3',
-                invalid: !!error ? error : false,
+                invalid: !!error,
                 devDependencies:[
                     {
                         name: 'native',
@@ -91,7 +91,7 @@ module.exports = function ProjectFSSample (name, error) {
             {
                 name: 'q',
                 version: '0.9.0',
-                missing: !!error ? error : false
+                missing: !!error
             }
         ],
         devDependencies: [
@@ -104,7 +104,7 @@ module.exports = function ProjectFSSample (name, error) {
             {
                 name: 'native',
                 version: '0.2.3',
-                invalid: !!error ? error : false,
+                invalid: !!error,
                 dependencies: []
             }
         ],
