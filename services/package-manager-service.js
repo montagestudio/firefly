@@ -30,5 +30,9 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
         return RemovePackage(FS, packageName, fsPath);
     };
 
+    service.findOutdatedDependency = function () {
+        return execNpm(execNpm.COMMANDS.OUTDATED, null, fsPath);
+    };
+
     return service;
 }
