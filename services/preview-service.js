@@ -179,6 +179,15 @@ function PreviewService() {
         sendToPreviewClients(url, "refresh:");
     };
 
+    service.setObjectProperties = function(url, label, ownerModuleId, properties) {
+        var params = {
+            label: label,
+            ownerModuleId: ownerModuleId,
+            properties: properties
+        };
+        sendToPreviewClients(url, "setObjectProperties:" + JSON.stringify(params));
+    };
+
     service.close = function(connection) {
         this.unregister(connection.headers.host);
     };
