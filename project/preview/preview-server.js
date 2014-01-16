@@ -5,8 +5,10 @@ var FS = require("q-io/fs");
 var URL = require("url");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
+var RedirectApps = require("q-io/http-apps/redirect");
 var ws = require("websocket.io");
 var preview = require("../services/preview-service");
+var querystring = require("querystring");
 
 var CLIENT_FILES = "{$PREVIEW}";
 
@@ -15,6 +17,7 @@ var CLIENT_ROOT = __dirname + "/client/";
 var clientFs = FS.reroot(CLIENT_ROOT);
 
 module.exports.Preview = Preview;
+module.exports.processAccessRequest = processAccessRequest;
 // for testing
 module.exports.injectPreviewJs = injectPreviewJs;
 module.exports.servePreviewClientFile = servePreviewClientFile;
@@ -95,6 +98,41 @@ function servePreviewClientFile(request, response) {
 
         return StatusApps.notFound(request);
     });
+}
+
+function processAccessRequest(request) {
+    // Get code from the body data
+    return request.body.read()
+    .then(function(body) {
+        if (body.length > 0) {
+            var query = querystring.parse(body.toString());
+
+            maybeGrantAccessToPreview(
+                query.code, request.headers.host, request.session);
+        }
+
+        // 302 - Temporary redirect using GET
+        return RedirectApps.temporaryRedirect(request, "index.html", 302);
+    });
+}
+
+function maybeGrantAccessToPreview(code, previewHost, session) {
+    var accessCode = preview.getPreviewAccessCodeFromUrl(previewHost);
+
+    if (code && accessCode && code === accessCode) {
+        if (session.previewAccess) {
+            if (session.previewAccess.indexOf(previewHost) === -1) {
+                session.previewAccess.push(previewHost);
+            }
+        } else {
+            session.previewAccess = [previewHost];
+        }
+        log("access granted ", previewHost);
+        return true;
+    } else {
+        log("access denied");
+        return false;
+    }
 }
 
 function startWsServer(sessions) {
