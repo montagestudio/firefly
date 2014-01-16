@@ -1,5 +1,5 @@
 /*jshint browser:true */
-/*global console */
+/*global console, Declarativ */
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
@@ -7,7 +7,8 @@
 (function() {
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
-        disconnectionMessageElement;
+        disconnectionMessageElement,
+        LiveEdit = Declarativ.LiveEdit;
 
     function dispatchEvent(type, detail) {
         var event;
@@ -21,7 +22,7 @@
 
     function processIncomingData(data) {
         var command = data.substring(0, data.indexOf(":"));
-        //var param = data.substring(data.indexOf(":") + 1);
+        var param = data.substring(data.indexOf(":") + 1);
 
         // REFRESH
         if (command === "refresh") {
@@ -29,6 +30,12 @@
             if (!event.defaultPrevented) {
                 document.location.reload();
             }
+        }
+
+        // SET OBJECT PROPERTIES
+        if (command === "setObjectProperties") {
+            var args = JSON.parse(param);
+            LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
         }
     }
 
