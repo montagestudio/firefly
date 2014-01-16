@@ -1,4 +1,5 @@
 var listDependencies = require('../package-manager/list-dependencies');
+var fileService = require('./file-service');
 var execNpm = require('../package-manager/exec-npm');
 var URL = require("url");
 
@@ -8,12 +9,12 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
 
-    function convertProjectUrlToPath (url) {
-        return URL.parse(url).pathname;
-    }
-
     service.listDependenciesAtUrl = function (url) {
-        var path = convertProjectUrlToPath(url).replace(/package\.json$/, "");
+        var path = fileService.convertProjectUrlToPath(url);
+
+        if (path) {
+            path = path.replace(/package\.json$/, "");
+        }
 
         return listDependencies(fs, path);
     };
