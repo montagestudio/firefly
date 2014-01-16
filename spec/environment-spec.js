@@ -51,6 +51,66 @@ describe("environment", function () {
                 expect(getHost("declarativ.com", null)).toEqual("declarativ.com");
             });
         });
+
+        describe("matchesAppHostname", function () {
+            it("should match the exact hostname", function () {
+                var hostname = "local-firefly.declarativ.net";
+                expect(environment.matchesAppHostname(hostname)).toBe(true);
+            });
+
+            it("it should match a subdomain", function () {
+                var hostname = "owner-repo.local-firefly.declarativ.net";
+                expect(environment.matchesAppHostname(hostname)).toBe(true);
+            });
+
+            it("should not match a different domain", function() {
+                var hostname = "local-project.127.0.0.1.xip.io";
+                expect(environment.matchesAppHostname(hostname)).toBe(false);
+            });
+        });
+
+        describe("matchesProjectHostname", function () {
+            it("should match the exact hostname", function () {
+                var hostname = "local-project.127.0.0.1.xip.io";
+                expect(environment.matchesProjectHostname(hostname)).toBe(true);
+            });
+
+            it("it should match a subdomain", function () {
+                var hostname = "local-project.127.0.0.1.xip.io";
+                expect(environment.matchesProjectHostname(hostname)).toBe(true);
+            });
+
+            it("should not match a different domain", function() {
+                var hostname = "local-firefly.declarativ.net";
+                expect(environment.matchesProjectHostname(hostname)).toBe(false);
+            });
+        });
+
+        describe("production matchesProjectHostname", function () {
+            beforeEach(function () {
+                environment.production = true;
+            });
+
+            it("should match the exact hostname", function () {
+                var hostname = "local-project.127.0.0.1.xip.io";
+                expect(environment.matchesProjectHostname(hostname)).toBe(true);
+            });
+
+            it("should match the hostname with a different ip address", function () {
+                var hostname = "local-project.192.168.2.5.xip.io";
+                expect(environment.matchesProjectHostname(hostname)).toBe(true);
+            });
+
+            it("it should match a subdomain", function () {
+                var hostname = "local-project.127.0.0.1.xip.io";
+                expect(environment.matchesProjectHostname(hostname)).toBe(true);
+            });
+
+            it("should not match a different domain", function() {
+                var hostname = "local-firefly.declarativ.net";
+                expect(environment.matchesProjectHostname(hostname)).toBe(false);
+            });
+        });
     });
 
 });
