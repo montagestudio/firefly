@@ -1,6 +1,8 @@
+var log = require("logging").from(__filename);
 var env = require("../../environment");
 var PreviewServer = require("./preview-server");
 var PreviewService = require("../services/preview-service");
+var Frontend = require("../frontend");
 
 exports = module.exports = CheckPreviewAccess;
 exports.hasPreviewAccess = hasPreviewAccess;
@@ -13,7 +15,19 @@ function CheckPreviewAccess(next) {
         if (hasAccess) {
             return next(request, response);
         } else {
-            return PreviewServer.servePreviewAccessForm(request);
+            var accessCode = PreviewService.getPreviewAccessCodeFromUrl(host);
+            var details = env.getDetailsfromProjectUrl(host);
+            var frontendId = details.owner + "/" + details.owner + "/" + details.repo;
+
+            return Frontend.getFrontend(frontendId)
+            .then(function(frontend) {
+                if (frontend) {
+                    frontend.showNotification("Preview Code is: " + accessCode).done();
+                } else {
+                    log("Frontend service is not available.");
+                }
+                return PreviewServer.servePreviewAccessForm(request);
+            });
         }
     };
 }
