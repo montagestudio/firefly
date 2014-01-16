@@ -13,7 +13,7 @@ get ()
 
   rm -rf ${BUILD}/$1
   git clone git@$GITHUBDECLARATIV:declarativ/$1.git ${BUILD}/$1
-  if [[ -e ${BUILD}/$1 ]]; then 
+  if [[ -e ${BUILD}/$1 ]]; then
 	pushd ${BUILD}/$1
 		git config user.name "Declarativ Bot"
 		git config user.email dev@declarativ.com
@@ -33,7 +33,7 @@ get ()
 
 		# Remove git directory before uploading to server to reduce size
 		rm -rf .git
-		
+
 		# Remove test code
 		rm -rf test
 		rm -rf spec
@@ -47,7 +47,7 @@ get firefly $FIREFLY_COMMIT
 
 # Lets do a bit of cleanup
 pushd ${BUILD}
-	if [[ -e "firefly" ]]; then 
+	if [[ -e "firefly" ]]; then
 		rm -rf "firefly/deploy"
 		tar -czf "firefly.tgz" "firefly"
 	fi
