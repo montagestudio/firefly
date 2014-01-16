@@ -1,5 +1,7 @@
 var env = require("../environment");
 var PreviewServer = require("./preview-server");
+var preview = require("./../services/preview-service");
+var frontend = require("../frontend");
 
 exports = module.exports = CheckPreviewAccess;
 exports.hasPreviewAccess = hasPreviewAccess;
@@ -12,6 +14,8 @@ function CheckPreviewAccess(next) {
         if (hasAccess) {
             return next(request, response);
         } else {
+            var accessCode = preview.getPreviewAccessCodeFromUrl(host);
+            frontend.showNotification("Preview Code is: " + accessCode).done();
             return PreviewServer.servePreviewAccessForm(request);
         }
     };
