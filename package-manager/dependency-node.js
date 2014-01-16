@@ -21,8 +21,9 @@ var DependencyNode = function DependencyNode () {
     this.jsonFileError = false;
     this.jsonFileMissing = false;
 
-    Object.defineProperty(this, 'parent', {
-        enumerable: false
+    Object.defineProperties(this, {
+        parent: { enumerable: false},
+        path: { enumerable: false}
     });
 };
 
