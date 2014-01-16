@@ -5,6 +5,7 @@ var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var environment = require("./environment");
 var PreviewServer = require("./preview/preview-server");
+var checkPreviewAccess = require("./preview/check-preview-access");
 
 var LogStackTraces = require("./log-stack-traces");
 var parseCookies = require("./parse-cookies");
@@ -18,8 +19,6 @@ function server(options) {
     var fs = options.fs;
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
-    if (!options.checkSession) throw new Error("options.checkSession required");
-    var checkSession = options.checkSession;
     //jshint +W116
     var preview = PreviewServer.Preview(sessions);
 
@@ -60,7 +59,7 @@ function server(options) {
             route("access").app(PreviewServer.processAccessRequest);
         });
     })
-    .use(checkSession)
+    .use(checkPreviewAccess)
     .use(preview)
     .methods(function (method) {
         method("GET")
