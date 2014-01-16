@@ -46,7 +46,6 @@ describe("list dependencies", function () {
         it('should gather some correct information about the project.', function (done) {
 
             _runListDependencies().then(function (dependencyTree) {
-
                 expect(typeof dependencyTree).toEqual("object");
                 expect(dependencyTree.name).toEqual(DEFAULT_PROJECT_APP);
                 expect(dependencyTree.version).toEqual('0.1.0');
@@ -79,7 +78,6 @@ describe("list dependencies", function () {
         it('should has no errors in this situation.', function (done) {
 
             _runListDependencies().then(function (dependencyTree) {
-
                 var children = dependencyTree.children,
                     childrenKeys = Object.keys(children);
 
@@ -98,7 +96,6 @@ describe("list dependencies", function () {
         it('a dependency is not extraneous if it belongs to the "bundledDependencies" field.', function (done) {
 
             _runListDependencies().then(function (dependencyTree) {
-
                 var zipNode = dependencyTree.children.regular[nodesPosition.zip];
                 expect(zipNode.problems).not.toBeDefined();
                 expect(dependencyTree.bundled[2]).toEqual(zipNode.name);
@@ -110,7 +107,6 @@ describe("list dependencies", function () {
         it('a dependency is not missing if it belongs to the "devDependencies" or the "optionalDependencies" field.', function (done) {
 
             _runListDependencies().then(function (dependencyTree) {
-
                 var sipNode = dependencyTree.children.optional[nodesPosition.sip];
                 expect(sipNode.problems).not.toBeDefined();
                 expect(sipNode.type).toEqual(DEPENDENCY_CATEGORIES.OPTIONAL);
@@ -135,7 +131,6 @@ describe("list dependencies", function () {
         it('should detect when a regular dependency is missing.', function (done) {
 
             _runListDependencies().then(function (dependencyTree) {
-
                 var digitNode = dependencyTree.children.regular[nodesPosition.digit];
 
                 expect(digitNode.missing).toEqual(true);
