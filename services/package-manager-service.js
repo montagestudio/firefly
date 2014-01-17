@@ -1,6 +1,7 @@
 var listDependencies = require('../package-manager/list-dependencies');
 var fileService = require('./file-service');
 var RemovePackage = require('../package-manager/remove-package');
+var SearchPackages = require('../package-manager/search-packages');
 var execNpm = require('../package-manager/exec-npm');
 
 //FIXME use fs from the service once the function “removeTree” of QFS would have be fixed after having reroot it.
@@ -37,6 +38,8 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
     service.findOutdatedDependency = function () {
         return execNpm(execNpm.COMMANDS.OUTDATED, null, fsPath);
     };
+
+    service.searchPackages = SearchPackages;
 
     return service;
 }

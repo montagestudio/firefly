@@ -465,6 +465,12 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function (requestedPackage) {
             return this.backend.get("package-manager-service").invoke("gatherPackageInformation", requestedPackage);
         }
+    },
+
+    searchPackages: {
+        value: function (packages) {
+            return this.backend.get("package-manager-service").invoke("searchPackages", packages);
+        }
     }
 
 });
