@@ -1,8 +1,8 @@
-var appChain = require("../app-chain");
+var loginChain = require("../login-chain");
 var MockFs = require("q-io/fs-mock");
 var MockSession = require("../mocks/session");
 
-describe("app chain", function () {
+describe("login chain", function () {
     var request, server, sessions;
     beforeEach(function (done) {
         var fs = MockFs({
@@ -15,7 +15,7 @@ describe("app chain", function () {
             }
         });
         sessions = {};
-        return appChain({
+        var chain = loginChain({
             fs: fs,
             client: "/",
             sessions: MockSession(sessions),
@@ -29,10 +29,9 @@ describe("app chain", function () {
             },
             directory: ".",
             minitPath: "."
-        })
-        .then(function (chain) {
-            return chain.listen(2440);
-        })
+        });
+
+        return chain.listen(2440)
         .then(function (_server) {
             server = _server;
             request = require("joey").client();
@@ -53,14 +52,6 @@ describe("app chain", function () {
                 .then(function (response) {
                     expect(response.status).toEqual(200);
                 }).then(done, done);
-            });
-
-            it("serves firefly-index.html at /app", function (done) {
-                request("http://127.0.0.1:2440/app")
-                .then(function (response) {
-                    expect(response.status).toEqual(200);
-                })
-                .then(done, done);
             });
 
             it("redirects /user/repo", function (done) {
@@ -91,17 +82,6 @@ describe("app chain", function () {
             });
 
             it("redirects / to /projects");
-
-            it("serves firefly-index.html at /user/repo", function (done) {
-                request({
-                    url: "http://127.0.0.1:2440/declarativ/filament",
-                    headers: headers
-                })
-                .then(function (response) {
-                    expect(response.status).toEqual(200);
-                })
-                .then(done, done);
-            });
 
             it("serves project-list app at /projects", function (done) {
                 request({
