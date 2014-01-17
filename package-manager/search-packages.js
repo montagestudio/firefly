@@ -56,8 +56,8 @@ module.exports = function searchPackages (packages) {
                     'Content-Length': payloadJSON.length
                 },
                 body: [payloadJSON]
-        },
-        request = joey.client();
+            },
+            request = joey.client();
 
         return request(options);
     }
