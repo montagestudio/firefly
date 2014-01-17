@@ -39,9 +39,7 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
         return execNpm(execNpm.COMMANDS.OUTDATED, null, fsPath);
     };
 
-    service.searchPackages = function (packages) {
-        return SearchPackages(packages);
-    };
+    service.searchPackages = SearchPackages;
 
     return service;
 }
