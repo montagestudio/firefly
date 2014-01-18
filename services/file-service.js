@@ -58,18 +58,21 @@ function FileService(fs, environment, pathname, fsPath) {
 
     /**
      * Lists all the files in the given path except node_modules and dotfiles.
-     * @param  {string} path An absolute path to a directory.
-     * @return {Promise.<Array.<string>>} A promise for an array of paths.
+     * @param  {string} url The url to the project file.
+     * @param  {Array.<string>} extraExclude The list of files to exclude.
+     * @return {Promise.<Array.<FileDescriptor>>} A promise for an array of FileDescriptors.
      */
-    service.listTree = function (path, extraExclude) {
+    service.listTree = function (url, extraExclude) {
+        var localPath = convertProjectUrlToPath(url);
         var exclude = ["node_modules", ".*"];
+
         if (extraExclude) {
             if (!Array.isArray(extraExclude)) {
                 extraExclude = [extraExclude];
             }
             exclude.push.apply(exclude, extraExclude);
         }
-        return fs.listTree(path, guard(exclude)).then(pathsToUrlStatArray);
+        return fs.listTree(localPath, guard(exclude)).then(pathsToUrlStatArray);
     };
 
     service.list = function (url) {
