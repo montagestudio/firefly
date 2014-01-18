@@ -173,6 +173,16 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    listTreeAtUrl: {
+        value: function (url, exclude) {
+            return this.backend.get("file-service").invoke("listTree", url, exclude).then(function (fileDescriptors) {
+                return fileDescriptors.map(function (fd) {
+                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                });
+            });
+        }
+    },
+
     list: {
         value: function (url) {
             return this.backend.get("file-service").invoke("list", url).then(function (fileDescriptors) {

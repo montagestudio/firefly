@@ -33,4 +33,23 @@ describe("file-service", function () {
         });
     });
 
+    describe("listTree", function () {
+        it("works", function (done) {
+            return service.listTree("/")
+            .then(function (list) {
+                expect(list.length).toEqual(4);
+
+                expect(list[0].url).toBe("http://localhost:2441//");
+                expect(list[0].stat).toBeDefined();
+                expect(list[1].url).toBe("http://localhost:2441/core/");
+                expect(list[1].stat).toBeDefined();
+                expect(list[2].url).toBe("http://localhost:2441/core/core.js");
+                expect(list[2].stat).toBeDefined();
+                expect(list[3].url).toBe("http://localhost:2441/package.json");
+                expect(list[3].stat).toBeDefined();
+            })
+            .then(done, done);
+        });
+    });
+
 });
