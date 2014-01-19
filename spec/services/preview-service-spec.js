@@ -46,6 +46,23 @@ describe("preview-service", function () {
             expect(previews['local-project']).not.toBeDefined();
         });
 
+        it("should know if a preview exists by url", function() {
+            var url = environment.project.hostname;
+
+            service.register({
+                name: "preview",
+                url: url
+            });
+
+            expect(PreviewService.existsPreviewFromUrl(url)).toBe(true);
+        });
+
+        it("should know if a preview does not exist by url", function() {
+            var url = environment.project.hostname;
+
+            expect(PreviewService.existsPreviewFromUrl(url)).toBe(false);
+        });
+
         describe("client instrumentation", function() {
             var host, connection1, connection2;
 
