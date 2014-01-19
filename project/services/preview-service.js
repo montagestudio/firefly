@@ -95,6 +95,11 @@ exports.registerDeferredResponse = function(url, responseDeferred) {
     }
 };
 
+exports.existsPreviewFromUrl = function(url) {
+    var previewId = exports.getPreviewIdFromUrl(url);
+    return previewId in _previews;
+};
+
 exports.getPreviewAccessCodeFromUrl = function(url) {
     var previewId = exports.getPreviewIdFromUrl(url),
         preview = _previews[previewId];
