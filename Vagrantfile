@@ -1,25 +1,24 @@
 Vagrant.configure('2') do |config|
-  config.vm.provider :digital_ocean do |provider, override|
-    override.ssh.private_key_path = '~/.ssh/id_rsa'
-    override.vm.box = 'digital_ocean'
-    override.vm.box_url = "https://github.com/smdahlen/vagrant-digitalocean/raw/master/box/digital_ocean.box"
+    config.vm.box = "precise64"
+    config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
-    provider.client_id = 'MvpCvMEQ3SzzrktRn9UN5'
-    provider.api_key = '3a1486fbd43dbd19396f33741cbe8c60'
+    config.vm.provision "shell", path: "deploy/provision/base.sh"
 
-    provider.region = 'San Francisco 1'
 
-    provider.ca_path = "/usr/local/homebrew/opt/curl-ca-bundle/share/ca-bundle.crt"
+    config.vm.define "web-server" do |web|
+        web.vm.hostname = "web-server"
+        web.vm.network "forwarded_port", guest: 80, host: 8080
 
-    config.vm.hostname = "firefly"
+        web.vm.provision "shell", path: "deploy/provision/web-server.sh"
 
-    config.ssh.username = "montage"
+        web.vm.synced_folder "../filament", "/srv/filament"
+        web.vm.synced_folder "inject/adaptor", "/srv/filament/adaptor"
 
-    config.vm.synced_folder ".", "/srv/firefly",
-        owner: "montage", group: "montage"
-    config.vm.synced_folder "../filament", "/srv/filament",
-        owner: "montage", group: "montage"
+        web.vm.provision :shell, :inline => "cp /vagrant/deploy/services/nginx.conf /etc/nginx/nginx.conf"
 
-    config.vm.provision :shell, :path => "provision.sh"
-  end
+        # TODO put in JSON image
+        web.vm.provision :shell, :inline => "nginx"
+
+    end
+
 end
