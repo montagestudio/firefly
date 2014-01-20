@@ -3,7 +3,7 @@ var Q = require("q");
 var https = require("https");
 var querystring = require("querystring");
 var Env = require("../environment");
-var cryptoService = require("../crypto-service");
+var cryptoService = require("../crypto-service")();
 
 var uuid = require("uuid");
 var redirect = require("q-io/http-apps/redirect").redirect;
@@ -88,7 +88,7 @@ module.exports = function ($) {
                     request.session.username = user.login.toLowerCase();
 
                     // change the current session id to be the github token and username (encrypted)
-                    request.session.sessionId = cryptoService().encryptData(request.session.githubAccessToken + "/" + request.session.username);
+                    request.session.sessionId = cryptoService.encryptData(request.session.githubAccessToken + "/" + request.session.username);
                     done.resolve(redirect(request, "/projects"));
                 }).done();
             });
