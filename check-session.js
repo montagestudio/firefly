@@ -1,7 +1,7 @@
 var env = require("./environment");
 var Q = require("q");
 var GithubApi = require("./inject/adaptor/client/core/github-api");
-var cryptoService = require("./crypto-service");
+var cryptoService = require("./crypto-service")();
 
 exports = module.exports = CheckSession;
 
@@ -20,8 +20,7 @@ function CheckSession(key) {
                 var githubLoginInfo;
 
                 if (typeof sessionID === "string" && sessionID.length >= 128) {
-                    var crypto = cryptoService();
-                    var decryptedSessionID = crypto.decryptData(sessionID);
+                    var decryptedSessionID = cryptoService.decryptData(sessionID);
                     githubLoginInfo = typeof decryptedSessionID === "string" && decryptedSessionID.match(/^([0-9a-f]+)\/(.+)/);
                 }
 
