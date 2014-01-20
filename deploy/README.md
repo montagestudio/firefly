@@ -9,6 +9,10 @@ To go from zero-to-images run `./build/setup.sh`. This will install `packer` and
 
 Run one of these scripts to start the build of an image.
 
+### files/
+
+Configuration files to be copied into the images.
+
 ### provision/
 
 Scripts that are run inside of a new VM to set up all the packages and code that are needed.

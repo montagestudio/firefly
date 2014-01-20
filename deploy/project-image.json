@@ -24,11 +24,11 @@
         "inline": ["sleep 30"]
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/services/authorized_keys",
+        "source": "{{user `home`}}/deploy/files/authorized_keys",
         "destination": "/tmp/authorized_keys"
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/services/sudoers",
+        "source": "{{user `home`}}/deploy/files/sudoers",
         "destination": "/etc/sudoers.d/sudoers"
     }, {
         "type": "shell",

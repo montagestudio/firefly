@@ -24,11 +24,11 @@
         "inline": ["sleep 30"]
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/services/authorized_keys",
+        "source": "{{user `home`}}/deploy/files/authorized_keys",
         "destination": "/tmp/authorized_keys"
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/services/sudoers",
+        "source": "{{user `home`}}/deploy/files/sudoers",
         "destination": "/etc/sudoers.d/sudoers"
     }, {
         "type": "shell",
@@ -42,7 +42,7 @@
         "script": "{{user `home`}}/deploy/provision/web-server.sh"
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/services/nginx.conf",
+        "source": "{{user `home`}}/deploy/files/nginx.conf",
         "destination": "/etc/nginx/nginx.conf"
     }]
 }
