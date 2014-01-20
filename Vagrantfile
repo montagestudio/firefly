@@ -64,8 +64,8 @@ Vagrant.configure('2') do |config|
 
         web.vm.provision :shell, :inline => "cp /vagrant/deploy/services/nginx.conf /etc/nginx/nginx.conf"
 
-        # TODO put in JSON image
-        web.vm.provision :shell, :inline => "nginx"
+        # Start
+        web.vm.provision :shell, :inline => "nginx || nginx -s reload"
     end
 
     config.vm.define "login" do |login|
@@ -81,9 +81,8 @@ Vagrant.configure('2') do |config|
 
         login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly.conf /etc/init/firefly.conf"
 
-        # TODO put in JSON image
-        login.vm.provision :shell, :inline => "initctl reload-configuration"
-        login.vm.provision :shell, :inline => "service firefly start"
+        # Start
+        login.vm.provision :shell, :inline => "service firefly start || service firefly reload"
     end
 
 end
