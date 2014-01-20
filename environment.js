@@ -1,5 +1,9 @@
 var URL = require("url");
 
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
+
 function Env(options) {
     var env = options || {  production: process.env.NODE_ENV === "production" };
 
@@ -15,6 +19,22 @@ function Env(options) {
     env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.127.0.0.1.xip.io:2440");
     delete env.project.host;
     delete env.project.pathname;
+
+    env.matchesAppHostname = function(hostname) {
+        return endsWith(hostname, this.app.hostname);
+    };
+
+    if (env.production) {
+        env.matchesProjectHostname = function(hostname) {
+            return endsWith(hostname, this.project.hostname);
+        };
+    } else {
+        env.matchesProjectHostname = function(hostname) {
+            // Matches any ip address in a xip.io domain to allow local
+            // preview connections.
+            return (/\blocal\-project\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.xip\.io$/).test(hostname);
+        };
+    }
 
     env.getAppHost = function() {
         return getHost(this.app.hostname, this.app.port);
@@ -95,6 +115,18 @@ function Env(options) {
         // FIXME not to use FS
         var FS = require("q-io/fs");
         return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
+    };
+    /**
+     * Assumes that the username is the same as the owner.
+     * This is temporary while we build support for accessing repos that are not
+     * forked to the user github.
+     */
+    env.getProjectPathFromProjectUrl = function (url) {
+        var details = this.getDetailsfromProjectUrl(url);
+
+        // FIXME not to use FS
+        var FS = require("q-io/fs");
+        return FS.join(process.cwd(), "..", "clone", details.owner, details.owner, details.repo);
     };
 
     env.getProjectHost = function() {

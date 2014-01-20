@@ -1,9 +1,11 @@
 var log = require("logging").from(__filename);
 var joey = require("joey");
+var APPS = require("q-io/http-apps");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var environment = require("./environment");
-var Preview = require("./preview/preview-server").Preview;
+var PreviewServer = require("./preview/preview-server");
+var checkPreviewAccess = require("./preview/check-preview-access");
 
 var LogStackTraces = require("./log-stack-traces");
 var parseCookies = require("./parse-cookies");
@@ -17,10 +19,8 @@ function server(options) {
     var fs = options.fs;
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
-    if (!options.checkSession) throw new Error("options.checkSession required");
-    var checkSession = options.checkSession;
     //jshint +W116
-    var preview = Preview(sessions);
+    var preview = PreviewServer.Preview(sessions);
 
     var chain = joey
     .error()
@@ -28,6 +28,8 @@ function server(options) {
     .use(LogStackTraces(log))
     .cors(environment.getAppUrl(), "*", "*")
     .headers({"Access-Control-Allow-Credentials": true})
+    .tap(parseCookies)
+    .use(sessions)
     .methods(function (method) {
         method("POST")
         .route(function (route) {
@@ -39,14 +41,10 @@ function server(options) {
                     return request.body.read()
                     .then(function (body) {
                         var sessionId = JSON.parse(body.toString("utf8"));
-                        return {
-                            status: 200,
-                            headers: {
-                                // TODO do this through the session object
-                                "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
-                            },
-                            body: []
-                        };
+                        return sessions.changeSessionId(request.session, sessionId);
+                    })
+                    .then(function() {
+                        return APPS.ok();
                     });
                 } else {
                     log("Invalid request to /session from origin", request.headers.origin);
@@ -57,16 +55,16 @@ function server(options) {
                     };
                 }
             });
+
+            route("access").app(PreviewServer.processAccessRequest);
         });
     })
-    .tap(parseCookies)
-    .use(sessions)
-    .use(checkSession)
+    .use(checkPreviewAccess)
     .use(preview)
     .methods(function (method) {
         method("GET")
         .app(function (request) {
-            var path = environment.getProjectPathFromSessionAndProjectUrl(request.session, request.headers.host);
+            var path = environment.getProjectPathFromProjectUrl(request.headers.host);
 
             log("rerooting to", fs.join(path));
             return fs.reroot(fs.join(path)).then(function(fs) {

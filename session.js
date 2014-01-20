@@ -68,18 +68,25 @@ function Session(key, secret, cookie, store) {
                 });
             }
 
+            function setNewSessionCookie(response, sessionId) {
+                var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
+                setSessionCookie(response, sessionId, timeoutDate);
+            }
+
             return done.then(function () {
                 return Q.when(app(request, response), function (response) {
-                    if (_session._destroyed) {
+                    if (_session._changeSessionId) {
+                        log("changed session id: " + _id + " -> " + _session._changeSessionId);
+                        setNewSessionCookie(response, _session._changeSessionId);
+                        return store.destroy(_id).thenResolve(response);
+                    } else if (_session._destroyed) {
                         log("destroyed: " + _id);
                         setSessionCookie(response, "", new Date(0));
                         return store.destroy(_id).thenResolve(response);
                     } else {
                         if (_created) {
                             log("created: " + _id);
-                            var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
-                            setSessionCookie(response, _id, timeoutDate);
-
+                            setNewSessionCookie(response, _id);
                         }
                         return store.set(_id, _session).thenResolve(response);
                     }
@@ -124,6 +131,21 @@ function Session(key, secret, cookie, store) {
                 return result;
             }
         });
+    };
+
+    result.changeSessionId = function(session, sessionId) {
+        if (session.sessionId === sessionId) {
+            return Q.resolve();
+        } else {
+            return store.get(sessionId)
+            .then(function(changeSession) {
+                if (changeSession) {
+                    session._changeSessionId = sessionId;
+                } else {
+                    log("tried to change session to non-existing session id: ", sessionId);
+                }
+            });
+        }
     };
 
     return result;

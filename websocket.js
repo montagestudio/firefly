@@ -6,6 +6,7 @@ var URL = require("url");
 var FS = require("q-io/fs");
 var ws = require("websocket.io");
 var Connection = require("q-connection");
+var frontend = require("./frontend");
 
 var websocketConnections = 0;
 
@@ -38,7 +39,7 @@ function websocket(sessions, services, clientPath) {
             log("*" + error.stack + "*");
         });
 
-        Connection(connection, connectionServices);
+        frontend._frontend = Connection(connection, connectionServices);
 
         connection.on("close", function(conn) {
             log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);

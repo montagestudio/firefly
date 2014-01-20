@@ -27,9 +27,14 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     init: {
-        value: function () {
+        value: function (frontendService) {
+            this._frontendService = frontendService;
             return this;
         }
+    },
+
+    _frontendService: {
+        value: null
     },
 
     progressPanel: {
@@ -59,7 +64,7 @@ exports.EnvironmentBridge = Montage.specialize({
                     self._backend = null;
                 }).done();
 
-                self._backend = Connection(connection);
+                self._backend = Connection(connection, this._frontendService);
                 self._backend.done();
             }
 
