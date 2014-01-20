@@ -58,7 +58,7 @@ Wrapping a string in `*`s will make it appear red in the logs, this is useful
 when you need to log an error:
 
 ```javascript
-log("*some error*", error.message)
+log("*some error*", error.stack)
 ```
 
 Session
