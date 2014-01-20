@@ -24,8 +24,8 @@ fi
 mkdir ${BUILD}/packerio
 
 PACKER="0.5.1_darwin_amd64.zip"
-curl -LO https://dl.bintray.com/mitchellh/packer/$(PACKER)
-unzip $(PACKER) -d ${BUILD}/packerio
-rm -rf $(PACKER)
+curl -LO https://dl.bintray.com/mitchellh/packer/${PACKER}
+unzip ${PACKER} -d ${BUILD}/packerio
+rm -rf ${PACKER}
 
 popd
