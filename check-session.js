@@ -25,16 +25,18 @@ function CheckSession(key) {
                 }
 
                 if (githubLoginInfo && githubLoginInfo.length === 3) {
-                    var githubApi = new GithubApi(githubLoginInfo[1]);
+                    var githubAccessToken = githubLoginInfo[1];
+                    var githubUsername = githubLoginInfo[2];
+                    var githubApi = new GithubApi(githubAccessToken);
 
                     done = githubApi.getUser().then(function(user) {
                         var username = user.login.toLowerCase();
 
-                        if (githubLoginInfo[2] === username) {
+                        if (githubUsername === username) {
                             request.session.sessionId = sessionID;
                             request.session.githubUser = user;
                             request.session.username = user.login.toLowerCase();
-                            request.session.githubAccessToken = githubLoginInfo[1];
+                            request.session.githubAccessToken = githubAccessToken;
 
                             _validUser = true;
                         }
