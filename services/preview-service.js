@@ -198,7 +198,8 @@ function PreviewService() {
             if (preview.requests) {
                 //jshint -W004
                 for (var i = 0, ii = preview.requests.length; i < ii; i++) {
-                    preview.requests[i].response.resolve(APPS.ok(content));
+                    preview.requests[i].response.resolve(APPS.ok(
+                        content, "application/preview-message"));
                 }
                 //jshint +W004
             }

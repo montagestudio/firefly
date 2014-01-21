@@ -55,7 +55,8 @@
 
         xhr.onload = function(event) {
             try {
-                if (this.status === 200) {
+                if (this.status === 200 &&
+                    this.getResponseHeader("content-type") === "application/preview-message") {
                     processIncomingData(this.responseText);
                     httpRefresh();
                 } else if (this.status === 204) {
