@@ -131,6 +131,12 @@ function PreviewService() {
             url = parameters.url,
             previewId = exports.getPreviewIdFromUrl(url);
 
+        if (previewId in _previews) {
+            // Another instance of the same project was open in the tool...
+            // We don't support this until we can have a 1:1 on project<->app
+            this.unregister(url);
+        }
+
         log("register new preview", previewId);
         _previews[previewId] = {
             name: name,
