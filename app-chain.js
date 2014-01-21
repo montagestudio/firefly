@@ -48,6 +48,11 @@ function server(options) {
 
         var chain = joey
         .error()
+        // Put here to avoid printing logs when HAProxy pings the server for
+        // a health check
+        .route(function () {
+            this.OPTIONS("").content("");
+        })
         .log(httpLog, function (message) { return message; })
         .use(LogStackTraces(httpLog))
         .parseQuery()
