@@ -8,11 +8,26 @@ Vagrant.configure('2') do |config|
     # .json images. Try and keep the steps in the same order as in the .json
     # files to make comparison easier.
     #
-    # Shared directories
+    # Ports and private IPs
+    #
+    # Each VM should have a private IP in the `10.0.0.x` subnet
+    #
+    #   NAME.vm.network "private_network", ip: "10.0.0.2"
+    #
+    # If the VM exposes a service then forward that port out so that it can be
+    # hit directly for debugging. It should be of the form `808x`, where `x` is
+    # the same as the final part of the IP (just to make things easier).
+    #
+    #   NAME.vm.network "forwarded_port", guest: 80, host: 8082
+    #
+    # Synced directories
     #
     # The filament and firefly directories should be mounted using
-    # `synced_folder` so that as the developer updates their files, they are
+    # `synced_folder` so that as the developer updates their files they are
     # updated in the VMs as well
+    #
+    #   NAME.vm.synced_folder ".", "/srv/firefly"
+    #   NAME.vm.synced_folder "../filament", "/srv/filament"
     #
     # Config files
     #
@@ -20,12 +35,12 @@ Vagrant.configure('2') do |config|
     # the machine. In the VM the `/vagrant` path is the root of this directory
     # and so this is where you can copy from:
     #
-    #       NAME.vm.provision "shell", inline: "cp /vagrant/deploy/files/EXAMPLE /etc/EXAMPLE"
+    #   NAME.vm.provision "shell", inline: "cp /vagrant/deploy/files/EXAMPLE /etc/EXAMPLE"
     #
     # Running services
     #
     # Any services you expect to be running must be started at the bottom of
-    # each VM's config, as the VM should be usable without a reboot. Services
+    # each VM's config, as the VM must be usable without a reboot. Services
     # should start themselves automatically on reboot, but the provisioning
     # scripts should already be doing that for the production servers.
 
