@@ -73,7 +73,9 @@ exports.registerDeferredResponse = function(url, responseDeferred) {
                     if (preview.requests) {
                         for (var j = 0, info; (info = preview.requests[j]); j++) {
                             if (Math.abs(currentTime - info.date) > 30) {
-                                info.response.reject();
+                                info.response.resolve({
+                                    status: 204
+                                });
                                 cutIndex = j;
                             }
                         }
