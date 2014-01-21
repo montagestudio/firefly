@@ -20,13 +20,12 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
         return joey.use(function (next) {
             return function (request) {
                 var hostname = request.hostname;
-                if (endsWith(hostname, environment.app.hostname)) {
-                    return appHandler(request);
-                } else if (endsWith(hostname, environment.project.hostname)) {
+                if (endsWith(hostname, environment.project.hostname)) {
                     return projectHandler(request);
                 } else {
-                    log("*Unrecognized hostname*", hostname);
-                    return Status.notAcceptable(request);
+                    // Fall back to app handler as HAProxy doesn't send the
+                    // Host header from the original request
+                    return appHandler(request);
                 }
             };
         })
