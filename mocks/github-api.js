@@ -43,3 +43,9 @@ GithubApi.prototype.isRepositoryEmpty = function(owner, repo) {
         "isRepositoryEmpty" in options ? options.isRepositoryEmpty : false
     );
 };
+
+GithubApi.prototype.getUser = function() {
+    return Q.resolve({
+        login: "Jasmine"
+    });
+};
