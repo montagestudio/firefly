@@ -20,6 +20,8 @@ Initial setup
     firefly/
     ```
  2. Install Vagrant from http://www.vagrantup.com/downloads.html
+ 3. Run `vagrant plugin install vagrant-cachier`. This will cache apt packages
+    to speed up the initialization of the VMs
 
 Starting
 --------

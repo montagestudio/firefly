@@ -2,6 +2,12 @@ Vagrant.configure('2') do |config|
     config.vm.box = "precise64"
     config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
+    if Vagrant.has_plugin?("vagrant-cachier")
+        # Only enable `apt` as I don't trust npm and what will happen if we
+        # cache those packages
+        config.cache.enable :apt
+    end
+
     config.vm.provision "shell", path: "deploy/provision/base.sh"
 
     # The machines listed below should match as closely as possible the Packer
