@@ -58,6 +58,8 @@
                 if (this.status === 200) {
                     processIncomingData(this.responseText);
                     httpRefresh();
+                } else if (this.status === 204) {
+                    httpRefresh();
                 } else {
                     showReconnectionMessage(httpRefresh);
                 }
