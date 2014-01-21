@@ -50,6 +50,17 @@ log("string", {object: 1}, 123, "http://example.com");
 
 Only use `console.log` while developing.
 
+Some special characters will change the output:
+
+### `*` Errors
+
+Wrapping a string in `*`s will make it appear red in the logs, this is useful
+when you need to log an error:
+
+```javascript
+log("*some error*", error.stack)
+```
+
 Session
 -------
 
@@ -65,7 +76,8 @@ key).
 
 Contributing
 ============
-- Run `jshint` on your code to ensure it conforms to Filament standards
+- Run the specs (`npm test`) at the project's root and make sure there is no `jshint` errors and all spec tests pass successfully.
+  Note: make sure there is no firefly session running prior running the test.
 
 - Make sure all commit messages follow the 50 character subject/72 character
 body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
@@ -74,10 +86,14 @@ body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-abou
 e.g. Prefer "Clear selection when clicking templateExplorer" over
 "Cleared selection when clicking templateExplorer"
 
+- Turn on "strip trailing whitespace on save" or equivalent in your editor
+
+- Indent by 4 spaces, not tabs
+
 Updating dependencies
 ---------------------
 
-The dependencies are checked in [as recomended](http://www.futurealoof.com/posts/nodemodules-in-git.html)
+The dependencies are checked in [as recommendedd](http://www.futurealoof.com/posts/nodemodules-in-git.html)
 by members of the community. To update them run:
 
 ```bash

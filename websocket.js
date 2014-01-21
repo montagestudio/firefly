@@ -6,7 +6,6 @@ var URL = require("url");
 var FS = require("q-io/fs");
 var ws = require("websocket.io");
 var Connection = require("q-connection");
-var parseCookies = require("./parse-cookies");
 
 var websocketConnections = 0;
 
@@ -23,8 +22,7 @@ function websocket(sessions, services, clientPath) {
 
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
-        var connectionServices = getSession(sessions, request)
-        .then(function (session) {
+        var connectionServices = sessions.getSession(request, function(session) {
             var path = Env.getProjectPathFromSessionAndAppUrl(session, pathname);
             log("Limiting", remoteAddress, pathname, "to", path);
             return getFs(session, path)
@@ -54,16 +52,6 @@ function websocket(sessions, services, clientPath) {
     });
 
     return socketServer;
-}
-
-function getSession(sessions, request) {
-    // The request has the session cookies, but hasn't gone through
-    // the joey chain, and so they haven't been parsed into .cookies
-    // Do that manually here
-    parseCookies(request);
-
-    // Use the above session id to get the session
-    return sessions.get(request.cookies.session);
 }
 
 function getFs(session, path) {

@@ -25,13 +25,26 @@ function multiplex(options, appChainFactory, appChainOptions, projectChainFactor
                 } else if (endsWith(hostname, environment.project.hostname)) {
                     return projectHandler(request);
                 } else {
-                    log("*Unrecognized hostname*", hostname);
+                    log("*Unrecognized hostname*", hostname, "expected", environment.app.hostname, "or", environment.project.hostname);
                     return Status.notAcceptable(request);
                 }
             };
         })
         .listen(environment.port)
         .then(function (server) {
+            server.node.on("upgrade", function (request, socket, head) {
+                var host = request.headers.host;
+
+                if (endsWith(host, environment.getAppHost())) {
+                    appChain.upgrade(request, socket, head);
+                } else if (endsWith(host, environment.getProjectHost())) {
+                    projectChain.upgrade(request, socket, head);
+                } else {
+                    log("*Unrecognized hostname*", host, "expected", environment.getAppHost(), "or", environment.getProjectHost());
+                    return Status.notAcceptable(request);
+                }
+            });
+
             return [
                 {
                     chain: appChain,

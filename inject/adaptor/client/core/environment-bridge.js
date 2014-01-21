@@ -75,6 +75,10 @@ exports.EnvironmentBridge = Montage.specialize({
         value: null
     },
 
+    _previewUrl: {
+        value: null
+    },
+
     _packageUrl: {
         value: null
     },
@@ -169,6 +173,16 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    listTreeAtUrl: {
+        value: function (url, exclude) {
+            return this.backend.get("file-service").invoke("listTree", url, exclude).then(function (fileDescriptors) {
+                return fileDescriptors.map(function (fd) {
+                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                });
+            });
+        }
+    },
+
     list: {
         value: function (url) {
             return this.backend.get("file-service").invoke("list", url).then(function (fileDescriptors) {
@@ -228,25 +242,31 @@ exports.EnvironmentBridge = Montage.specialize({
 
     registerPreview: {
         value: function (name, url) {
-            return Promise.resolve();
+            this._previewUrl = url;
+            return this.backend.get("preview-service").invoke("register", {name: name, url: url});
         }
     },
 
     unregisterPreview: {
         value: function () {
-            return Promise.resolve();
+            var self = this;
+
+            return this.backend.get("preview-service").invoke("unregister", this._previewUrl)
+            .then(function() {
+                self._previewUrl = null;
+            });
         }
     },
 
     launchPreview: {
         value: function () {
-            return Promise.resolve(true);
+            return Promise.resolve();
         }
     },
 
     refreshPreview: {
         value: function () {
-            return Promise.resolve();
+            return this.backend.get("preview-service").invoke("refresh", this._previewUrl);
         }
     },
 
@@ -424,6 +444,42 @@ exports.EnvironmentBridge = Montage.specialize({
             .then(function() {
                 return self.flushProject("Update component " + name);
             });
+        }
+    },
+
+    listDependenciesAtUrl: {
+        value: function (packageUrl) {
+            return this.backend.get("package-manager-service").invoke("listDependenciesAtUrl", packageUrl);
+        }
+    },
+
+    removePackage: {
+        value: function (packageName) {
+            return this.backend.get("package-manager-service").invoke("removePackage", packageName);
+        }
+    },
+
+    findOutdatedDependency: {
+        value: function () {
+            return this.backend.get("package-manager-service").invoke("findOutdatedDependency");
+        }
+    },
+
+    installPackage: {
+        value: function (requestedPackage) {
+            return this.backend.get("package-manager-service").invoke("installPackage", requestedPackage);
+        }
+    },
+
+    gatherPackageInformation: {
+        value: function (requestedPackage) {
+            return this.backend.get("package-manager-service").invoke("gatherPackageInformation", requestedPackage);
+        }
+    },
+
+    searchPackages: {
+        value: function (packages) {
+            return this.backend.get("package-manager-service").invoke("searchPackages", packages);
         }
     }
 
