@@ -143,9 +143,26 @@ function PreviewService() {
 
     service.unregister = function(url) {
         var previewId = exports.getPreviewIdFromUrl(url);
+        var preview = _previews[previewId];
 
-        log("unregister preview", previewId);
-        delete _previews[previewId];
+        if (preview) {
+            log("unregister preview", previewId);
+            // Websocket connections
+            if (preview.connections) {
+                for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+                    preview.connections[i].close();
+                }
+            }
+            // HTTP requests
+            if (preview.requests) {
+                //jshint -W004
+                for (var i = 0, ii = preview.requests.length; i < ii; i++) {
+                    preview.requests[i].response.fail();
+                }
+                //jshint +W004
+            }
+            delete _previews[previewId];
+        }
 
         //saveMap();
     };
