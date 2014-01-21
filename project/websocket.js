@@ -51,7 +51,12 @@ function websocket(sessions, services, clientPath) {
         })
         .done();
 
-        connection.on("close", function(conn) {
+        connection.on("close", function(connection) {
+            Object.keys(services).forEach(function (key) {
+                if (typeof services[key].close === "function") {
+                    services[key].close(connection);
+                }
+            });
             Frontend.deleteFrontend(frontendId).done();
             log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
