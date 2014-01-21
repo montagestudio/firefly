@@ -4,6 +4,7 @@ source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
 source "${HOME}/deploy/build/get.sh"
 
+get filament $FILAMENT_COMMIT
 get firefly $FIREFLY_COMMIT
 
 # Lets do a bit of cleanup
@@ -20,4 +21,5 @@ ${BUILD}/packerio/packer build \
     -var "snapshot_name=loginimage-$BUILD_NUMBER" \
     ${HOME}/deploy/login-image.json
 
+get-clean filament
 get-clean firefly

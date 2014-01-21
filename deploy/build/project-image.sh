@@ -21,5 +21,5 @@ ${BUILD}/packerio/packer build \
     -var "snapshot_name=projectimage-$BUILD_NUMBER" \
     ${HOME}/deploy/project-image.json
 
-  get-clean filament
-  get-clean firefly
+get-clean filament
+get-clean firefly
