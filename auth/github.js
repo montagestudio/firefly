@@ -3,6 +3,7 @@ var Q = require("q");
 var https = require("https");
 var querystring = require("querystring");
 var Env = require("../environment");
+var packedSession = require("../packed-session");
 
 var uuid = require("uuid");
 var redirect = require("q-io/http-apps/redirect").redirect;
@@ -85,7 +86,12 @@ module.exports = function ($) {
                 githubApi.getUser().then(function(user) {
                     request.session.githubUser = user;
                     request.session.username = user.login.toLowerCase();
-                    done.resolve(redirect(request, "/projects"));
+
+                    // Replace the session id by the user's authentication
+                    packedSession.pack(request.session).then(function(sessionID) {
+                        request.session.sessionId = sessionID;
+                        done.resolve(redirect(request, "/projects"));
+                    });
                 }).done();
             });
         });
