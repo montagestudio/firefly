@@ -179,6 +179,10 @@ function PreviewService() {
         sendToPreviewClients(url, "refresh:");
     };
 
+    service.close = function(connection) {
+        this.unregister(connection.headers.host);
+    };
+
     function sendToPreviewClients(url, content) {
         var previewId = exports.getPreviewIdFromUrl(url);
         var preview = _previews[previewId];
