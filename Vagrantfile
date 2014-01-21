@@ -74,10 +74,10 @@ Vagrant.configure('2') do |config|
 
         web.vm.provision "shell", path: "deploy/provision/web-server.sh"
 
-        web.vm.synced_folder "../filament", "/srv/filament"
-        web.vm.synced_folder "inject/adaptor", "/srv/filament/adaptor"
+        web.vm.synced_folder "../filament", "/srv/app"
+        web.vm.synced_folder "inject/adaptor", "/srv/app/adaptor"
 
-        web.vm.provision :shell, :inline => "cp /vagrant/deploy/services/nginx.conf /etc/nginx/nginx.conf"
+        web.vm.provision :shell, :inline => "cp /vagrant/deploy/files/nginx.conf /etc/nginx/nginx.conf"
 
         # Start
         web.vm.provision :shell, :inline => "nginx || nginx -s reload"
