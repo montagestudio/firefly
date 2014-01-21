@@ -48,6 +48,8 @@ Vagrant.configure('2') do |config|
         lb.vm.hostname = "load-balancer"
         lb.vm.network "private_network", ip: "10.0.0.2"
         lb.vm.network "forwarded_port", guest: 80, host: 8082
+        # Exposed so that existing URL works
+        lb.vm.network "forwarded_port", guest: 80, host: 2440
 
         lb.vm.provision "shell", inline: "cp /vagrant/deploy/files/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf"
 
