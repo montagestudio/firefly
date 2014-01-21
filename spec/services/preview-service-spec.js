@@ -9,7 +9,8 @@ describe("preview-service", function () {
     function createConnection(host) {
         return {
             req: {headers: {host: host}},
-            send: function(content) {}
+            send: function(content) {},
+            close: function() {}
         };
     }
 
@@ -44,6 +45,21 @@ describe("preview-service", function () {
 
             service.unregister(environment.project.hostname);
             expect(previews['local-project']).not.toBeDefined();
+        });
+
+        it("should unregister a preview and close all its connections", function () {
+            var url = environment.project.hostname;
+            service.register({
+                name: "preview",
+                url: url
+            });
+            var connection = createConnection(url);
+            PreviewService.registerConnection(connection);
+
+            spyOn(connection, "close");
+
+            service.unregister(url);
+            expect(connection.close).toHaveBeenCalled();
         });
 
         it("should know if a preview exists by url", function() {
