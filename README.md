@@ -15,10 +15,11 @@ Next to Firefly both Filament must be checked out and a directory called
 "clone" must exist:
 
 ```
-clone/
 filament/
 firefly/
 ```
+
+Install Vagrant from http://www.vagrantup.com/downloads.html
 
 To start Firefly run:
 
@@ -26,15 +27,38 @@ To start Firefly run:
 npm start
 ```
 
-This will output the URL where the server is running.
+This can take up to 15 minutes the first time as the local VMs are provisioned
+from scratch.
 
-You can configure where Filament lives by running:
+You can then access the server at http://localhost:8082/
+
+Run
 
 ```bash
-node index.js --client=<directory containing filament>
+npm stop
 ```
 
-Run `node index.js` with no arguments to get a list of command line options.
+to shutdown the VMs. You can bring them back up with `npm start`, but this
+time they are all set up, and so it should be reasonably fast.
+
+Logs (TODO make this section nicer)
+----
+
+You can follow the logs from the various servers with:
+
+```
+vagrant ssh web-server -c "tail -f /var/log/nginx/filament.access.log"
+```
+
+```
+vagrant ssh login -c "tail -f /home/montage/stdout.log"
+vagrant ssh login -c "tail -f /home/montage/stderr.log"
+vagrant ssh login -c "tail -f /var/log/upstart/firefly.log"
+```
+
+```
+vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
+```
 
 Developing
 ==========
