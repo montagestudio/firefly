@@ -108,7 +108,7 @@ describe("preview-service", function () {
                 var expectedResponse = {
                     status: 200,
                     headers: {
-                        'content-type': 'text/plain'
+                        'content-type': 'application/preview-message'
                     },
                     body: ['refresh:']
                 };
