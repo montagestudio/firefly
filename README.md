@@ -11,57 +11,50 @@ through its associated Environment Bridge.
 Running
 =======
 
-Next to Firefly both Filament must be checked out and a directory called
-"clone" must exist:
+Initial setup
+-------------
 
-```
-filament/
-firefly/
-```
+ 1. You must check out Filament next to Firefly, so that it looks like this:
+    ```
+    filament/
+    firefly/
+    ```
+ 2. Install Vagrant from http://www.vagrantup.com/downloads.html
 
-Install Vagrant from http://www.vagrantup.com/downloads.html
+Starting
+--------
 
-To start Firefly run:
-
-```bash
-npm start
-```
+Run `npm start`
 
 This can take up to 15 minutes the first time as the local VMs are provisioned
 from scratch.
 
-You can then access the server at http://localhost:8082/
+You can then access the server at http://local-firefly.declarativ.net:2440/
 
-Run
+Stopping
+--------
 
-```bash
-npm stop
-```
+Run `npm stop`
 
-to shutdown the VMs. You can bring them back up with `npm start`, but this
-time they are all set up, and so it should be reasonably fast.
+This will shutdown the VMs. You can bring them back up with `npm start` which
+should be reasonably fast now that they are all set up.
 
-Logs (TODO make this section nicer)
-----
-
-You can follow the logs from the various servers with:
-
-```
-vagrant ssh web-server -c "tail -f /var/log/nginx/filament.access.log"
-```
-
-```
-vagrant ssh login -c "tail -f /home/montage/stdout.log"
-vagrant ssh login -c "tail -f /home/montage/stderr.log"
-vagrant ssh login -c "tail -f /var/log/upstart/firefly.log"
-```
-
-```
-vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
-```
+After running `npm stop` the machines are not using CPU, but still take up
+disk space. Run `vagrant destroy` to remove the VMs from disk. Again, you can
+use `npm start` to bring them back, but this will take the same amount of
+time as the initial setup.
 
 Developing
 ==========
+
+Refreshing the server
+---------------------
+
+When you make changes to Firefly you will need to reload it by running:
+
+```bash
+vagrant ssh login -c "sudo naught deploy /home/montage/naught.ipc"
+```
 
 Logging
 -------
@@ -73,6 +66,35 @@ log("string", {object: 1}, 123, "http://example.com");
 ```
 
 Only use `console.log` while developing.
+
+Accessing logs
+--------------
+
+You can `ssh` into the different machines with `vagrant ssh $NAME`. Files are
+generally located at `/srv`. You can run the commands below to directly follow
+the logs for the different servers:
+
+### Login
+
+```bash
+vagrant ssh login -c "tail -f /home/montage/stdout.log"
+
+# When things go wrong:
+vagrant ssh login -c "tail -f /home/montage/stderr.log"
+vagrant ssh login -c "tail -f /var/log/upstart/firefly.log"
+```
+
+### Static file server (Filament)
+
+```bash
+vagrant ssh web-server -c "tail -f /var/log/nginx/filament.access.log"
+```
+
+### Load balancer
+
+```
+vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
+```
 
 Session
 -------
