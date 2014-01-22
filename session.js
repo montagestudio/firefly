@@ -75,13 +75,28 @@ function Session(key, secret, cookie, store) {
                         setSessionCookie(response, "", new Date(0));
                         return store.destroy(_id).thenResolve(response);
                     } else {
-                        if (_created) {
-                            log("created: " + _id);
-                            var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
-                            setSessionCookie(response, _id, timeoutDate);
+                        var done = Q(),
+                            _setCookie = false;
 
+                        if (_id !== request.session.sessionId) {
+                            // Reset the session
+                            log("reset: " + request.session.sessionId);
+                            done = store.destroy(_id).then(function() {
+                                _id = request.session.sessionId;
+                                _setCookie = true;
+                            });
+                        } else if (_created) {
+                            log("created: " + _id);
+                            _setCookie = true;
                         }
-                        return store.set(_id, _session).thenResolve(response);
+
+                        return done.then(function() {
+                            if (_setCookie) {
+                                var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
+                                setSessionCookie(response, _id, timeoutDate);
+                            }
+                            return store.set(_id, _session).thenResolve(response);
+                        });
                     }
                 });
             });
@@ -96,6 +111,10 @@ function Session(key, secret, cookie, store) {
         return Q.fcall(function() {
             session._destroyed = true;
         });
+    };
+
+    result.getKey = function() {
+        return key;
     };
 
     /**
