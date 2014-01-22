@@ -42,7 +42,7 @@ function cryptoService(secret) {
                 result += decipher.final('utf8');
 
             } catch (error) {
-                log("*decipher error*", error.message);
+                log("*decipher error*", error.stack);
                 result = null;
             }
         }
