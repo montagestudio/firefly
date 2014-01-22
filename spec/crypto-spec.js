@@ -1,17 +1,17 @@
 var cryptoService = require("../crypto-service")("secret-key");
 
 describe("cryptoService", function () {
-    var _data = "Hello FireFly!",
-        _encryptedData;
-
-    it("encrypts data", function () {
-        _encryptedData = cryptoService.encryptData(_data);
-        expect(typeof _encryptedData).toEqual("string");
-        expect(_encryptedData).not.toEqual(_data);
+    var data;
+    beforeEach(function () {
+        data = "Hello FireFly!";
     });
 
-    it("decrypts data", function () {
-        var data = cryptoService.decryptData(_encryptedData);
-        expect(data).toEqual(data);
+    it("encrypts and decrypts data", function () {
+        var encryptedData = cryptoService.encryptData(data);
+        expect(typeof encryptedData).toEqual("string");
+        expect(encryptedData).not.toEqual(data);
+
+        var decryptedData = cryptoService.decryptData(encryptedData);
+        expect(decryptedData).toEqual(data);
     });
 });
