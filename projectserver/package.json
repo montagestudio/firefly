@@ -1,0 +1,15 @@
+{
+  "name": "docker-project-server",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Stuart Knightley",
+  "license": "proprietary",
+  "dependencies": {
+    "dockerode": "~0.2.5",
+    "q": "~0.9.7"
+  }
+}

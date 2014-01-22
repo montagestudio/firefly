@@ -1,7 +1,9 @@
 Firefly deployment
 ==================
 
-To go from zero-to-images run `./build/setup.sh`. This will install `packer` and `tugboat` in the .deploy directory.
+To go from zero-to-images run `./deploy/build/setup.sh`. This will install `packer` and `tugboat` in the .deploy directory. To use packer and tugboat you will need to setup the environemnt and the best way to do it is to do `source ./deploy/build/env.sh`. You can then run tugboat or packer. I order to ssh into the images you will need to insert your public key in ./deploy/files/authorized_keys.
+
+To build all the images for deployment on Digital Ocean run `./deploy/build/images.sh`
 
 ## Directories
 
