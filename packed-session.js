@@ -47,7 +47,7 @@ packedSession.unpack = function(sessionID, session) {
         }
     } else {
         if (sessionID !== undefined) {
-            log("*Invalid sessionID*");
+            log("*Invalid sessionID*", sessionID);
         }
         deferred.resolve(false);
     }
