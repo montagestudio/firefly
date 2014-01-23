@@ -39,6 +39,10 @@
       "destination": "/srv/filament.tgz"
     }, {
         "type": "file",
+        "source": "{{user `build`}}/filament.tgz",
+        "destination": "/srv/filament.tgz"
+    }, {
+        "type": "file",
         "source": "{{user `build`}}/firefly.tgz",
         "destination": "/srv/firefly.tgz"
     }, {
@@ -46,7 +50,7 @@
         "script": "{{user `home`}}/deploy/provision/login.sh"
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/services/firefly.conf",
-        "destination": "/etc/init/firefly.conf"
+        "source": "{{user `home`}}/deploy/services/firefly-login.conf",
+        "destination": "/etc/init/firefly-login.conf"
     }]
 }

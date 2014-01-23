@@ -102,10 +102,10 @@ Vagrant.configure('2') do |config|
 
         login.vm.provision "shell", path: "deploy/provision/login.sh"
 
-        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly.conf /etc/init/firefly.conf"
+        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
 
         # Start
-        login.vm.provision :shell, :inline => "service firefly start || service firefly reload"
+        login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
     end
 
 end
