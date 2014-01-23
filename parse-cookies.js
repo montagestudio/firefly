@@ -2,20 +2,24 @@ var Cookie = require("q-io/http-cookie");
 
 module.exports = parseCookies;
 function parseCookies(request) {
+    if (request.cookies) {
+        return;
+    }
+
     request.cookies = {};
+
     if (!request.headers.cookie) {
         return;
     }
 
-    if (!Array.isArray(request.headers.cookie)) {
-        request.headers.cookie = [request.headers.cookie];
-    }
+    var cookies = request.headers.cookie.split(";");
 
     var requestHost = ipRe.test(request.headers.host) ?
         request.headers.host :
         "." + request.headers.host;
 
-    request.headers.cookie.forEach(function (cookie) {
+    cookies.forEach(function (cookie) {
+        cookie = cookie.trim();
         var date = request.headers.date ?
             new Date(request.headers.date) :
             new Date();
