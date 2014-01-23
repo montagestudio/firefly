@@ -1,6 +1,4 @@
 var log = require("logging").from(__filename);
-var Q = require("q");
-var https = require("https");
 var querystring = require("querystring");
 var Env = require("../environment");
 var packedSession = require("../packed-session");
