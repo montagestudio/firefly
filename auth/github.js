@@ -83,7 +83,7 @@ module.exports = function ($) {
                         request.session.sessionId = sessionID;
                         return HttpApps.redirect(request, "/projects");
                     });
-                })
+                });
             });
         });
     });
