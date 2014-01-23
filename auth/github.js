@@ -6,12 +6,13 @@ var Env = require("../environment");
 var packedSession = require("../packed-session");
 
 var uuid = require("uuid");
-var redirect = require("q-io/http-apps/redirect").redirect;
+var Http = require("q-io/http");
+var HttpApps = require("q-io/http-apps");
 
 var GithubApi = require("../inject/adaptor/client/core/github-api");
 
 var CLIENT_ID,CLIENT_SECRET;
-if(Env.production) {
+if (Env.production) {
     CLIENT_ID = process.env.GITHUB_CLIENT_ID;
     CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 } else {
@@ -33,74 +34,60 @@ module.exports = function ($) {
     $("callback").app(function (request) {
         if (request.query.state !== OAUTH_STATE) {
             // It's a forgery!
-            return redirect(request, "/");
+            return HttpApps.redirect(request, "/");
         }
 
         if (request.query.error) {
-            return {
-                status: 400,
-                headers: {
-                    "content-type": "text/plain"
-                },
-                body: ["Github error. Please try again."]
-            };
+            return HttpApps.ok("Github error. Please try again", "text/plain", 400);
         }
 
-        var done = Q.defer();
+        // console.log("code is", code);
 
         var code = request.query.code;
-        // console.log("code is", code);
-        var data = querystring.stringify({
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "code": code
-        });
 
-        var req = https.request({
-            hostname: "github.com",
-            path: "/login/oauth/access_token",
+        return Http.request({
+            url: "https://github.com/login/oauth/access_token",
             method: "POST",
             headers: {
                 "Accept": "application/json",
                 "Content-Type": "application/x-www-form-urlencoded"
-            }
-        }, function (res) {
-            var body = "";
-            res.setEncoding('utf8');
-            res.on('data', function(chunk) {
-                body += chunk;
-            });
-            res.on("end", function () {
+            },
+            body: [querystring.stringify({
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "code": code
+            })]
+        }).then(function (response) {
+            return response.body.read().then(function (body) {
+                if (response.status !== 200) {
+                    throw new Error("Github answered request for access token with status " + response.status + ": " + body);
+                } else if (response.headers["content-type"] !== "application/json; charset=utf-8") {
+                    throw new Error("Github answered request for access token with an unexpected content type " + response.headers["content-type"] + ": " + body);
+                }
                 var data;
                 try {
-                    data = JSON.parse(body);
+                    data = JSON.parse(body.toString("utf-8"));
                 } catch (e) {
-                    log("error", "parsing Github access token response", body);
-                    return;
+                    throw new Error("Github answered request for access token with ill-formatted JSON.");
                 }
+
                 //jshint -W106
                 request.session.githubAccessToken = data.access_token;
                 //jshint +W106
 
                 var githubApi = new GithubApi(request.session.githubAccessToken);
-                githubApi.getUser().then(function(user) {
+                return githubApi.getUser().then(function(user) {
                     request.session.githubUser = user;
                     request.session.username = user.login.toLowerCase();
 
                     // Replace the session id by the user's authentication
-                    packedSession.pack(request.session).then(function(sessionID) {
+                    return packedSession.pack(request.session).then(function(sessionID) {
                         request.session.sessionId = sessionID;
-                        done.resolve(redirect(request, "/projects"));
+                        return HttpApps.redirect(request, "/projects");
                     });
-                }).done();
+                })
             });
         });
-        req.on('error', function(e) {
-            log("error", "POSTing to get github access token", e);
-        });
-        req.end(data, "utf-8");
-
-        return done.promise;
     });
 
 
