@@ -1,4 +1,4 @@
-var cryptoService = require("../crypto-service")("secret-key");
+var cryptoService = require("../crypto")("secret-key");
 
 describe("cryptoService", function () {
     var data;

@@ -1,6 +1,6 @@
 var log = require("logging").from(__filename);
 var Q = require("q");
-var cryptoService = require("./crypto-service")();
+var cryptoService = require("./crypto")();
 var GithubApi = require("./inject/adaptor/client/core/github-api");
 
 var packedSession =  {
