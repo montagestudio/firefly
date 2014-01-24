@@ -72,7 +72,7 @@ function server(options) {
             });
         })
         //////////////////////////////////////////////////////////////////////
-        .use(checkSession(sessions.getKey()))
+        .use(checkSession)
         //////////////////////////////////////////////////////////////////////
         .route(function (route) {
             // Private/authenticated routes

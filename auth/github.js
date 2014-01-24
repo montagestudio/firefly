@@ -1,7 +1,6 @@
 var log = require("logging").from(__filename);
 var querystring = require("querystring");
 var Env = require("../environment");
-var packedSession = require("../packed-session");
 
 var uuid = require("uuid");
 var Http = require("q-io/http");
@@ -78,11 +77,7 @@ module.exports = function ($) {
                     request.session.githubUser = user;
                     request.session.username = user.login.toLowerCase();
 
-                    // Replace the session id by the user's authentication
-                    return packedSession.pack(request.session).then(function(sessionID) {
-                        request.session.sessionId = sessionID;
-                        return HttpApps.redirect(request, "/projects");
-                    });
+                    return HttpApps.redirect(request, "/projects");
                 });
             });
         });

@@ -45,7 +45,6 @@ function Session(key, secret, cookie, store) {
 
             var done;
             var _id = request.cookies[key];
-            var _session;
             var _created;
             if (_id) {
                 done = store.get(_id)
@@ -53,7 +52,7 @@ function Session(key, secret, cookie, store) {
                     if (!session) {
                         return create();
                     }
-                    _session = request.session = session;
+                    request.session = session;
                 });
             } else {
                 done = create();
@@ -63,40 +62,42 @@ function Session(key, secret, cookie, store) {
                 return store.create()
                 .then(function (session) {
                     _id = session.sessionId;
-                    _session = request.session = session;
+                    request.session = session;
                     _created = true;
                 });
             }
 
             return done.then(function () {
                 return Q.when(app(request, response), function (response) {
-                    if (_session._destroyed) {
-                        log("destroyed: " + _id);
+                    if (request.session._destroyed) {
+                        log("destroyed", _id);
                         setSessionCookie(response, "", new Date(0));
                         return store.destroy(_id).thenResolve(response);
                     } else {
-                        var done = Q(),
-                            _setCookie = false;
+                        var _setCookie = false;
 
-                        if (_id !== request.session.sessionId) {
-                            // Reset the session
-                            log("reset: " + request.session.sessionId);
-                            done = store.destroy(_id).then(function() {
-                                _id = request.session.sessionId;
-                                _setCookie = true;
-                            });
-                        } else if (_created) {
-                            log("created: " + _id);
-                            _setCookie = true;
-                        }
-
-                        return done.then(function() {
-                            if (_setCookie) {
-                                var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
-                                setSessionCookie(response, _id, timeoutDate);
-                            }
-                            return store.set(_id, _session).thenResolve(response);
-                        });
+                        return store.set(_id, request.session)
+                            .then(function () {
+                                if (_id !== request.session.sessionId) {
+                                    // The session id has changed
+                                    log("changed id from", _id, "to", request.session.sessionId);
+                                    return store.destroy(_id).then(function () {
+                                        _id = request.session.sessionId;
+                                        _setCookie = true;
+                                    });
+                                } else if (_created) {
+                                    log("created", _id);
+                                    _setCookie = true;
+                                }
+                            })
+                            .then(function() {
+                                if (_setCookie) {
+                                    log("set cookie");
+                                    var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
+                                    setSessionCookie(response, _id, timeoutDate);
+                                }
+                            })
+                            .thenResolve(response);
                     }
                 });
             });

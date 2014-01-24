@@ -7,6 +7,7 @@ var multiplex = require("./multiplex");
 var appChain = require("./app-chain");
 var projectChain = require("./project-chain");
 
+var GithubSessionStore = require("./github-session-store");
 var Session = require("./session");
 var CheckSession = require("./check-session");
 var SetupProjectWorkspace = require("./setup-project-workspace");
@@ -37,7 +38,7 @@ var commandOptions = {
 
 module.exports = main;
 function main(options) {
-    var sessions = Session("session", SESSION_SECRET);
+    var sessions = Session("session", SESSION_SECRET, null, new GithubSessionStore());
 
     var fs = options.fs || FS;
     return multiplex(

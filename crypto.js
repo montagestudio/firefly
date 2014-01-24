@@ -5,15 +5,13 @@ var SAH_DEFAULT_SECRET = "dd5d8cafe37ee96fbc4115b950117725843651bc";
 var SAH_BASED_IV = "77d60533620cb8a003b5d478d1dc";    // short by 2 bytes
 var SAH_BASED_SALT = "ae565429beb1";                   // short by 2 bytes
 
-module.exports = cryptoService;
-
-function cryptoService(secret) {
-    // Returned service
-    var service = {};
+module.exports = Crypto;
+function Crypto(secret) {
+    var object = {};
 
     secret = secret || SAH_DEFAULT_SECRET;
 
-    service.encryptData = function(data) {
+    object.encryptData = function(data) {
         var iv = crypto.randomBytes(2),
             salt = crypto.randomBytes(2),
             key = crypto.pbkdf2Sync(secret, Buffer.concat([new Buffer(SAH_BASED_SALT, 'hex'), salt]), 10000, 16),
@@ -28,7 +26,7 @@ function cryptoService(secret) {
         return result;
     };
 
-    service.decryptData = function(data) {
+    object.decryptData = function(data) {
         var result;
 
         if (data.length > 8) {
@@ -50,5 +48,5 @@ function cryptoService(secret) {
         return result;
     };
 
-    return service;
+    return object;
 }
