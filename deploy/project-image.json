@@ -54,7 +54,7 @@
         "script": "{{user `home`}}/deploy/provision/project.sh"
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/services/projectserver.conf",
+        "source": "{{user `home`}}/deploy/services/firefly-project.conf",
         "destination": "/etc/init/projectserver.conf"
     }]
 }
