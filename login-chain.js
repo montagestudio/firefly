@@ -57,5 +57,10 @@ function server(options) {
         .redirect(env.getAppUrl());
 
         route("projects").terminate(serveFile(fs.join(client, "project-list", "index.html"), "text/html", fs));
+
+        var index = fs.join(client, "firefly-index.html");
+        var serveApp = serveFile(index, "text/html", fs);
+        route(":owner/:repo").terminate(serveApp);
+        route(":owner/:repo/").terminate(serveApp);
     });
 }
