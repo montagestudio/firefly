@@ -61,7 +61,7 @@ function server(options) {
     })
     .tap(parseCookies)
     .use(sessions)
-    .use(checkSession(sessions.getKey()))
+    .use(checkSession)
     .use(preview)
     .methods(function (method) {
         method("GET")
