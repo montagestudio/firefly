@@ -1,0 +1,52 @@
+{
+    "variables": {
+        "do_api_key": null,
+        "do_client_id": null,
+        "snapshot_name": null,
+        "home": "{{env `HOME`}}",
+        "build": "{{env `BUILD`}}"
+    },
+
+    "builders": [{
+        "type": "digitalocean",
+        "api_key": "{{user `do_api_key`}}",
+        "client_id": "{{user `do_client_id`}}",
+        "image_id": 1505447,
+        "region_id": 4,
+        "size_id": 66,
+        "private_networking": false,
+        "snapshot_name": "{{user `snapshot_name`}}",
+        "droplet_name": "firefly-login-image"
+    }],
+
+    "provisioners": [{
+        "type": "shell",
+        "inline": ["sleep 30"]
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/authorized_keys",
+        "destination": "/tmp/authorized_keys"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/sudoers",
+        "destination": "/etc/sudoers.d/sudoers"
+    }, {
+        "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/base.sh"
+    }, {
+      "type": "file",
+      "source": "{{user `build`}}/filament.tgz",
+      "destination": "/srv/filament.tgz"
+    }, {
+        "type": "file",
+        "source": "{{user `build`}}/firefly.tgz",
+        "destination": "/srv/firefly.tgz"
+    }, {
+        "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/login.sh"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/services/firefly.conf",
+        "destination": "/etc/init/firefly.conf"
+    }]
+}

@@ -1,7 +1,6 @@
 var log = require("logging").from(__filename);
 var httpLog = require("logging").from("app-joey");
 var joey = require("joey");
-var path = require("path");
 var env = require("./environment");
 
 var serveFile = require("./serve-file");
@@ -34,20 +33,26 @@ function server(options) {
     var minitPath = options.minitPath;
     //jshint +W116
 
+    client = fs.absolute(client);
+
     return fs.exists(client)
     .then(function (clientExists) {
         if (!clientExists) {
             throw new Error("Client directory '" + client + "' does not exist");
         }
 
-        var clientPath = path.normalize(path.join(__dirname, client));
-        log("Filament client path", clientPath);
+        log("Filament client path", client);
 
         var index = fs.join(client, "firefly-index.html");
         var serveApp = serveFile(index, "text/html", fs);
 
         var chain = joey
         .error()
+        // Put here to avoid printing logs when HAProxy pings the server for
+        // a health check
+        .route(function () {
+            this.OPTIONS("").content("");
+        })
         .log(httpLog, function (message) { return message; })
         .use(LogStackTraces(httpLog))
         .parseQuery()
@@ -175,7 +180,7 @@ function server(options) {
         // encompass the session information
         var services = {};
         Object.keys(clientServices).forEach(function (name) {
-            services[name] = require("./"+fs.join(client, clientServices[name]));
+            services[name] = require(fs.join(client, clientServices[name]));
         });
         services["file-service"] = require("./services/file-service");
         services["extension-service"] = require("./services/extension-service");
@@ -183,7 +188,7 @@ function server(options) {
         services["preview-service"] = require("./services/preview-service").service;
         services["package-manager-service"] = require("./services/package-manager-service");
 
-        var websocketServer = websocket(sessions, services, clientPath);
+        var websocketServer = websocket(sessions, services, client);
 
         chain.upgrade = function (request, socket, head) {
             websocketServer.handleUpgrade(request, socket, head);

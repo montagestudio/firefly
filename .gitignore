@@ -2,8 +2,12 @@
 .DS_Store
 .idea
 .vagrant
+.gem
+.tugboat
 /coverage
 /reports
+/.deploy
 console.log
 npm-debug.log
 SikuliLog.txt
+.viminfo
