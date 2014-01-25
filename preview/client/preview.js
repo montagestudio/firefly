@@ -8,7 +8,9 @@
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
-        LiveEdit = Declarativ.LiveEdit;
+        LiveEdit = Declarativ.LiveEdit,
+        didCallSetup = false;
+        //lastSeq = -1;
 
     function dispatchEvent(type, detail) {
         var event;
@@ -35,7 +37,18 @@
         // SET OBJECT PROPERTIES
         if (command === "setObjectProperties") {
             var args = JSON.parse(param);
-            LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
+
+//            if (args.seq <= lastSeq) {
+//                if (window.DEBUG) {
+//                    console.log("wrong sequence number: ", args.seq, lastSeq);
+//                }
+//            } else {
+//                if (window.DEBUG) {
+//                    console.log("seq: ", args.seq);
+//                }
+//                lastSeq = args.seq;
+                LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
+//            }
         }
     }
 
@@ -91,9 +104,10 @@
     }
 
     function setup() {
-        if (timer) {
-            clearTimeout(timer);
+        if (didCallSetup) {
+            return;
         }
+        didCallSetup = true;
 
         if (typeof(WebSocket) === "function" || typeof(WebSocket) === "object") {
             websocketRefresh();
@@ -101,10 +115,6 @@
             // Wait a bit more to not consume right away one of the http
             // connections allowed by the browser or server.
             setTimeout(httpRefresh, 2000);
-        }
-
-        if (typeof _montageWillLoad === "function") {
-            _montageWillLoad();
         }
 
         disconnectionMessageElement = createReconnectionMessageElement();
@@ -165,13 +175,17 @@
         disconnectionMessageElement.style.visibility = "visible";
     }
 
-    timer = setTimeout(function() {  // in case something went wrong with Montage
-        _montageWillLoad = null;
-        setup();
-    }, 5000);
+    // in case something went wrong with Montage
+    timer = setTimeout(setup, 5000);
 
     window.montageWillLoad = function() {
+        if (timer) {
+            clearTimeout(timer);
+        }
         setup();
+        if (typeof _montageWillLoad === "function") {
+            _montageWillLoad();
+        }
     };
 }());
 

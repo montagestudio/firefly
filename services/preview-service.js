@@ -179,8 +179,9 @@ function PreviewService() {
         sendToPreviewClients(url, "refresh:");
     };
 
-    service.setObjectProperties = function(url, label, ownerModuleId, properties) {
+    service.setObjectProperties = function(url, seq, label, ownerModuleId, properties) {
         var params = {
+            seq: seq,
             label: label,
             ownerModuleId: ownerModuleId,
             properties: properties
