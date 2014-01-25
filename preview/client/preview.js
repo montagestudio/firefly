@@ -8,7 +8,8 @@
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
-        LiveEdit = Declarativ.LiveEdit;
+        LiveEdit = Declarativ.LiveEdit,
+        lastSeq = -1;
 
     function dispatchEvent(type, detail) {
         var event;
@@ -35,6 +36,18 @@
         // SET OBJECT PROPERTIES
         if (command === "setObjectProperties") {
             var args = JSON.parse(param);
+
+            if (window.DEBUG) {
+                console.log("seq: ", args.seq);
+            }
+            if (args.seq < lastSeq) {
+                if (window.DEBUG) {
+                    console.log("wrong sequence number: ", args.seq, lastSeq);
+                }
+                return;
+            }
+
+            lastSeq = args.seq;
             LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
         }
     }
