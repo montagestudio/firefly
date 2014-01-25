@@ -27,7 +27,7 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     init: {
-        value: function (frontendService) {
+        value: function (name, frontendService) {
             this._frontendService = frontendService;
             return this;
         }
