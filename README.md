@@ -33,6 +33,19 @@ from scratch.
 
 You can then access the server at http://local-firefly.declarativ.net:2440/
 
+### Resuming after sleep
+
+Sometimes the VMs will not resume correctly after your laptop has gone to sleep
+and been woken up again (it seems this happens most frequently with
+`load-balancer`). You can force them to shutdown and boot again with:
+
+```bash
+vagrant halt -f load-balancer  # or replace `load-balancer` with another name
+# The following warning is expected:
+# vagrant-cachier was unable to SSH into the VM to remove symlinks!
+vagrant up load-balancer
+```
+
 Stopping
 --------
 
@@ -42,9 +55,9 @@ This will shutdown the VMs. You can bring them back up with `npm start` which
 should be reasonably fast now that they are all set up.
 
 After running `npm stop` the machines are not using CPU, but still take up
-disk space. Run `vagrant destroy` to remove the VMs from disk. Again, you can
-use `npm start` to bring them back, but this will take the same amount of
-time as the initial setup.
+disk space. Instead of `npm stop` you can run `vagrant destroy` to remove the
+VMs from disk. You can use `npm start` to bring them back, but this will take
+almost the same amount of time as the initial setup.
 
 Developing
 ==========
@@ -56,6 +69,7 @@ When you make changes to Firefly you will need to reload it by running:
 
 ```bash
 vagrant ssh login -c "sudo naught deploy /home/montage/naught.ipc"
+vagrant ssh project -c "sudo naught deploy /home/montage/naught.ipc"
 ```
 
 Logging
@@ -108,6 +122,10 @@ vagrant ssh web-server -c "tail -f /var/log/nginx/filament.access.log"
 ```
 vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
 ```
+
+You can also see the state of HAProxy and the servers at
+http://local-firefly.declarativ.net:2440/haproxy?stats and logging in with
+user `montage`, password `Mont@ge1789`.
 
 Session
 -------
