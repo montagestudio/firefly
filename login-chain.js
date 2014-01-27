@@ -16,12 +16,10 @@ function server(options) {
     if (!options.fs) throw new Error("options.fs required");
     var fs = options.fs;
     if (!options.client) throw new Error("options.client required");
-    var client = options.client;
+    var client = fs.absolute(options.client);
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
     //jshint +W116
-
-    client = fs.absolute(client);
 
     return joey
     .error()

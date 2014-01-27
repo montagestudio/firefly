@@ -18,6 +18,8 @@ function server(options) {
     //jshint -W116
     if (!options.fs) throw new Error("options.fs required");
     var fs = options.fs;
+    if (!options.client) throw new Error("options.client required");
+    var client = fs.absolute(options.client);
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");

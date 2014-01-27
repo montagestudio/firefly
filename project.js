@@ -16,7 +16,8 @@ var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 var commandOptions = {
     "client": {
         alias: "c",
-        describe: "A directory containing filament"
+        describe: "A directory containing filament",
+        default: "../filament"
     },
     "directory": {
         alias: "d",
@@ -40,6 +41,8 @@ function main(options) {
     var fs = options.fs || FS;
     var projectChain = projectChainFactory({
         fs: fs,
+        client: options.client,
+        clientServices: options.clientServices,
         sessions: sessions,
         checkSession: CheckSession,
         setupProjectWorkspace: require("./setup-project-workspace"),
