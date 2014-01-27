@@ -150,6 +150,18 @@ The session is stored in memory, and so after a server restart all sessions are
 lost (and you need to go through the Github auth again to get another access
 key).
 
+Common errors
+-------------
+
+`XMLHttpRequest cannot load http://local-firefly.declarativ.net:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.`
+
+This happens when the project subdomain doesn't have the session cookie. Why?
+This is caused by a cross-domain request to the project domain. When the
+project server doesn't have a valid session it does a 304 redirect back to the
+app domain. This is blocked because there are no cross-domain headers on the
+app domain. Hence the error showing the app domain in the message, and the
+`Origin` being null because it comes from a redirect.
+
 Provisioning
 ------------
 
