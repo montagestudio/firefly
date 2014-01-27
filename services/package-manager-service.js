@@ -24,11 +24,11 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
     };
 
     service.gatherPackageInformation = function (requestedPackage) {
-        return execNpm(execNpm.COMMANDS.VIEW, [requestedPackage], fsPath);
+        return execNpm(execNpm.COMMANDS.VIEW, requestedPackage, fsPath);
     };
 
-    service.installPackage = function (requestedPackage) {
-        return execNpm(execNpm.COMMANDS.INSTALL, [requestedPackage], fsPath);
+    service.installPackages = function (requestedPackages) {
+        return execNpm(execNpm.COMMANDS.INSTALL, requestedPackages, fsPath);
     };
 
     service.removePackage= function (packageName) {
