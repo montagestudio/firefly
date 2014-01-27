@@ -95,6 +95,8 @@ Vagrant.configure('2') do |config|
         login.vm.hostname = "login"
         login.vm.network "private_network", ip: "10.0.0.4"
         login.vm.network "forwarded_port", guest: 2440, host: 8084
+        # For node-inspector
+        login.vm.network "forwarded_port", guest: 8080, host: 8104
 
         # TODO don't mount filament when server is split
         login.vm.synced_folder "../filament", "/srv/filament"
@@ -106,6 +108,28 @@ Vagrant.configure('2') do |config|
 
         # Start
         login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
+    end
+
+    config.vm.define "project" do |login|
+        login.vm.hostname = "project"
+        login.vm.network "private_network", ip: "10.0.0.5"
+        login.vm.network "forwarded_port", guest: 2440, host: 8085
+        # Expose node-inspector
+        login.vm.network "forwarded_port", guest: 8080, host: 8105
+
+        # TODO don't mount filament when server is split
+        login.vm.synced_folder "../filament", "/srv/filament"
+        login.vm.synced_folder ".", "/srv/firefly"
+        login.vm.synced_folder "./projectserver", "/srv/projectserver"
+
+        login.vm.provision :shell, :inline => "cp /vagrant/deploy/files/Dockerfile /srv/Dockerfile"
+
+        login.vm.provision "shell", path: "deploy/provision/project.sh"
+
+        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
+
+        # Start
+        login.vm.provision :shell, :inline => "service firefly-project start || service firefly-project reload"
     end
 
 end
