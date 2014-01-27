@@ -45,11 +45,17 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
     service.installProjectPackages = function () {
         return listDependencies(fs, fs.ROOT, true).then(function (dependencyTree) {
             var dependenciesToInstall = dependencyTree.children.regular,
-                requestedPackages = dependenciesToInstall.filter(function (dependency) {
-                    return dependency.missing;
-                });
+                requestedPackages = [];
 
-            return execNpm(execNpm.COMMANDS.INSTALL, requestedPackages, fsPath);
+            dependenciesToInstall.forEach(function (dependency) {
+                if (dependency.missing) {
+                    requestedPackages.push(dependency.name);
+                }
+            });
+
+            if (requestedPackages.length > 0) {
+                return execNpm(execNpm.COMMANDS.INSTALL, requestedPackages, fsPath);
+            }
         });
     };
 
