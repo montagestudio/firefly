@@ -11,6 +11,8 @@ var parseCookies = require("./parse-cookies");
 var JsonApps = require("q-io/http-apps/json");
 var sanitize = require("./sanitize");
 
+var websocket = require("./websocket");
+
 module.exports = server;
 function server(options) {
     options = options || {};
@@ -20,6 +22,8 @@ function server(options) {
     var fs = options.fs;
     if (!options.client) throw new Error("options.client required");
     var client = fs.absolute(options.client);
+    if (!options.clientServices) throw new Error("options.clientServices required");
+    var clientServices = options.clientServices;
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");
@@ -173,8 +177,22 @@ function server(options) {
         });
     });
 
+    // These services should be customized per websocket connection, to
+    // encompass the session information
+    var services = {};
+    Object.keys(clientServices).forEach(function (name) {
+        services[name] = require(fs.join(client, clientServices[name]));
+    });
+    services["file-service"] = require("./services/file-service");
+    services["extension-service"] = require("./services/extension-service");
+    services["env-service"] = require("./services/env-service");
+    services["preview-service"] = require("./services/preview-service").service;
+    services["package-manager-service"] = require("./services/package-manager-service");
+
+    var websocketServer = websocket(sessions, services, client);
+
     chain.upgrade = function (request, socket, head) {
-        preview.wsServer.handleUpgrade(request, socket, head);
+        websocketServer.handleUpgrade(request, socket, head);
     };
 
     return chain;

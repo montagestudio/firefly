@@ -48,12 +48,14 @@ function main(options) {
         sessions: sessions,
         checkSession: CheckSession,
         setupProjectWorkspace: require("./setup-project-workspace"),
-        directory: fs.join(process.cwd(), options.directory),
-        minitPath: fs.join(process.cwd(), "node_modules", "minit", "minit")
+        directory: fs.absolute(options.directory),
+        minitPath: fs.join(__dirname, "node_modules", "minit", "minit")
     });
     return projectChain.listen(options.port)
     .then(function (server) {
         log("Listening on", Env.app.href);
+
+        server.node.on("upgrade", projectChain.upgrade);
 
         // for naught
         if (process.send) {

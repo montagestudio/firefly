@@ -67,5 +67,6 @@ function makeServices(services, fs, env, pathname, fsPath, clientPath) {
         var service = services[name](fs, env, pathname, fsPath, clientPath);
         connectionServices[name] = Q.master(service);
     });
+    log("Finished creating services");
     return connectionServices;
 }
