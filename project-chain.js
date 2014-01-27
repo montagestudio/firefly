@@ -8,6 +8,9 @@ var Preview = require("./preview/preview-server").Preview;
 var LogStackTraces = require("./log-stack-traces");
 var parseCookies = require("./parse-cookies");
 
+var JsonApps = require("q-io/http-apps/json");
+var sanitize = require("./sanitize");
+
 module.exports = server;
 function server(options) {
     options = options || {};
@@ -19,6 +22,12 @@ function server(options) {
     var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
+    if (!options.setupProjectWorkspace) throw new Error("options.setupProjectWorkspace required");
+    var setupProjectWorkspace = options.setupProjectWorkspace;
+    if (!options.directory) throw new Error("options.directory required");
+    var directory = options.directory;
+    if (!options.minitPath) throw new Error("options.minitPath required");
+    var minitPath = options.minitPath;
     //jshint +W116
     var preview = Preview(sessions);
 
@@ -28,44 +37,42 @@ function server(options) {
     .use(LogStackTraces(log))
     .cors(environment.getAppUrl(), "*", "*")
     .headers({"Access-Control-Allow-Credentials": true})
-    .methods(function (method) {
-        method("POST")
-        .route(function (route) {
-            // This endpoint recieves a POST request with a session ID as the
-            // payload. It then "echos" this back as a set-cookie, so that
-            // the project domain now has the session cookie from the app domain
-            route("session").app(function (request, response) {
-                if (request.headers.origin === environment.getAppUrl()) {
-                    return request.body.read()
-                    .then(function (body) {
-                        var sessionId = JSON.parse(body.toString("utf8"));
-                        return {
-                            status: 200,
-                            headers: {
-                                // TODO do this through the session object
-                                "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
-                            },
-                            body: []
-                        };
-                    });
-                } else {
-                    log("Invalid request to /session from origin", request.headers.origin);
-                    return {
-                        status: 403,
-                        headers: {},
-                        body: ["Bad origin"]
-                    };
-                }
-            });
-        });
-    })
+    // .methods(function (method) {
+    //     method("POST")
+    //     .route(function (route) {
+    //         // This endpoint recieves a POST request with a session ID as the
+    //         // payload. It then "echos" this back as a set-cookie, so that
+    //         // the project domain now has the session cookie from the app domain
+    //         route("session").app(function (request, response) {
+    //             if (request.headers.origin === environment.getAppUrl()) {
+    //                 return request.body.read()
+    //                 .then(function (body) {
+    //                     var sessionId = JSON.parse(body.toString("utf8"));
+    //                     return {
+    //                         status: 200,
+    //                         headers: {
+    //                             // TODO do this through the session object
+    //                             "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
+    //                         },
+    //                         body: []
+    //                     };
+    //                 });
+    //             } else {
+    //                 log("Invalid request to /session from origin", request.headers.origin);
+    //                 return {
+    //                     status: 403,
+    //                     headers: {},
+    //                     body: ["Bad origin"]
+    //                 };
+    //             }
+    //         });
+    //     });
+    // })
     .tap(parseCookies)
     .use(sessions)
     .use(checkSession)
-    .use(preview)
-    .methods(function (method) {
-        method("GET")
-        .app(function (request) {
+    .use(function (next) {
+        var serveProject = preview(function (request) {
             var path = environment.getProjectPathFromSessionAndProjectUrl(request.session, request.headers.host);
 
             log("rerooting to", fs.join(path));
@@ -79,6 +86,89 @@ function server(options) {
                 });
             });
         });
+
+        return function (request, response) {
+            // log("hostname", request.hostname);
+            if (request.hostname.indexOf("127.0.0.1.xip.io") !== -1) {
+                log("it's the preview");
+                return serveProject(request, response);
+            } else {
+                log("it's not the preview!");
+                // route /:user/:app/:action
+                return next(request, response);
+            }
+        };
+    })
+    .route("/api/:owner/:repo/", function (route) {
+        route("init")
+        .methods(function (method) {
+            method("POST")
+            .use(setupProjectWorkspace(directory, minitPath))
+            .app(function (request) {
+                return handleEndpoint(request, function() {
+                    log("init handleEndpoint");
+                    return request.projectWorkspace.initializeWorkspace();
+                }, function() {
+                    return {message: "initialized"};
+                });
+            });
+        });
+
+        route("components")
+        .methods(function (method) {
+            method("POST")
+            .use(setupProjectWorkspace(directory, minitPath))
+            .app(function (request) {
+                return handleEndpoint(request, function(data) {
+                    return request.projectWorkspace.createComponent(
+                        data.name);
+                }, function() {
+                    return {message: "created"};
+                });
+            });
+        });
+
+        route("modules")
+        .methods(function (method) {
+            method("POST")
+            .use(setupProjectWorkspace(directory, minitPath))
+            .app(function (request) {
+                return handleEndpoint(request, function(data) {
+                    return request.projectWorkspace.createModule(
+                        data.name, data.extendsModuleId,
+                        data.extendsName);
+                }, function() {
+                    return {message: "created"};
+                });
+            });
+        });
+
+        route("flush")
+        .methods(function (method) {
+            method("POST")
+            .use(setupProjectWorkspace(directory, minitPath))
+            .app(function (request) {
+                return handleEndpoint(request, function(data) {
+                    return request.projectWorkspace.flushWorkspace(
+                        data.message);
+                }, function() {
+                    return {message: "flushed"};
+                });
+            });
+        });
+
+        route("workspace")
+        .methods(function (method) {
+            method("GET")
+            .use(setupProjectWorkspace(directory, minitPath))
+            .app(function (request) {
+                return handleEndpoint(request, function() {
+                    return request.projectWorkspace.existsWorkspace();
+                }, function(exists) {
+                    return {created: exists};
+                });
+            });
+        });
     });
 
     chain.upgrade = function (request, socket, head) {
@@ -86,4 +176,68 @@ function server(options) {
     };
 
     return chain;
+}
+
+/**
+ * Endpoints (to be moved to another file in the future)
+ */
+
+/**
+ * Executes an operation and depending on the result creates a success or error
+ * message to send back to the browser.
+ * The message is in the shape: {"owner": ..., "repo": ...}
+ *
+ * @param {function} endpointCallback The function that performs the operation
+ *        of the endpoint, returns a promise to the completion of the operation.
+ *        The function receives the owner and the repo as arguments.
+ *        If the operation succeeds then {@link successCallback} is called with
+ *        the resolved value. If the operation fails then an error message is
+ *        returned.
+ * @param {function} successCallback The function that receives the value of
+ *        that the operation resolved it and is expected to return the message
+ *        that will be turned into a response back to the browser.
+ */
+function handleEndpoint(request, endpointCallback, successCallback) {
+    var owner = sanitize.sanitizeDirectoryName(request.params.owner),
+        repo = sanitize.sanitizeDirectoryName(request.params.repo);
+
+    var createMessage = function(message) {
+        message.owner = owner;
+        message.repo = repo;
+        return message;
+    };
+
+    return request.body.read()
+    .then(function(body) {
+        var data;
+
+        if (body.length > 0) {
+            try {
+                data = JSON.parse(body.toString());
+            } catch(ex) {
+                throw new Error("Malformed JSON message received.");
+            }
+        } else {
+            data = {};
+        }
+
+        return endpointCallback(data);
+    })
+    .then(function() {
+        var successMessage;
+
+        if (successCallback) {
+            successMessage = successCallback(arguments[0]);
+        } else {
+            successMessage = {};
+        }
+
+        return JsonApps.json(createMessage(successMessage));
+    })
+    .fail(function(reason) {
+        log("*handleEndpoint fail*", reason);
+        return JsonApps.json(createMessage({
+            error: reason.message
+        }));
+    });
 }
