@@ -10,9 +10,10 @@ var DetectErrorDependencyTree = require("./detect-error-dependency-tree"),
  * @function
  * @param {Object} fs - a given fs module.
  * @param {String} projectPath - a file system path where to operate.
+ * @param {Boolean} dismissChildren - Define if this process will get information deeply.
  * @return {Promise.<Object>} Promise for the "Dependency Tree" Object.
  */
-module.exports = function listDependencies (fs, projectPath) {
+module.exports = function listDependencies (fs, projectPath, dismissChildren) {
 
     var dependencyTree = new DependencyNode();
     dependencyTree.path = projectPath;
@@ -78,7 +79,9 @@ module.exports = function listDependencies (fs, projectPath) {
                     });
                 }
             }, function () {}).then(function () {
-                    return _examineDependencyNodeChildren(dependencyNode);
+                    if (!dismissChildren) {
+                        return _examineDependencyNodeChildren(dependencyNode);
+                    }
                 });
         });
     }
