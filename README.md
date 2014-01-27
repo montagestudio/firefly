@@ -15,10 +15,12 @@ Initial setup
 -------------
 
  1. You must check out Filament next to Firefly, so that it looks like this:
+
     ```
     filament/
     firefly/
     ```
+
  2. Install Vagrant from http://www.vagrantup.com/downloads.html
  3. Run `vagrant plugin install vagrant-cachier`. This will cache apt packages
     to speed up the initialization of the VMs
@@ -28,8 +30,10 @@ Starting
 
 Run `npm start`
 
-This can take up to 15 minutes the first time as the local VMs are provisioned
-from scratch.
+This can take up to 20 minutes the first time as the local VMs are provisioned
+from scratch, however the result is a local setup that's very similar to the
+production setup. This means that we should be able to avoid causing problems
+that would usually only be seen in production.
 
 You can then access the server at http://local-firefly.declarativ.net:2440/
 
@@ -108,7 +112,7 @@ vagrant ssh login -c "tail -f /home/montage/stdout.log"
 
 # When things go wrong:
 vagrant ssh login -c "tail -f /home/montage/stderr.log"
-vagrant ssh login -c "tail -f /var/log/upstart/firefly.log"
+vagrant ssh project -c "sudo tail -n 30 /var/log/upstart/firefly-login.log"
 ```
 
 ### Project
@@ -118,7 +122,7 @@ vagrant ssh project -c "tail -f /home/montage/stdout.log"
 
 # When things go wrong:
 vagrant ssh project -c "tail -f /home/montage/stderr.log"
-vagrant ssh project -c "tail -f /var/log/upstart/firefly.log"
+vagrant ssh project -c "sudo tail -n 30 /var/log/upstart/firefly-project.log"
 ```
 
 ### Static file server (Filament)
@@ -129,13 +133,19 @@ vagrant ssh web-server -c "tail -f /var/log/nginx/filament.access.log"
 
 ### Load balancer
 
-```
+```bash
 vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
 ```
 
-You can also see the state of HAProxy and the servers at
+You can also see the state of the load-balancer (HAProxy) and the servers at
 http://local-firefly.declarativ.net:2440/haproxy?stats and logging in with
 user `montage`, password `Mont@ge1789`.
+
+Debugging Node
+--------------
+
+To debug the Node processes in the VMs you need to rerun the process with the
+`--debug` flag and install and start node-inspector inside the VM. TODO
 
 Session
 -------
@@ -143,24 +153,30 @@ Session
 The session is available as `request.session`. After a Github auth it has a
 `githubAccessToken` property, containing the token.
 
-To store more data in the session just add a property to the `request.session`
-object.
+The session contains the Github access token and Github username. It's
+encrypted and stored entirely on the client. When a server recieves a session
+that it hasn't seen before then it uses the Github token to populate other
+information from the Github API in memory.
 
-The session is stored in memory, and so after a server restart all sessions are
-lost (and you need to go through the Github auth again to get another access
-key).
+This scheme isn't perfect as sessions can't be revoked (although the user can
+revoke their Github token on Github, killing the session on our end as well),
+but it allows all the servers to be relatively stateless.
 
 Common errors
 -------------
 
-`XMLHttpRequest cannot load http://local-firefly.declarativ.net:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.`
+```
+XMLHttpRequest cannot load http://local-firefly.declarativ.net:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
+```
 
-This happens when the project subdomain doesn't have the session cookie. Why?
-This is caused by a cross-domain request to the project domain. When the
-project server doesn't have a valid session it does a 304 redirect back to the
+This happens when the project subdomain doesn't have the session cookie.
+
+Why? This is caused by a cross-domain request to the project domain. When the
+project server doesn't find a valid session it does a 304 redirect back to the
 app domain. This is blocked because there are no cross-domain headers on the
-app domain. Hence the error showing the app domain in the message, and the
-`Origin` being null because it comes from a redirect.
+app domain (despite the request essentiall being non-cross domain). Hence the
+error showing the app domain in the message, and the `Origin` being null
+because it comes from a redirect.
 
 Provisioning
 ------------
