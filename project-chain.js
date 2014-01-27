@@ -43,37 +43,34 @@ function server(options) {
     .use(LogStackTraces(log))
     .cors(environment.getAppUrl(), "*", "*")
     .headers({"Access-Control-Allow-Credentials": true})
-    // .methods(function (method) {
-    //     method("POST")
-    //     .route(function (route) {
-    //         // This endpoint recieves a POST request with a session ID as the
-    //         // payload. It then "echos" this back as a set-cookie, so that
-    //         // the project domain now has the session cookie from the app domain
-    //         route("session").app(function (request, response) {
-    //             if (request.headers.origin === environment.getAppUrl()) {
-    //                 return request.body.read()
-    //                 .then(function (body) {
-    //                     var sessionId = JSON.parse(body.toString("utf8"));
-    //                     return {
-    //                         status: 200,
-    //                         headers: {
-    //                             // TODO do this through the session object
-    //                             "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
-    //                         },
-    //                         body: []
-    //                     };
-    //                 });
-    //             } else {
-    //                 log("Invalid request to /session from origin", request.headers.origin);
-    //                 return {
-    //                     status: 403,
-    //                     headers: {},
-    //                     body: ["Bad origin"]
-    //                 };
-    //             }
-    //         });
-    //     });
-    // })
+    .route(function (_, __, ___, POST) {
+        // This endpoint recieves a POST request with a session ID as the
+        // payload. It then "echos" this back as a set-cookie, so that
+        // the project domain now has the session cookie from the app domain
+        POST("session").app(function (request, response) {
+            if (request.headers.origin === environment.getAppUrl()) {
+                return request.body.read()
+                .then(function (body) {
+                    var sessionId = JSON.parse(body.toString("utf8"));
+                    return {
+                        status: 200,
+                        headers: {
+                            // TODO do this through the session object
+                            "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
+                        },
+                        body: []
+                    };
+                });
+            } else {
+                log("Invalid request to /session from origin", request.headers.origin);
+                return {
+                    status: 403,
+                    headers: {},
+                    body: ["Bad origin"]
+                };
+            }
+        });
+    })
     .tap(parseCookies)
     .use(sessions)
     .use(checkSession)
