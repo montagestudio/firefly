@@ -111,6 +111,16 @@ vagrant ssh login -c "tail -f /home/montage/stderr.log"
 vagrant ssh login -c "tail -f /var/log/upstart/firefly.log"
 ```
 
+### Project
+
+```bash
+vagrant ssh project -c "tail -f /home/montage/stdout.log"
+
+# When things go wrong:
+vagrant ssh project -c "tail -f /home/montage/stderr.log"
+vagrant ssh project -c "tail -f /var/log/upstart/firefly.log"
+```
+
 ### Static file server (Filament)
 
 ```bash
@@ -139,6 +149,37 @@ object.
 The session is stored in memory, and so after a server restart all sessions are
 lost (and you need to go through the Github auth again to get another access
 key).
+
+Provisioning
+------------
+
+Here are some more useful commands if you change any config files or other
+aspects of the provisioning.
+
+### Upstart services
+
+If you need to change the Upstart config files you need to restart the service:
+
+```bash
+vagrant ssh login -c "sudo cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
+vagrant ssh login -c "sudo service firefly-login restart"
+
+vagrant ssh project -c "sudo cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
+vagrant ssh project -c "sudo service firefly-project restart"
+```
+
+### HAProxy config file
+
+The new config needs to be copied across and certain values replaced. (This
+command is adapted from the Vagrantfile).
+
+```bash
+vagrant ssh load-balancer -c "sudo cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg;\
+sudo sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg;\
+sudo sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg;\
+sudo sed -i.bak 's/server filament1 [0-9\.]*/server filament1 10.0.0.3/' /etc/haproxy/haproxy.cfg;\
+sudo service haproxy reload"
+```
 
 Contributing
 ============

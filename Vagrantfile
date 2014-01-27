@@ -63,7 +63,9 @@ Vagrant.configure('2') do |config|
 
         lb.vm.provision "shell", inline: "cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg"
 
-        # Change the haproxy config for this development environment
+        # Change the haproxy config for this development environment. If you
+        # change any of the following lines make sure to update the bit about
+        # HAProxy in the readme as well
         #   login
         lb.vm.provision "shell", inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg"
         lb.vm.provision "shell", inline: "sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg"
