@@ -1,15 +1,12 @@
-var Q = require("q");
 var Env = require("./environment");
 var log = require("logging").from(__filename);
 var FS = require("q-io/fs");
 
-var multiplex = require("./multiplex");
 var projectChainFactory = require("./project-chain");
 
 var GithubSessionStore = require("./github-session-store");
 var Session = require("./session");
 var CheckSession = require("./check-session");
-var SetupProjectWorkspace = require("./setup-project-workspace");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
