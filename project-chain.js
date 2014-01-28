@@ -91,7 +91,7 @@ function server(options) {
         });
 
         return function (request, response) {
-            if (request.hostname.indexOf("xip.io") !== -1) {
+            if (endsWith(request.headers.host, environment.getProjectHost())) {
                 return serveProject(request, response);
             } else {
                 // route /:user/:app/:action
@@ -200,7 +200,7 @@ function server(options) {
     var websocketServer = websocket(sessions, services, client);
 
     chain.upgrade = function (request, socket, head) {
-        if (request.headers.host.indexOf("xip.io") !== -1) {
+        if (endsWith(request.headers.host, environment.getProjectHost())) {
             preview.wsServer.handleUpgrade(request, socket, head);
         } else {
             websocketServer.handleUpgrade(request, socket, head);
@@ -208,6 +208,10 @@ function server(options) {
     };
 
     return chain;
+}
+
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
 /**
