@@ -18,19 +18,25 @@ var guard = function (exclude) {
 };
 
 module.exports = exports = FileService;
+var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function (pathname) {
+    return function (url) {
+        return URL.parse(url).pathname;
+    };
+};
+
+var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, environment) {
+    return function (path) {
+        var projectHost = environment.getProjectUrlFromAppUrl(pathname);
+        return projectHost + path;
+    };
+};
 
 function FileService(fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
 
-    var convertProjectUrlToPath = exports.convertProjectUrlToPath = function (url) {
-        return URL.parse(url).pathname;
-    };
-
-    var convertPathToProjectUrl = exports.convertPathToProjectUrl = function (path) {
-        var projectHost = environment.getProjectUrlFromAppUrl(pathname);
-        return projectHost + path;
-    };
+    var convertProjectUrlToPath = makeConvertProjectUrlToPath(pathname);
+    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, environment);
 
     /**
      * Converts an array of (absolute) paths to an array of objects with `url`
