@@ -211,9 +211,13 @@ sudo service haproxy reload"
 
 Contributing
 ============
-- Run the specs (`npm test`) at the project's root and make sure there is no `jshint` errors and all spec tests pass successfully.
+- Run the specs (`npm test`) at the project's root and make sure there are no
+  `jshint` errors and all specs pass successfully.
 
-  Note: make sure there is no firefly session running prior running the test.
+  Note: the binary dependencies are compiled for Linux instead of OS X so
+  when running `npm test` on a non-Linux platform it will attempt to SSH into
+  a VM to run the tests. If you get the error `VM must be running to open SSH
+  connection` then run `npm start` and try again.
 
   Note: there is a dummy spec called `_disable-logging-spec.js` (the `_` prefix
   causes it to be run first), that hides the logging while running the tests.

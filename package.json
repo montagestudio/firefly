@@ -5,7 +5,8 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "test": "istanbul test jasmine-node -- --junitreport spec && jshint --verbose .",
+    "test": "if [ \"`uname`\" = \"Linux\" ]; then npm run tests; else echo Running tests in VM; vagrant ssh login -c 'cd /srv/firefly; npm run tests'; fi",
+    "tests": "istanbul test jasmine-node -- --junitreport spec && jshint --verbose .",
     "start": "vagrant up || (echo 'To run Aurora please install Vagrant from http://www.vagrantup.com/downloads.html' && exit 1)",
     "stop": "vagrant halt && echo 'Run `vagrant destroy` to completely remove the VMs (this will make `npm start` a lot slower)'",
     "update-dependencies": "rm -rf node_modules && npm install && npm dedupe && git add --update node_modules && git add node_modules"
