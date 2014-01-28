@@ -1,8 +1,8 @@
 /*global describe,it,expect*/
 
-var DEPENDENCY_CATEGORIES = require("../../../package-manager/dependency-node").DEPENDENCY_CATEGORIES,
-    ErrorsCodes = require("../../../package-manager/detect-error-dependency-tree").ERROR_TYPES,
-    PackageManagerService = require("../../../services/package-manager-service"),
+var DEPENDENCY_CATEGORIES = require("../../../../project/package-manager/dependency-node").DEPENDENCY_CATEGORIES,
+    ErrorsCodes = require("../../../../project/package-manager/detect-error-dependency-tree").ERROR_TYPES,
+    PackageManagerService = require("../../../../project/services/package-manager-service"),
     ProjectFSMocksFactory = require('../../../mocks/project-fs-factory'),
     ProjectFSMocks = require("../../../mocks/project-fs-sample"),
     QFSMock = require("q-io/fs-mock"),

@@ -1,5 +1,5 @@
 var fs = require("q-io/fs");
-var Git = require("../git");
+var Git = require("../../project/git");
 
 describe("Git", function () {
     var git, tmpPath;

@@ -1,4 +1,4 @@
-var FileService = require("../../services/file-service");
+var FileService = require("../../../project/services/file-service");
 var MockFs = require("q-io/fs-mock");
 
 describe("file-service", function () {

@@ -1,4 +1,4 @@
-var ExtensionService = require("../../services/extension-service");
+var ExtensionService = require("../../../project/services/extension-service");
 var MockFs = require("q-io/fs-mock");
 var PATH = require("path");
 

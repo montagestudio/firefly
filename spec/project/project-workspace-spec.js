@@ -1,7 +1,7 @@
 var Q = require("q");
 var fs = require("q-io/fs");
 var MockGithubApi = require("../mocks/github-api");
-var ProjectWorkspace = require("../project-workspace");
+var ProjectWorkspace = require("../../project/project-workspace");
 
 function createWorkspace(tmpPath, owner, repo) {
     return fs.makeTree(fs.join(tmpPath, owner, repo));

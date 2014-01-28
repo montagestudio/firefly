@@ -6,7 +6,7 @@ var URL = require("url");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var ws = require("websocket.io");
-var preview = require("./../services/preview-service");
+var preview = require("../services/preview-service");
 
 var CLIENT_FILES = "{$PREVIEW}";
 

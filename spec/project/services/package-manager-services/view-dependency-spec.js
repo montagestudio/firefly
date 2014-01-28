@@ -1,6 +1,6 @@
 /*global describe,it,expect,__dirname*/
 
-var execNpm = require('../../../package-manager/exec-npm');
+var execNpm = require('../../../../project/package-manager/exec-npm');
 
 describe("npm view command", function () {
 

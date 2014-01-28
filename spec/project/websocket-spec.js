@@ -1,4 +1,4 @@
-var websocket = require("../websocket");
+var websocket = require("../../project/websocket");
 
 describe("websocket", function () {
     describe("makeServices", function () {

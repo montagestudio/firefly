@@ -1,6 +1,6 @@
 var Q = require("q");
-var PreviewService = require("../../services/preview-service");
-var environment = new require("../../environment").Env();
+var PreviewService = require("../../../project/services/preview-service");
+var environment = new require("../../../environment").Env();
 
 describe("preview-service", function () {
     var service = PreviewService.service(),

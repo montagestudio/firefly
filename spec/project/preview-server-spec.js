@@ -1,10 +1,10 @@
 /*global escape*/
 var Q = require("q");
-var PreviewServer = require("../preview/preview-server");
+var PreviewServer = require("../../project/preview/preview-server");
 var FS = require("q-io/fs");
 var htmlparser = require("htmlparser2");
 
-var indexHtml = __dirname + "/fixtures/preview/index.html";
+var indexHtml = __dirname + "/../fixtures/preview/index.html";
 
 describe("preview-server", function () {
     beforeEach(function () {

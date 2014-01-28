@@ -1,4 +1,4 @@
-var loginChain = require("../login-chain");
+var loginChain = require("../../login/login-chain");
 var MockFs = require("q-io/fs-mock");
 var MockSession = require("../mocks/session");
 

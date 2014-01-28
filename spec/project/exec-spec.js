@@ -1,14 +1,14 @@
-var exec = require("../exec");
+var exec = require("../../project/exec");
 
 describe("exec", function () {
     it("doesn't wait on stdout", function (done) {
-        exec("node", ["./fixtures/stdout-script.js"], __dirname)
+        exec("node", ["../fixtures/stdout-script.js"], __dirname)
         .timeout(1000)
         .then(done, done);
     });
 
     it("rejects if the command doesn't exist", function (done) {
-        exec("./does-not-exist", [], __dirname)
+        exec("../does-not-exist", [], __dirname)
         .then(function () {
             expect(true).toBe(false);
         }, function (error) {
@@ -17,7 +17,7 @@ describe("exec", function () {
     });
 
     it("rejects if the command exits with a non-zero code", function (done) {
-        exec("node", ["./fixtures/non-zero-exit.js"], __dirname)
+        exec("node", ["../fixtures/non-zero-exit.js"], __dirname)
         .then(function () {
             expect(true).toBe(false);
         }, function (error) {
