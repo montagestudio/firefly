@@ -91,12 +91,9 @@ function server(options) {
         });
 
         return function (request, response) {
-            // log("hostname", request.hostname);
-            if (request.hostname.indexOf("127.0.0.1.xip.io") !== -1) {
-                log("it's the preview");
+            if (request.hostname.indexOf("xip.io") !== -1) {
                 return serveProject(request, response);
             } else {
-                log("it's not the preview!");
                 // route /:user/:app/:action
                 return next(request, response);
             }
@@ -172,6 +169,20 @@ function server(options) {
                 });
             });
         });
+
+        route("save")
+        .methods(function (method) {
+            method("POST")
+            .use(setupProjectWorkspace(directory, minitPath))
+            .app(function (request) {
+                return handleEndpoint(request, function(data) {
+                    return request.projectWorkspace.saveFile(
+                        data.filename, data.contents);
+                }, function() {
+                    return {message: "saved"};
+                });
+            });
+        });
     });
 
     // These services should be customized per websocket connection, to
@@ -189,7 +200,11 @@ function server(options) {
     var websocketServer = websocket(sessions, services, client);
 
     chain.upgrade = function (request, socket, head) {
-        websocketServer.handleUpgrade(request, socket, head);
+        if (request.headers.host.indexOf("xip.io") !== -1) {
+            preview.wsServer.handleUpgrade(request, socket, head);
+        } else {
+            websocketServer.handleUpgrade(request, socket, head);
+        }
     };
 
     return chain;

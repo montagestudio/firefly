@@ -157,8 +157,8 @@ exports.RepositoryController = Montage.specialize({
     saveFile: {
         value: function(filename, contents) {
             return this._request({
-                method: "PUT",
-                url: "/api/" + this.owner + "/" + this.repo,
+                method: "POST",
+                url: "/api/" + this.owner + "/" + this.repo + "/save",
                 data: {
                     "filename": filename,
                     "contents": contents
