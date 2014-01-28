@@ -99,6 +99,7 @@ Vagrant.configure('2') do |config|
         login.vm.network "forwarded_port", guest: 2440, host: 8084
         # For node-inspector
         login.vm.network "forwarded_port", guest: 8080, host: 8104
+        login.vm.provision :shell, :inline => "npm install -g node-inspector"
 
         # TODO don't mount filament when server is split
         login.vm.synced_folder "../filament", "/srv/filament"
@@ -112,26 +113,27 @@ Vagrant.configure('2') do |config|
         login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
     end
 
-    config.vm.define "project" do |login|
-        login.vm.hostname = "project"
-        login.vm.network "private_network", ip: "10.0.0.5"
-        login.vm.network "forwarded_port", guest: 2440, host: 8085
-        # Expose node-inspector
-        login.vm.network "forwarded_port", guest: 8080, host: 8105
+    config.vm.define "project" do |project|
+        project.vm.hostname = "project"
+        project.vm.network "private_network", ip: "10.0.0.5"
+        project.vm.network "forwarded_port", guest: 2440, host: 8085
+        # For node-inspector
+        project.vm.network "forwarded_port", guest: 8080, host: 8105
+        project.vm.provision :shell, :inline => "npm install -g node-inspector"
 
         # TODO don't mount filament when server is split
-        login.vm.synced_folder "../filament", "/srv/filament"
-        login.vm.synced_folder ".", "/srv/firefly"
-        login.vm.synced_folder "./projectserver", "/srv/projectserver"
+        project.vm.synced_folder "../filament", "/srv/filament"
+        project.vm.synced_folder ".", "/srv/firefly"
+        project.vm.synced_folder "./projectserver", "/srv/projectserver"
 
-        login.vm.provision :shell, :inline => "cp /vagrant/deploy/files/Dockerfile /srv/Dockerfile"
+        project.vm.provision :shell, :inline => "cp /vagrant/deploy/files/Dockerfile /srv/Dockerfile"
 
-        login.vm.provision "shell", path: "deploy/provision/project.sh"
+        project.vm.provision "shell", path: "deploy/provision/project.sh"
 
-        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
+        project.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
 
         # Start
-        login.vm.provision :shell, :inline => "service firefly-project start || service firefly-project reload"
+        project.vm.provision :shell, :inline => "service firefly-project start || service firefly-project reload"
     end
 
 end
