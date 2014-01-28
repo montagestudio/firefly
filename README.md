@@ -56,7 +56,7 @@ Stopping
 Run `npm stop`
 
 This will shutdown the VMs. You can bring them back up with `npm start` which
-should be reasonably fast now that they are all set up.
+should take < 1 minute now that they are all set up.
 
 After running `npm stop` the machines are not using CPU, but still take up
 disk space. Instead of `npm stop` you can run `vagrant destroy` to remove the
@@ -69,12 +69,27 @@ Developing
 Refreshing the server
 ---------------------
 
-When you make changes to Firefly you will need to reload it by running:
+Run `npm run deploy`
 
-```bash
-vagrant ssh login -c "sudo naught deploy /home/montage/naught.ipc"
-vagrant ssh project -c "sudo naught deploy /home/montage/naught.ipc"
-```
+You will need to run this whenever you make changes to Firefly.
+
+This will restart both the `login` and `project` servers. If either fail to
+deploy the previous version will remain running and the last 20 lines of the
+error log will be output.
+
+Debugging Node
+--------------
+
+Run
+
+ * `npm run login-debug` and go to http://127.0.0.1:8104/debug?port=5858 or
+ * `npm run project-debug` and go to http://127.0.0.1:8105/debug?port=5858
+
+This sends a signal to the server process to enable debug mode, and then starts
+`node-inspector`. Sometimes the command exits with a weird error but running it
+again works.
+
+The port that `node-inspector` is exposed on is defined in the Vagrantfile.
 
 Logging
 -------
@@ -107,20 +122,22 @@ the logs for the different servers:
 
 ### Login
 
-```bash
-vagrant ssh login -c "tail -f /home/montage/stdout.log"
+Run `npm run login-logs`
 
-# When things go wrong:
+When things go wrong:
+
+```bash
 vagrant ssh login -c "tail -f /home/montage/stderr.log"
 vagrant ssh project -c "sudo tail -n 30 /var/log/upstart/firefly-login.log"
 ```
 
 ### Project
 
-```bash
-vagrant ssh project -c "tail -f /home/montage/stdout.log"
+Run `npm run project-logs`
 
-# When things go wrong:
+When things go wrong:
+
+```bash
 vagrant ssh project -c "tail -f /home/montage/stderr.log"
 vagrant ssh project -c "sudo tail -n 30 /var/log/upstart/firefly-project.log"
 ```
@@ -140,12 +157,6 @@ vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
 You can also see the state of the load-balancer (HAProxy) and the servers at
 http://local-firefly.declarativ.net:2440/haproxy?stats and logging in with
 user `montage`, password `Mont@ge1789`.
-
-Debugging Node
---------------
-
-To debug the Node processes in the VMs you need to rerun the process with the
-`--debug` flag and install and start node-inspector inside the VM. TODO
 
 Session
 -------
@@ -174,7 +185,7 @@ This happens when the project subdomain doesn't have the session cookie.
 Why? This is caused by a cross-domain request to the project domain. When the
 project server doesn't find a valid session it does a 304 redirect back to the
 app domain. This is blocked because there are no cross-domain headers on the
-app domain (despite the request essentiall being non-cross domain). Hence the
+app domain (despite the request now really being non-cross domain). Hence the
 error showing the app domain in the message, and the `Origin` being null
 because it comes from a redirect.
 
