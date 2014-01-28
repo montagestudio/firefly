@@ -1,10 +1,11 @@
 var loginChain = require("../../login/login-chain");
 var MockFs = require("q-io/fs-mock");
 var MockSession = require("../mocks/session");
+var mockRequest = require("../mocks/request");
 
 describe("login chain", function () {
-    var request, server, sessions;
-    beforeEach(function (done) {
+    var request, sessions;
+    beforeEach(function () {
         var fs = MockFs({
             "firefly-index.html": "pass",
             "login": {
@@ -29,18 +30,11 @@ describe("login chain", function () {
             },
             directory: ".",
             minitPath: "."
-        });
+        }).end();
 
-        return chain.listen(2440)
-        .then(function (_server) {
-            server = _server;
-            request = require("joey").client();
-        })
-        .then(done, done);
-    });
-
-    afterEach(function (done) {
-        server.stop().then(done, done);
+        request = function (req) {
+            return chain(mockRequest(req));
+        };
     });
 
     describe("firefly index", function () {
