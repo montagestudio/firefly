@@ -2,7 +2,7 @@ var Env = require("./environment");
 var log = require("logging").from(__filename);
 var FS = require("q-io/fs");
 
-var projectChainFactory = require("./project-chain");
+var projectChainFactory = require("./project/project-chain");
 
 var GithubSessionStore = require("./github-session-store");
 var Session = require("./session");
@@ -44,7 +44,7 @@ function main(options) {
         clientServices: options.clientServices,
         sessions: sessions,
         checkSession: CheckSession,
-        setupProjectWorkspace: require("./setup-project-workspace"),
+        setupProjectWorkspace: require("./project/setup-project-workspace"),
         directory: fs.absolute(options.directory),
         minitPath: fs.join(__dirname, "node_modules", "minit", "minit")
     });

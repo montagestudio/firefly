@@ -2,14 +2,14 @@ var log = require("logging").from(__filename);
 var joey = require("joey");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
-var environment = require("./environment");
+var environment = require("../environment");
 var Preview = require("./preview/preview-server").Preview;
 
-var LogStackTraces = require("./log-stack-traces");
-var parseCookies = require("./parse-cookies");
+var LogStackTraces = require("../log-stack-traces");
+var parseCookies = require("../parse-cookies");
 
 var JsonApps = require("q-io/http-apps/json");
-var sanitize = require("./sanitize");
+var sanitize = require("../sanitize");
 
 var websocket = require("./websocket");
 

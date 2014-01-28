@@ -1,6 +1,6 @@
 var log = require("logging").from(__filename);
 var ProjectWorkspace = require("./project-workspace");
-var sanitize = require("./sanitize");
+var sanitize = require("../sanitize");
 var fs = require("q-io/fs");
 
 module.exports = SetupProjectWorkspace;

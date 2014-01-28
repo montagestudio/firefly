@@ -1,5 +1,5 @@
 var log = require("logging").from(__filename);
-var environment = require("../environment");
+var environment = require("../../environment");
 var APPS = require("q-io/http-apps");
 
 var _previews = {"/": {name:"/", path:"/", default:"index.html"}};

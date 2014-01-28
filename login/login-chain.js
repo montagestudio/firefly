@@ -1,12 +1,12 @@
 var log = require("logging").from(__filename);
 var joey = require("joey");
-var env = require("./environment");
+var env = require("../environment");
 
-var serveFile = require("./serve-file");
-var parseCookies = require("./parse-cookies");
-var GithubAuth = require("./auth/github");
-var checkSession = require("./check-session");
-var LogStackTraces = require("./log-stack-traces");
+var serveFile = require("../serve-file");
+var parseCookies = require("../parse-cookies");
+var GithubAuth = require("../auth/github");
+var checkSession = require("../check-session");
+var LogStackTraces = require("../log-stack-traces");
 
 module.exports = server;
 function server(options) {
