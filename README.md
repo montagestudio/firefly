@@ -212,7 +212,12 @@ sudo service haproxy reload"
 Contributing
 ============
 - Run the specs (`npm test`) at the project's root and make sure there is no `jshint` errors and all spec tests pass successfully.
+
   Note: make sure there is no firefly session running prior running the test.
+
+  Note: there is a dummy spec called `_disable-logging-spec.js` (the `_` prefix
+  causes it to be run first), that hides the logging while running the tests.
+  If you need to see the logs then comment out the lines in it.
 
 - Make sure all commit messages follow the 50 character subject/72 character
 body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
