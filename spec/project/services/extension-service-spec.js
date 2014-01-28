@@ -2,7 +2,7 @@ var ExtensionService = require("../../../project/services/extension-service");
 var MockFs = require("q-io/fs-mock");
 var PATH = require("path");
 
-describe("file-service", function () {
+describe("extension-service", function () {
     var fs, service;
     beforeEach(function () {
         fs = MockFs({
@@ -20,7 +20,7 @@ describe("file-service", function () {
             },
             null,
             null,
-            PATH.join(__dirname, "..", "fixtures")
+            PATH.join(__dirname, "..", "..", "fixtures")
         );
     });
 

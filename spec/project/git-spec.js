@@ -83,7 +83,8 @@ describe("Git", function () {
         });
     });
 
-    describe("clone", function () {
+    // Disabled because timeouts keep affecting the test run
+    xdescribe("clone", function () {
         it("works", function (done) {
             git.clone("https://github.com/montagejs/mousse.git", tmpPath)
             .then(function () {

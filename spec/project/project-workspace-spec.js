@@ -9,7 +9,7 @@ function createWorkspace(tmpPath, owner, repo) {
 
 describe("ProjectWorkspace", function () {
     var projectWorkspace, tmpPath, owner, repo, session,
-        minitPath = fs.join(__dirname, "..", "node_modules", "minit", "minit");
+        minitPath = fs.join(__dirname, "..", "..", "node_modules", "minit", "minit");
 
     beforeEach(function () {
         tmpPath = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
