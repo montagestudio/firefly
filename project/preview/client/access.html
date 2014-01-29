@@ -4,22 +4,69 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <title>index.html</title>
     <style>
+        html {
+            height: 100%;
+            font-family: sans-serif;
+            text-shadow: 0 1px 0 hsla(0,0%,100%,.5);
+            background: hsl(0,0%,96%);
+        }
+        
         body {
-            font-family: Comic Sans, Comic Sans MS, cursive;
+            display: -webkit-box;
+            display: flex;
+            padding: 20px;
+            height: 100%;
+            margin: 0;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        
+        .form {
+            display: block;
+            margin: auto;
             text-align: center;
-            font-size: 24pt;
+            font-size: 1.2em;
+            color: hsl(0, 0%, 50%);
+            padding: 1.5em;
+            border-radius: 8px;
+            border: 1px solid hsla(0, 0%, 0%, .06);
+            background: hsl(0, 0%, 92%);
         }
-
+        
+        .label {
+            ext-align: center;
+            display: block;
+            margin-bottom: .4em;
+        }
+        
         .code {
-            font-family: Comic Sans, Comic Sans MS, cursive;
-            font-size: 36pt;
+            width: 5em;
+            max-width: 100%;
+            text-align: center;
+            font-size: 3em;
+            font-family: monospace;
+            border: 1px solid hsla(0, 0%, 0%, 0.2);
+            border-radius: 4px;
+            background-color: hsl(210, 100%, 94%);
+            box-shadow: inset 0 2px 3px hsla(0, 0%, 0%, 0.08), 0 1px 0 hsla(0, 100%, 100%, 0.4);
         }
+        
+        .code:hover {
+            border-color: hsla(0, 0%, 0%, 0.3)
+        }
+        
+        .code:focus {
+            outline: none;
+            border-color: hsl(210,100%,70%);
+            background-color: hsl(210, 100%, 96%);
+        }
+        
     </style>
 </head>
 <body>
-    <h1>Enter Preview Code</h1>
-    <form method="post" action="access">
-        <input type="text" name="code" class="code">
+    <form class="form" method="post" action="access">
+        <label class="label">Enter Preview Code</label>
+        <input class="code" type="text" name="code" autofocus>
     </form>
 </body>
 </html>
