@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+apt-get upgrade -y
+
 # Curl
 apt-get install -y curl
 
