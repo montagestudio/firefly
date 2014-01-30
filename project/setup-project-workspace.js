@@ -4,7 +4,12 @@ var Q = require("q");
 var ProjectWorkspace = require("./project-workspace");
 
 module.exports = SetupProjectWorkspace;
-function SetupProjectWorkspace(docker, containers) {
+function SetupProjectWorkspace(docker, containers, _request) {
+    // Only used for testing
+    if (_request) {
+        request = _request;
+    }
+
     // TODO configure
     var IMAGE_NAME = "firefly_project";
     var IMAGE_PORT = "2441";
@@ -103,7 +108,7 @@ function SetupProjectWorkspace(docker, containers) {
         }
 
         return request({
-            host: "localhost",
+            host: "127.0.0.1",
             port: port,
             method: "OPTIONS",
             path: "/check"
