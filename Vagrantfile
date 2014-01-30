@@ -70,7 +70,7 @@ Vagrant.configure('2') do |config|
         lb.vm.provision "shell", inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg"
         lb.vm.provision "shell", inline: "sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg"
         #   web-server
-        lb.vm.provision "shell", inline: "sed -i.bak 's/server filament1 [0-9\.]*/server filament1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision "shell", inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
 
         # Start
         lb.vm.provision :shell, :inline => "service rsyslog restart"
