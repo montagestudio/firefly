@@ -44,7 +44,7 @@ exports.RepositoryController = Montage.specialize({
         value: function() {
             return this._request({
                 method: "POST",
-                url: "/" + this.owner + "/" + this.repo + "/init"
+                url: "/api/" + this.owner + "/" + this.repo + "/init"
             });
         }
     },
@@ -120,7 +120,7 @@ exports.RepositoryController = Montage.specialize({
         value: function() {
             return this._request({
                 method: "GET",
-                url: "/" + this.owner + "/" + this.repo + "/workspace"
+                url: "/api/" + this.owner + "/" + this.repo + "/workspace"
             })
             .then(function(message) {
                 return message.created;
@@ -132,7 +132,7 @@ exports.RepositoryController = Montage.specialize({
         value: function(name) {
             return this._request({
                 method: "POST",
-                url: "/" + this.owner + "/" + this.repo + "/components",
+                url: "/api/" + this.owner + "/" + this.repo + "/components",
                 data: {
                     "name": name
                 }
@@ -144,7 +144,7 @@ exports.RepositoryController = Montage.specialize({
         value: function(name, extendsModuleId, extendsName) {
             return this._request({
                 method: "POST",
-                url: "/" + this.owner + "/" + this.repo + "/modules",
+                url: "/api/" + this.owner + "/" + this.repo + "/modules",
                 data: {
                     "name": name,
                     "extendsModuleId": extendsModuleId,
@@ -157,8 +157,8 @@ exports.RepositoryController = Montage.specialize({
     saveFile: {
         value: function(filename, contents) {
             return this._request({
-                method: "PUT",
-                url: "/" + this.owner + "/" + this.repo,
+                method: "POST",
+                url: "/api/" + this.owner + "/" + this.repo + "/save",
                 data: {
                     "filename": filename,
                     "contents": contents
@@ -171,7 +171,7 @@ exports.RepositoryController = Montage.specialize({
         value: function(message) {
             return this._request({
                 method: "POST",
-                url: "/" + this.owner + "/" + this.repo + "/flush",
+                url: "/api/" + this.owner + "/" + this.repo + "/flush",
                 data: {
                     message: message
                 }

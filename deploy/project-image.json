@@ -35,12 +35,12 @@
         "script": "{{user `home`}}/deploy/provision/base.sh"
     }, {
         "type": "file",
-        "source": "{{user `build`}}/firefly.tgz",
-        "destination": "/srv/firefly.tgz"
-    }, {
-        "type": "file",
         "source": "{{user `build`}}/filament.tgz",
         "destination": "/srv/filament.tgz"
+    }, {
+        "type": "file",
+        "source": "{{user `build`}}/firefly.tgz",
+        "destination": "/srv/firefly.tgz"
     }, {
         "type": "file",
         "source": "{{user `build`}}/projectserver.tgz",
@@ -54,7 +54,7 @@
         "script": "{{user `home`}}/deploy/provision/project.sh"
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/services/projectserver.conf",
+        "source": "{{user `home`}}/deploy/services/firefly-project.conf",
         "destination": "/etc/init/projectserver.conf"
     }]
 }

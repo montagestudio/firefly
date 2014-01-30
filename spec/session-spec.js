@@ -1,5 +1,5 @@
 var packedSession = require("../packed-session");
-var MockGithubApi = require("../mocks/github-api");
+var MockGithubApi = require("./mocks/github-api");
 
 describe("packedSession", function () {
     var token, username, packed;

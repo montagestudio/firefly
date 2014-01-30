@@ -63,12 +63,14 @@ Vagrant.configure('2') do |config|
 
         lb.vm.provision "shell", inline: "cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg"
 
-        # Change the haproxy config for this development environment
+        # Change the haproxy config for this development environment. If you
+        # change any of the following lines make sure to update the bit about
+        # HAProxy in the readme as well
         #   login
         lb.vm.provision "shell", inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg"
         lb.vm.provision "shell", inline: "sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg"
         #   web-server
-        lb.vm.provision "shell", inline: "sed -i.bak 's/server filament1 [0-9\.]*/server filament1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision "shell", inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
 
         # Start
         lb.vm.provision :shell, :inline => "service rsyslog restart"
@@ -95,6 +97,9 @@ Vagrant.configure('2') do |config|
         login.vm.hostname = "login"
         login.vm.network "private_network", ip: "10.0.0.4"
         login.vm.network "forwarded_port", guest: 2440, host: 8084
+        # For node-inspector
+        login.vm.network "forwarded_port", guest: 8080, host: 8104
+        login.vm.provision :shell, :inline => "npm install -g node-inspector"
 
         # TODO don't mount filament when server is split
         login.vm.synced_folder "../filament", "/srv/filament"
@@ -102,10 +107,33 @@ Vagrant.configure('2') do |config|
 
         login.vm.provision "shell", path: "deploy/provision/login.sh"
 
-        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly.conf /etc/init/firefly.conf"
+        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
 
         # Start
-        login.vm.provision :shell, :inline => "service firefly start || service firefly reload"
+        login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
+    end
+
+    config.vm.define "project" do |project|
+        project.vm.hostname = "project"
+        project.vm.network "private_network", ip: "10.0.0.5"
+        project.vm.network "forwarded_port", guest: 2440, host: 8085
+        # For node-inspector
+        project.vm.network "forwarded_port", guest: 8080, host: 8105
+        project.vm.provision :shell, :inline => "npm install -g node-inspector"
+
+        # TODO don't mount filament when server is split
+        project.vm.synced_folder "../filament", "/srv/filament"
+        project.vm.synced_folder ".", "/srv/firefly"
+        project.vm.synced_folder "./projectserver", "/srv/projectserver"
+
+        project.vm.provision :shell, :inline => "cp /vagrant/deploy/files/Dockerfile /srv/Dockerfile"
+
+        project.vm.provision "shell", path: "deploy/provision/project.sh"
+
+        project.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
+
+        # Start
+        project.vm.provision :shell, :inline => "service firefly-project start || service firefly-project reload"
     end
 
 end
