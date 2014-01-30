@@ -154,7 +154,7 @@ When things go wrong:
 
 ```bash
 vagrant ssh login -c "tail -f /home/montage/stderr.log"
-vagrant ssh project -c "sudo tail -n 30 /var/log/upstart/firefly-login.log"
+vagrant ssh login -c "sudo tail -n 30 /var/log/upstart/firefly-login.log"
 ```
 
 ### Project
