@@ -21,8 +21,11 @@ Initial setup
     firefly/
     ```
 
- 2. Install Vagrant from http://www.vagrantup.com/downloads.html
- 3. Run `vagrant plugin install vagrant-cachier`. This will cache apt packages
+ 2. Install VirtualBox from https://www.virtualbox.org/wiki/Downloads if you
+    don't have it installed already. You may need to add
+    `/Applications/VirtualBox.app/Contents/MacOS/VBoxManage` to your `PATH`.
+ 3. Install Vagrant from http://www.vagrantup.com/downloads.html
+ 4. Run `vagrant plugin install vagrant-cachier`. This will cache apt packages
     to speed up the initialization of the VMs
 
 Starting
@@ -36,6 +39,29 @@ production setup. This means that we should be able to avoid causing problems
 that would usually only be seen in production.
 
 You can then access the server at http://local-firefly.declarativ.net:2440/
+
+### Expected warnings
+
+There is a lot of output when provisioning, and a number of warnings. The ones
+below are expected:
+
+```
+dpkg-preconfigure: unable to re-open stdin: No such file or directory
+```
+
+```
+The guest additions on this VM do not match the installed version of VirtualBox
+```
+
+```
+adduser: The group `admin' already exists.
+adduser: The user `admin' does not exist.
+chown: invalid user: `admin:admin'
+```
+
+```
+stdin: is not a tty
+```
 
 ### Resuming after sleep
 
