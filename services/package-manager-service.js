@@ -40,7 +40,7 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
     };
 
     service.installProjectPackages = function () {
-        return listDependencies(fs, fs.ROOT, true).then(function (dependencyTree) {
+        return listDependencies(fs, fs.ROOT, false).then(function (dependencyTree) {
             var dependenciesToInstall = dependencyTree.children.regular,
                 requestedPackages = [];
 
