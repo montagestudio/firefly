@@ -100,6 +100,11 @@ Vagrant.configure('2') do |config|
         # For node-inspector
         login.vm.network "forwarded_port", guest: 8080, host: 8104
         login.vm.provision :shell, :inline => "npm install -g node-inspector"
+        # Install and configure rinetd to make nodejs debugging available
+        # externally
+        login.vm.provision :shell, :inline => "sudo apt-get install rinetd"
+        login.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.0.4 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
+        login.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
 
         # TODO don't mount filament when server is split
         login.vm.synced_folder "../filament", "/srv/filament"
@@ -120,6 +125,11 @@ Vagrant.configure('2') do |config|
         # For node-inspector
         project.vm.network "forwarded_port", guest: 8080, host: 8105
         project.vm.provision :shell, :inline => "npm install -g node-inspector"
+        # Install and configure rinetd to make nodejs debugging available
+        # externally
+        project.vm.provision :shell, :inline => "sudo apt-get install rinetd"
+        project.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.0.5 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
+        project.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
 
         # TODO don't mount filament when server is split
         project.vm.synced_folder "../filament", "/srv/filament"

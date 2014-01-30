@@ -117,6 +117,16 @@ again works.
 
 The port that `node-inspector` is exposed on is defined in the Vagrantfile.
 
+Remote debugging Node
+---------------------
+
+Run
+
+ * `npm run login-remote-debug` and use 10.0.0.4:5858 as the connection point or
+ * `npm run project-remote-debug` and use 10.0.0.5:5858 as the connection point
+
+You can connect using the node-inspector running on the host machine or any other client that supports node.js remote debugging such as WebStorm.
+
 Logging
 -------
 
