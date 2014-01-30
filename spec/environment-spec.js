@@ -16,9 +16,9 @@ describe("environment", function () {
 
         describe("getProjectUrlFromAppUrl", function () {
             it("returns a url", function () {
-                expect(environment.getProjectUrlFromAppUrl("owner/repo")).toEqual("http://owner-repo.local-project.127.0.0.1.xip.io:2440");
-                expect(environment.getProjectUrlFromAppUrl("/owner/repo")).toEqual("http://owner-repo.local-project.127.0.0.1.xip.io:2440");
-                expect(environment.getProjectUrlFromAppUrl("/owner/repo/fail")).toEqual("http://owner-repo.local-project.127.0.0.1.xip.io:2440");
+                expect(environment.getProjectUrlFromAppUrl("owner/repo")).toEqual("http://owner-repo.local-project.montagestudio.com:2440");
+                expect(environment.getProjectUrlFromAppUrl("/owner/repo")).toEqual("http://owner-repo.local-project.montagestudio.com:2440");
+                expect(environment.getProjectUrlFromAppUrl("/owner/repo/fail")).toEqual("http://owner-repo.local-project.montagestudio.com:2440");
             });
         });
 
@@ -30,7 +30,7 @@ describe("environment", function () {
 
         describe("getProjectHost", function () {
             it("returns a host", function () {
-                expect(environment.getProjectHost()).toEqual("local-project.127.0.0.1.xip.io:2440");
+                expect(environment.getProjectHost()).toEqual("local-project.montagestudio.com:2440");
             });
         });
 

@@ -12,7 +12,7 @@ function Env(options) {
     delete env.app.host;
     delete env.app.pathname;
 
-    env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.127.0.0.1.xip.io:2440");
+    env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.montagestudio.com:2440");
     delete env.project.host;
     delete env.project.pathname;
 
