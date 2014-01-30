@@ -150,7 +150,7 @@ the logs for the different servers:
 
 Run `npm run login-logs`
 
-When things go wrong:
+When the server fails to launch:
 
 ```bash
 vagrant ssh login -c "tail -f /home/montage/stderr.log"
@@ -161,7 +161,7 @@ vagrant ssh login -c "sudo tail -n 30 /var/log/upstart/firefly-login.log"
 
 Run `npm run project-logs`
 
-When things go wrong:
+When the server fails to launch:
 
 ```bash
 vagrant ssh project -c "tail -f /home/montage/stderr.log"
