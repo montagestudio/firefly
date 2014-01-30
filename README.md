@@ -184,6 +184,13 @@ You can also see the state of the load-balancer (HAProxy) and the servers at
 http://local-firefly.declarativ.net:2440/haproxy?stats and logging in with
 user `montage`, password `Mont@ge1789`.
 
+Viewing the clone directory
+---------------------------
+
+Run `npm run project-clone`
+
+This will drop you into a shell inside the `/srv/clone` directory.
+
 Session
 -------
 
