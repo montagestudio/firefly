@@ -91,6 +91,10 @@ Vagrant.configure('2') do |config|
 
         web.vm.provision :shell, :inline => "cp /vagrant/deploy/files/nginx.conf /etc/nginx/nginx.conf"
 
+        # Using sendfile with remote filesystems (like the Vagrant mounted one)
+        # is not reliable. Turn it off. Thanks https://coderwall.com/p/ztskha
+        web.vm.provision :shell, inline: "sed -i.bak 's/sendfile on/sendfile off/' /etc/nginx/nginx.conf"
+
         # Start
         web.vm.provision :shell, :inline => "nginx || nginx -s reload"
     end
