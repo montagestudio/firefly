@@ -8,7 +8,7 @@ Vagrant.configure('2') do |config|
         config.cache.enable :apt
     end
 
-    config.vm.provision "shell", path: "deploy/provision/base.sh"
+    config.vm.provision :shell, path: "deploy/provision/base.sh"
 
     # The machines listed below should match as closely as possible the Packer
     # .json images. Try and keep the steps in the same order as in the .json
@@ -41,7 +41,7 @@ Vagrant.configure('2') do |config|
     # the machine. In the VM the `/vagrant` path is the root of this directory
     # and so this is where you can copy from:
     #
-    #   NAME.vm.provision "shell", inline: "cp /vagrant/deploy/files/EXAMPLE /etc/EXAMPLE"
+    #   NAME.vm.provision :shell, inline: "cp /vagrant/deploy/files/EXAMPLE /etc/EXAMPLE"
     #
     # Running services
     #
@@ -57,20 +57,20 @@ Vagrant.configure('2') do |config|
         # Exposed so that existing URL works
         lb.vm.network "forwarded_port", guest: 80, host: 2440
 
-        lb.vm.provision "shell", inline: "cp /vagrant/deploy/files/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf"
+        lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf"
 
-        lb.vm.provision "shell", path: "deploy/provision/load-balancer.sh"
+        lb.vm.provision :shell, path: "deploy/provision/load-balancer.sh"
 
-        lb.vm.provision "shell", inline: "cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg"
 
         # Change the haproxy config for this development environment. If you
         # change any of the following lines make sure to update the bit about
         # HAProxy in the readme as well
         #   login
-        lb.vm.provision "shell", inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg"
-        lb.vm.provision "shell", inline: "sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg"
         #   web-server
-        lb.vm.provision "shell", inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
 
         # Start
         lb.vm.provision :shell, :inline => "service rsyslog restart"
@@ -82,7 +82,7 @@ Vagrant.configure('2') do |config|
         web.vm.network "private_network", ip: "10.0.0.3"
         web.vm.network "forwarded_port", guest: 80, host: 8083
 
-        web.vm.provision "shell", path: "deploy/provision/web-server.sh"
+        web.vm.provision :shell, path: "deploy/provision/web-server.sh"
 
         web.vm.synced_folder "../filament", "/srv/app"
         web.vm.synced_folder "inject/adaptor", "/srv/app/adaptor"
@@ -110,7 +110,7 @@ Vagrant.configure('2') do |config|
         login.vm.synced_folder "../filament", "/srv/filament"
         login.vm.synced_folder ".", "/srv/firefly"
 
-        login.vm.provision "shell", path: "deploy/provision/login.sh"
+        login.vm.provision :shell, path: "deploy/provision/login.sh"
 
         login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
 
@@ -138,7 +138,7 @@ Vagrant.configure('2') do |config|
 
         project.vm.provision :shell, :inline => "cp /vagrant/deploy/files/Dockerfile /srv/Dockerfile"
 
-        project.vm.provision "shell", path: "deploy/provision/project.sh"
+        project.vm.provision :shell, path: "deploy/provision/project.sh"
 
         project.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
 
