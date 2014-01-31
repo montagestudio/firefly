@@ -14,7 +14,7 @@ describe("preview-server", function () {
     it("should inject the preview js scripts into the html file", function(done) {
         var request = {
             scheme: "http",
-            host: "owner-repo.local-project.127.0.0.1.xip.io:2440"
+            host: "owner-repo.local-project.montagestudio.com:2440"
         };
         var response = {
             body: Q.resolve({
@@ -31,7 +31,7 @@ describe("preview-server", function () {
             var body = response.body[0];
             var parser = new htmlparser.Parser({
                 onopentag: function(name, attribs){
-                    if(name === "script" && attribs.src === "http://owner-repo.local-project.127.0.0.1.xip.io:2440/{$PREVIEW}/preview.js"){
+                    if(name === "script" && attribs.src === "http://owner-repo.local-project.montagestudio.com:2440/{$PREVIEW}/preview.js"){
                         found = true;
                     }
                 }
