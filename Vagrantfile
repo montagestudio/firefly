@@ -98,7 +98,7 @@ Vagrant.configure('2') do |config|
         login.vm.network "private_network", ip: "10.0.0.4"
         login.vm.network "forwarded_port", guest: 2440, host: 8084
         # For node-inspector
-        login.vm.network "forwarded_port", guest: 8080, host: 8104
+        login.vm.network "forwarded_port", guest: 8104, host: 8104
         login.vm.provision :shell, :inline => "npm install -g node-inspector"
         # Install and configure rinetd to make nodejs debugging available
         # externally
@@ -123,7 +123,7 @@ Vagrant.configure('2') do |config|
         project.vm.network "private_network", ip: "10.0.0.5"
         project.vm.network "forwarded_port", guest: 2440, host: 8085
         # For node-inspector
-        project.vm.network "forwarded_port", guest: 8080, host: 8105
+        project.vm.network "forwarded_port", guest: 8105, host: 8105
         project.vm.provision :shell, :inline => "npm install -g node-inspector"
         # Install and configure rinetd to make nodejs debugging available
         # externally

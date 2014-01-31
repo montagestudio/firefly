@@ -14,9 +14,9 @@
 
     "login-logs": "vagrant ssh login -c 'tail -f /home/montage/stdout.log'",
     "project-logs": "vagrant ssh project -c 'tail -f /home/montage/stdout.log'",
-    "login-debug": "vagrant ssh login -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"' && vagrant ssh login -c node-inspector",
+    "login-debug": "vagrant ssh login -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"' && vagrant ssh login -c 'node-inspector --web-port=8104'",
     "login-remote-debug": "vagrant ssh login -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"'",
-    "project-debug": "vagrant ssh project -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"' && vagrant ssh project -c node-inspector",
+    "project-debug": "vagrant ssh project -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"' && vagrant ssh project -c 'node-inspector --web-port=8105'",
     "project-remote-debug": "vagrant ssh project -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"'",
     "project-clone": "vagrant ssh project -c 'sudo su montage -c \"cd /srv/clone && bash\"'",
 
