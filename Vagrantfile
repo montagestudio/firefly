@@ -73,6 +73,8 @@ Vagrant.configure('2') do |config|
         lb.vm.provision :shell, inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
 
         # Start
+        # HAProxy uses rsyslog. It needs to be restarted to pick up the
+        # configuration change
         lb.vm.provision :shell, :inline => "service rsyslog restart"
         lb.vm.provision :shell, :inline => "service haproxy start || service haproxy reload"
     end
