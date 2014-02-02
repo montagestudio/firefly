@@ -1,5 +1,6 @@
 var log = require("logging").from(__filename);
 var joey = require("joey");
+var APPS = require("q-io/http-apps");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var environment = require("../environment");
@@ -46,6 +47,8 @@ function server(options) {
     })
     .log(log, function (message) { return message; })
     .use(LogStackTraces(log))
+    .tap(parseCookies)
+    .use(sessions)
     .route(function (_, __, ___, POST) {
         // This endpoint recieves a POST request with a session ID as the
         // payload. It then "echos" this back as a set-cookie, so that
@@ -55,14 +58,15 @@ function server(options) {
                 return request.body.read()
                 .then(function (body) {
                     var sessionId = JSON.parse(body.toString("utf8"));
-                    return {
-                        status: 200,
-                        headers: {
-                            // TODO do this through the session object
-                            "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
-                        },
-                        body: []
-                    };
+                    return sessions.get(sessionId)
+                    .then(function(session) {
+                        if (session) {
+                            request.session = session;
+                            return APPS.ok();
+                        } else {
+                            return APPS.badRequest();
+                        }
+                    });
                 });
             } else {
                 log("Invalid request to /session from origin", request.headers.origin);
@@ -74,8 +78,6 @@ function server(options) {
             }
         });
     })
-    .tap(parseCookies)
-    .use(sessions)
     .use(checkSession)
     .use(function (next) {
         var serveProject = preview(function (request) {
