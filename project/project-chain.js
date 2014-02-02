@@ -81,7 +81,7 @@ function server(options) {
     .use(checkSession)
     .use(function (next) {
         var serveProject = preview(function (request) {
-            var path = environment.getProjectPathFromSessionAndProjectUrl(request.session, request.headers.host);
+            var path = environment.getProjectPathFromProjectUrl(request.headers.host);
 
             log("rerooting to", fs.join(path));
             return fs.reroot(fs.join(path)).then(function(fs) {
