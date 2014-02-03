@@ -20,6 +20,10 @@ var execNpm = function execNpm(command, args, npmfs) {
     var deferred = Q.defer(),
         procChild = null;
 
+    if (Array.isArray(args)) {
+        args = args.join();
+    }
+
     switch (command) {
         case COMMANDS.VIEW:
             if (args) {
