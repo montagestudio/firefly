@@ -43,6 +43,10 @@ var execNpm = function execNpm(command, args, npmfs) {
             result = message;
         });
 
+        procChild.on("error", function (error) {
+            deferred.reject(error);
+        });
+
         procChild.on('exit', function (code) {
             if (code !== 0) {
                 deferred.reject(new Error("'npm " + command + " " + args.join(" ") + "' in " + npmfs + " exited with code " + code));
