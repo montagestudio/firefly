@@ -37,10 +37,15 @@ function server(options) {
 
     var chain = joey
     .error()
-    .log(log, function (message) { return message; })
-    .use(LogStackTraces(log))
     .cors(environment.getAppUrl(), "*", "*")
     .headers({"Access-Control-Allow-Credentials": true})
+    // Put here to avoid printing logs when HAProxy pings the server for
+    // a health check
+    .route(function () {
+        this.OPTIONS("").content("");
+    })
+    .log(log, function (message) { return message; })
+    .use(LogStackTraces(log))
     .route(function (_, __, ___, POST) {
         // This endpoint recieves a POST request with a session ID as the
         // payload. It then "echos" this back as a set-cookie, so that
