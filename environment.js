@@ -12,9 +12,14 @@ function Env(options) {
     delete env.app.host;
     delete env.app.pathname;
 
-    env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.127.0.0.1.xip.io:2440");
+    env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.montagestudio.com:2440");
     delete env.project.host;
     delete env.project.pathname;
+
+    env.configure = function (fs, clonePath) {
+        this.fs = fs;
+        this.clonePath = fs.absolute(clonePath);
+    };
 
     env.getAppHost = function() {
         return getHost(this.app.hostname, this.app.port);
@@ -36,14 +41,6 @@ function Env(options) {
             repo: repo.toLowerCase()
         };
     };
-    env.getProjectPathFromSessionAndAppUrl = function (session, url) {
-        var details = this.getDetailsFromAppUrl(url);
-
-        // FIXME not to use FS
-        var FS = require("q-io/fs");
-        return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
-    };
-
     env.getDetailsFromAppUrl = function (url) {
         var pathname = URL.parse(url).pathname;
 
@@ -83,25 +80,26 @@ function Env(options) {
         return URL.format(urlObj);
     };
     env.getProjectPathFromSessionAndAppUrl = function (session, url) {
+        if (!this.fs || !this.clonePath) {
+            throw new Error("Environment must be configured before using this function");
+        }
         var details = this.getDetailsFromAppUrl(url);
 
-        // FIXME not to use FS
-        var FS = require("q-io/fs");
-        return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
+        return this.fs.join(this.clonePath, session.username, details.owner, details.repo);
     };
     env.getProjectPathFromSessionAndProjectUrl = function (session, url) {
+        if (!this.fs || !this.clonePath) {
+            throw new Error("Environment must be configured before using this function");
+        }
         var details = this.getDetailsfromProjectUrl(url);
 
-        // FIXME not to use FS
-        var FS = require("q-io/fs");
-        return FS.join(process.cwd(), "..", "clone", session.username, details.owner, details.repo);
+        return this.fs.join(this.clonePath, session.username, details.owner, details.repo);
     };
 
     env.getProjectHost = function() {
         return getHost(this.project.hostname, this.project.port);
     };
 
-    // }
     return env;
 }
 
