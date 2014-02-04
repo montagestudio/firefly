@@ -8,6 +8,10 @@ var GithubSessionStore = require("./github-session-store");
 var Session = require("./session");
 var CheckSession = require("./check-session");
 
+var SetupProjectWorkspace = require("./project/setup-project-workspace");
+var Docker = require("./project/docker");
+var containerIndex = require("./project/make-container-index")("/srv/container-index.json");
+
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
 var commandOptions = {
@@ -44,9 +48,7 @@ function main(options) {
         clientServices: options.clientServices,
         sessions: sessions,
         checkSession: CheckSession,
-        setupProjectWorkspace: require("./project/setup-project-workspace"),
-        directory: fs.absolute(options.directory),
-        minitPath: fs.join(__dirname, "node_modules", "minit", "minit")
+        setupProjectWorkspace: SetupProjectWorkspace(new Docker({socketPath: "/var/run/docker.sock"}), containerIndex)
     });
     return projectChain.listen(options.port)
     .then(function (server) {

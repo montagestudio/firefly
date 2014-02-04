@@ -4,13 +4,13 @@ var JsonApps = require("q-io/http-apps/json");
 
 var sanitize = require("../sanitize");
 
-module.exports = function (setupProjectWorkspace, directory, minitPath) {
+module.exports = function (setupProjectWorkspace) {
     return joey.route(function (route) {
         route(":owner/:repo/...").route(function (route) {
             route("init")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(directory, minitPath))
+                .use(setupProjectWorkspace)
                 .app(function (request) {
                     return handleEndpoint(request, function() {
                         log("init handleEndpoint");
@@ -24,7 +24,7 @@ module.exports = function (setupProjectWorkspace, directory, minitPath) {
             route("components")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(directory, minitPath))
+                .use(setupProjectWorkspace)
                 .app(function (request) {
                     return handleEndpoint(request, function(data) {
                         return request.projectWorkspace.createComponent(
@@ -38,7 +38,7 @@ module.exports = function (setupProjectWorkspace, directory, minitPath) {
             route("modules")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(directory, minitPath))
+                .use(setupProjectWorkspace)
                 .app(function (request) {
                     return handleEndpoint(request, function(data) {
                         return request.projectWorkspace.createModule(
@@ -53,7 +53,7 @@ module.exports = function (setupProjectWorkspace, directory, minitPath) {
             route("flush")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(directory, minitPath))
+                .use(setupProjectWorkspace)
                 .app(function (request) {
                     return handleEndpoint(request, function(data) {
                         return request.projectWorkspace.flushWorkspace(
@@ -67,7 +67,7 @@ module.exports = function (setupProjectWorkspace, directory, minitPath) {
             route("workspace")
             .methods(function (method) {
                 method("GET")
-                .use(setupProjectWorkspace(directory, minitPath))
+                .use(setupProjectWorkspace)
                 .app(function (request) {
                     return handleEndpoint(request, function() {
                         return request.projectWorkspace.existsWorkspace();
@@ -80,7 +80,7 @@ module.exports = function (setupProjectWorkspace, directory, minitPath) {
             route("save")
             .methods(function (method) {
                 method("POST")
-                .use(setupProjectWorkspace(directory, minitPath))
+                .use(setupProjectWorkspace)
                 .app(function (request) {
                     return handleEndpoint(request, function(data) {
                         return request.projectWorkspace.saveFile(

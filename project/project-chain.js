@@ -30,10 +30,6 @@ function server(options) {
     var checkSession = options.checkSession;
     if (!options.setupProjectWorkspace) throw new Error("options.setupProjectWorkspace required");
     var setupProjectWorkspace = options.setupProjectWorkspace;
-    if (!options.directory) throw new Error("options.directory required");
-    var directory = options.directory;
-    if (!options.minitPath) throw new Error("options.minitPath required");
-    var minitPath = options.minitPath;
     //jshint +W116
     var preview = PreviewServer.Preview(sessions);
 
@@ -108,7 +104,7 @@ function server(options) {
     })
     .use(checkSession)
     .route(function (route) {
-        route("api/...").app(api(setupProjectWorkspace, directory, minitPath).end());
+        route("api/...").app(api(setupProjectWorkspace).end());
     });
 
     // These services should be customized per websocket connection, to
