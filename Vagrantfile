@@ -21,10 +21,10 @@ Vagrant.configure('2') do |config|
     #   NAME.vm.network "private_network", ip: "10.0.0.2"
     #
     # If the VM exposes a service then forward that port out so that it can be
-    # hit directly for debugging. It should be of the form `808x`, where `x` is
+    # hit directly for debugging. It should be of the form `818x`, where `x` is
     # the same as the final part of the IP (just to make things easier).
     #
-    #   NAME.vm.network "forwarded_port", guest: 80, host: 8082
+    #   NAME.vm.network "forwarded_port", guest: 80, host: 8182
     #
     # Synced directories
     #
@@ -53,7 +53,7 @@ Vagrant.configure('2') do |config|
     config.vm.define "load-balancer" do |lb|
         lb.vm.hostname = "load-balancer"
         lb.vm.network "private_network", ip: "10.0.0.2"
-        lb.vm.network "forwarded_port", guest: 80, host: 8082
+        lb.vm.network "forwarded_port", guest: 80, host: 8182
         # Exposed so that existing URL works
         lb.vm.network "forwarded_port", guest: 80, host: 2440
 
@@ -71,6 +71,11 @@ Vagrant.configure('2') do |config|
         lb.vm.provision :shell, inline: "sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg"
         #   web-server
         lb.vm.provision :shell, inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
+        #   project
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server project1 [0-9\.]*/server project1 10.0.0.5/' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server project2 .*//' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg"
 
         # Start
         # HAProxy uses rsyslog. It needs to be restarted to pick up the
@@ -82,7 +87,7 @@ Vagrant.configure('2') do |config|
     config.vm.define "web-server" do |web|
         web.vm.hostname = "web-server"
         web.vm.network "private_network", ip: "10.0.0.3"
-        web.vm.network "forwarded_port", guest: 80, host: 8083
+        web.vm.network "forwarded_port", guest: 80, host: 8183
 
         web.vm.provision :shell, path: "deploy/provision/web-server.sh"
 
@@ -102,7 +107,7 @@ Vagrant.configure('2') do |config|
     config.vm.define "login" do |login|
         login.vm.hostname = "login"
         login.vm.network "private_network", ip: "10.0.0.4"
-        login.vm.network "forwarded_port", guest: 2440, host: 8084
+        login.vm.network "forwarded_port", guest: 2440, host: 8184
         # For node-inspector
         login.vm.network "forwarded_port", guest: 8104, host: 8104
         login.vm.provision :shell, :inline => "npm install -g node-inspector"
@@ -127,7 +132,7 @@ Vagrant.configure('2') do |config|
     config.vm.define "project" do |project|
         project.vm.hostname = "project"
         project.vm.network "private_network", ip: "10.0.0.5"
-        project.vm.network "forwarded_port", guest: 2440, host: 8085
+        project.vm.network "forwarded_port", guest: 2440, host: 8185
         # For node-inspector
         project.vm.network "forwarded_port", guest: 8105, host: 8105
         project.vm.provision :shell, :inline => "npm install -g node-inspector"
