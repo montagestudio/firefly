@@ -108,14 +108,15 @@ Debugging Node
 
 Run
 
- * `npm run login-debug` and go to http://127.0.0.1:8104/debug?port=5858 or
- * `npm run project-debug` and go to http://127.0.0.1:8105/debug?port=5858
+ * `npm run login-debug` or
+ * `npm run project-debug`
 
 This sends a signal to the server process to enable debug mode, and then starts
 `node-inspector`. Sometimes the command exits with a weird error but running it
 again works.
 
-The port that `node-inspector` is exposed on is defined in the Vagrantfile.
+The port that `node-inspector` is exposed on is defined in the package.json and
+forwarded in the Vagrantfile.
 
 Remote debugging Node
 ---------------------
