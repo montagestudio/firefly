@@ -26,11 +26,11 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
     };
 
     service.gatherPackageInformation = function (requestedPackage) {
-        return execNpm(execNpm.COMMANDS.VIEW, [requestedPackage], fsPath);
+        return execNpm(execNpm.COMMANDS.VIEW, requestedPackage, fsPath);
     };
 
-    service.installPackage = function (requestedPackage) {
-        return execNpm(execNpm.COMMANDS.INSTALL, [requestedPackage], fsPath);
+    service.installPackages = function (requestedPackages) {
+        return execNpm(execNpm.COMMANDS.INSTALL, requestedPackages, fsPath);
     };
 
     service.removePackage= function (packageName) {
@@ -39,6 +39,23 @@ function PackageManagerService (fs, environment, pathname, fsPath) {
 
     service.findOutdatedDependency = function () {
         return execNpm(execNpm.COMMANDS.OUTDATED, null, fsPath);
+    };
+
+    service.installProjectPackages = function () {
+        return listDependencies(fs, fs.ROOT, false).then(function (dependencyTree) {
+            var dependenciesToInstall = dependencyTree.children.regular,
+                requestedPackages = [];
+
+            dependenciesToInstall.forEach(function (dependency) {
+                if (dependency.missing) {
+                    requestedPackages.push(dependency.name);
+                }
+            });
+
+            if (requestedPackages.length > 0) {
+                return execNpm(execNpm.COMMANDS.INSTALL, requestedPackages, fsPath);
+            }
+        });
     };
 
     service.searchPackages = SearchPackages;

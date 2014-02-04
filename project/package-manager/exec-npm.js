@@ -11,29 +11,28 @@ var fork = require('child_process').fork,
 
 /**
  * Wrap executing the npm command in a promise.
- * @param {string} command - The npm command to execute.
- * @param {Array<string>} args - Arguments to the npm command.
- * @param {string} npmfs - The working directory to run the npm command in.
+ * @param {String} command - The npm command to execute.
+ * @param {String|Array<String>} args - Arguments for the npm command.
+ * @param {String} npmfs - The working directory to run the npm command in.
  * @return {Promise} A promise for the completion of the command.
  */
 var execNpm = function execNpm(command, args, npmfs) {
     var deferred = Q.defer(),
-        requestedPackage = null,
         procChild = null;
 
-    if (Array.isArray(args) && args.length > 0) {
-        requestedPackage = args[0];
+    if (Array.isArray(args)) {
+        args = args.join(",");
     }
 
     switch (command) {
         case COMMANDS.VIEW:
-            if (requestedPackage) {
-                procChild = fork(__dirname + '/npm-view-command.js', [requestedPackage, npmfs]);
+            if (args) {
+                procChild = fork(__dirname + '/npm-view-command.js', [args, npmfs]);
             }
             break;
         case COMMANDS.INSTALL:
-            if (requestedPackage) {
-                procChild = fork(__dirname + '/npm-install-command.js', [requestedPackage, npmfs]);
+            if (args) {
+                procChild = fork(__dirname + '/npm-install-command.js', [args, npmfs]);
             }
             break;
         case COMMANDS.OUTDATED:
@@ -46,6 +45,10 @@ var execNpm = function execNpm(command, args, npmfs) {
 
         procChild.on('message', function (message) {
             result = message;
+        });
+
+        procChild.on("error", function (error) {
+            deferred.reject(error);
         });
 
         procChild.on('exit', function (code) {

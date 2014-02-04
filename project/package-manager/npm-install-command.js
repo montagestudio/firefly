@@ -8,21 +8,35 @@ var PackageManagerTools = require("./package-manager-tools"),
 
     ERROR_NOT_FOUND = 2000,
     ERROR_VERSION_NOT_FOUND = 2001,
-    ERROR_WRONG_FORMAT = 2002,
-    ERROR_UNKNOWN = 2003;
+    ERROR_WRONG_FORMAT = 2002;
 
 /**
  * Invokes the NPM install command.
  * @function
- * @param {Object} npmLoaded represents the path where the package will be installed.
- * @param {String} request the package to install, should respect the following format: "name[@version]".
- * @return {Promise.<Object>} A promise for the installed package.
+ * @param {Object} npmLoaded - A NPM instance loaded with its own configuration.
+ * @param {String} ModulesRequested - Modules list to install,
+ * each entry should respect the following format: "name[@version]".
+ * @return {Promise.<Object>} A promise for the installed modules.
  * @private
  */
-function execCommand (npmLoaded, request) {
-    if (PackageManagerTools.isRequestValid(request)) {
-        return Q.ninvoke(npmLoaded.commands, "install", [request]).then(function (data) { // packageLocation -> private API.
-            return _formatResponse(data[1]);
+function execCommand (npmLoaded, ModulesRequested) {
+    var _request = null;
+
+    if (typeof ModulesRequested === "string") {
+        var modulesRequestedCollection = ModulesRequested.split(","),
+
+            error = modulesRequestedCollection.some(function (moduleRequested) {
+                return !PackageManagerTools.isRequestValid(moduleRequested);
+            });
+
+        if (!error) {
+            _request = modulesRequestedCollection;
+        }
+    }
+
+    if (_request) {
+        return Q.ninvoke(npmLoaded.commands, "install", _request).then(function (data) {
+            return _formatListModulesInstalled(data[1]);
         }, function (error) {
             if (error && typeof error === 'object') {
                 if (error.code === 'E404') {
@@ -42,28 +56,30 @@ function execCommand (npmLoaded, request) {
 }
 
 /**
- * Format the NPM response when the package installation is done.
+ * Format a "NPM Install" response.
  * @function
- * @param {Object} response contains all information about the installation.
- * @return {Object} a well formatted object containing all information about the installation.
+ * @param {Object} listModules - A list of all the modules which have been installed.
+ * @return {Array} A well formatted list of all the modules which have been installed.
  * @private
  */
-function _formatResponse (response) {
-    if (response && typeof response === 'object') {
-        var keys = Object.keys(response),
-            root = response[keys[0]];
+function _formatListModulesInstalled (listModules) {
+    var listModulesInstalled = [];
 
-        if (!root && typeof root !== 'object' && !root.hasOwnProperty('what')) {
-            throw new PackageManagerError("Dependency not installed, error unknown", ERROR_UNKNOWN);
-        }
+    if (listModules && typeof listModules === 'object') {
+        var listModulesKeys = Object.keys(listModules);
 
-        var information = PackageManagerTools.getModuleFromString(root.what);
+        listModulesKeys.forEach(function (moduleKeys) {
+            var moduleInstalled = listModules[moduleKeys],
+                information = PackageManagerTools.getModuleFromString(moduleInstalled.what);
 
-        return {
-            name: information.name || '',
-            version: information.version || ''
-        };
+            listModulesInstalled.push({
+                name: information.name || '',
+                version: information.version || ''
+            });
+        });
     }
+
+    return listModulesInstalled;
 }
 
 if (require.main === module && Arguments.length === 4) {
