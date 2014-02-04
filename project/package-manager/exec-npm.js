@@ -21,7 +21,7 @@ var execNpm = function execNpm(command, args, npmfs) {
         procChild = null;
 
     if (Array.isArray(args)) {
-        args = args.join();
+        args = args.join(",");
     }
 
     switch (command) {
