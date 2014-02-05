@@ -1,7 +1,7 @@
 var log = require("logging").from(__filename);
 var request = require("q-io/http").request;
 var Q = require("q");
-var ProjectWorkspace = require("./project-workspace");
+var ProjectWorkspaceProxy = require("./project-workspace-proxy");
 
 module.exports = SetupProjectWorkspace;
 function SetupProjectWorkspace(docker, containers, _request) {
@@ -24,8 +24,9 @@ function SetupProjectWorkspace(docker, containers, _request) {
 
             return getOrCreateContainer(user, owner, repo)
             .then(startContainer)
+            .then(waitForServer)
             .then(function (port) {
-                // request.projectWorkspace = new ProjectWorkspace(session, port, owner, repo);
+                request.projectWorkspace = new ProjectWorkspaceProxy(port);
                 return next(request, response);
             });
         };
