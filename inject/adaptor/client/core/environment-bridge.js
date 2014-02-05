@@ -487,6 +487,14 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function (packages) {
             return this.backend.get("package-manager-service").invoke("installProjectPackages");
         }
-    }
+    },
 
+    /**
+     * Repository functions.
+     */
+    listRepositoryBranches: {
+        value: function (packages) {
+            return this.backend.get("repository-service").invoke("listBranches");
+        }
+    }
 });
