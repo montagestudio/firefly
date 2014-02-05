@@ -279,13 +279,15 @@ module.exports = function listDependencies (fs, projectPath, shouldReadChildren)
 
         if (Array.isArray(problems)) {
             problems.forEach(function (problem) {
-                var rootDependencyNode = _findDependency(dependencyTree.children, problem.rootParent, problem.type);
+                var rootDependencyNode = _findDependency(dependencyTree.children, problem.rootParent);
 
-                if (!Array.isArray(rootDependencyNode.problems)) {
-                    rootDependencyNode.problems = [];
+                if (rootDependencyNode) {
+                    if (!Array.isArray(rootDependencyNode.problems)) {
+                        rootDependencyNode.problems = [];
+                    }
+
+                    rootDependencyNode.problems.push(problem);
                 }
-
-                rootDependencyNode.problems.push(problem);
             });
         }
     }
