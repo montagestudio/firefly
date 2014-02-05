@@ -12,11 +12,11 @@ describe("extension-service", function () {
             "package.json": "{}"
         });
 
-        service = ExtensionService(null,
+        service = ExtensionService(null, null,
             {
                 getAppUrl: function () {
                     return "http://example.com";
-                },
+                }
             },
             null,
             null,

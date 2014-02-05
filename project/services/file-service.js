@@ -31,7 +31,7 @@ var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function
     };
 };
 
-function FileService(fs, environment, pathname, fsPath) {
+function FileService(session, fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
 

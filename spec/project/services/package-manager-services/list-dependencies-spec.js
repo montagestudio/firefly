@@ -40,7 +40,7 @@ describe("list dependencies", function () {
 
         beforeEach(function () {
             mockFS = ProjectFSMocks(DEFAULT_PROJECT_APP);
-            service = PackageManagerService(mockFS);
+            service = PackageManagerService(null, mockFS);
         });
 
         it('should gather some correct information about the project.', function (done) {
@@ -125,7 +125,7 @@ describe("list dependencies", function () {
 
         beforeEach(function () {
             mockFS = ProjectFSMocks(DEFAULT_PROJECT_APP, true); // FS Project Sample with Errors
-            service = PackageManagerService(mockFS);
+            service = PackageManagerService(null, mockFS);
         });
 
         it('should detect when a regular dependency is missing.', function (done) {
@@ -224,7 +224,7 @@ describe("list dependencies", function () {
                 jsonFileError: true
             }));
 
-            PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
+            PackageManagerService(null, mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
                 expect(dependencyTree.jsonFileError).toEqual(true);
 
             }).then(done, done);
@@ -238,7 +238,7 @@ describe("list dependencies", function () {
                 version: '0.1.1'
             }));
 
-            PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
+            PackageManagerService(null, mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
                 expect(dependencyTree.children.regular.length).toEqual(0);
 
             }).then(done, done);
@@ -251,7 +251,7 @@ describe("list dependencies", function () {
                 "package.json": "{}"
             });
 
-            PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
+            PackageManagerService(null, mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
                 expect(dependencyTree.jsonFileMissing).toEqual(true);
 
             }).then(done, done);
