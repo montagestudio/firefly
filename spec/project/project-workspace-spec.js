@@ -1,5 +1,6 @@
 var Q = require("q");
 var fs = require("q-io/fs");
+var exec = require('child_process').exec;
 var MockGithubApi = require("../mocks/github-api");
 var ProjectWorkspace = require("../../project/project-workspace");
 
@@ -260,6 +261,16 @@ describe("ProjectWorkspace", function () {
             .then(function() {
                 expect(callOrder).toEqual(["_commitWorkspace", "_pushWorkspace"]);
             }).then(done, done);
+        });
+    });
+
+    /* The following describe must be the last one, it's only purpose is to remove all temp files created by the spec script.
+     */
+    describe("cleanup", function() {
+        it("should remove temporary git-clone-spec folders", function(done) {
+            exec("cd /tmp; rm -Rf git-clone-spec-*", function() {
+                done();
+            });
         });
     });
 });
