@@ -24,7 +24,7 @@ var commandOptions = {
     "port": {
         alias: "p",
         describe: "The port to run the app server on",
-        default: Env.project.port
+        default: Env.project.port || Env.port
     },
     "help": {
         describe: "Show this help",
