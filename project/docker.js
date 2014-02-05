@@ -19,4 +19,8 @@ Docker.prototype.createContainer = function () {
     });
 };
 
+Docker.prototype.listImages = function () {
+    return Q.npost(this.dockerode, "listImages", arguments);
+};
+
 Docker.prototype.Container = Container;
