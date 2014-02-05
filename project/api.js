@@ -5,6 +5,7 @@ var JsonApps = require("q-io/http-apps/json");
 var sanitize = require("../sanitize");
 
 module.exports = function (setupProjectWorkspace) {
+    // TODO version API by reading header Accept: application/vnd.firefly.v2+json
     return joey.route(function (route) {
         route(":owner/:repo/...").route(function (route) {
             route("init")
