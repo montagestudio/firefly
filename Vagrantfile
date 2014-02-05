@@ -124,6 +124,12 @@ Vagrant.configure('2') do |config|
         login.vm.provision :shell, path: "deploy/provision/login.sh"
 
         login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
+        login.vm.provision :shell, inline: "sed -i.bak 's/export NODE_ENV=.*//' /etc/init/firefly-login.conf"
+        login.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_ID=.*//' /etc/init/firefly-login.conf"
+        login.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_SECRET=.*//' /etc/init/firefly-login.conf"
+        login.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_APP_URL=.*//' /etc/init/firefly-login.conf"
+        login.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_URL=.*//' /etc/init/firefly-login.conf"
+        
 
         # Start
         login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
@@ -152,6 +158,11 @@ Vagrant.configure('2') do |config|
         project.vm.provision :shell, path: "deploy/provision/project.sh"
 
         project.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
+        project.vm.provision :shell, inline: "sed -i.bak 's/export NODE_ENV=.*//' /etc/init/firefly-project.conf"
+        project.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_ID=.*//' /etc/init/firefly-project.conf"
+        project.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_SECRET=.*//' /etc/init/firefly-project.conf"
+        project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_APP_URL=.*//' /etc/init/firefly-project.conf"
+        project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_URL=.*//' /etc/init/firefly-project.conf"
 
         # Start
         project.vm.provision :shell, :inline => "service firefly-project start || service firefly-project reload"
