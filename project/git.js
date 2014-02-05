@@ -36,6 +36,26 @@ Git.prototype.addRemote = function (repoPath, url) {
     });
 };
 
+Git.prototype.fetch = function(repoPath, remoteRepoNames) {
+    log("fetch " + remoteRepoNames);
+    var args = ["fetch"].concat(remoteRepoNames || "origin");
+    return exec("git", args, repoPath)
+    .fail(function() {
+        throw new Error("git fetch failed.");
+    });
+};
+
+Git.prototype.branch = function(repoPath, option) {
+    log("branches " + option);
+    if (option instanceof Array === false) {
+        option = [option];
+    }
+    return exec("git", ["branch"].concat(option), repoPath, true)
+    .fail(function() {
+        throw new Error("git branch failed.");
+    });
+};
+
 Git.prototype.add = function(repoPath, paths) {
     log("add " + paths);
     var args = ["add"].concat(paths);
