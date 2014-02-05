@@ -34,7 +34,7 @@ function websocket(sessions, services, clientPath) {
             log("Limiting", remoteAddress, pathname, "to", path);
             return getFs(session, path)
             .then(function (fs) {
-                return makeServices(services, fs, Env, pathname, path, clientPath);
+                return makeServices(services, session, fs, Env, pathname, path, clientPath);
             });
         });
 
@@ -77,11 +77,11 @@ function getFs(session, path) {
 
 // export for testing
 module.exports.makeServices = makeServices;
-function makeServices(services, fs, env, pathname, fsPath, clientPath) {
+function makeServices(services, session, fs, env, pathname, fsPath, clientPath) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
-        var service = services[name](fs, env, pathname, fsPath, clientPath);
+        var service = services[name](session, fs, env, pathname, fsPath, clientPath);
         connectionServices[name] = Q.master(service);
     });
     log("Finished creating services");

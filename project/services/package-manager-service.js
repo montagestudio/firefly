@@ -9,7 +9,7 @@ var FS = require("q-io/fs");
 
 module.exports = PackageManagerService;
 
-function PackageManagerService (fs, environment, pathname, fsPath) {
+function PackageManagerService (session, fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
 
