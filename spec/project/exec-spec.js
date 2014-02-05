@@ -25,4 +25,15 @@ describe("exec", function () {
             done();
         });
     });
+
+    it("returns some output", function (done) {
+        var text = "Did somebody break the code?";
+        exec("echo", [text], __dirname, true)
+        .then(function (output) {
+            // remove the trailing newline
+            output = output.substring(0, output.length - 1);
+            expect(output).toEqual(text);
+        })
+        .then(done, done);
+    });
 });
