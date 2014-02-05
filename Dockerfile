@@ -21,6 +21,8 @@ RUN add-apt-repository ppa:chris-lea/node.js
 RUN apt-get update
 RUN apt-get install -y nodejs
 
+RUN adduser --disabled-password --gecos "" montage
+
 ADD container /srv
 
 EXPOSE 2441

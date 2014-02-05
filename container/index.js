@@ -1,3 +1,9 @@
+// If root drop to unprivileged user
+if (process.getgid() === 0) {
+    process.setgid("montage");
+    process.setuid("montage");
+}
+
 var HTTP = require("http");
 var URL = require("url");
 
