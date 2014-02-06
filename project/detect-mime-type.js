@@ -29,6 +29,8 @@ function detectMimeType (fs, path, fsPath) {
         var parts = path.split('/'),
             fileName = parts[parts.length - 1];
 
+        mimeType = mimeType.toLowerCase();
+
         if (mimeType === LIB_MAGIC_MIME_TYPES.APPLICATION_XML && /\.dae$/.test(fileName)) {
 
             return !!isColladaMimeType(fs, path) ? ADDITIONAL_MIME_TYPES.COLLADA : mimeType;
