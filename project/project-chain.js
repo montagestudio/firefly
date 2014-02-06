@@ -10,7 +10,7 @@ var checkPreviewAccess = require("./preview/check-preview-access");
 var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
 
-var api = require("./api");
+var proxyApi = require("./proxy-api");
 var websocket = require("./websocket");
 
 module.exports = server;
@@ -104,7 +104,7 @@ function server(options) {
     })
     .use(checkSession)
     .route(function (route) {
-        route("api/...").app(api(setupProjectWorkspace).end());
+        route("api/:owner/:repo/...").app(proxyApi(setupProjectWorkspace));
     });
 
     // These services should be customized per websocket connection, to
