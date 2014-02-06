@@ -513,7 +513,7 @@ exports.EnvironmentBridge = Montage.specialize({
      * Repository functions.
      */
     listRepositoryBranches: {
-        value: function (packages) {
+        value: function () {
             return this.backend.get("repository-service").invoke("listBranches");
         }
     }

@@ -43,7 +43,7 @@ describe("repository-service", function () {
                 .then(function(result) {
                     expect(typeof result).toBe("object");
                     expect(typeof result.current).toBe("object");
-                    expect(result.branches instanceof Array).toBeTruthy();
+                    expect(Array.isArray(result.branches)).toBeTruthy();
                     expect(result.current.name).toBe("master");
 
                     var master = null;
