@@ -64,7 +64,7 @@ describe("Git", function () {
                 expect(branches.indexOf("remotes/origin/master")).not.toBe(-1);
             })
             .then(done, done);
-        });
+        }, 20000);
     });
 
     describe("add", function () {
