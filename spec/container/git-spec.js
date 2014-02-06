@@ -1,6 +1,6 @@
 var fs = require("q-io/fs");
 var exec = require('child_process').exec;
-var Git = require("../../project/git");
+var Git = require("../../container/git");
 
 describe("Git", function () {
     var git, tmpPath;

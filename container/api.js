@@ -2,7 +2,7 @@ var log = require("logging").from(__filename);
 var joey = require("joey");
 var JsonApps = require("q-io/http-apps/json");
 
-var sanitize = require("../sanitize");
+var sanitize = require("./sanitize");
 
 module.exports = function (setupProjectWorkspace) {
     // TODO version API by reading header Accept: application/vnd.firefly.v2+json

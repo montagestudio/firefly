@@ -1,4 +1,4 @@
-var exec = require("../../project/exec");
+var exec = require("../../container/exec");
 
 describe("exec", function () {
     it("doesn't wait on stdout", function (done) {
