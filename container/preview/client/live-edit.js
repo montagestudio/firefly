@@ -19,25 +19,66 @@ if (typeof window.Declarativ === "undefined") {
             }
         },
 
-        getObjectsByLabel: {
-            value: function(label) {
-                return this.rootComponent.querySelectorAllComponent("@" + label);
+        // TODO: this won't find non-components
+        findObjects: {
+            value: function(ownerModuleId, label) {
+                if (label === "owner") {
+                    return this._findObjectsByModuleId(ownerModuleId);
+                } else {
+                    return this._findObjectsByLabel(label, ownerModuleId);
+                }
+            }
+        },
+
+        _findObjectsByLabel: {
+            value: function(label, ownerModuleId) {
+                var objects = [];
+                var findObjects = function(component) {
+                    var childComponents = component.childComponents;
+                    var childComponent;
+
+                    for (var i = 0; (childComponent = childComponents[i]); i++) {
+                        if (childComponent._montage_metadata.label === label &&
+                            childComponent.ownerComponent._montage_metadata.moduleId === ownerModuleId) {
+                            objects.push(childComponent);
+                        }
+                        findObjects(childComponent);
+                    }
+                };
+
+                findObjects(this.rootComponent);
+                return objects;
+            }
+        },
+
+        _findObjectsByModuleId: {
+            value: function(moduleId) {
+                var objects = [];
+                var findObjects = function(component) {
+                    var childComponents = component.childComponents;
+                    var childComponent;
+
+                    for (var i = 0; (childComponent = childComponents[i]); i++) {
+                        if (childComponent._montage_metadata.moduleId === moduleId) {
+                            objects.push(childComponent);
+                        }
+                        findObjects(childComponent);
+                    }
+                };
+
+                findObjects(this.rootComponent);
+                return objects;
             }
         },
 
         setObjectProperties: {
             value: function(label, ownerModuleId, properties) {
-                var objects = this.getObjectsByLabel(label),
-                    objectOwnerModuleId;
+                var objects = this.findObjects(ownerModuleId, label);
 
                 for (var i = 0, object; (object = objects[i]); i++) {
-                    objectOwnerModuleId = object.ownerComponent._montage_metadata.moduleId; //jshint ignore:line
-
-                    if (objectOwnerModuleId === ownerModuleId) {
-                        for (var key in properties) {
-                            if (properties.hasOwnProperty(key)) {
-                                object[key] = properties[key];
-                            }
+                    for (var key in properties) {
+                        if (properties.hasOwnProperty(key)) {
+                            object[key] = properties[key];
                         }
                     }
                 }
