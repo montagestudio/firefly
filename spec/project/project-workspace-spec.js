@@ -27,6 +27,12 @@ describe("ProjectWorkspace", function () {
         projectWorkspace.__githubApi = new MockGithubApi();
     });
 
+    afterEach(function(done) {
+        exec("cd /tmp; rm -Rf git-clone-spec-*", function() {
+            done();
+        });
+    });
+
     xit("template", function(done) {
         return projectWorkspace.createWorkspace()
         .then(function() {
@@ -261,16 +267,6 @@ describe("ProjectWorkspace", function () {
             .then(function() {
                 expect(callOrder).toEqual(["_commitWorkspace", "_pushWorkspace"]);
             }).then(done, done);
-        });
-    });
-
-    /* The following describe must be the last one, it's only purpose is to remove all temp files created by the spec script.
-     */
-    describe("cleanup", function() {
-        it("should remove temporary git-clone-spec folders", function(done) {
-            exec("cd /tmp; rm -Rf git-clone-spec-*", function() {
-                done();
-            });
         });
     });
 });
