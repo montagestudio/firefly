@@ -134,6 +134,11 @@ function FileService(fs, environment, pathname, fsPath) {
                 return Q.all(paths.map(function (path) {
                     return fs.stat(path).then(function (stat) {
                         return detectMimeType(fs, path, fsPath).then(function (mimeType) {
+                            // Directories in URLs must have a trailing slash
+                            if (stat.isDirectory()) {
+                                path += "/";
+                            }
+
                             return {url: convertPathToProjectUrl(path), stat: stat, mimeType: mimeType};
                         });
                     });

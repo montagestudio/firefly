@@ -197,16 +197,7 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function (url, exclude) {
             return this.backend.get("file-service").invoke("listAsset", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    var fileUrl = fd.url,
-                        stat = fd.stat,
-                        mode = stat.node ? stat.node.mode : stat.mode,
-                        isDirectory = (mode & FileDescriptor.S_IFMT) === FileDescriptor.S_IFDIR;
-
-                    if (isDirectory && fileUrl.charAt(fileUrl.length -1) !== "/") {
-                        fileUrl += "/";
-                    }
-
-                    var fileDescriptor = FileDescriptor.create().initWithUrlAndStat(fileUrl, stat);
+                    var fileDescriptor = FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
                     fileDescriptor.mimeType = fd.mimeType;
 
                     return fileDescriptor;
