@@ -47,7 +47,7 @@ Git.prototype.fetch = function(repoPath, remoteRepoNames) {
 
 Git.prototype.branch = function(repoPath, option) {
     log("branches " + option);
-    if (option instanceof Array === false) {
+    if (!Array.isArray(option)) {
         option = [option];
     }
     return exec("git", ["branch"].concat(option), repoPath, true)
