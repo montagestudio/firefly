@@ -132,6 +132,14 @@ function FileService(fs, environment, pathname, fsPath) {
         return detectMimeType(fs, path, fsPath);
     };
 
+
+    service.writeFile = function (url, base64) {
+        var buffer = new Buffer(base64, "base64");
+        var path = convertProjectUrlToPath(url);
+        return fs.write(path, buffer);
+    };
+
+
     /**
      * Lists all the files in a package except node_modules, dotfiles and files
      * matching the globs listed in the package.json "exclude" property.
