@@ -4,6 +4,21 @@ var htmlparser = require("htmlparser2");
 var Q = require("q");
 var PATH = require('path');
 
+// List of mime types not supported by mmmagic.
+var ADDITIONAL_MIME_TYPES = {
+    MONTAGE_TEMPLATE: "text/montage-template",
+    MONTAGE_SERIALIZATION: "text/montage-serialization",
+    COLLADA: "model/vnd.collada+xml",
+    GLTF_BUNDLE: "model/gltf-bundle"
+};
+
+var LIB_MAGIC_MIME_TYPES = {
+    APPLICATION_XML: "application/xml",
+    TEXT_HTML: "text/html",
+    TEXT_PLAIN: "text/plain",
+    INODE_DIRECTORY: "inode/directory"
+};
+
 module.exports = detectMimeType;
 
 function detectMimeType (fs, path, fsPath) {
@@ -14,21 +29,22 @@ function detectMimeType (fs, path, fsPath) {
         var parts = path.split('/'),
             fileName = parts[parts.length - 1];
 
-        if (mimeType === "application/xml" && /\.dae$/.test(fileName)) {
+        if (mimeType === LIB_MAGIC_MIME_TYPES.APPLICATION_XML && /\.dae$/.test(fileName)) {
 
-            return !!isColladaMimeType(fs, path) ? "model/vnd.collada+xml" : mimeType;
+            return !!isColladaMimeType(fs, path) ? ADDITIONAL_MIME_TYPES.COLLADA : mimeType;
 
-        } else if (mimeType === "text/html" && /^(?!index\.html$)(?=(.+\.html)$)/.test(fileName)) {
+        } else if (mimeType === LIB_MAGIC_MIME_TYPES.TEXT_HTML && /^(?!index\.html$)(?=(.+\.html)$)/.test(fileName)) {
 
-            return !!isMontageTemplateMimeType(fs, path) ? "text/montage-template" : mimeType;
+            return !!isMontageTemplateMimeType(fs, path) ? ADDITIONAL_MIME_TYPES.MONTAGE_TEMPLATE : mimeType;
 
-        } else if (mimeType === "text/plain" && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
+        } else if (mimeType === LIB_MAGIC_MIME_TYPES.TEXT_PLAIN && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
 
             return isMontageSerializationMimeType(fs, path).then(function (isMontageSerialization) {
-                return !!isMontageSerialization ? "text/montage-serialization" : mimeType;
+                return !!isMontageSerialization ? ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION : mimeType;
             });
-        } else if (mimeType === "inode/directory" && PATH.extname(fileName) === ".glTF") {
-            return "model/glTF-bundle";
+        } else if (mimeType === LIB_MAGIC_MIME_TYPES.INODE_DIRECTORY && PATH.extname(fileName) === ".glTF") {
+
+            return ADDITIONAL_MIME_TYPES.GLTF_BUNDLE;
         }
 
         return mimeType;
@@ -47,7 +63,7 @@ function isMontageTemplateMimeType (fs, path) {
         var isTemplate = false,
             parser = new htmlparser.Parser({
                 onopentag: function(tagName, attributes){
-                    if (tagName === "script" && attributes.type === "text/montage-serialization") {
+                    if (tagName === "script" && attributes.type.toLowerCase() === ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION) {
                         isTemplate = true;
                         parser.reset();
                     }
