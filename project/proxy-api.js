@@ -3,8 +3,8 @@ var URL = require("url");
 var HTTP = require("q-io/http");
 
 module.exports = proxyApi;
-function proxyApi(setupProjectWorkspace) {
-    return setupProjectWorkspace(proxy);
+function proxyApi(setupProjectContainer) {
+    return setupProjectContainer(proxy);
 }
 
 function proxy(request) {

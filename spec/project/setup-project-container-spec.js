@@ -1,18 +1,18 @@
 var Q = require("q");
-var SetupProjectWorkspace = require("../../project/setup-project-workspace");
+var SetupProjectContainer = require("../../project/setup-project-container");
 var mockRequest = require("../mocks/request");
 var MockDocker = require("../mocks/docker");
 var makeContainerIndex = require("../../project/make-container-index");
 
 
-describe("SetupProjectWorkspace", function () {
+describe("SetupProjectContainer", function () {
     var docker, containerIndex, request, next, requestOpts;
     beforeEach(function () {
         docker = new MockDocker();
         containerIndex = makeContainerIndex();
         next = jasmine.createSpy();
 
-        var app = SetupProjectWorkspace(docker, containerIndex, function () {
+        var app = SetupProjectContainer(docker, containerIndex, function () {
             // Shim `request` function
             return Q({
                 status: 200,

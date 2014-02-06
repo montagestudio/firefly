@@ -8,7 +8,7 @@ var GithubSessionStore = require("./github-session-store");
 var Session = require("./session");
 var CheckSession = require("./check-session");
 
-var SetupProjectWorkspace = require("./project/setup-project-workspace");
+var SetupProjectContainer = require("./project/setup-project-container");
 var Docker = require("./project/docker");
 var containerIndex = require("./project/make-container-index")("/srv/container-index.json");
 
@@ -48,7 +48,7 @@ function main(options) {
         clientServices: options.clientServices,
         sessions: sessions,
         checkSession: CheckSession,
-        setupProjectWorkspace: SetupProjectWorkspace(new Docker({socketPath: "/var/run/docker.sock"}), containerIndex)
+        setupProjectContainer: SetupProjectContainer(new Docker({socketPath: "/var/run/docker.sock"}), containerIndex)
     });
     return projectChain.listen(options.port)
     .then(function (server) {

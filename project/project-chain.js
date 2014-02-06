@@ -28,8 +28,8 @@ function server(options) {
     var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
-    if (!options.setupProjectWorkspace) throw new Error("options.setupProjectWorkspace required");
-    var setupProjectWorkspace = options.setupProjectWorkspace;
+    if (!options.setupProjectContainer) throw new Error("options.setupProjectContainer required");
+    var setupProjectContainer = options.setupProjectContainer;
     //jshint +W116
     var preview = PreviewServer.Preview(sessions);
 
@@ -104,7 +104,7 @@ function server(options) {
     })
     .use(checkSession)
     .route(function (route) {
-        route("api/:owner/:repo/...").app(proxyApi(setupProjectWorkspace));
+        route("api/:owner/:repo/...").app(proxyApi(setupProjectContainer));
     });
 
     // These services should be customized per websocket connection, to

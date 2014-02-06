@@ -2,8 +2,8 @@ var log = require("logging").from(__filename);
 var request = require("q-io/http").request;
 var Q = require("q");
 
-module.exports = SetupProjectWorkspace;
-function SetupProjectWorkspace(docker, containers, _request) {
+module.exports = SetupProjectContainer;
+function SetupProjectContainer(docker, containers, _request) {
     // Only used for testing
     if (_request) {
         request = _request;
