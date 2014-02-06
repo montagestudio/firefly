@@ -27,6 +27,8 @@ function detectMimeType (fs, path, fsPath) {
             return isMontageSerializationMimeType(fs, path).then(function (isMontageSerialization) {
                 return !!isMontageSerialization ? "text/montage-serialization" : mimeType;
             });
+        } else if (mimeType === "inode/directory" && PATH.extname(fileName) === ".glTF") {
+            return "model/glTF-bundle";
         }
 
         return mimeType;
