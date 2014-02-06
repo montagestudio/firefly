@@ -38,7 +38,7 @@ Git.prototype.addRemote = function (repoPath, url) {
 
 Git.prototype.fetch = function(repoPath, remoteRepoNames) {
     log("fetch " + remoteRepoNames);
-    var args = ["fetch"].concat(remoteRepoNames || "origin");
+    var args = ["fetch"].concat(remoteRepoNames || "--all");
     return exec("git", args, repoPath)
     .fail(function() {
         throw new Error("git fetch failed.");
