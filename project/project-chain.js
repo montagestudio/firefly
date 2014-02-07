@@ -104,7 +104,7 @@ function server(options) {
     })
     .use(checkSession)
     .route(function (route) {
-        route("api/:owner/:repo/...").app(proxyApi(setupProjectContainer));
+        route("api/:owner/:repo/...").app(ProxyContainer(setupProjectContainer, "api"));
     });
 
     // These services should be customized per websocket connection, to
