@@ -35,10 +35,10 @@ module.exports.servePreviewClientFile = servePreviewClientFile;
  * This is how firefly asks all preview clients to refresh or give other
  * commands. This webservice is also served through the project-chain connection.
  */
-function Preview(sessions) {
+function Preview(config) {
     var use = function(next) {
         return function(request, response) {
-            var path = unescape(request.path);
+            var path = unescape(request.pathInfo);
 
             if (path.indexOf("/" + CLIENT_FILES + "/") === 0) {
                 return servePreviewClientFile(request, response);
@@ -54,7 +54,7 @@ function Preview(sessions) {
         };
     };
 
-    use.wsServer = startWsServer(sessions);
+    // use.wsServer = startWsServer(sessions);
     return use;
 }
 
@@ -88,14 +88,14 @@ function injectPreviewScripts(request, response) {
 }
 
 function servePreviewClientFile(request, response) {
-    var path = unescape(request.path);
+    var path = unescape(request.pathInfo);
 
     return clientFs.then(function(fs) {
         path = path.slice(("/" + CLIENT_FILES + "/").length);
 
         if (path === "") {
             var deferredResponse = Q.defer();
-            preview.registerDeferredResponse(request.headers.host, deferredResponse);
+            // preview.registerDeferredResponse(request.headers.host, deferredResponse);
             return deferredResponse.promise;
         } else if (path === "preview.js" || path === "live-edit.js") {
             return HttpApps.file(request, path, null, fs);

@@ -1,16 +1,15 @@
 var log = require("logging").from(__filename);
 var joey = require("joey");
 var APPS = require("q-io/http-apps");
-var HttpApps = require("q-io/http-apps/fs");
-var StatusApps = require("q-io/http-apps/status");
+// FIXME docker
+// var PreviewServer = require("./preview/preview-server");
+// var checkPreviewAccess = require("./preview/check-preview-access");
 var environment = require("../environment");
-var PreviewServer = require("./preview/preview-server");
-var checkPreviewAccess = require("./preview/check-preview-access");
 
 var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
 
-var proxyApi = require("./proxy-api");
+var ProxyContainer = require("./proxy-container");
 var websocket = require("./websocket");
 
 module.exports = server;
@@ -31,7 +30,6 @@ function server(options) {
     if (!options.setupProjectContainer) throw new Error("options.setupProjectContainer required");
     var setupProjectContainer = options.setupProjectContainer;
     //jshint +W116
-    var preview = PreviewServer.Preview(sessions);
 
     var chain = joey
     .error()
@@ -75,27 +73,21 @@ function server(options) {
             }
         });
 
-        POST("access").app(PreviewServer.processAccessRequest);
+        // POST("access").app(PreviewServer.processAccessRequest);
     })
     .use(function (next) {
-        var serveProject = checkPreviewAccess(preview(function (request) {
-            var path = environment.getProjectPathFromProjectUrl(request.headers.host);
-
-            log("rerooting to", fs.join(path));
-            return fs.reroot(fs.join(path)).then(function(fs) {
-                return fs.isFile(request.path).then(function(isFile) {
-                    if (isFile) {
-                        return HttpApps.file(request, request.path, null, fs);
-                    } else {
-                        return StatusApps.notFound(request);
-                    }
-                });
-            });
-        }));
+        // TODO checkPreviewAccess
+        var servePreview = ProxyContainer(setupProjectContainer, "static");
 
         return function (request, response) {
             if (endsWith(request.headers.host, environment.getProjectHost())) {
-                return serveProject(request, response);
+                // FIXME
+                var details = environment.getDetailsfromProjectUrl(request.url);
+                request.params = request.params || {};
+                request.params.owner = details.owner;
+                request.params.repo = details.repo;
+
+                return servePreview(request, response);
             } else {
                 // route /:user/:app/:action
                 return next(request, response);
@@ -124,7 +116,7 @@ function server(options) {
 
     chain.upgrade = function (request, socket, head) {
         if (endsWith(request.headers.host, environment.getProjectHost())) {
-            preview.wsServer.handleUpgrade(request, socket, head);
+            // preview.wsServer.handleUpgrade(request, socket, head);
         } else {
             websocketServer.handleUpgrade(request, socket, head);
         }
