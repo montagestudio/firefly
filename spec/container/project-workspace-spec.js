@@ -9,20 +9,20 @@ function createWorkspace(tmpPath, owner, repo) {
 }
 
 describe("ProjectWorkspace", function () {
-    var projectWorkspace, tmpPath, owner, repo, session, githubUser,
+    var projectWorkspace, tmpPath, owner, repo, config, githubUser,
         minitPath = fs.join(__dirname, "..", "..", "node_modules", "minit", "minit");
 
     beforeEach(function () {
         githubUser = {login: "jdoe"};
         tmpPath = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
-        session = {
+        config = {
             username: "jdoe",
-            githubUser: Q(githubUser)
+            githubUser: githubUser
         };
         owner = "owner";
         repo = "repo";
         var workspacePath = fs.join(tmpPath, owner, repo);
-        projectWorkspace = new ProjectWorkspace(session, workspacePath, owner, repo, minitPath);
+        projectWorkspace = new ProjectWorkspace(config, workspacePath, owner, repo, minitPath);
         projectWorkspace.__githubApi = new MockGithubApi();
     });
 

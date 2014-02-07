@@ -27,9 +27,9 @@ module.exports = ProjectWorkspace;
  * - Create a montage module and add it to the workspace
  * - Flush the workspace (sends all local changes to the remote git repository)
  */
-function ProjectWorkspace(session, workspacePath, owner, repo, minitPath) {
+function ProjectWorkspace(config, workspacePath, owner, repo, minitPath) {
     this._fs = fs;
-    this._session = session;
+    this._config = config;
     this._workspacePath = workspacePath;
     this._owner = owner;
     this._repo = repo;
@@ -48,7 +48,7 @@ Object.defineProperties(ProjectWorkspace.prototype, {
     _git: {
         get: function() {
             if (!this.__git) {
-                this.__git = new Git(this._fs, this._session.githubAccessToken);
+                this.__git = new Git(this._fs, this._config.githubAccessToken);
             }
 
             return this.__git;
@@ -63,7 +63,7 @@ Object.defineProperties(ProjectWorkspace.prototype, {
     _githubApi: {
         get: function() {
             if (!this.__githubApi) {
-                this.__githubApi = new GithubApi(this._session.githubAccessToken);
+                this.__githubApi = new GithubApi(this._config.githubAccessToken);
             }
 
             return this.__githubApi;
@@ -253,14 +253,13 @@ ProjectWorkspace.prototype._commitWorkspace = function(message) {
  */
 ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
     var self = this;
-    return this._session.githubUser.then(function (githubUser) {
-        var name = githubUser.name || githubUser.login;
-        var email = githubUser.email || DEFAULT_GIT_EMAIL;
+    var githubUser = this._config.githubUser;
+    var name = githubUser.name || githubUser.login;
+    var email = githubUser.email || DEFAULT_GIT_EMAIL;
 
-        return self._git.config(self._workspacePath, "user.name", name)
-        .then(function() {
-            return self._git.config(self._workspacePath, "user.email", email);
-        });
+    return this._git.config(this._workspacePath, "user.name", name)
+    .then(function() {
+        return self._git.config(self._workspacePath, "user.email", email);
     })
     .then(function() {
         return self._npmInstall();

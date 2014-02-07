@@ -4,95 +4,69 @@ var JsonApps = require("q-io/http-apps/json");
 
 var sanitize = require("./sanitize");
 
-module.exports = function (setupProjectWorkspace) {
+module.exports = function (config) {
     // TODO version API by reading header Accept: application/vnd.firefly.v2+json
-    return joey.route(function (route) {
-        route(":owner/:repo/...").route(function (route) {
-            route("init")
-            .methods(function (method) {
-                method("POST")
-                .use(setupProjectWorkspace)
-                .app(function (request) {
-                    return handleEndpoint(request, function() {
-                        log("init handleEndpoint");
-                        return request.projectWorkspace.initializeWorkspace();
-                    }, function() {
-                        return {message: "initialized"};
-                    });
-                });
+    return joey.route(function (route, GET, PUT, POST, DELETE) {
+        POST("init")
+        .app(function (request) {
+            return handleEndpoint(config, request, function() {
+                log("init handleEndpoint");
+                return request.projectWorkspace.initializeWorkspace();
+            }, function() {
+                return {message: "initialized"};
             });
-
-            route("components")
-            .methods(function (method) {
-                method("POST")
-                .use(setupProjectWorkspace)
-                .app(function (request) {
-                    return handleEndpoint(request, function(data) {
-                        return request.projectWorkspace.createComponent(
-                            data.name);
-                    }, function() {
-                        return {message: "created"};
-                    });
-                });
-            });
-
-            route("modules")
-            .methods(function (method) {
-                method("POST")
-                .use(setupProjectWorkspace)
-                .app(function (request) {
-                    return handleEndpoint(request, function(data) {
-                        return request.projectWorkspace.createModule(
-                            data.name, data.extendsModuleId,
-                            data.extendsName);
-                    }, function() {
-                        return {message: "created"};
-                    });
-                });
-            });
-
-            route("flush")
-            .methods(function (method) {
-                method("POST")
-                .use(setupProjectWorkspace)
-                .app(function (request) {
-                    return handleEndpoint(request, function(data) {
-                        return request.projectWorkspace.flushWorkspace(
-                            data.message);
-                    }, function() {
-                        return {message: "flushed"};
-                    });
-                });
-            });
-
-            route("workspace")
-            .methods(function (method) {
-                method("GET")
-                .use(setupProjectWorkspace)
-                .app(function (request) {
-                    return handleEndpoint(request, function() {
-                        return request.projectWorkspace.existsWorkspace();
-                    }, function(exists) {
-                        return {created: exists};
-                    });
-                });
-            });
-
-            route("save")
-            .methods(function (method) {
-                method("POST")
-                .use(setupProjectWorkspace)
-                .app(function (request) {
-                    return handleEndpoint(request, function(data) {
-                        return request.projectWorkspace.saveFile(
-                            data.filename, data.contents);
-                    }, function() {
-                        return {message: "saved"};
-                    });
-                });
-            });
-
         });
+
+        POST("components")
+        .app(function (request) {
+            return handleEndpoint(config, request, function(data) {
+                return request.projectWorkspace.createComponent(
+                    data.name);
+            }, function() {
+                return {message: "created"};
+            });
+        });
+
+        POST("modules")
+        .app(function (request) {
+            return handleEndpoint(config, request, function(data) {
+                return request.projectWorkspace.createModule(
+                    data.name, data.extendsModuleId,
+                    data.extendsName);
+            }, function() {
+                return {message: "created"};
+            });
+        });
+
+        POST("flush")
+        .app(function (request) {
+            return handleEndpoint(config, request, function(data) {
+                return request.projectWorkspace.flushWorkspace(
+                    data.message);
+            }, function() {
+                return {message: "flushed"};
+            });
+        });
+
+        GET("workspace")
+        .app(function (request) {
+            return handleEndpoint(config, request, function() {
+                return request.projectWorkspace.existsWorkspace();
+            }, function(exists) {
+                return {created: exists};
+            });
+        });
+
+        POST("save")
+        .app(function (request) {
+            return handleEndpoint(config, request, function(data) {
+                return request.projectWorkspace.saveFile(
+                    data.filename, data.contents);
+            }, function() {
+                return {message: "saved"};
+            });
+        });
+
     });
 };
 
@@ -115,9 +89,9 @@ module.exports = function (setupProjectWorkspace) {
  *        that the operation resolved it and is expected to return the message
  *        that will be turned into a response back to the browser.
  */
-function handleEndpoint(request, endpointCallback, successCallback) {
-    var owner = sanitize.sanitizeDirectoryName(request.params.owner),
-        repo = sanitize.sanitizeDirectoryName(request.params.repo);
+function handleEndpoint(config, request, endpointCallback, successCallback) {
+    var owner = sanitize.sanitizeDirectoryName(config.owner),
+        repo = sanitize.sanitizeDirectoryName(config.repo);
 
     var createMessage = function(message) {
         message.owner = owner;
