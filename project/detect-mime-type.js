@@ -4,8 +4,10 @@ var htmlparser = require("htmlparser2");
 var Q = require("q");
 var PATH = require('path');
 
+module.exports = exports = detectMimeType;
+
 // List of mime types not supported by mmmagic.
-var ADDITIONAL_MIME_TYPES = {
+var ADDITIONAL_MIME_TYPES = exports.ADDITIONAL_MIME_TYPES = {
     MONTAGE_TEMPLATE: "text/montage-template",
     MONTAGE_SERIALIZATION: "text/montage-serialization",
     COLLADA: "model/vnd.collada+xml",
@@ -18,8 +20,6 @@ var LIB_MAGIC_MIME_TYPES = {
     TEXT_PLAIN: "text/plain",
     INODE_DIRECTORY: "inode/directory"
 };
-
-module.exports = detectMimeType;
 
 function detectMimeType (fs, path, fsPath) {
     var magic = new Magic(mmm.MAGIC_MIME_TYPE),
