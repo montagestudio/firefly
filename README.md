@@ -1,7 +1,7 @@
 Firefly
 =======
 
-Firefly parallels the Beacon neé Lumieres project as another host for the
+Firefly parallels the Beacon née Lumieres project as another host for the
 Filament application.
 
 Firefly will serve Filament itself for use inside a browser and also provide
