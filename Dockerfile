@@ -23,8 +23,11 @@ RUN apt-get install -y nodejs
 
 RUN adduser --disabled-password --gecos "" montage
 
-ADD container /srv
+RUN mkdir /workspace
+RUN chown -R montage:montage /workspace
+
+ADD . /srv
 
 EXPOSE 2441
-ENTRYPOINT ["node", "/srv/index.js"]
+ENTRYPOINT ["node", "/srv/container/index.js"]
 
