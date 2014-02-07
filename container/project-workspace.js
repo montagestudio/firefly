@@ -95,7 +95,7 @@ ProjectWorkspace.prototype.getInfo = function() {
 };
 
 ProjectWorkspace.prototype.existsWorkspace = function() {
-    return this._fs.exists(this._workspacePath);
+    return this._fs.exists(this._fs.join(this._workspacePath, ".git"));
 };
 
 ProjectWorkspace.prototype.initializeWorkspace = function() {
