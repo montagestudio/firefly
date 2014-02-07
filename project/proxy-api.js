@@ -8,7 +8,7 @@ function proxyApi(setupProjectContainer) {
 }
 
 function proxy(request) {
-    request.url = URL.resolve("http://127.0.0.1:" + request.projectWorkspacePort + "/", request.pathInfo.replace(/^\//, ""));
+    request.url = URL.resolve("http://127.0.0.1:" + request.projectWorkspacePort + "/api/", request.pathInfo.replace(/^\//, ""));
     log("proxy", request.url);
     return HTTP.request(request);
 }

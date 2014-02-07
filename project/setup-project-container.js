@@ -20,8 +20,11 @@ function SetupProjectContainer(docker, containers, _request) {
             var user = session.username.toLowerCase();
             var owner = request.params.owner.toLowerCase();
             var repo = request.params.repo.toLowerCase();
+            var githubAccessToken = session.githubAccessToken;
 
-            return getOrCreateContainer(user, owner, repo)
+            return session.githubUser.then(function (githubUser) {
+                return getOrCreateContainer(user, owner, repo, githubAccessToken, githubUser);
+            })
             .then(startContainer)
             .then(waitForServer)
             .then(function (port) {
@@ -38,13 +41,22 @@ function SetupProjectContainer(docker, containers, _request) {
      * @param  {string} repo  The name of the repo
      * @return {Promise.<Object>} An object of information about the container
      */
-    function getOrCreateContainer(user, owner, repo) {
+    function getOrCreateContainer(user, owner, repo, githubAccessToken, githubUser) {
         var info = containers.get({user: user, owner: owner, repo: repo});
 
         if (!info) {
             log("Creating container for", user, owner, repo, "...");
+
+            var config = {
+                owner: owner,
+                repo: repo,
+                githubAccessToken: githubAccessToken,
+                githubUser: githubUser
+            };
+
             var created = docker.createContainer({
-                Image: IMAGE_NAME
+                Image: IMAGE_NAME,
+                Cmd: ['-c', JSON.stringify(config)]
             })
             .then(function (container) {
                 log("Created container", container.id, "for", user, owner, repo);
