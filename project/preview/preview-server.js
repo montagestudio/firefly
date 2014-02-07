@@ -76,8 +76,8 @@ function injectPreviewScripts(request, response) {
     })
     .then(function(body) {
         var html = body.toString();
-        var liveEditSrc = request.scheme + "://" + request.host + "/" + CLIENT_FILES + "/live-edit.js";
-        var previewSrc = request.scheme + "://" + request.host + "/" + CLIENT_FILES + "/preview.js";
+        var liveEditSrc = "/" + CLIENT_FILES + "/live-edit.js";
+        var previewSrc = "/" + CLIENT_FILES + "/preview.js";
 
         html = injectScriptInHtml(liveEditSrc, html);
         html = injectScriptInHtml(previewSrc, html);
