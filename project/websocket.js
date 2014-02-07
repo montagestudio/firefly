@@ -6,7 +6,8 @@ var URL = require("url");
 var FS = require("q-io/fs");
 var ws = require("websocket.io");
 var Connection = require("q-connection");
-var Frontend = require("./frontend");
+// FIXME docker
+// var Frontend = require("./frontend");
 
 var websocketConnections = 0;
 
@@ -47,7 +48,8 @@ function websocket(sessions, services, clientPath) {
 
         frontend = Connection(connection, connectionServices);
         connectionServices.then(function() {
-            return Frontend.addFrontend(frontendId, frontend);
+            // FIXME docker
+            // return Frontend.addFrontend(frontendId, frontend);
         })
         .done();
 
@@ -57,7 +59,8 @@ function websocket(sessions, services, clientPath) {
                     services[key].close(connection);
                 }
             });
-            Frontend.deleteFrontend(frontendId).done();
+            // FIXME docker
+            // Frontend.deleteFrontend(frontendId).done();
             log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
 

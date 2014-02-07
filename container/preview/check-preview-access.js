@@ -2,7 +2,8 @@ var log = require("logging").from(__filename);
 var Q = require("q");
 var env = require("../../environment");
 var PreviewServer = require("./preview-server");
-var PreviewService = require("../services/preview-service");
+// FIXME docker
+// var PreviewService = require("../services/preview-service");
 var Frontend = require("../frontend");
 
 exports = module.exports = CheckPreviewAccess;
@@ -15,7 +16,9 @@ function CheckPreviewAccess(next) {
             if (hasAccess) {
                 return next(request, response);
             } else {
-                var accessCode = PreviewService.getPreviewAccessCodeFromUrl(host);
+                // FIXME docker
+                // PreviewService.getPreviewAccessCodeFromUrl(host);
+                var accessCode = null;
                 var details = env.getDetailsfromProjectUrl(host);
                 var frontendId = details.owner + "/" + details.owner + "/" + details.repo;
 
@@ -45,14 +48,17 @@ function hasPreviewAccess(url, session) {
             // The user doesn't need to have explicit access to its own previews.
             if (githubUser && githubUser.login.toLowerCase() === details.owner) {
                 return true;
-            } else if (PreviewService.existsPreviewFromUrl(url)) {
-                // No reason to give a random user access to the preview if the owner
-                // doesn't have it open in the tool.
-                var previewAccess = session.previewAccess;
-                if (previewAccess && previewAccess.indexOf(url) >= 0) {
-                    return true;
-                }
             }
+            // FIXME docker
+            // else if (PreviewService.existsPreviewFromUrl(url)) {
+            //     // No reason to give a random user access to the preview if the owner
+            //     // doesn't have it open in the tool.
+            //     var previewAccess = session.previewAccess;
+            //     if (previewAccess && previewAccess.indexOf(url) >= 0) {
+            //         return true;
+            //     }
+            // }
+            return false;
         });
     } else {
         return Q(false);

@@ -1,5 +1,5 @@
 var Q = require("q");
-var CheckPreviewAccess = require("../../project/preview/check-preview-access");
+var CheckPreviewAccess = require("../../container/preview/check-preview-access");
 var PreviewService = require("../../project/services/preview-service");
 
 describe("check-preview-access", function () {
