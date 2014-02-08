@@ -41,6 +41,7 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
                 this.undoMenuItemModel = menuModel.menuItemForIdentifier("undo");
                 this.redoMenuItemModel = menuModel.menuItemForIdentifier("redo");
                 this.saveMenuItemModel = menuModel.menuItemForIdentifier("save");
+                this.deleteMenuItemModel = menuModel.menuItemForIdentifier("delete");
             }
         }
     },
@@ -78,6 +79,10 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
     },
 
     redoMenuItemModel: {
+        value: null
+    },
+
+    deleteMenuItemModel: {
         value: null
     },
 

@@ -31,6 +31,16 @@
             }
         },
 
+        "deleteMenuItem": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "deleteMenuItem"}
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@owner.deleteMenuItemModel"}
+            }
+        },
+
         "newButton": {
             "prototype": "matte/ui/button.reel",
             "properties": {
@@ -122,6 +132,7 @@
         <div class="Toolbar-group">
             <div data-montage-id="undoMenuItem" data-icon="&#59154;"></div>
             <div data-montage-id="redoMenuItem" data-icon="&#10150;"></div>
+            <div data-montage-id="deleteMenuItem" data-icon="&#10006;"></div>
         </div>
 
         <div class="Toolbar-group">
