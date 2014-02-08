@@ -53,7 +53,7 @@ describe("file-service", function () {
         });
     });
 
-    describe("listTree", function () {
+    describe("listAsset", function () {
         var fsPath = __dirname + "/assets-tests";
 
         beforeEach(function () {
