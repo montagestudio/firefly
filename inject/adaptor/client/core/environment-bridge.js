@@ -101,7 +101,9 @@ exports.EnvironmentBridge = Montage.specialize({
                         method: "POST",
                         url: url + "/session",
                         withCredentials: true,
-                        data: document.cookie.match(/session=([^;]+)/)[1]
+                        data: {
+                            sessionId: document.cookie.match(/session=([^;]+)/)[1]
+                        }
                     }).thenResolve(url);
                 });
             }

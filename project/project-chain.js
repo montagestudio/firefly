@@ -58,8 +58,8 @@ function server(options) {
             if (request.headers.origin === environment.getAppUrl()) {
                 return request.body.read()
                 .then(function (body) {
-                    var sessionId = JSON.parse(body.toString("utf8"));
-                    return sessions.get(sessionId)
+                    var data = JSON.parse(body.toString("utf8"));
+                    return sessions.get(data.sessionId)
                     .then(function(session) {
                         if (session) {
                             request.session = session;
