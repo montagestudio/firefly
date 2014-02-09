@@ -18,6 +18,20 @@ describe("file-service", function () {
         });
     });
 
+    describe("writeFile", function () {
+        it("works", function (done) {
+            var dummyString = "bla-blah";
+            var dummyStringBase64 = "YmxhLWJsYWg=";
+            return service.writeFile("dummy.txt", dummyStringBase64)
+                .then(function() {
+                    fs.read("dummy.txt").then(function(result) {
+                        expect(result).toBe(dummyString);
+                    });
+                })
+                .then(done, done);
+        });
+    });
+
     describe("list", function () {
         it("works", function (done) {
             return service.list("/")

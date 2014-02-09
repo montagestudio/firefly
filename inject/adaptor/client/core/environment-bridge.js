@@ -422,8 +422,8 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     writeFile: {
-        value: function(name, data) {
-            return this.backend.get("file-service").invoke("writeFile", name, data);
+        value: function(url, data) {
+            return this.backend.get("file-service").invoke("writeFile", url, data);
         }
     },
 
