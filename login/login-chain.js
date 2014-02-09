@@ -1,11 +1,13 @@
 var log = require("logging").from(__filename);
 var joey = require("joey");
 var env = require("../environment");
+var Q = require("q");
 
 var serveFile = require("../serve-file");
 var parseCookies = require("../parse-cookies");
 var GithubAuth = require("../auth/github");
 var checkSession = require("../check-session");
+var RouteProject = require("../route-project");
 var LogStackTraces = require("../log-stack-traces");
 
 module.exports = server;
@@ -45,6 +47,15 @@ function server(options) {
     })
     //////////////////////////////////////////////////////////////////////
     .use(checkSession)
+    //////////////////////////////////////////////////////////////////////
+	.use(function (next) {
+	    return function (request) {
+	        return Q.when(next(request))
+	        .then(function (response) {
+                return RouteProject.addRouteProjectCookie(request, response);
+	        })
+	    }
+	})
     //////////////////////////////////////////////////////////////////////
     .route(function (route) {
         // Private/authenticated routes

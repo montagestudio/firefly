@@ -9,6 +9,7 @@ var environment = require("../environment");
 
 var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
+var RouteProject = require("../route-project");
 
 var ProxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
@@ -53,7 +54,7 @@ function server(options) {
                     .then(function(session) {
                         if (session) {
                             request.session = session;
-                            return APPS.ok();
+                            return RouteProject.addRouteProjectCookie(request, APPS.ok());
                         } else {
                             return APPS.badRequest();
                         }
