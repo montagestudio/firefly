@@ -311,6 +311,18 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    setPreviewObjectBinding: {
+        value: function(previewId, ownerModuleId, label, binding) {
+            return this.backend.get("preview-service").invoke("setObjectBinding", this._previewUrl, ownerModuleId, label, binding);
+        }
+    },
+
+    deletePreviewObjectBinding: {
+        value: function(previewId, ownerModuleId, label, path) {
+            return this.backend.get("preview-service").invoke("deleteObjectBinding", this._previewUrl, ownerModuleId, label, path);
+        }
+    },
+
     setDocumentDirtyState: {
         value: function () {
         }

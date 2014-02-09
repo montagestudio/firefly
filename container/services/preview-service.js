@@ -71,6 +71,24 @@ function PreviewService() {
         sendToPreviewClients("setObjectProperties:" + JSON.stringify(params));
     };
 
+    service.setObjectBinding = function(url, ownerModuleId, label, binding) {
+        var params = {
+            ownerModuleId: ownerModuleId,
+            label: label,
+            binding: binding
+        };
+        sendToPreviewClients(url, "setObjectBinding:" + JSON.stringify(params));
+    };
+
+    service.deleteObjectBinding = function(url, ownerModuleId, label, path) {
+        var params = {
+            ownerModuleId: ownerModuleId,
+            label: label,
+            path: path
+        };
+        sendToPreviewClients(url, "deleteObjectBinding:" + JSON.stringify(params));
+    };
+
     service.close = function(request) {
         this.unregister();
     };

@@ -23,6 +23,7 @@
     function processIncomingData(data) {
         var command = data.substring(0, data.indexOf(":"));
         var param = data.substring(data.indexOf(":") + 1);
+        var args;
 
         // REFRESH
         if (command === "refresh") {
@@ -34,8 +35,18 @@
 
         // SET OBJECT PROPERTIES
         if (command === "setObjectProperties") {
-            var args = JSON.parse(param);
+            args = JSON.parse(param);
             LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
+        }
+
+        if (command === "setObjectBinding") {
+            args = JSON.parse(param);
+            LiveEdit.setObjectBinding(args.ownerModuleId, args.label, args.binding);
+        }
+
+        if (command === "deleteObjectBinding") {
+            args = JSON.parse(param);
+            LiveEdit.deleteObjectBinding(args.ownerModuleId, args.label, args.path);
         }
     }
 

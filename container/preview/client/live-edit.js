@@ -83,6 +83,44 @@ if (typeof window.Declarativ === "undefined") {
                     }
                 }
             }
+        },
+
+        setObjectBinding: {
+            value: function(ownerModuleId, label, binding) {
+                var objects = this.findObjects(ownerModuleId, label);
+
+                for (var i = 0, object; (object = objects[i]); i++) {
+                    if (object.getBinding(binding.propertyName)) {
+                        object.cancelBinding(binding.propertyName);
+                    }
+                    this._defineBinding(object, binding.propertyName, binding.propertyDescriptor);
+                }
+            }
+        },
+
+        deleteObjectBinding: {
+            value: function(ownerModuleId, label, path) {
+                var objects = this.findObjects(ownerModuleId, label);
+
+                for (var i = 0, object; (object = objects[i]); i++) {
+                    if (object.getBinding(path)) {
+                        object.cancelBinding(path);
+                    }
+                }
+            }
+        },
+
+        _defineBinding: {
+            value: function(object, propertyName, propertyDescriptor) {
+                var objects = object._ownerDocumentPart.objects;
+
+                propertyDescriptor.components = {
+                    getObjectByLabel: function(label) {
+                        return objects[label];
+                    }
+                };
+                object.defineBinding(propertyName, propertyDescriptor);
+            }
         }
     });
 })(window.Declarativ);
