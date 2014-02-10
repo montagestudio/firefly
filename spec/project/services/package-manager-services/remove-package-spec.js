@@ -1,4 +1,4 @@
-var RemovePackage = require("../../../../project/package-manager/remove-package"),
+var RemovePackage = require("../../../../container/package-manager/remove-package"),
     ProjectFSMocks = require("../../../mocks/project-fs-sample"),
     ErrorsCodes = RemovePackage.ERRORS;
 

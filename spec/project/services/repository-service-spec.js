@@ -1,7 +1,7 @@
 var exec = require('child_process').exec;
 var MockFs = require("q-io/fs-mock");
-var Git = require("../../../project/git");
-var RepositoryService = require("../../../project/services/repository-service");
+var Git = require("../../../container/git");
+var RepositoryService = require("../../../container/services/repository-service");
 
 describe("repository-service", function () {
     var fs, tmpPath, repoPath, session, git, service;

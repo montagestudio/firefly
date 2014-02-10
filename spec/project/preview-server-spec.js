@@ -3,7 +3,7 @@ var Q = require("q");
 var PreviewServer = require("../../container/preview/preview-server");
 var FS = require("q-io/fs");
 var htmlparser = require("htmlparser2");
-var PreviewService = require("../../project/services/preview-service");
+var PreviewService = require("../../container/services/preview-service");
 
 var indexHtml = __dirname + "/../fixtures/preview/index.html";
 

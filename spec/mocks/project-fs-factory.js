@@ -1,7 +1,7 @@
 /* jshint camelcase: false */
 /*global module*/
 
-var DEPENDENCY_CATEGORIES = require("../../project/package-manager/dependency-node").DEPENDENCY_CATEGORIES;
+var DEPENDENCY_CATEGORIES = require("../../container/package-manager/dependency-node").DEPENDENCY_CATEGORIES;
 
 /*
  * Transforms a "Project FS" object into a object usable for Qfs-mock.

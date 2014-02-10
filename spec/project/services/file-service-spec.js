@@ -1,6 +1,6 @@
-var FileService = require("../../../project/services/file-service");
+var FileService = require("../../../container/services/file-service");
 var MockFs = require("q-io/fs-mock");
-var ADDITIONAL_MIME_TYPES = require("../../../project/detect-mime-type").ADDITIONAL_MIME_TYPES;
+var ADDITIONAL_MIME_TYPES = require("../../../container/detect-mime-type").ADDITIONAL_MIME_TYPES;
 
 describe("file-service", function () {
     var fs, service;
