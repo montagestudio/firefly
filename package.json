@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "if [ \"`uname`\" = \"Linux\" ]; then npm_config_coverage=$npm_config_coverage npm run tests; else echo Running tests in VM; vagrant ssh login -c \"cd /srv/firefly; npm_config_coverage=$npm_config_coverage npm run tests\"; fi",
-    "tests": "istanbul test jasmine-node -- --junitreport spec && jshint --verbose .",
+    "tests": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
 
     "start": "vagrant up || (echo 'To run Aurora please install Vagrant from http://www.vagrantup.com/downloads.html' && exit 1)",
     "deploy": "deploy/vagrant/deploy.sh",
