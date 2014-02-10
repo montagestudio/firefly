@@ -18,9 +18,10 @@ var guard = function (exclude) {
 };
 
 module.exports = exports = FileService;
-var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function (pathname) {
+var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function () {
     return function (url) {
-        return URL.parse(url).pathname;
+        var pathname = URL.parse(url).pathname;
+        return decodeURIComponent(pathname);
     };
 };
 
