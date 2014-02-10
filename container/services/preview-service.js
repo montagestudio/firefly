@@ -89,6 +89,18 @@ function PreviewService() {
         sendToPreviewClients(url, "deleteObjectBinding:" + JSON.stringify(params));
     };
 
+    service.addTemplateFragment = function(url, moduleId, label, argumentName, cssSelector, how, templateFragment) {
+        var params = {
+            moduleId: moduleId,
+            label: label,
+            argumentName: argumentName,
+            cssSelector: cssSelector,
+            how: how,
+            templateFragment: templateFragment
+        };
+        sendToPreviewClients(url, "addTemplateFragment:" + JSON.stringify(params));
+    };
+
     service.close = function(request) {
         this.unregister();
     };

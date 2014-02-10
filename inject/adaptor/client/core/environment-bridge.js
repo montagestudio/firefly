@@ -323,6 +323,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    addTemplateFragment: {
+        value: function(previewId, moduleId, label, argumentName, cssSelector, how, template) {
+            return this.backend.get("preview-service").invoke("addTemplateFragment", this._previewUrl, moduleId, label, argumentName,cssSelector, how, template);
+        }
+    },
+
     setDocumentDirtyState: {
         value: function () {
         }

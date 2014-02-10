@@ -48,6 +48,11 @@
             args = JSON.parse(param);
             LiveEdit.deleteObjectBinding(args.ownerModuleId, args.label, args.path);
         }
+
+        if (command === "addTemplateFragment") {
+            args = JSON.parse(param);
+            LiveEdit.addTemplateFragment(args.moduleId, args.label, args.argumentName, args.cssSelector, args.how, args.templateFragment);
+        }
     }
 
     function websocketRefresh() {
