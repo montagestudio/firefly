@@ -40,6 +40,7 @@ describe("file-service", function () {
 
         xit("should replace the content of an existing file with the new content", function (done) {
             // q-io/fs-mock is inconsistent with q-io/fs
+            // https://github.com/kriskowal/q-io/issues/81
             return service.writeFile("package.json", dummyStringBase64).then(function() {
                 fs.read("package.json").then(function(result) {
                     expect(result).toBe(dummyString);
