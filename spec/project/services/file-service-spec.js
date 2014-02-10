@@ -38,6 +38,18 @@ describe("file-service", function () {
             }).then(done, done);
         });
 
+        it("should decode URI entities in the specified URL", function (done) {
+            return service.writeFile("why%20not%20zoidberg.jpg", dummyStringBase64).then(function() {
+                return fs.isFile("why not zoidberg.jpg");
+            }).then(function(isFile) {
+                expect(isFile).toBe(true);
+            }).then(function() {
+                return fs.isFile("why%20not%20zoidberg.jpg");
+            }).then(function(isFile) {
+                expect(isFile).toBe(false);
+            }).then(done, done);
+        });
+
         xit("should replace the content of an existing file with the new content", function (done) {
             // q-io/fs-mock is inconsistent with q-io/fs
             // https://github.com/kriskowal/q-io/issues/81

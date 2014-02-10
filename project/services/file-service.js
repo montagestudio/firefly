@@ -136,6 +136,7 @@ function FileService(fs, environment, pathname, fsPath) {
     service.writeFile = function (url, base64) {
         var buffer = new Buffer(base64, "base64");
         var path = convertProjectUrlToPath(url);
+        path = decodeURIComponent(path);
         return fs.write(path, buffer);
     };
 
