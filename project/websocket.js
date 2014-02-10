@@ -6,6 +6,7 @@ var URL = require("url");
 var FS = require("q-io/fs");
 var ws = require("websocket.io");
 var Connection = require("q-connection");
+var Frontend = require("./frontend");
 
 var websocketConnections = 0;
 
@@ -19,11 +20,17 @@ function websocket(sessions, services, clientPath) {
         var pathname = URL.parse(request.url).pathname;
         // used for logging
         var remoteAddress = connection.socket.remoteAddress;
+        var frontendId;
+        var frontend;
 
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
         var connectionServices = sessions.getSession(request, function(session) {
             var path = Env.getProjectPathFromSessionAndAppUrl(session, pathname);
+            var details = Env.getDetailsFromAppUrl(request.url);
+
+            frontendId = session.username + "/" + details.owner + "/" + details.repo;
+
             log("Limiting", remoteAddress, pathname, "to", path);
             return getFs(session, path)
             .then(function (fs) {
@@ -38,9 +45,19 @@ function websocket(sessions, services, clientPath) {
             log("*" + error.stack + "*");
         });
 
-        Connection(connection, connectionServices);
+        frontend = Connection(connection, connectionServices);
+        connectionServices.then(function() {
+            return Frontend.addFrontend(frontendId, frontend);
+        })
+        .done();
 
-        connection.on("close", function(conn) {
+        connection.on("close", function(connection) {
+            Object.keys(services).forEach(function (key) {
+                if (typeof services[key].close === "function") {
+                    services[key].close(connection);
+                }
+            });
+            Frontend.deleteFrontend(frontendId).done();
             log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
 

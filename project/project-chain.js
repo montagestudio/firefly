@@ -1,9 +1,11 @@
 var log = require("logging").from(__filename);
 var joey = require("joey");
+var APPS = require("q-io/http-apps");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var environment = require("../environment");
-var Preview = require("./preview/preview-server").Preview;
+var PreviewServer = require("./preview/preview-server");
+var checkPreviewAccess = require("./preview/check-preview-access");
 
 var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
@@ -33,7 +35,7 @@ function server(options) {
     if (!options.minitPath) throw new Error("options.minitPath required");
     var minitPath = options.minitPath;
     //jshint +W116
-    var preview = Preview(sessions);
+    var preview = PreviewServer.Preview(sessions);
 
     var chain = joey
     .error()
@@ -46,6 +48,8 @@ function server(options) {
     })
     .log(log, function (message) { return message; })
     .use(LogStackTraces(log))
+    .tap(parseCookies)
+    .use(sessions)
     .route(function (_, __, ___, POST) {
         // This endpoint recieves a POST request with a session ID as the
         // payload. It then "echos" this back as a set-cookie, so that
@@ -54,15 +58,16 @@ function server(options) {
             if (request.headers.origin === environment.getAppUrl()) {
                 return request.body.read()
                 .then(function (body) {
-                    var sessionId = JSON.parse(body.toString("utf8"));
-                    return {
-                        status: 200,
-                        headers: {
-                            // TODO do this through the session object
-                            "set-cookie": "session=" + sessionId + "; Path=/; HttpOnly" // TODO Domain
-                        },
-                        body: []
-                    };
+                    var data = JSON.parse(body.toString("utf8"));
+                    return sessions.get(data.sessionId)
+                    .then(function(session) {
+                        if (session) {
+                            request.session = session;
+                            return APPS.ok();
+                        } else {
+                            return APPS.badRequest();
+                        }
+                    });
                 });
             } else {
                 log("Invalid request to /session from origin", request.headers.origin);
@@ -73,13 +78,12 @@ function server(options) {
                 };
             }
         });
+
+        POST("access").app(PreviewServer.processAccessRequest);
     })
-    .tap(parseCookies)
-    .use(sessions)
-    .use(checkSession)
     .use(function (next) {
-        var serveProject = preview(function (request) {
-            var path = environment.getProjectPathFromSessionAndProjectUrl(request.session, request.headers.host);
+        var serveProject = checkPreviewAccess(preview(function (request) {
+            var path = environment.getProjectPathFromProjectUrl(request.headers.host);
 
             log("rerooting to", fs.join(path));
             return fs.reroot(fs.join(path)).then(function(fs) {
@@ -91,7 +95,7 @@ function server(options) {
                     }
                 });
             });
-        });
+        }));
 
         return function (request, response) {
             if (endsWith(request.headers.host, environment.getProjectHost())) {
@@ -102,6 +106,7 @@ function server(options) {
             }
         };
     })
+    .use(checkSession)
     .route(function (route) {
         route("api/...").app(api(setupProjectWorkspace, directory, minitPath).end());
     });

@@ -27,9 +27,14 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     init: {
-        value: function () {
+        value: function (name, frontendService) {
+            this._frontendService = frontendService;
             return this;
         }
+    },
+
+    _frontendService: {
+        value: null
     },
 
     progressPanel: {
@@ -59,7 +64,7 @@ exports.EnvironmentBridge = Montage.specialize({
                     self._backend = null;
                 }).done();
 
-                self._backend = Connection(connection);
+                self._backend = Connection(connection, this._frontendService);
                 self._backend.done();
             }
 
@@ -96,7 +101,9 @@ exports.EnvironmentBridge = Montage.specialize({
                         method: "POST",
                         url: url + "/session",
                         withCredentials: true,
-                        data: document.cookie.match(/session=([^;]+)/)[1]
+                        data: {
+                            sessionId: document.cookie.match(/session=([^;]+)/)[1]
+                        }
                     }).thenResolve(url);
                 });
             }
@@ -268,6 +275,12 @@ exports.EnvironmentBridge = Montage.specialize({
     refreshPreview: {
         value: function () {
             return this.backend.get("preview-service").invoke("refresh", this._previewUrl);
+        }
+    },
+
+    setPreviewObjectProperties: {
+        value: function(previewId, label, ownerModuleId, properties) {
+            return this.backend.get("preview-service").invoke("setObjectProperties", this._previewUrl, label, ownerModuleId, properties);
         }
     },
 

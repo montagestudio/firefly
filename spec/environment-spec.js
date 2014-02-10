@@ -1,11 +1,15 @@
 var Env = require("../environment").Env;
 var getHost = require("../environment").getHost;
+var MockFs = require("q-io/fs-mock");
 
 describe("environment", function () {
     var environment;
     describe("in developement", function () {
         beforeEach(function () {
+            var fs = MockFs({});
+
             environment = Env();
+            environment.configure(fs, "/clone");
         });
 
         describe("getAppUrl", function () {
@@ -31,6 +35,14 @@ describe("environment", function () {
         describe("getProjectHost", function () {
             it("returns a host", function () {
                 expect(environment.getProjectHost()).toEqual("local-project.montagestudio.com:2440");
+            });
+        });
+
+        describe("getProjectPathFromProjectUrl", function () {
+            it("returns a path", function () {
+                var path = environment.getProjectPathFromProjectUrl("http://owner-repo.local-project.montagestudio.com:2440");
+
+                expect(path.match(/\/owner\/owner\/repo$/)).not.toBeNull();
             });
         });
 

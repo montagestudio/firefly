@@ -105,6 +105,20 @@ function Env(options) {
         return this.fs.join(this.clonePath, session.username, details.owner, details.repo);
     };
 
+    /**
+     * Assumes that the username is the same as the owner.
+     * This is temporary while we build support for accessing repos that are not
+     * forked to the user github.
+     */
+    env.getProjectPathFromProjectUrl = function (url) {
+        if (!this.fs || !this.clonePath) {
+            throw new Error("Environment must be configured before using this function");
+        }
+        var details = this.getDetailsfromProjectUrl(url);
+
+        return this.fs.join(this.clonePath, details.owner, details.owner, details.repo);
+    };
+
     env.getProjectHost = function() {
         return getHost(this.project.hostname, this.project.port);
     };
