@@ -38,6 +38,9 @@ Object.defineProperties(window.Declarativ, {
 
 (function(ns) {
     var ATTR_LE_COMPONENT = "data-montage-le-component";
+    var ATTR_LE_ARG = "data-montage-le-arg";
+    var ATTR_LE_ARG_BEGIN = "data-montage-le-arg-begin";
+    var ATTR_LE_ARG_END = "data-montage-le-arg-end";
 
     ns.LiveEdit = Object.create(Object.prototype, {
         _rootComponent: {
@@ -107,8 +110,17 @@ Object.defineProperties(window.Declarativ, {
         },
 
         findNodes: {
-            value: function(moduleId, cssSelector) {
-                var moduleIdSelector = "*[" + ATTR_LE_COMPONENT + "='" + moduleId + "']";
+            value: function(moduleId, label, argumentName, cssSelector) {
+                var moduleIdSelector;
+
+                if (label === "owner") {
+                    moduleIdSelector = "*[" + ATTR_LE_COMPONENT + "='" + moduleId + "']";
+                } else if (argumentName) {
+                    moduleIdSelector = "*[" + ATTR_LE_ARG + "='" + moduleId + "," + label + "," + argumentName + "']";
+                } else {
+                    moduleIdSelector = "*[" + ATTR_LE_ARG_BEGIN + "~='" + moduleId + "," + label + "']";
+                }
+
                 cssSelector = cssSelector.replace(":scope", moduleIdSelector);
 
                 return document.querySelectorAll(cssSelector);
@@ -119,6 +131,18 @@ Object.defineProperties(window.Declarativ, {
             value: function(node) {
                 while (node = /*assignment*/ node.parentNode) {
                     if (node.component) {
+                        return node.component;
+                    }
+                }
+
+                return null;
+            }
+        },
+
+        _findParentComponentWithModuleId: {
+            value: function(node, moduleId) {
+                while (node = /*assignment*/ node.parentNode) {
+                    if (node.component && node.component._montage_metadata.moduleId === moduleId) {
                         return node.component;
                     }
                 }
@@ -186,14 +210,16 @@ Object.defineProperties(window.Declarativ, {
         },
 
         addTemplateFragment: {
-                var nodes = this.findNodes(moduleId, cssSelector);
             value: function(moduleId, label, argumentName, cssSelector, how, templateFragment) {
+                var nodes = this.findNodes(moduleId, label, argumentName,
+                    cssSelector);
                 var template = new Template(templateFragment.serialization,
                     templateFragment.html);
 
                 for (var i = 0, node; (node = nodes[i]); i++) {
-                    var owner = this._findParentComponent(node);
-                    this._addTemplateToElement(template, node, how, owner);
+                    var owner = this._findParentComponentWithModuleId(
+                        node, moduleId);
+                    this._addTemplateToElement(template, node, how, owner, label);
                 }
             }
         },
@@ -202,14 +228,18 @@ Object.defineProperties(window.Declarativ, {
          * @param how string 'on', 'before', 'after', 'append'
          */
         _addTemplateToElement: {
-            value: function(template, anchor, how, owner) {
+            value: function(template, anchor, how, owner, label) {
                 var self = this;
 
                 var startTime = window.performance.now();
                 return template.instantiateIntoDocument(anchor, how, owner)
-                    .then(function(objects) {
+                    .then(function(result) {
                         var endTime = window.performance.now();
-                        self._updateOwnerObjects(owner, objects);
+                        self._updateOwnerObjects(owner, result.objects);
+                        if (label !== "owner") {
+                            self._updateLiveEditTags(result.firstElement,
+                                result.lastElement, owner, label);
+                        }
                         console.log("_addTemplateToElement() ", endTime - startTime);
                     });
             }
@@ -222,6 +252,49 @@ Object.defineProperties(window.Declarativ, {
                 owner._addTemplateObjects(objects);
                 for (var key in objects) {
                     documentPartObjects[key] = objects[key];
+                }
+            }
+        },
+
+        _updateLiveEditTags: {
+            value: function(firstElement, lastElement, owner, label) {
+                var leArgRangeValue = owner._montage_metadata.moduleId + "," + label;
+                var nextSibling = lastElement.nextElementSibling;
+                var previousSibling = firstElement.previousElementSibling;
+
+                this._updateLiveEditRangeTags(ATTR_LE_ARG_BEGIN,
+                    leArgRangeValue, firstElement, nextSibling);
+                this._updateLiveEditRangeTags(ATTR_LE_ARG_END, leArgRangeValue,
+                    lastElement, previousSibling);
+            }
+        },
+
+        /**
+         * The new content needs to be tagged with the argument range attributes
+         * if it expanded the argument from the sides. This means that it is
+         * now the new firstElement or the new lastElement of the star argument.
+         */
+        _updateLiveEditRangeTags: {
+            value: function(fringeAttrName, fringeAttrValue, newFringe, currentFringe) {
+                var tagNewFringe;
+
+                if (currentFringe) {
+                    var leArgValue = currentFringe.getAttribute(fringeAttrName);
+                    if (leArgValue) {
+                        var values = leArgValue.split(/\s+/);
+                        var ix = values.indexOf(fringeAttrValue);
+                        if (ix >= 0) {
+                            values.splice(ix, 1);
+                            currentFringe.setAttribute(fringeAttrName, values.join(" "));
+                            tagNewFringe = true;
+                        }
+                    }
+                } else {
+                    tagNewFringe = true;
+                }
+
+                if (tagNewFringe) {
+                    newFringe.setAttribute(fringeAttrName, fringeAttrValue);
                 }
             }
         }
@@ -249,10 +322,19 @@ Object.defineProperties(window.Declarativ, {
         if (this.serializationString) {
             return this.instantiate(owner, element)
                 .then(function(objects) {
+                    var result = {
+                        objects: objects,
+                    };
+
                     if (elementIsWrapper) {
+                        result.firstElement = element.firstElementChild;
+                        result.lastElement = element.lastElementChild;
                         self._removeElementWrapper(element);
+                    } else {
+                        result.firstElement = result.lastElement = element;
                     }
-                    return objects;
+
+                    return result;
                 });
         } else {
             return Declarativ.Promise.resolve();
