@@ -7,11 +7,9 @@
   "scripts": {
     "test": "if [ \"`uname`\" = \"Linux\" ]; then npm_config_coverage=$npm_config_coverage npm run tests; else echo Running tests in VM; vagrant ssh login -c \"cd /srv/firefly; npm_config_coverage=$npm_config_coverage npm run tests\"; fi",
     "tests": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
-
     "start": "vagrant up || (echo 'To run Aurora please install Vagrant from http://www.vagrantup.com/downloads.html' && exit 1)",
     "deploy": "deploy/vagrant/deploy.sh",
     "stop": "vagrant halt && echo 'Run `vagrant destroy` to completely remove the VMs (this will make `npm start` a lot slower)'",
-
     "login-logs": "vagrant ssh login -c 'tail -f /home/montage/stdout.log'",
     "project-logs": "vagrant ssh project -c 'tail -f /home/montage/stdout.log'",
     "login-debug": "vagrant ssh login -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"' && vagrant ssh login -c 'node-inspector --web-port=8104'",
@@ -19,7 +17,6 @@
     "project-debug": "vagrant ssh project -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"' && vagrant ssh project -c 'node-inspector --web-port=8105'",
     "project-remote-debug": "vagrant ssh project -c 'sudo pkill -USR1 -f \"nodejs /srv/firefly\"'",
     "project-clone": "vagrant ssh project -c 'sudo su montage -c \"cd /srv/clone && bash\"'",
-
     "update-dependencies": "rm -rf node_modules && npm install && npm dedupe && git add --update node_modules && git add node_modules"
   },
   "repository": {
@@ -42,7 +39,8 @@
     "npm": "1.3.23",
     "semver": "2.2.1",
     "mmmagic": "0.3.5",
-    "watchr": "2.3.3"
+    "watchr": "2.3.3",
+    "collections": "~0.2.2"
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",
