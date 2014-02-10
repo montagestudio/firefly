@@ -18,9 +18,10 @@ var guard = function (exclude) {
 };
 
 module.exports = exports = FileService;
-var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function (pathname) {
+var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function () {
     return function (url) {
-        return URL.parse(url).pathname;
+        var pathname = URL.parse(url).pathname;
+        return decodeURIComponent(pathname);
     };
 };
 
@@ -136,7 +137,6 @@ function FileService(fs, environment, pathname, fsPath) {
     service.writeFile = function (url, base64) {
         var buffer = new Buffer(base64, "base64");
         var path = convertProjectUrlToPath(url);
-        path = decodeURIComponent(path);
         return fs.write(path, buffer);
     };
 
