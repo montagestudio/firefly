@@ -19,6 +19,37 @@ describe("file-service", function () {
         });
     });
 
+    describe("writeFile", function () {
+        var dummyString = "bla-blah";
+        var dummyStringBase64 = "YmxhLWJsYWg=";
+
+        it("should create file with the specified name", function (done) {
+            return service.writeFile("some-file", dummyStringBase64).then(function() {
+                return fs.isFile("some-file");
+            }).then(function(isFile) {
+                expect(isFile).toBe(true);
+            }).then(done, done);
+        });
+
+        it("should create write the expected content to the specified file", function (done) {
+            return service.writeFile("dummy.txt", dummyStringBase64).then(function() {
+                return fs.read("dummy.txt");
+            }).then(function(result) {
+                expect(result).toBe(dummyString);
+            }).then(done, done);
+        });
+
+        xit("should replace the content of an existing file with the new content", function (done) {
+            // q-io/fs-mock is inconsistent with q-io/fs
+            // https://github.com/kriskowal/q-io/issues/81
+            return service.writeFile("package.json", dummyStringBase64).then(function() {
+                return fs.read("package.json");
+            }).then(function(result) {
+                expect(result).toBe(dummyString);
+            }).then(done, done);
+        });
+    });
+
     describe("list", function () {
         it("works", function (done) {
             return service.list("/")

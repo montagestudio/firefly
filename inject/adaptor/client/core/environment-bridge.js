@@ -435,6 +435,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    writeFile: {
+        value: function(url, data) {
+            return this.backend.get("file-service").invoke("writeFile", url, data);
+        }
+    },
+
     /**
      * Saves a file and creates a new commit for the change.
      */
