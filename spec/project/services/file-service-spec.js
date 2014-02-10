@@ -24,17 +24,17 @@ describe("file-service", function () {
 
         it("should create file with the specified name", function (done) {
             return service.writeFile("some-file", dummyStringBase64).then(function() {
-                fs.isFile("some-file").then(function(isFile) {
-                    expect(isFile).toBe(true);
-                });
+                return fs.isFile("some-file");
+            }).then(function(isFile) {
+                expect(isFile).toBe(true);
             }).then(done, done);
         });
 
         it("should create write the expected content to the specified file", function (done) {
             return service.writeFile("dummy.txt", dummyStringBase64).then(function() {
-                fs.read("dummy.txt").then(function(result) {
-                    expect(result).toBe(dummyString);
-                });
+                return fs.read("dummy.txt");
+            }).then(function(result) {
+                expect(result).toBe(dummyString);
             }).then(done, done);
         });
 
@@ -42,9 +42,9 @@ describe("file-service", function () {
             // q-io/fs-mock is inconsistent with q-io/fs
             // https://github.com/kriskowal/q-io/issues/81
             return service.writeFile("package.json", dummyStringBase64).then(function() {
-                fs.read("package.json").then(function(result) {
-                    expect(result).toBe(dummyString);
-                });
+                return fs.read("package.json");
+            }).then(function(result) {
+                expect(result).toBe(dummyString);
             }).then(done, done);
         });
     });
