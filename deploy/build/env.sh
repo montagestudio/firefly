@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# To see the debug log add the x option to the folloing line: set -xe
-set -e
-
 HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Root is 2 directories up from here
 export HOME="$(dirname $(dirname ${HOME}))"

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# To see the debug log add the x option to the folloing line: set -xe
+set -e
+
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
 source "${HOME}/deploy/build/get.sh"
@@ -14,6 +17,11 @@ pushd ${BUILD}
         tar -czf "firefly.tgz" "firefly"
     fi
 popd
+
+declare IMAGE_EXIST=`tugboat info_image "loginimage-$BUILD_NUMBER" | grep Name`
+if [[ -n ${IMAGE_EXIST} ]]; then
+	tugboat destroy_image "loginimage-$BUILD_NUMBER" -c
+fi
 
 ${BUILD}/packerio/packer build \
     -var "do_api_key=3b6311afca5bd8aac647b316704e9c6d" \
