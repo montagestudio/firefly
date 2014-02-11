@@ -1,8 +1,9 @@
-/* jshint maxcomplexity:11 */
 var Git = require("../git");
 
 module.exports = exports = RepositoryService;
 
+var LOCAL_REPOSITORY_NAME = "__local__";
+var REMOTE_REPOSITORY_NAME = "origin";
 var SHADOW_BRANCH_PREFIX = "__mb__";
 
 
@@ -10,21 +11,6 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
     var _git = new Git(fs, session.githubAccessToken);
-
-    var _getBranchForName = function(name, branches) {
-        var length = branches.length;
-        var i;
-
-        for (i = 0; i < length; i ++) {
-            if (branches[i].name === name) {
-                return branches[i];
-            }
-        }
-
-        var branch = {name: name};
-        branches.push(branch);
-        return branch;
-    };
 
     service._branchLineParser = function(line, result) {
         /*
@@ -49,45 +35,47 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                 // Split the fullPath into path and name
                 var firstPos = fullPath.indexOf('/');
                 var lastPos = fullPath.lastIndexOf('/');
-                var name;
-                var remote = null;
+                var branchName;
+                var repoName;
+
                 if (lastPos !== -1) {
-                    name = fullPath.substring(lastPos + 1);
-                    remote = fullPath.substring(firstPos + 1, lastPos);
+                    branchName = fullPath.substring(lastPos + 1);
+                    repoName = fullPath.substring(firstPos + 1, lastPos);
                 } else {
-                    name = fullPath;
-                    remote = null;
+                    branchName = fullPath;
+                    repoName = LOCAL_REPOSITORY_NAME;
                 }
-
                 // Checking for a shadow branch
-                if (name.indexOf(SHADOW_BRANCH_PREFIX) === 0) {
+                if (branchName.indexOf(SHADOW_BRANCH_PREFIX) === 0) {
                     shadowBranch = true;
-                    name = name.substring(SHADOW_BRANCH_PREFIX.length);
+                    branchName = branchName.substring(SHADOW_BRANCH_PREFIX.length);
                 }
 
-                var branch = _getBranchForName(name, result.branches);
-                var item;
+                var repo = result.branches[repoName];
+                if (!repo) {
+                    result.branches[repoName] = repo = {};
+                }
 
-                if (remote) {
-                    branch.remotes = branch.remotes || {};
-                    branch.remotes[remote] = branch.remotes[remote] || {};
-                    item = branch.remotes[remote];
-                } else {
-                    branch.local = branch.local || {};
-                    item = branch.local;
+                var branch = repo[branchName];
+                if (!branch) {
+                    repo[branchName] = branch = {
+                        shadow: null
+                    };
                 }
 
                 if (shadowBranch) {
-                    item.shadow = {
-                        name: SHADOW_BRANCH_PREFIX + name,
+                    branch.shadow = {
+                        name: fullPath,
                         sha: sha
                     };
                 } else {
-                    item.sha = sha;
+                    branch.name = fullPath;
+                    branch.sha = sha;
                 }
 
                 if (current) {
-                    result.current = branch;
+                    result.current = branchName;
+                    result.currentIsShadow = shadowBranch;
                 }
             }
         }
@@ -98,7 +86,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
             return _git.branch(fsPath, ["-a", "-v", "--no-abbrev"]).then(function(output) {
                 var result = {
                     current:null,
-                    branches:[]
+                    branches:{}
                 };
 
                 output.split(/\r?\n/).forEach(function(line){
@@ -112,11 +100,30 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
     };
 
     Object.defineProperties(service, {
-        shadowBranchPrefix: {
+        LOCAL_REPOSITORY_NAME: {
+            get: function() {
+                return LOCAL_REPOSITORY_NAME;
+            }
+        },
+
+        REMOTE_REPOSITORY_NAME: {
+            get: function() {
+                return REMOTE_REPOSITORY_NAME;
+            }
+        },
+
+        SHADOW_BRANCH_PREFIX: {
             get: function() {
                 return SHADOW_BRANCH_PREFIX;
             }
+        },
+
+        defaultBranchName: {
+            get: function() {
+                return "master";    // TODO: retrieve the name of the default branch from git
+            }
         }
+
     });
 
     return service;
