@@ -53,6 +53,11 @@
             args = JSON.parse(param);
             LiveEdit.addTemplateFragment(args.moduleId, args.label, args.argumentName, args.cssSelector, args.how, args.templateFragment);
         }
+
+        if (command === "addTemplateFragmentObjects") {
+            args = JSON.parse(param);
+            LiveEdit.addTemplateFragmentObjects(args.moduleId, args.templateFragment);
+        }
     }
 
     function websocketRefresh() {

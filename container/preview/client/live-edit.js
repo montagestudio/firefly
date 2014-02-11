@@ -224,6 +224,32 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
+        addTemplateFragmentObjects: {
+            value: function(moduleId, templateFragment) {
+                var objects = this.findObjects(moduleId, "owner");
+                var template = new Template(templateFragment.serialization);
+
+                template.removeComponentElementReferences();
+                for (var i = 0, owner; (owner = objects[i]); i++) {
+                    this._addTemplateObjectsToOwner(template, owner);
+                }
+            }
+        },
+
+        _addTemplateObjectsToOwner: {
+            value: function(template, owner) {
+                var self = this;
+                var startTime = window.performance.now();
+                template.instantiate(owner)
+                .then(function(objects) {
+                    var endTime = window.performance.now();
+                    console.log("_addTemplateObjectsToOwner() ", endTime - startTime);
+
+                    self._updateOwnerObjects(owner, objects);
+                });
+            }
+        },
+
         /**
          * @param how string 'on', 'before', 'after', 'append'
          */
@@ -323,7 +349,7 @@ Object.defineProperties(window.Declarativ, {
             return this.instantiate(owner, element)
                 .then(function(objects) {
                     var result = {
-                        objects: objects,
+                        objects: objects
                     };
 
                     if (elementIsWrapper) {
@@ -353,6 +379,19 @@ Object.defineProperties(window.Declarativ, {
                 // object instead of creating a new one.
                 return objects;
             });
+    };
+
+    Template.prototype.removeComponentElementReferences = function() {
+        var serialization = JSON.parse(this.serializationString);
+
+        for (var key in serialization) {
+            var object = serialization[key];
+            if (object.properties && object.properties.element) {
+                delete object.properties.element;
+            }
+        }
+
+        this.serializationString = JSON.stringify(serialization);
     };
 
     Template.prototype._invokeDelegates = function(owner, objects) {

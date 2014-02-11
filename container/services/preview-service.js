@@ -101,6 +101,14 @@ function PreviewService() {
         sendToPreviewClients(url, "addTemplateFragment:" + JSON.stringify(params));
     };
 
+    service.addTemplateFragmentObjects = function(url, moduleId, templateFragment) {
+        var params = {
+            moduleId: moduleId,
+            templateFragment: templateFragment
+        };
+        sendToPreviewClients(url, "addTemplateFragmentObjects:" + JSON.stringify(params));
+    };
+
     service.close = function(request) {
         this.unregister();
     };
