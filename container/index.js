@@ -49,7 +49,7 @@ function main(options) {
     .then(function (server) {
         log("Listening on", options.port);
 
-        // server.node.on("upgrade", containerChain.upgrade);
+        server.node.on("upgrade", containerChain.upgrade);
 
         // for naught
         if (process.send) {
