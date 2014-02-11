@@ -42,13 +42,18 @@ function main(options) {
 
     Env.configure(fs, fs.absolute(options.directory));
 
+    var docker  = new Docker({socketPath: "/var/run/docker.sock"});
+    if (!Env.production) {
+        docker = mountVolume(docker);
+    }
+
     var projectChain = projectChainFactory({
         fs: fs,
         client: options.client,
         clientServices: options.clientServices,
         sessions: sessions,
         checkSession: CheckSession,
-        setupProjectContainer: SetupProjectContainer(new Docker({socketPath: "/var/run/docker.sock"}), containerIndex)
+        setupProjectContainer: SetupProjectContainer(docker, containerIndex)
     });
     return projectChain.listen(options.port)
     .then(function (server) {
@@ -77,6 +82,38 @@ function main(options) {
             process.send("online");
         }
     });
+}
+
+/**
+ * This patches the Docker object to mount Firefly inside the container,
+ * similar to how Vagrant mounts the files inside the VM. File changes on disk
+ * propogate into the VM, and into the containers. This means that the
+ * containers don't need to be recreated every time that the server changes,
+ * they just need to be restarted.
+ * @param  {Docker} docker
+ * @return {Docker}        The patched docker object
+ */
+function mountVolume(docker) {
+    var originalCreateContainer = docker.createContainer;
+    docker.createContainer = function (options) {
+        // Create the volume on the container base image
+        options.Volumes = {"/srv": {}};
+        return originalCreateContainer.call(this, options);
+    };
+
+    var originalContainer = docker.Container;
+    docker.Container = function () {
+        originalContainer.apply(this, arguments);
+    };
+    docker.Container.prototype = Object.create(originalContainer.prototype);
+    docker.Container.prototype.start = function (options) {
+        // Map the volume to the server location inside the VM, and mark it
+        // read-only (ro)
+        options.Binds = ["/srv/firefly:/srv:ro"];
+        return originalContainer.prototype.start.call(this, options);
+    };
+
+    return docker;
 }
 
 if (require.main === module) {
