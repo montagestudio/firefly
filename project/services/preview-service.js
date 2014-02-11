@@ -218,10 +218,7 @@ function PreviewService() {
     var accessCodeTable = [];
     //jshint -W004
     for (var i = 0; i < 26; i++) {
-        accessCodeTable.push(String.fromCharCode(65+i), String.fromCharCode(97+i));
-    }
-    for (var i = 0; i < 10; i++) {
-        accessCodeTable.push(""+i);
+        accessCodeTable.push(String.fromCharCode(97+i));
     }
     //jshint +W004
 
@@ -229,7 +226,7 @@ function PreviewService() {
         // FIXME: This is easy to defeat.
         var code = [];
 
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 8; i++) {
             var ix = Math.floor(Math.random() * accessCodeTable.length);
             code.push(accessCodeTable[ix]);
         }
