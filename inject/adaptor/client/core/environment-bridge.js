@@ -259,10 +259,15 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function () {
             var self = this;
 
-            return this.backend.get("preview-service").invoke("unregister", this._previewUrl)
-            .then(function() {
-                self._previewUrl = null;
-            });
+            // If the websocket isn't connected don't trigger a reconnect
+            if (this._backend) {
+                return this.backend.get("preview-service").invoke("unregister", this._previewUrl)
+                .then(function() {
+                    self._previewUrl = null;
+                });
+            } else {
+                return Promise();
+            }
         }
     },
 
