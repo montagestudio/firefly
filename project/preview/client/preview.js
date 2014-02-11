@@ -134,6 +134,9 @@
             reconnectionTries++;
         } else {
             reconnectionTries = 0;
+            lastReconnectionTime = Date.now();
+            reconnectCallback();
+            return;
         }
         // Increase exponentially the timeout to reconnect.
         var reconnectTime = Math.pow(4, reconnectionTries + 1);
@@ -145,7 +148,9 @@
         var time = 0;
         var reconnect = function() {
             reconnectCallback();
-            document.body.removeChild(disconnectionMessageElement);
+            if (disconnectionMessageElement.parentNode === document.body) {
+                document.body.removeChild(disconnectionMessageElement);
+            }
             clearInterval(timer);
         };
         connectNowElement.onclick = reconnect;
