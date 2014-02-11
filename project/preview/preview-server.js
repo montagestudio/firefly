@@ -123,7 +123,12 @@ function processAccessRequest(request) {
         }
 
         // 302 - Temporary redirect using GET
-        return RedirectApps.temporaryRedirect(request, "index.html", 302);
+        return {
+            status: 302,
+            headers: {
+                Location: "/index.html"
+            }
+        };
     });
 }
 
