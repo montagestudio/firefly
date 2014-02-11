@@ -4,7 +4,8 @@ var log = require("logging").from(__filename);
 var Q = require("q");
 var URL = require("url");
 var FS = require("q-io/fs");
-var ws = require("websocket.io");
+var WebSocket = require("faye-websocket");
+var adaptWebsocket = require("./adapt-websocket");
 var Connection = require("q-connection");
 // FIXME docker
 // var Frontend = require("./frontend");
@@ -12,31 +13,33 @@ var Connection = require("q-connection");
 var websocketConnections = 0;
 
 module.exports = websocket;
-function websocket(sessions, services, clientPath) {
+function websocket(config, services, clientPath) {
     log("Websocket given services", Object.keys(services));
 
-    var socketServer = new ws.Server();
-    socketServer.on("connection", function (connection) {
-        var request = connection.req;
+    return function (request, socket, body) {
+        if (!WebSocket.isWebSocket(request)) {
+            return;
+        }
+
+        var wsQueue = adaptWebsocket(new WebSocket(request, socket, body));
+
         var pathname = URL.parse(request.url).pathname;
         // used for logging
-        var remoteAddress = connection.socket.remoteAddress;
+        var remoteAddress = socket.remoteAddress;
         var frontendId;
         var frontend;
 
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
-        var connectionServices = sessions.getSession(request, function(session) {
-            var path = Env.getProjectPathFromSessionAndAppUrl(session, pathname);
-            var details = Env.getDetailsFromAppUrl(request.url);
+        // FIXME docker use passed in config
+        var path = "/workspace";
 
-            frontendId = session.username + "/" + details.owner + "/" + details.repo;
+        frontendId = config.githubUser + "/" + config.owner + "/" + config.repo;
 
-            log("Limiting", remoteAddress, pathname, "to", path);
-            return getFs(session, path)
-            .then(function (fs) {
-                return makeServices(services, session, fs, Env, pathname, path, clientPath);
-            });
+        log("Limiting", remoteAddress, pathname, "to", path);
+        var connectionServices = FS.reroot(path)
+        .then(function (fs) {
+            return makeServices(services, config, fs, Env, pathname, path, clientPath);
         });
 
         // Throw errors if they happen in establishing services
@@ -46,45 +49,33 @@ function websocket(sessions, services, clientPath) {
             log("*" + error.stack + "*");
         });
 
-        frontend = Connection(connection, connectionServices);
+        frontend = Connection(wsQueue, connectionServices);
         connectionServices.then(function() {
             // FIXME docker
             // return Frontend.addFrontend(frontendId, frontend);
         })
         .done();
 
-        connection.on("close", function(connection) {
+        wsQueue.closed.then(function () {
             Object.keys(services).forEach(function (key) {
                 if (typeof services[key].close === "function") {
-                    services[key].close(connection);
+                    services[key].close(request);
                 }
             });
             // FIXME docker
             // Frontend.deleteFrontend(frontendId).done();
             log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
-
-        connection.on("error", function(err) {
-            if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
-                log("#connection error:", err, "open connections:", --websocketConnections);
-            }
-        });
-    });
-
-    return socketServer;
-}
-
-function getFs(session, path) {
-    return FS.reroot(path);
+    };
 }
 
 // export for testing
 module.exports.makeServices = makeServices;
-function makeServices(services, session, fs, env, pathname, fsPath, clientPath) {
+function makeServices(services, config, fs, env, pathname, fsPath, clientPath) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
-        var service = services[name](session, fs, env, pathname, fsPath, clientPath);
+        var service = services[name](config, fs, env, pathname, fsPath, clientPath);
         connectionServices[name] = Q.master(service);
     });
     log("Finished creating services");
