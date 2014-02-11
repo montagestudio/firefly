@@ -9,8 +9,8 @@ describe("Git", function () {
         git = new Git(fs, accessToken);
         tmpPath = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
     });
-    afterEach(function() {
-        exec("cd /tmp; rm -Rf git-clone-spec-*");
+    afterEach(function(done) {
+        exec("cd /tmp; rm -Rf git-clone-spec-*", done);
     });
 
     describe("init", function () {
