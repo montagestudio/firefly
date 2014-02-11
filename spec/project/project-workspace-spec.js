@@ -28,9 +28,7 @@ describe("ProjectWorkspace", function () {
     });
 
     afterEach(function(done) {
-        exec("cd /tmp; rm -Rf git-clone-spec-*", function() {
-            done();
-        });
+        exec("cd /tmp; rm -Rf git-clone-spec-*", done);
     });
 
     xit("template", function(done) {
