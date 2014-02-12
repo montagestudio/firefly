@@ -77,7 +77,7 @@ function server(options) {
 
         return function (request, response) {
             if (endsWith(request.headers.host, environment.getProjectHost())) {
-                // FIXME
+                // FIXME docker check session/do preview code stuff here
                 var details = environment.getDetailsfromProjectUrl(request.url);
                 request.params = request.params || {};
                 request.params.owner = details.owner;
@@ -95,17 +95,23 @@ function server(options) {
         route("api/:owner/:repo/...").app(ProxyContainer(setupProjectContainer, "api"));
     });
 
-    var proxyWebsocket = ProxyWebsocket(setupProjectContainer, sessions);
+    var proxyAppWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-app");
+    var proxyPreviewWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-preview");
     chain.upgrade = function (request, socket, body) {
         Q.try(function () {
             if (!WebSocket.isWebSocket(request)) {
                 return;
             }
-            // FIXME docker
+            var details;
             if (endsWith(request.headers.host, environment.getProjectHost())) {
-                log("preview upgrade ignored");
+                log("preview websocket");
+                // FIXME docker check session/do preview code stuff here
+                details = environment.getDetailsfromProjectUrl(request.headers.host);
+                return proxyPreviewWebsocket(request, socket, body, details);
             } else {
-                return proxyWebsocket(request, socket, body);
+                log("filament websocket");
+                details = environment.getDetailsFromAppUrl(request.url);
+                return proxyAppWebsocket(request, socket, body, details);
             }
         })
         .catch(function (error) {
