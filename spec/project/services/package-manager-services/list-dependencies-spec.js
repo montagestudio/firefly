@@ -258,6 +258,25 @@ describe("list dependencies", function () {
 
         });
 
+        it('should detect if a package.json has an end line or not', function (done) {
+
+            mockFS = QFSMock({
+                "package.json": "{}\n"
+            });
+
+            PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
+                expect(dependencyTree.endLine).toEqual(true);
+
+                mockFS = QFSMock({
+                    "package.json": "{}"
+                });
+            }).then(function () {
+                return PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
+                    expect(dependencyTree.endLine).toEqual(false);
+                });
+            }).then(done, done);
+        });
+
     });
 
 });
