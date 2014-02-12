@@ -31,7 +31,6 @@ function server(options) {
     .route(function () {
         this.OPTIONS("").content("");
     })
-    .log(log, function (message) { return message; })
     .use(LogStackTraces(log))
     .tap(setupProjectWorkspace)
     .route(function (route) {
@@ -40,7 +39,6 @@ function server(options) {
         var serveProject = preview(function (request) {
             // Strip leading slash on pathInfo so that the `join` works
             var path = fs.join("/workspace", request.pathInfo.replace(/^\//, ""));
-            log("serveProject path", path);
 
             return fs.isFile(path).then(function(isFile) {
                 if (isFile) {
@@ -52,6 +50,7 @@ function server(options) {
         });
 
         route("api/...")
+        .log(log, function (message) { return message; })
         .app(api(config).end());
 
         route("static/...")
