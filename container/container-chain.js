@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var Q = require("q");
 var joey = require("joey");
 
 var HttpApps = require("q-io/http-apps/fs");
@@ -73,13 +74,18 @@ function server(options) {
     var websocketServer = websocket(config, services, clientPath);
 
     chain.upgrade = function (request, socket, head) {
-        console.log("websocket!!!!!!!");
-        // FIXME docker preview server
-        // if (endsWith(request.headers.host, environment.getProjectHost())) {
-        //     // preview.wsServer.handleUpgrade(request, socket, head);
-        // } else {
-        websocketServer(request, socket, head);
-        // }
+        Q.try(function () {
+            // FIXME docker preview server
+            // if (endsWith(request.headers.host, environment.getProjectHost())) {
+            //     // preview.wsServer.handleUpgrade(request, socket, head);
+            // } else {
+            return websocketServer(request, socket, head);
+            // }
+        })
+        .catch(function (error) {
+            log("*Error setting up websocket*", error.stack);
+            socket.destroy();
+        });
     };
 
     return chain;

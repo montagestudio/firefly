@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var Q = require("q");
 var joey = require("joey");
 var APPS = require("q-io/http-apps");
 // FIXME docker
@@ -10,19 +11,14 @@ var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
 
 var ProxyContainer = require("./proxy-container");
-var websocket = require("./websocket");
+var ProxyWebsocket = require("./proxy-websocket");
+var WebSocket = require("faye-websocket");
 
 module.exports = server;
 function server(options) {
     options = options || {};
 
     //jshint -W116
-    if (!options.fs) throw new Error("options.fs required");
-    var fs = options.fs;
-    if (!options.client) throw new Error("options.client required");
-    var client = fs.absolute(options.client);
-    if (!options.clientServices) throw new Error("options.clientServices required");
-    var clientServices = options.clientServices;
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");
@@ -99,27 +95,23 @@ function server(options) {
         route("api/:owner/:repo/...").app(ProxyContainer(setupProjectContainer, "api"));
     });
 
-    // These services should be customized per websocket connection, to
-    // encompass the session information
-    var services = {};
-    Object.keys(clientServices).forEach(function (name) {
-        services[name] = require(fs.join(client, clientServices[name]));
-    });
-    services["file-service"] = require("./services/file-service");
-    services["extension-service"] = require("./services/extension-service");
-    services["env-service"] = require("./services/env-service");
-    services["preview-service"] = require("./services/preview-service").service;
-    services["package-manager-service"] = require("./services/package-manager-service");
-    services["repository-service"] = require("./services/repository-service");
-
-    var websocketServer = websocket(sessions, services, client);
-
-    chain.upgrade = function (request, socket, head) {
-        if (endsWith(request.headers.host, environment.getProjectHost())) {
-            // preview.wsServer.handleUpgrade(request, socket, head);
-        } else {
-            websocketServer.handleUpgrade(request, socket, head);
-        }
+    var proxyWebsocket = ProxyWebsocket(setupProjectContainer, sessions);
+    chain.upgrade = function (request, socket, body) {
+        Q.try(function () {
+            if (!WebSocket.isWebSocket(request)) {
+                return;
+            }
+            // FIXME docker
+            if (endsWith(request.headers.host, environment.getProjectHost())) {
+                log("preview upgrade ignored");
+            } else {
+                return proxyWebsocket(request, socket, body);
+            }
+        })
+        .catch(function (error) {
+            log("*Error setting up websocket*", error.stack);
+            socket.destroy();
+        });
     };
 
     return chain;
