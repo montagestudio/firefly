@@ -4,11 +4,11 @@ var URL = require("url");
 function Env(options) {
     var env = options || {  production: process.env.NODE_ENV === "production" };
 
-    log("Mode: " + env.production);
+    log("production", env.production);
 
     env.port = process.env.FIREFLY_PORT || 2440;
 
-    log("Port: " + env.port);
+    log("port", env.port);
 
     env.app = URL.parse(process.env.FIREFLY_APP_URL || "http://local-firefly.declarativ.net:2440");
     // Remove `host` so that `URL.format` uses `hostname` and `port` instead.
@@ -17,13 +17,13 @@ function Env(options) {
     delete env.app.host;
     delete env.app.pathname;
 
-    log("App URL: " + env.app);
+    log("app", JSON.stringify(env.app));
 
     env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.montagestudio.com:2440");
     delete env.project.host;
     delete env.project.pathname;
 
-    log("Project URL: " + env.project);
+    log("project", JSON.stringify(env.project));
 
     env.configure = function (fs, clonePath) {
         this.fs = fs;
