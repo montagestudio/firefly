@@ -270,7 +270,7 @@ ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
  */
 ProjectWorkspace.prototype._npmInstall = function () {
     // Let the PackageManager installs the project's dependencies.
-    var pathname =  "/" + this._owner + "/" + this._repo,
+    var pathname =  PATH.sep + this._fs.join(this._owner, "/" + this._repo),
         fsPath = this._workspacePath;
 
     return this._fs.reroot(this._workspacePath)
