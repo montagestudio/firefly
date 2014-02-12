@@ -38,7 +38,7 @@
         "__filename"    : false,
         "__dirname"     : false,
         "Buffer"        : false,
-        // "console"       : false, // Use `var log = require("logging").from(__filename);` instead!
+        // "console"    : false, // Use `var log = require("logging").from(__filename);` instead!
         "exports"       : true,  // In Node it is ok to exports = module.exports = foo();
         "GLOBAL"        : false,
         "global"        : false,
@@ -50,6 +50,8 @@
         "setInterval"   : false,
         "clearInterval" : false,
         "setImmediate"  : false, // v0.9.1+
-        "clearImmediate": false  // v0.9.1+
+        "clearImmediate": false, // v0.9.1+
+
+        "WebSocket"     : true
     }
 }
