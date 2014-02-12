@@ -1,11 +1,11 @@
 var log = require("logging").from(__filename);
 var PATH = require("path");
-var exec = require("./exec");
 var Q = require("q");
 var GithubApi = require("../inject/adaptor/client/core/github-api");
 var Minit = require("./minit");
 var Git = require("./git");
 var fs = require("q-io/fs");
+var PackageManagerService = require("./services/package-manager-service");
 
 var INITIAL_COMMIT_MSG = "Initial commit";
 var DEFAULT_GIT_EMAIL = "noreply";
@@ -269,11 +269,14 @@ ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
  * NPM related operations
  */
 ProjectWorkspace.prototype._npmInstall = function () {
-    // Only installing these packages to avoid security issues with unknown
-    // packages' post install scripts, etc.
-    return exec("npm", ["install", "montage", "digit"], this._workspacePath)
-    .fail(function() {
-        throw new Error("npm install failed.");
+    // Let the PackageManager installs the project's dependencies.
+    var pathname =  PATH.sep + this._fs.join(this._owner, "/" + this._repo),
+        fsPath = this._workspacePath;
+
+    return this._fs.reroot(this._workspacePath)
+    .then(function(fs) {
+        var service = PackageManagerService(fs, null, pathname, fsPath);
+        return service.installProjectPackages();
     });
 };
 
