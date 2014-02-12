@@ -83,6 +83,7 @@ function server(options) {
         })
         .catch(function (error) {
             log("*Error setting up websocket*", error.stack);
+            socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
             socket.destroy();
         });
     };
