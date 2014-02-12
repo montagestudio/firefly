@@ -251,7 +251,7 @@ Object.defineProperties(window.Declarativ, {
         },
 
         /**
-         * @param how string 'on', 'before', 'after', 'append'
+         * @param how string 'before', 'after', 'append'
          */
         _addTemplateToElement: {
             value: function(template, anchor, how, owner, label) {
@@ -302,25 +302,21 @@ Object.defineProperties(window.Declarativ, {
          */
         _updateLiveEditRangeTags: {
             value: function(fringeAttrName, fringeAttrValue, newFringe, currentFringe) {
-                var tagNewFringe;
+                var leArgValue = currentFringe.getAttribute(fringeAttrName);
 
-                if (currentFringe) {
-                    var leArgValue = currentFringe.getAttribute(fringeAttrName);
-                    if (leArgValue) {
-                        var values = leArgValue.split(/\s+/);
-                        var ix = values.indexOf(fringeAttrValue);
-                        if (ix >= 0) {
-                            values.splice(ix, 1);
-                            currentFringe.setAttribute(fringeAttrName, values.join(" "));
-                            tagNewFringe = true;
+                if (leArgValue) {
+                    var values = leArgValue.trim().split(/\s+/);
+                    var ix = values.indexOf(fringeAttrValue);
+                    if (ix >= 0) {
+                        values.splice(ix, 1);
+                        if (values.length === 0) {
+                            currentFringe.removeAttribute(fringeAttrName);
+                        } else {
+                            currentFringe.setAttribute(fringeAttrName,
+                                values.join(" "));
                         }
+                        newFringe.setAttribute(fringeAttrName, fringeAttrValue);
                     }
-                } else {
-                    tagNewFringe = true;
-                }
-
-                if (tagNewFringe) {
-                    newFringe.setAttribute(fringeAttrName, fringeAttrValue);
                 }
             }
         }
@@ -333,17 +329,11 @@ Object.defineProperties(window.Declarativ, {
 
     Template.prototype.instantiateIntoDocument = function(anchor, how, owner) {
         var self = this,
-            element,
-            elementIsWrapper;
+            element;
 
-        if (how === "on") {
-            element = anchor;
-        } else {
-            elementIsWrapper = true;
-            element = document.createElement("div");
-            element.innerHTML = this.html;
-            this._addElement(element, anchor, how);
-        }
+        element = document.createElement("div");
+        element.innerHTML = this.html;
+        this._addElement(element, anchor, how);
 
         if (this.serializationString) {
             return this.instantiate(owner, element)
@@ -352,13 +342,9 @@ Object.defineProperties(window.Declarativ, {
                         objects: objects
                     };
 
-                    if (elementIsWrapper) {
-                        result.firstElement = element.firstElementChild;
-                        result.lastElement = element.lastElementChild;
-                        self._removeElementWrapper(element);
-                    } else {
-                        result.firstElement = result.lastElement = element;
-                    }
+                    result.firstElement = element.firstElementChild;
+                    result.lastElement = element.lastElementChild;
+                    self._removeElementWrapper(element);
 
                     return result;
                 });
