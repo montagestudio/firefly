@@ -1,14 +1,14 @@
 /*jshint browser:true */
-/*global confirm, console */
+/*global console, Declarativ */
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
 
 (function() {
     var _montageWillLoad = window.montageWillLoad,
-        timer = null;
-
-    var kDeconnectionMessage = "This project has been disconnected from Montage Builder!\n\n Would you like to reconnect?";
+        timer = null,
+        disconnectionMessageElement,
+        LiveEdit = Declarativ.LiveEdit;
 
     function dispatchEvent(type, detail) {
         var event;
@@ -22,7 +22,7 @@
 
     function processIncomingData(data) {
         var command = data.substring(0, data.indexOf(":"));
-        //var param = data.substring(data.indexOf(":") + 1);
+        var param = data.substring(data.indexOf(":") + 1);
 
         // REFRESH
         if (command === "refresh") {
@@ -30,6 +30,12 @@
             if (!event.defaultPrevented) {
                 document.location.reload();
             }
+        }
+
+        // SET OBJECT PROPERTIES
+        if (command === "setObjectProperties") {
+            var args = JSON.parse(param);
+            LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
         }
     }
 
@@ -44,9 +50,7 @@
         };
 
         ws.onclose = function() {
-            if (confirm(kDeconnectionMessage) === true) {
-                websocketRefresh();
-            }
+            showReconnectionMessage(websocketRefresh);
         };
     }
 
@@ -58,15 +62,14 @@
 
         xhr.onload = function(event) {
             try {
-                if (this.status === 200) {
+                if (this.status === 200 &&
+                    this.getResponseHeader("content-type") === "application/preview-message") {
                     processIncomingData(this.responseText);
                     httpRefresh();
-                } else if (this.status === 404) {
-                    if (confirm("404: " + kDeconnectionMessage) === true) {
-                        httpRefresh();
-                    }
-                } else {
+                } else if (this.status === 204) {
                     httpRefresh();
+                } else {
+                    showReconnectionMessage(httpRefresh);
                 }
             } catch(error) {
                 console.log(error);
@@ -74,18 +77,14 @@
         };
 
         xhr.onerror = function(event) {
-            if (confirm(kDeconnectionMessage) === true) {
-                httpRefresh();
-            }
+            showReconnectionMessage(httpRefresh);
         };
 
         xhr.onabort = function(event) {
         };
 
         xhr.ontimeout = function(event) {
-            if (confirm(kDeconnectionMessage) === true) {
-                httpRefresh();
-            }
+            showReconnectionMessage(httpRefresh);
         };
 
         xhr.send();
@@ -107,6 +106,68 @@
         if (typeof _montageWillLoad === "function") {
             _montageWillLoad();
         }
+
+        disconnectionMessageElement = createReconnectionMessageElement();
+    }
+
+    function createReconnectionMessageElement() {
+        var div = document.createElement("div");
+
+        div.innerHTML = 'Not connected to the tool. Connecting in <span></span>s... <a href="#" style="color: black">Connect now</a>';
+        div.setAttribute("style", "border: 1px solid black;" +
+            "background-color: red;" +
+            "padding: 8px;" +
+            "position: absolute;" +
+            "top: 40px;" +
+            "font-size: 16pt;" +
+            "z-index: 9999;");
+
+        return div;
+    }
+
+    var lastReconnectionTime = 0;
+    var reconnectionTries = 0;
+    function showReconnectionMessage(reconnectCallback) {
+        // If the last time a reconnect was attempted was less than 1s ago
+        // then assume that a reconnection was not possible.
+        if (Date.now() - lastReconnectionTime < 1000) {
+            reconnectionTries++;
+        } else {
+            reconnectionTries = 0;
+            lastReconnectionTime = Date.now();
+            reconnectCallback();
+            return;
+        }
+        // Increase exponentially the timeout to reconnect.
+        var reconnectTime = Math.pow(4, reconnectionTries + 1);
+
+        var secondsElement = disconnectionMessageElement.querySelector("span");
+        var connectNowElement = disconnectionMessageElement.querySelector("a");
+
+        var timer;
+        var time = 0;
+        var reconnect = function() {
+            reconnectCallback();
+            if (disconnectionMessageElement.parentNode === document.body) {
+                document.body.removeChild(disconnectionMessageElement);
+            }
+            clearInterval(timer);
+        };
+        connectNowElement.onclick = reconnect;
+        // Update the seconds to reconnect, in the message, at every second.
+        // When the time is up try to reconnect.
+        timer = setInterval(function() {
+            if (++time === reconnectTime) {
+                lastReconnectionTime = Date.now();
+                reconnect();
+            }
+            secondsElement.textContent = (reconnectTime - time);
+        }, 1000);
+
+        disconnectionMessageElement.style.visibility = "hidden";
+        document.body.appendChild(disconnectionMessageElement);
+        disconnectionMessageElement.style.left = ((document.body.offsetWidth - disconnectionMessageElement.offsetWidth) / 2) + "px";
+        disconnectionMessageElement.style.visibility = "visible";
     }
 
     timer = setTimeout(function() {  // in case something went wrong with Montage

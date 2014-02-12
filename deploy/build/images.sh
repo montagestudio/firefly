@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# To see the debug log add the x option to the folloing line: set -xe
+set -e
+
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
 # Setup the build enviroment

@@ -103,6 +103,7 @@ function FileService(session, fs, environment, pathname, fsPath) {
      */
     service.listAsset = function (url, extraExclude) {
         var exclude = ["node_modules", ".*"],
+            glTFBundleExtension = ".glTF",
             localPath = convertProjectUrlToPath(url);
 
         if (extraExclude) {
@@ -115,11 +116,29 @@ function FileService(session, fs, environment, pathname, fsPath) {
         var excludeGuard = guard(exclude);
 
         return fs.listTree(localPath, function (path, stat) {
-            return excludeGuard(path, stat) && !stat.isDirectory();
+            var shouldKeep = excludeGuard(path, stat);
+
+            if (shouldKeep) {
+                if (stat.isDirectory()) {
+                    return PATH.extname(path) === glTFBundleExtension;
+                }
+
+                var directoryName = PATH.dirname(path);
+
+                return directoryName && PATH.extname(directoryName) !== glTFBundleExtension;
+            }
+
+            return shouldKeep;
+
         }).then(function (paths) {
                 return Q.all(paths.map(function (path) {
                     return fs.stat(path).then(function (stat) {
                         return detectMimeType(fs, path, fsPath).then(function (mimeType) {
+                            // Directories in URLs must have a trailing slash
+                            if (stat.isDirectory()) {
+                                path += "/";
+                            }
+
                             return {url: convertPathToProjectUrl(path), stat: stat, mimeType: mimeType};
                         });
                     });
@@ -131,6 +150,14 @@ function FileService(session, fs, environment, pathname, fsPath) {
         var path = convertProjectUrlToPath(url);
         return detectMimeType(fs, path, fsPath);
     };
+
+
+    service.writeFile = function (url, base64) {
+        var buffer = new Buffer(base64, "base64");
+        var path = convertProjectUrlToPath(url);
+        return fs.write(path, buffer);
+    };
+
 
     /**
      * Lists all the files in a package except node_modules, dotfiles and files

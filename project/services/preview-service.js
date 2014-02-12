@@ -73,7 +73,9 @@ exports.registerDeferredResponse = function(url, responseDeferred) {
                     if (preview.requests) {
                         for (var j = 0, info; (info = preview.requests[j]); j++) {
                             if (Math.abs(currentTime - info.date) > 30) {
-                                info.response.reject();
+                                info.response.resolve({
+                                    status: 204
+                                });
                                 cutIndex = j;
                             }
                         }
@@ -92,6 +94,20 @@ exports.registerDeferredResponse = function(url, responseDeferred) {
     } else {
         log("registerDeferredRequest: invalid previewID", previewId);
         responseDeferred.reject(new Error("Invalid previewID: " + previewId));
+    }
+};
+
+exports.existsPreviewFromUrl = function(url) {
+    var previewId = exports.getPreviewIdFromUrl(url);
+    return previewId in _previews;
+};
+
+exports.getPreviewAccessCodeFromUrl = function(url) {
+    var previewId = exports.getPreviewIdFromUrl(url),
+        preview = _previews[previewId];
+
+    if (preview) {
+        return preview.accessCode;
     }
 };
 
@@ -117,26 +133,63 @@ function PreviewService() {
             url = parameters.url,
             previewId = exports.getPreviewIdFromUrl(url);
 
+        if (previewId in _previews) {
+            // Another instance of the same project was open in the tool...
+            // We don't support this until we can have a 1:1 on project<->app
+            this.unregister(url);
+        }
+
         log("register new preview", previewId);
         _previews[previewId] = {
             name: name,
-            url: url
+            url: url,
+            accessCode: generateAccessCode()
         };
-
+        log("access code: ", _previews[previewId].accessCode);
         //saveMap();
     };
 
     service.unregister = function(url) {
         var previewId = exports.getPreviewIdFromUrl(url);
+        var preview = _previews[previewId];
 
-        log("unregister preview", previewId);
-        delete _previews[previewId];
+        if (preview) {
+            log("unregister preview", previewId);
+            // Websocket connections
+            if (preview.connections) {
+                for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+                    preview.connections[i].close();
+                }
+            }
+            // HTTP requests
+            if (preview.requests) {
+                //jshint -W004
+                for (var i = 0, ii = preview.requests.length; i < ii; i++) {
+                    preview.requests[i].response.fail();
+                }
+                //jshint +W004
+            }
+            delete _previews[previewId];
+        }
 
         //saveMap();
     };
 
     service.refresh = function(url) {
         sendToPreviewClients(url, "refresh:");
+    };
+
+    service.setObjectProperties = function(url, label, ownerModuleId, properties) {
+        var params = {
+            label: label,
+            ownerModuleId: ownerModuleId,
+            properties: properties
+        };
+        sendToPreviewClients(url, "setObjectProperties:" + JSON.stringify(params));
+    };
+
+    service.close = function(connection) {
+        this.unregister(connection.headers.host);
     };
 
     function sendToPreviewClients(url, content) {
@@ -154,11 +207,31 @@ function PreviewService() {
             if (preview.requests) {
                 //jshint -W004
                 for (var i = 0, ii = preview.requests.length; i < ii; i++) {
-                    preview.requests[i].response.resolve(APPS.ok(content));
+                    preview.requests[i].response.resolve(APPS.ok(
+                        content, "application/preview-message"));
                 }
                 //jshint +W004
             }
         }
+    }
+
+    var accessCodeTable = [];
+    //jshint -W004
+    for (var i = 0; i < 26; i++) {
+        accessCodeTable.push(String.fromCharCode(97+i));
+    }
+    //jshint +W004
+
+    function generateAccessCode() {
+        // FIXME: This is easy to defeat.
+        var code = [];
+
+        for (var i = 0; i < 8; i++) {
+            var ix = Math.floor(Math.random() * accessCodeTable.length);
+            code.push(accessCodeTable[ix]);
+        }
+
+        return code.join("");
     }
 
     return service;

@@ -9,7 +9,8 @@ describe("preview-service", function () {
     function createConnection(host) {
         return {
             req: {headers: {host: host}},
-            send: function(content) {}
+            send: function(content) {},
+            close: function() {}
         };
     }
 
@@ -27,6 +28,15 @@ describe("preview-service", function () {
             expect(previews['local-project']).toBeDefined();
         });
 
+        it("should create an access code when registering a new preview", function() {
+            service.register({
+                name: "preview",
+                url: environment.project.hostname
+            });
+
+            expect(previews['local-project'].accessCode).toBeDefined();
+        });
+
         it("should unregister a preview", function () {
             service.register({
                 name: "preview",
@@ -35,6 +45,38 @@ describe("preview-service", function () {
 
             service.unregister(environment.project.hostname);
             expect(previews['local-project']).not.toBeDefined();
+        });
+
+        it("should unregister a preview and close all its connections", function () {
+            var url = environment.project.hostname;
+            service.register({
+                name: "preview",
+                url: url
+            });
+            var connection = createConnection(url);
+            PreviewService.registerConnection(connection);
+
+            spyOn(connection, "close");
+
+            service.unregister(url);
+            expect(connection.close).toHaveBeenCalled();
+        });
+
+        it("should know if a preview exists by url", function() {
+            var url = environment.project.hostname;
+
+            service.register({
+                name: "preview",
+                url: url
+            });
+
+            expect(PreviewService.existsPreviewFromUrl(url)).toBe(true);
+        });
+
+        it("should know if a preview does not exist by url", function() {
+            var url = environment.project.hostname;
+
+            expect(PreviewService.existsPreviewFromUrl(url)).toBe(false);
         });
 
         describe("client instrumentation", function() {
@@ -66,7 +108,7 @@ describe("preview-service", function () {
                 var expectedResponse = {
                     status: 200,
                     headers: {
-                        'content-type': 'text/plain'
+                        'content-type': 'application/preview-message'
                     },
                     body: ['refresh:']
                 };
@@ -81,6 +123,21 @@ describe("preview-service", function () {
 
                 expect(deferred1.resolve).toHaveBeenCalledWith(expectedResponse);
                 expect(deferred2.resolve).toHaveBeenCalledWith(expectedResponse);
+            });
+
+            it("should issue setObjectProperties", function() {
+                var args = {
+                    label: "label",
+                    ownerModuleId: "ownerModuleId",
+                    properties: {property: "value"}
+                };
+                spyOn(connection1, "send");
+                spyOn(connection2, "send");
+
+                service.setObjectProperties(host, args.label, args.ownerModuleId, args.properties);
+
+                expect(connection1.send).toHaveBeenCalledWith(
+                    "setObjectProperties:" + JSON.stringify(args));
             });
         });
     });
@@ -125,5 +182,17 @@ describe("preview-service", function () {
         var previewId = PreviewService.getPreviewIdFromUrl(url);
 
         expect(previewId).toBe("repo-user");
+    });
+
+    it("should get the preview access code from a url", function() {
+        var url = "http://repo-user.domain.com",
+            accessCode;
+
+        previews["repo-user"] = {
+            accessCode: "leCode"
+        };
+        accessCode = PreviewService.getPreviewAccessCodeFromUrl(url);
+
+        expect(accessCode).toBe("leCode");
     });
 });

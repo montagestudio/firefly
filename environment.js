@@ -1,9 +1,14 @@
+var log = require("logging").from(__filename);
 var URL = require("url");
 
 function Env(options) {
     var env = options || {  production: process.env.NODE_ENV === "production" };
 
+    log("production", env.production);
+
     env.port = process.env.FIREFLY_PORT || 2440;
+
+    log("port", env.port);
 
     env.app = URL.parse(process.env.FIREFLY_APP_URL || "http://local-firefly.declarativ.net:2440");
     // Remove `host` so that `URL.format` uses `hostname` and `port` instead.
@@ -12,9 +17,13 @@ function Env(options) {
     delete env.app.host;
     delete env.app.pathname;
 
+    log("app", JSON.stringify(env.app));
+
     env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.montagestudio.com:2440");
     delete env.project.host;
     delete env.project.pathname;
+
+    log("project", JSON.stringify(env.project));
 
     env.configure = function (fs, clonePath) {
         this.fs = fs;
@@ -94,6 +103,20 @@ function Env(options) {
         var details = this.getDetailsfromProjectUrl(url);
 
         return this.fs.join(this.clonePath, session.username, details.owner, details.repo);
+    };
+
+    /**
+     * Assumes that the username is the same as the owner.
+     * This is temporary while we build support for accessing repos that are not
+     * forked to the user github.
+     */
+    env.getProjectPathFromProjectUrl = function (url) {
+        if (!this.fs || !this.clonePath) {
+            throw new Error("Environment must be configured before using this function");
+        }
+        var details = this.getDetailsfromProjectUrl(url);
+
+        return this.fs.join(this.clonePath, details.owner, details.owner, details.repo);
     };
 
     env.getProjectHost = function() {

@@ -117,6 +117,7 @@ Montage.defineProperty(exports, "defaultMenu", {
             Promise.nextTick(function () {
                 var undoMenuItem = new MenuItemModule.MenuItem(),
                     redoMenuItem = new MenuItemModule.MenuItem(),
+                    deleteMenuItem = new MenuItemModule.MenuItem(),
                     saveMenuItem = new MenuItemModule.MenuItem();
 
                 undoMenuItem.title = "Undo";
@@ -125,12 +126,17 @@ Montage.defineProperty(exports, "defaultMenu", {
                 redoMenuItem.title = "Redo";
                 redoMenuItem.identifier = "redo";
 
+                deleteMenuItem.title = "Delete";
+                deleteMenuItem.identifier = "delete";
+                deleteMenuItem.keyEquivalent = "command+backspace";
+
                 saveMenuItem.title = "Save";
                 saveMenuItem.identifier = "save";
                 saveMenuItem.keyEquivalent = "command+s";
 
                 _defaultMenu.insertItem(saveMenuItem).done();
                 _defaultMenu.insertItem(undoMenuItem).done();
+                _defaultMenu.insertItem(deleteMenuItem).done();
                 _defaultMenu.insertItem(redoMenuItem).done();
             });
         }
