@@ -1,5 +1,4 @@
 var log = require("logging").from(__filename);
-var environment = require("../../environment");
 var APPS = require("q-io/http-apps");
 
 var _previews = {"/": {name:"/", path:"/", default:"index.html"}};
@@ -16,27 +15,27 @@ exports.unregisterAllConnections = function() {
     });
 };
 
-exports.registerConnection = function(connection) {
-    var previewId = exports.getPreviewIdFromUrl(connection.req.headers.host),
+exports.registerConnection = function(ws) {
+    var previewId = exports.getPreviewIdFromUrl(),
         preview = _previews[previewId];
 
     if (preview) {
         if (!preview.connections) {
-            preview.connections = [connection];
+            preview.connections = [ws];
         } else {
-            preview.connections.push(connection);
+            preview.connections.push(ws);
         }
     }
 };
 
-exports.unregisterConnection = function(connection) {
-    var previewId = exports.getPreviewIdFromUrl(connection.req.headers.host),
+exports.unregisterConnection = function(ws) {
+    var previewId = exports.getPreviewIdFromUrl(),
         preview = _previews[previewId];
 
     if (preview) {
         var connections = preview.connections;
         for (var i in connections) {
-            if (connections[i] === connection) {
+            if (connections[i] === ws) {
                 connections.splice(i, 1);
             }
         }
@@ -112,9 +111,9 @@ exports.getPreviewAccessCodeFromUrl = function(url) {
 };
 
 exports.getPreviewIdFromUrl = function(url) {
-    var details = environment.getDetailsfromProjectUrl(url);
+    // var details = environment.getDetailsfromProjectUrl(url);
 
-    return details.owner + "-" + details.repo;
+    return "XXXX";
 };
 
 /**
@@ -188,8 +187,8 @@ function PreviewService() {
         sendToPreviewClients(url, "setObjectProperties:" + JSON.stringify(params));
     };
 
-    service.close = function(connection) {
-        this.unregister(connection.headers.host);
+    service.close = function(request) {
+        this.unregister(request.headers.host);
     };
 
     function sendToPreviewClients(url, content) {

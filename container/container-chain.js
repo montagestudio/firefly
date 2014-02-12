@@ -75,11 +75,11 @@ function server(options) {
     chain.upgrade = function (request, socket, head) {
         Q.try(function () {
             // FIXME docker preview server
-            // if (endsWith(request.headers.host, environment.getProjectHost())) {
-            //     // preview.wsServer.handleUpgrade(request, socket, head);
-            // } else {
-            return websocketServer(request, socket, head);
-            // }
+            if (request.headers['sec-websocket-protocol'] === "firefly-preview") {
+                return preview.wsServer(request, socket, head);
+            } else {
+                return websocketServer(request, socket, head);
+            }
         })
         .catch(function (error) {
             log("*Error setting up websocket*", error.stack);

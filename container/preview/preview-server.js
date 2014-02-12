@@ -6,8 +6,8 @@ var URL = require("url");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 // FIXME docker
-// var ws = require("websocket.io");
-// var preview = require("../services/preview-service");
+var WebSocket = require("faye-websocket");
+var preview = require("../services/preview-service");
 var hasPreviewAccess = require("./check-preview-access").hasPreviewAccess;
 var querystring = require("querystring");
 
@@ -54,7 +54,7 @@ function Preview(config) {
         };
     };
 
-    // use.wsServer = startWsServer(sessions);
+    use.wsServer = startWsServer(config);
     return use;
 }
 
@@ -151,44 +151,35 @@ function maybeGrantAccessToPreview(code, previewHost, session) {
     }
 }
 
-function startWsServer(sessions) {
-    // this server will get upgraded by project-chain
-    var wsServer = new ws.Server();
+function startWsServer(config) {
+    // this server will get upgraded by container-chain
     var websocketConnections = 0;
 
-    wsServer.on('connection', function (connection) {
-        var request = connection.req;
+    return function (request, socket, body) {
+        if (!WebSocket.isWebSocket(request)) {
+            return;
+        }
+
+        var ws = new WebSocket(request, socket, body, ["firefly-preview"]);
+
         var pathname = URL.parse(request.url).pathname;
-        var remoteAddress = connection.socket.remoteAddress;
+        var remoteAddress = socket.remoteAddress;
 
+        // = config.githubUser + "/" + config.owner + "/" + config.repo;
+        // FIXME docker move this up out into the project chain/server
+        return hasPreviewAccess(request.headers.host, config).then(function (hasPreviewAccess) {
+            if (hasPreviewAccess) {
+                log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
-        sessions.getSession(request, function(session) {
-            if (preview.existsPreviewFromUrl(request.headers.host)) {
-                return hasPreviewAccess(request.headers.host, session).then(function (hasPreviewAccess) {
-                    if (hasPreviewAccess) {
-                        log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
+                preview.registerConnection(ws);
 
-                        preview.registerConnection(connection);
-
-                        connection.on('close', function () {
-                            log("websocket connection closed: ", --websocketConnections);
-                            preview.unregisterConnection(connection);
-                        });
-
-                        connection.on("error", function(err) {
-                            if (err.code !== 'ECONNRESET') {
-                                log("Preview connection error:", err);
-                            }
-                        });
-                    } else {
-                        connection.close();
-                    }
+                ws.on("close", function () {
+                    log("websocket connection closed: ", --websocketConnections);
+                    preview.unregisterConnection(ws);
                 });
             } else {
-                connection.close();
+                ws.close();
             }
-        }).done();
-    });
-
-    return wsServer;
+        });
+    };
 }

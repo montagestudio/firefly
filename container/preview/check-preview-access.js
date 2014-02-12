@@ -42,25 +42,26 @@ function CheckPreviewAccess(next) {
  * this preview and the owner has it open in the tool.
  */
 function hasPreviewAccess(url, session) {
-    if (session) {
-        return session.githubUser.then(function (githubUser) {
-            var details = env.getDetailsfromProjectUrl(url);
-            // The user doesn't need to have explicit access to its own previews.
-            if (githubUser && githubUser.login.toLowerCase() === details.owner) {
-                return true;
-            }
-            // FIXME docker
-            // else if (PreviewService.existsPreviewFromUrl(url)) {
-            //     // No reason to give a random user access to the preview if the owner
-            //     // doesn't have it open in the tool.
-            //     var previewAccess = session.previewAccess;
-            //     if (previewAccess && previewAccess.indexOf(url) >= 0) {
-            //         return true;
-            //     }
-            // }
-            return false;
-        });
-    } else {
-        return Q(false);
-    }
+    // if (session) {
+    //     return session.githubUser.then(function (githubUser) {
+    //         var details = env.getDetailsfromProjectUrl(url);
+    //         // The user doesn't need to have explicit access to its own previews.
+    //         if (githubUser && githubUser.login.toLowerCase() === details.owner) {
+    //             return true;
+    //         }
+    //         // FIXME docker
+    //         // else if (PreviewService.existsPreviewFromUrl(url)) {
+    //         //     // No reason to give a random user access to the preview if the owner
+    //         //     // doesn't have it open in the tool.
+    //         //     var previewAccess = session.previewAccess;
+    //         //     if (previewAccess && previewAccess.indexOf(url) >= 0) {
+    //         //         return true;
+    //         //     }
+    //         // }
+    //         return false;
+    //     });
+    // } else {
+    //     return Q(false);
+    // }
+    return Q(true);
 }
