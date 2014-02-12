@@ -15,6 +15,7 @@
         "region_id": 4,
         "size_id": 66,
         "private_networking": false,
+		"state_timeout": "12m",
         "snapshot_name": "{{user `snapshot_name`}}",
         "droplet_name": "firefly-image"
     }],
