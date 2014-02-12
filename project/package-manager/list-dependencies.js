@@ -15,7 +15,9 @@ var DetectErrorDependencyTree = require("./detect-error-dependency-tree"),
  */
 module.exports = function listDependencies (fs, projectPath, shouldReadChildren) {
 
-    var dependencyTree = new DependencyNode();
+    var dependencyTree = new DependencyNode(),
+        rootExamined = false;
+
     dependencyTree.path = projectPath;
     shouldReadChildren = typeof shouldReadChildren === "undefined" ? true : shouldReadChildren;
 
@@ -120,7 +122,14 @@ module.exports = function listDependencies (fs, projectPath, shouldReadChildren)
 
         return fs.exists(packageJsonFilePath).then(function (exists) {
             if (exists) {
-                return fs.read(packageJsonFilePath).then(JSON.parse);
+                return fs.read(packageJsonFilePath).then(function (packageJsonRaw) {
+                    if (!rootExamined) {
+                        dependencyTree.endLine = /\}\n+$/.test(packageJsonRaw);
+                        rootExamined = true;
+                    }
+
+                    return JSON.parse(packageJsonRaw);
+                });
             }
         });
     }
