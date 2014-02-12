@@ -236,6 +236,18 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
+        setElementAttribute: {
+            value: function(moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+                var nodes = this.findNodes(moduleId, label, argumentName,
+                    cssSelector);
+console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector, attributeName, attributeValue);
+
+                for (var i = 0, node; (node = nodes[i]); i++) {
+                    node.setAttribute(attributeName, attributeValue);
+                }
+            }
+        },
+
         _addTemplateObjectsToOwner: {
             value: function(template, owner) {
                 var self = this;

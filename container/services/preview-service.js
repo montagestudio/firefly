@@ -109,6 +109,18 @@ function PreviewService() {
         sendToPreviewClients(url, "addTemplateFragmentObjects:" + JSON.stringify(params));
     };
 
+    service.setElementAttribute = function(url, moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+        var params = {
+            moduleId: moduleId,
+            label: label,
+            argumentName: argumentName,
+            cssSelector: cssSelector,
+            attributeName: attributeName,
+            attributeValue: attributeValue
+        };
+        sendToPreviewClients(url, "setElementAttribute:" + JSON.stringify(params));
+    };
+
     service.close = function(request) {
         this.unregister();
     };
