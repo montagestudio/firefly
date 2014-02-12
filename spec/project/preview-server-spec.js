@@ -28,17 +28,16 @@ describe("preview-server", function () {
 
         PreviewServer.injectPreviewScripts(request, response)
         .then(function(response) {
-            var hostname = request.scheme + "://" + request.host;
             var foundPreview = false;
             var foundLiveEdit = false;
             var body = response.body[0];
             var parser = new htmlparser.Parser({
                 onopentag: function(name, attribs){
                     if (name === "script") {
-                        if (attribs.src === hostname + "/{$PREVIEW}/preview.js") {
+                        if (attribs.src === "/{$PREVIEW}/preview.js") {
                             foundPreview = true;
                         }
-                        if (attribs.src === hostname + "/{$PREVIEW}/live-edit.js") {
+                        if (attribs.src === "/{$PREVIEW}/live-edit.js") {
                             foundLiveEdit = true;
                         }
                     }
@@ -112,7 +111,7 @@ describe("preview-server", function () {
 
             return PreviewServer.processAccessRequest(request)
             .then(function(response) {
-                expect(response.headers.location).toBe(url + "/index.html");
+                expect(response.headers.Location).toBe("/index.html");
             })
             .then(done, done);
         });
@@ -122,7 +121,7 @@ describe("preview-server", function () {
 
             return PreviewServer.processAccessRequest(request)
             .then(function(response) {
-                expect(response.headers.location).toBe(url + "/index.html");
+                expect(response.headers.Location).toBe("/index.html");
             })
             .then(done, done);
         });

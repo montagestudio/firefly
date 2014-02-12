@@ -5,7 +5,6 @@ var FS = require("q-io/fs");
 var URL = require("url");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
-var RedirectApps = require("q-io/http-apps/redirect");
 var ws = require("websocket.io");
 var preview = require("../services/preview-service");
 var hasPreviewAccess = require("./check-preview-access").hasPreviewAccess;
