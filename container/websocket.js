@@ -17,10 +17,6 @@ function websocket(config, services, clientPath) {
     log("Websocket given services", Object.keys(services));
 
     return function (request, socket, body) {
-        if (!WebSocket.isWebSocket(request)) {
-            return;
-        }
-
         var wsQueue = adaptWebsocket(new WebSocket(request, socket, body, ["firefly-app"]));
 
         var pathname = URL.parse(request.url).pathname;

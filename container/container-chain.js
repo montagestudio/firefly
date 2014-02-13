@@ -9,6 +9,7 @@ var LogStackTraces = require("../log-stack-traces");
 
 var api = require("./api");
 var Preview = require("./preview/preview-server").Preview;
+var WebSocket = require("faye-websocket");
 var websocket = require("./websocket");
 
 module.exports = server;
@@ -74,6 +75,10 @@ function server(options) {
 
     chain.upgrade = function (request, socket, head) {
         Q.try(function () {
+            if (!WebSocket.isWebSocket(request)) {
+                return;
+            }
+
             // FIXME docker preview server
             if (request.headers['sec-websocket-protocol'] === "firefly-preview") {
                 return preview.wsServer(request, socket, head);
