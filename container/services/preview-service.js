@@ -1,66 +1,27 @@
 var log = require("logging").from(__filename);
-var APPS = require("q-io/http-apps");
 
-var _previews = {"/": {name:"/", path:"/", default:"index.html"}};
-var registerDeferredRequestTimer;
-var DEFERRED_REQUEST_TIMEOUT = 10000;
-
-exports._previews = _previews;
-
-exports.unregisterAllConnections = function() {
-    Object.keys(_previews).forEach(function(previewId) {
-        if (previewId !== "/") {
-            delete _previews[previewId];
-        }
-    });
-};
+var preview = {};
+exports._preview = preview;
 
 exports.registerConnection = function(ws) {
-    var previewId = exports.getPreviewIdFromUrl(),
-        preview = _previews[previewId];
-
-    if (preview) {
-        if (!preview.connections) {
-            preview.connections = [ws];
-        } else {
-            preview.connections.push(ws);
-        }
+    if (!preview.connections) {
+        preview.connections = [ws];
+    } else {
+        preview.connections.push(ws);
     }
 };
 
 exports.unregisterConnection = function(ws) {
-    var previewId = exports.getPreviewIdFromUrl(),
-        preview = _previews[previewId];
-
-    if (preview) {
-        var connections = preview.connections;
-        for (var i in connections) {
-            if (connections[i] === ws) {
-                connections.splice(i, 1);
-            }
+    var connections = preview.connections;
+    for (var i in connections) {
+        if (connections[i] === ws) {
+            connections.splice(i, 1);
         }
     }
 };
 
-
-exports.existsPreviewFromUrl = function(url) {
-    var previewId = exports.getPreviewIdFromUrl(url);
-    return previewId in _previews;
-};
-
-exports.getPreviewAccessCodeFromUrl = function(url) {
-    var previewId = exports.getPreviewIdFromUrl(url),
-        preview = _previews[previewId];
-
-    if (preview) {
-        return preview.accessCode;
-    }
-};
-
-exports.getPreviewIdFromUrl = function(url) {
-    // var details = environment.getDetailsfromProjectUrl(url);
-
-    return "XXXX";
+exports.getPreviewAccessCode = function () {
+    return preview.accessCode;
 };
 
 /**
@@ -74,72 +35,47 @@ exports.service = PreviewService;
 function PreviewService() {
     var service = {};
 
-    service.register = function(parameters) {
-        var name = parameters.name,
-            url = parameters.url,
-            previewId = exports.getPreviewIdFromUrl(url);
-
-        if (previewId in _previews) {
-            // Another instance of the same project was open in the tool...
-            // We don't support this until we can have a 1:1 on project<->app
-            this.unregister(url);
-        }
-
-        log("register new preview", previewId);
-        _previews[previewId] = {
-            name: name,
-            url: url,
+    service.register = function() {
+        log("register new preview");
+        preview = {
             accessCode: generateAccessCode()
         };
-        log("access code: ", _previews[previewId].accessCode);
-        //saveMap();
+        log("access code: ", preview.accessCode);
     };
 
-    service.unregister = function(url) {
-        var previewId = exports.getPreviewIdFromUrl(url);
-        var preview = _previews[previewId];
-
-        if (preview) {
-            log("unregister preview", previewId);
-            // Websocket connections
-            if (preview.connections) {
-                for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-                    preview.connections[i].close();
-                }
+    service.unregister = function() {
+        log("unregister preview");
+        // Websocket connections
+        if (preview.connections) {
+            for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+                preview.connections[i].close();
             }
-            delete _previews[previewId];
         }
-
-        //saveMap();
+        preview = {};
     };
 
-    service.refresh = function(url) {
-        sendToPreviewClients(url, "refresh:");
+    service.refresh = function() {
+        sendToPreviewClients("refresh:");
     };
 
-    service.setObjectProperties = function(url, label, ownerModuleId, properties) {
+    service.setObjectProperties = function(label, ownerModuleId, properties) {
         var params = {
             label: label,
             ownerModuleId: ownerModuleId,
             properties: properties
         };
-        sendToPreviewClients(url, "setObjectProperties:" + JSON.stringify(params));
+        sendToPreviewClients("setObjectProperties:" + JSON.stringify(params));
     };
 
     service.close = function(request) {
-        this.unregister(request.headers.host);
+        this.unregister();
     };
 
-    function sendToPreviewClients(url, content) {
-        var previewId = exports.getPreviewIdFromUrl(url);
-        var preview = _previews[previewId];
-
-        if (preview) {
-            // Websocket connections
-            if (preview.connections) {
-                for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-                    preview.connections[i].send(content);
-                }
+    function sendToPreviewClients(content) {
+        // Websocket connections
+        if (preview.connections) {
+            for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+                preview.connections[i].send(content);
             }
         }
     }

@@ -129,7 +129,7 @@ function processAccessRequest(request) {
 }
 
 function maybeGrantAccessToPreview(code, previewHost, session) {
-    var accessCode = preview.getPreviewAccessCodeFromUrl(previewHost);
+    var accessCode = preview.getPreviewAccessCode(previewHost);
 
     if (code && accessCode && code === accessCode) {
         if (session.previewAccess) {

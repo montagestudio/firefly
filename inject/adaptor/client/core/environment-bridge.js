@@ -251,7 +251,7 @@ exports.EnvironmentBridge = Montage.specialize({
     registerPreview: {
         value: function (name, url) {
             this._previewUrl = url;
-            return this.backend.get("preview-service").invoke("register", {name: name, url: url});
+            return this.backend.get("preview-service").invoke("register");
         }
     },
 
@@ -261,7 +261,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
             // If the websocket isn't connected don't trigger a reconnect
             if (this._backend) {
-                return this.backend.get("preview-service").invoke("unregister", this._previewUrl)
+                return this.backend.get("preview-service").invoke("unregister")
                 .then(function() {
                     self._previewUrl = null;
                 });
@@ -279,13 +279,13 @@ exports.EnvironmentBridge = Montage.specialize({
 
     refreshPreview: {
         value: function () {
-            return this.backend.get("preview-service").invoke("refresh", this._previewUrl);
+            return this.backend.get("preview-service").invoke("refresh");
         }
     },
 
     setPreviewObjectProperties: {
         value: function(previewId, label, ownerModuleId, properties) {
-            return this.backend.get("preview-service").invoke("setObjectProperties", this._previewUrl, label, ownerModuleId, properties);
+            return this.backend.get("preview-service").invoke("setObjectProperties", label, ownerModuleId, properties);
         }
     },
 
