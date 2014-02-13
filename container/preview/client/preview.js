@@ -5,10 +5,14 @@
  */
 
 (function() {
+    var DEBUG_SPEED = false;
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
-        LiveEdit = Declarativ.LiveEdit;
+        LiveEdit = Declarativ.LiveEdit,
+        dataProcessingPromise,
+        previousTime = window.performance.now(),
+        operations = 0;
 
     function dispatchEvent(type, detail) {
         var event;
@@ -25,45 +29,61 @@
         var param = data.substring(data.indexOf(":") + 1);
         var args;
 
-        // REFRESH
+        if (!dataProcessingPromise) {
+            dataProcessingPromise = Declarativ.Promise.resolve();
+        }
+
         if (command === "refresh") {
             var event = dispatchEvent("lumieresRefresh");
             if (!event.defaultPrevented) {
                 document.location.reload();
             }
+            return;
         }
 
-        // SET OBJECT PROPERTIES
-        if (command === "setObjectProperties") {
-            args = JSON.parse(param);
-            LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
-        }
+        dataProcessingPromise = dataProcessingPromise.then(function() {
+            if (DEBUG_SPEED) {
+                var time = window.performance.now();
+                if (time - previousTime >= 1000) {
+                    console.log("ops/s: ", operations);
+                    previousTime = time;
+                    operations = 0;
+                }
+                operations++;
+            }
 
-        if (command === "setObjectBinding") {
-            args = JSON.parse(param);
-            LiveEdit.setObjectBinding(args.ownerModuleId, args.label, args.binding);
-        }
+            if (command === "setObjectProperties") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
+            }
 
-        if (command === "deleteObjectBinding") {
-            args = JSON.parse(param);
-            LiveEdit.deleteObjectBinding(args.ownerModuleId, args.label, args.path);
-        }
 
-        if (command === "addTemplateFragment") {
-            args = JSON.parse(param);
-            LiveEdit.addTemplateFragment(args.moduleId, args.label, args.argumentName, args.cssSelector, args.how, args.templateFragment);
-        }
+            if (command === "setObjectBinding") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectBinding(args.ownerModuleId, args.label, args.binding);
+            }
 
-        if (command === "addTemplateFragmentObjects") {
-            args = JSON.parse(param);
-            LiveEdit.addTemplateFragmentObjects(args.moduleId, args.templateFragment);
-        }
+            if (command === "deleteObjectBinding") {
+                args = JSON.parse(param);
+                return LiveEdit.deleteObjectBinding(args.ownerModuleId, args.label, args.path);
+            }
 
-        if (command === "setElementAttribute") {
-            args = JSON.parse(param);
-            LiveEdit.setElementAttribute(args.moduleId, args.label,
-                args.argumentName, args.cssSelector, args.attributeName, args.attributeValue);
-        }
+            if (command === "addTemplateFragment") {
+                args = JSON.parse(param);
+                return LiveEdit.addTemplateFragment(args.moduleId, args.label, args.argumentName, args.cssSelector, args.how, args.templateFragment);
+            }
+
+            if (command === "addTemplateFragmentObjects") {
+                args = JSON.parse(param);
+                return LiveEdit.addTemplateFragmentObjects(args.moduleId, args.templateFragment);
+            }
+
+            if (command === "setElementAttribute") {
+                args = JSON.parse(param);
+                return LiveEdit.setElementAttribute(args.moduleId, args.label,
+                    args.argumentName, args.cssSelector, args.attributeName, args.attributeValue);
+            }
+        });
     }
 
     function websocketRefresh() {

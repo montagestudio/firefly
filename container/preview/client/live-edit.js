@@ -28,7 +28,7 @@ Object.defineProperties(window.Declarativ, {
     Promise: {
         get: function() {
             if (!this._Promise) {
-                this._Promise = montageRequire.require("core/promise").Promise;
+                this._Promise = montageRequire("core/promise").Promise;
             }
 
             return this._Promise;
@@ -228,11 +228,16 @@ Object.defineProperties(window.Declarativ, {
             value: function(moduleId, templateFragment) {
                 var objects = this.findObjects(moduleId, "owner");
                 var template = new Template(templateFragment.serialization);
+                var promises = [];
 
                 template.removeComponentElementReferences();
                 for (var i = 0, owner; (owner = objects[i]); i++) {
-                    this._addTemplateObjectsToOwner(template, owner);
+                    promises.push(
+                        this._addTemplateObjectsToOwner(template, owner)
+                    );
                 }
+
+                return Declarativ.Promise.all(promises);
             }
         },
 
@@ -252,7 +257,8 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
             value: function(template, owner) {
                 var self = this;
                 var startTime = window.performance.now();
-                template.instantiate(owner)
+
+                return template.instantiate(owner)
                 .then(function(objects) {
                     var endTime = window.performance.now();
                     console.log("_addTemplateObjectsToOwner() ", endTime - startTime);
