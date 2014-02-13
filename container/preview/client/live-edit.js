@@ -151,6 +151,70 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
+        findNodeDocumentPart: {
+            value: function(ownerModuleId, node) {
+                var component = this._findParentComponent(node),
+                    iteration;
+
+                while (component._montage_metadata.moduleId !== ownerModuleId) {
+                    if (component.clonesChildComponents) {
+                        iteration = component._findIterationContainingElement(node);
+                        return iteration._templateDocumentPart;
+                    } else if (this._isComponentPartOfIteration(component)) {
+                        return component._ownerDocumentPart;
+                    }
+                    component = component.ownerComponent;
+                }
+
+                return component._templateDocumentPart;
+            }
+        },
+
+        findIterationContainingNode: {
+            value: function(node) {
+                var component = this._findParentComponent(node);
+
+                //jshint -W106
+                do {
+                    if (component.clonesChildComponents) {
+                        return component._findIterationContainingElement(node);
+                    }
+                } while (component = /* assignment */ component.parentComponent);
+                //jshint +W106
+
+                return null;
+            }
+        },
+
+        _isNodePartOfIteration: {
+            value: function(ownerModuleId, node) {
+                var component = this._findParentComponent(node);
+
+                //jshint -W106
+                while (component._montage_metadata.moduleId !== ownerModuleId) {
+                    if (component.clonesChildComponents ||
+                        this._isComponentPartOfIteration(component)) {
+                        return true;
+                    }
+                    component = component.ownerComponent;
+                }
+                //jshint +W106
+
+                return false;
+            }
+        },
+
+        _isComponentPartOfIteration: {
+            value: function(component) {
+                // The ownerDocumentPart of a component is the DocumentPart of
+                // the template scope where the component was instantiated, if
+                // this doesn't match the DocumentPart of the owner it means
+                // this it was not instantiated in the scope of the owner's
+                // template but rather in the context of an iteration template.
+                return component._ownerDocumentPart !== component.ownerComponent._templateDocumentPart;
+            }
+        },
+
         setObjectProperties: {
             value: function(label, ownerModuleId, properties) {
                 var objects = this.findObjects(ownerModuleId, label);
@@ -200,12 +264,6 @@ Object.defineProperties(window.Declarativ, {
                     }
                 };
                 object.defineBinding(propertyName, propertyDescriptor);
-            }
-        },
-
-        addTemplateFragmentToComponentArgument: {
-            value: function(ownerModuleId, label, argumentName, cssSelector, how, templateFragment) {
-
             }
         },
 
@@ -263,7 +321,7 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
                     var endTime = window.performance.now();
                     console.log("_addTemplateObjectsToOwner() ", endTime - startTime);
 
-                    self._updateOwnerObjects(owner, objects);
+                    self._updateScope(owner, objects);
                 });
             }
         },
@@ -279,7 +337,7 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
                 return template.instantiateIntoDocument(anchor, how, owner)
                     .then(function(result) {
                         var endTime = window.performance.now();
-                        self._updateOwnerObjects(owner, result.objects);
+                        self._updateScope(owner, result.objects, anchor);
                         if (label !== "owner") {
                             self._updateLiveEditTags(result.firstElement,
                                 result.lastElement, owner, label);
@@ -289,13 +347,71 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
             }
         },
 
-        _updateOwnerObjects: {
-            value: function(owner, objects) {
-                var documentPartObjects = owner._templateDocumentPart.objects;
+        /**
+         * When objects are added to a live application they need to be added to
+         * the owner's templateObjects and documentPart.
+         * Also, if components were added to a repetition's iteration then they
+         * also need to be added to the iteration's documentPart.
+         */
+        _updateScope: {
+            value: function(owner, objects, node) {
+                var object,
+                    ownerDocumentPart = owner._templateDocumentPart,
+                    ownerModuleId,
+                    iteration;
 
-                owner._addTemplateObjects(objects);
+                if (node) {
+                    //jshint -W106
+                    ownerModuleId = owner._montage_metadata.moduleId;
+                    //jshint +W106
+
+                    if (this._isNodePartOfIteration(ownerModuleId, node)) {
+                        iteration = this.findIterationContainingNode(node);
+                    }
+                }
+
                 for (var key in objects) {
-                    documentPartObjects[key] = objects[key];
+                    object = objects[key];
+                    // these components are actually created by a repetition
+                    if (object.element && iteration) {
+                        this._updateIteration(iteration, object);
+                    }
+
+                    ownerDocumentPart.objects[key] = objects[key];
+                }
+                owner._addTemplateObjects(objects);
+            }
+        },
+
+        /**
+         * Updates all iteration related state when a new component is added to
+         * it. This includes the DocumentPart, template metadata and other
+         * internal state of the iteration.
+         */
+        _updateIteration: {
+            value: function(iteration, component) {
+                var iterationDocumentPart = iteration._templateDocumentPart;
+                var objects = iterationDocumentPart.objects;
+                var template = iterationDocumentPart.template;
+                //jshint -W106
+                var componentLabel = component._montage_metadata.label;
+                //jshint +W106
+                var label = componentLabel;
+                var repetition = iteration.repetition;
+                var element = component.element;
+
+                if (label in objects) {
+                    //jshint -W106
+                    label = component.ownerComponent._montage_metadata.moduleId +
+                        "," + label;
+                    //jshint +W106
+                }
+
+                objects[label] = component;
+                template.setObjectMetadata(label, null, componentLabel,
+                    component.ownerComponent);
+                if (repetition.element === element.parentNode) {
+                    repetition._iterationForElement.set(element, iteration);
                 }
             }
         },
@@ -379,8 +495,6 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
         return deserializer.deserialize({owner: owner}, element)
             .then(function(objects) {
                 self._invokeDelegates(owner, objects);
-                // TODO: call setupTemplateObjects when it's ready to accept an
-                // object instead of creating a new one.
                 return objects;
             });
     };
