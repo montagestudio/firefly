@@ -1,7 +1,6 @@
 var log = require("logging").from(__filename);
 
 var preview = {};
-exports._preview = preview;
 
 exports.registerConnection = function(ws) {
     if (!preview.connections) {
@@ -22,6 +21,11 @@ exports.unregisterConnection = function(ws) {
 
 exports.getPreviewAccessCode = function () {
     return preview.accessCode;
+};
+
+// For testing
+exports._getPreview = function () {
+    return preview;
 };
 
 /**

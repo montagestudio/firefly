@@ -123,20 +123,23 @@ describe("ProjectWorkspace", function () {
     });
 
     describe("exists workspace", function() {
-        it("should exist", function(done) {
+        it("should be false if .git does not exist", function(done) {
             return fs.makeTree(projectWorkspace._workspacePath)
             .then(function() {
                 return projectWorkspace.existsWorkspace();
             })
             .then(function(existsWorkspace) {
-                expect(existsWorkspace).toBe(true);
+                expect(existsWorkspace).toBe(false);
             }).then(done, done);
         });
 
-        it("should not exist", function(done) {
-            return projectWorkspace.existsWorkspace()
+        it("should be true if .git does exist", function(done) {
+            return fs.makeTree(fs.join(projectWorkspace._workspacePath, ".git"))
+            .then(function() {
+                return projectWorkspace.existsWorkspace();
+            })
             .then(function(existsWorkspace) {
-                expect(existsWorkspace).toBe(false);
+                expect(existsWorkspace).toBe(true);
             }).then(done, done);
         });
     });

@@ -19,7 +19,6 @@ describe("check-preview-access", function () {
             },
             headers: {host: host}
         };
-        PreviewService.unregisterAllConnections();
 
         // Q.bind() in this case will create a function that returns a resolved
         // promise.
