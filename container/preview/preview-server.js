@@ -8,8 +8,6 @@ var StatusApps = require("q-io/http-apps/status");
 // FIXME docker
 var WebSocket = require("faye-websocket");
 var preview = require("../services/preview-service");
-var hasPreviewAccess = require("./check-preview-access").hasPreviewAccess;
-var querystring = require("querystring");
 
 var CLIENT_FILES = "{$PREVIEW}";
 
@@ -18,8 +16,6 @@ var CLIENT_ROOT = __dirname + "/client/";
 var clientFs = FS.reroot(CLIENT_ROOT);
 
 module.exports.Preview = Preview;
-module.exports.servePreviewAccessForm = servePreviewAccessForm;
-module.exports.processAccessRequest = processAccessRequest;
 // for testing
 module.exports.injectPreviewScripts = injectPreviewScripts;
 module.exports.servePreviewClientFile = servePreviewClientFile;
@@ -101,52 +97,6 @@ function servePreviewClientFile(request, response) {
     });
 }
 
-function servePreviewAccessForm(request) {
-    return clientFs.then(function(fs) {
-        return HttpApps.file(request, "access.html", null, fs);
-    });
-}
-
-function processAccessRequest(request) {
-    // Get code from the body data
-    return request.body.read()
-    .then(function(body) {
-        if (body.length > 0) {
-            var query = querystring.parse(body.toString());
-
-            maybeGrantAccessToPreview(
-                query.code, request.headers.host, request.session);
-        }
-
-        // 302 - Temporary redirect using GET
-        return {
-            status: 302,
-            headers: {
-                Location: "/index.html"
-            }
-        };
-    });
-}
-
-function maybeGrantAccessToPreview(code, previewHost, session) {
-    var accessCode = preview.getPreviewAccessCode(previewHost);
-
-    if (code && accessCode && code === accessCode) {
-        if (session.previewAccess) {
-            if (session.previewAccess.indexOf(previewHost) === -1) {
-                session.previewAccess.push(previewHost);
-            }
-        } else {
-            session.previewAccess = [previewHost];
-        }
-        log("access granted ", previewHost);
-        return true;
-    } else {
-        log("access denied");
-        return false;
-    }
-}
-
 function startWsServer(config) {
     // this server will get upgraded by container-chain
     var websocketConnections = 0;
@@ -163,19 +113,13 @@ function startWsServer(config) {
 
         // = config.githubUser + "/" + config.owner + "/" + config.repo;
         // FIXME docker move this up out into the project chain/server
-        return hasPreviewAccess(request.headers.host, config).then(function (hasPreviewAccess) {
-            if (hasPreviewAccess) {
-                log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
+        log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
-                preview.registerConnection(ws);
+        preview.registerConnection(ws);
 
-                ws.on("close", function () {
-                    log("websocket connection closed: ", --websocketConnections);
-                    preview.unregisterConnection(ws);
-                });
-            } else {
-                ws.close();
-            }
+        ws.on("close", function () {
+            log("websocket connection closed: ", --websocketConnections);
+            preview.unregisterConnection(ws);
         });
     };
 }

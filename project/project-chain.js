@@ -10,6 +10,8 @@ var environment = require("../environment");
 var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
 
+var preview = require("./preview");
+
 var ProxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
@@ -69,21 +71,26 @@ function server(options) {
             }
         });
 
-        // POST("access").app(PreviewServer.processAccessRequest);
+        POST("access").app(preview.processAccessRequest);
     })
     .use(function (next) {
         // TODO checkPreviewAccess
         var servePreview = ProxyContainer(setupProjectContainer, "static");
 
         return function (request, response) {
-            if (endsWith(request.headers.host, environment.getProjectHost())) {
-                // FIXME docker check session/do preview code stuff here
-                var details = environment.getDetailsfromProjectUrl(request.url);
-                request.params = request.params || {};
-                request.params.owner = details.owner;
-                request.params.repo = details.repo;
+            if (preview.isPreview(request)) {
+                if (preview.hasAccess(request.headers.host, request.session)) {
+                    // FIXME docker check session/do preview code stuff here
+                    var details = environment.getDetailsfromProjectUrl(request.url);
+                    request.params = request.params || {};
+                    request.params.owner = details.owner;
+                    request.params.repo = details.repo;
 
-                return servePreview(request, response);
+                    return servePreview(request, response);
+                } else {
+                    // FIXME docker generate code a push notification to client
+                    return preview.serveAccessForm(request);
+                }
             } else {
                 // route /:user/:app/:action
                 return next(request, response);
@@ -103,11 +110,16 @@ function server(options) {
                 return;
             }
             var details;
-            if (endsWith(request.headers.host, environment.getProjectHost())) {
-                log("preview websocket");
-                // FIXME docker check session/do preview code stuff here
-                details = environment.getDetailsfromProjectUrl(request.headers.host);
-                return proxyPreviewWebsocket(request, socket, body, details);
+            if (preview.isPreview(request)) {
+                if (preview.hasAccess(request)) {
+                    log("preview websocket");
+                    // FIXME docker check session/do preview code stuff here
+                    details = environment.getDetailsfromProjectUrl(request.headers.host);
+                    return proxyPreviewWebsocket(request, socket, body, details);
+                } else {
+                    socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+                    socket.destroy();
+                }
             } else {
                 log("filament websocket");
                 details = environment.getDetailsFromAppUrl(request.url);
@@ -122,8 +134,4 @@ function server(options) {
     };
 
     return chain;
-}
-
-function endsWith(str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
