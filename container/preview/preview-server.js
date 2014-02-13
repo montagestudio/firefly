@@ -93,11 +93,7 @@ function servePreviewClientFile(request, response) {
     return clientFs.then(function(fs) {
         path = path.slice(("/" + CLIENT_FILES + "/").length);
 
-        if (path === "") {
-            var deferredResponse = Q.defer();
-            // preview.registerDeferredResponse(request.headers.host, deferredResponse);
-            return deferredResponse.promise;
-        } else if (path === "preview.js" || path === "live-edit.js") {
+        if (path === "preview.js" || path === "live-edit.js") {
             return HttpApps.file(request, path, null, fs);
         }
 

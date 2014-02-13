@@ -54,42 +54,6 @@
         };
     }
 
-    function httpRefresh() {
-        var xhr = new XMLHttpRequest();
-
-        xhr.open('GET', '{$PREVIEW}/', true);
-        xhr.responseType = 'text';
-
-        xhr.onload = function(event) {
-            try {
-                if (this.status === 200 &&
-                    this.getResponseHeader("content-type") === "application/preview-message") {
-                    processIncomingData(this.responseText);
-                    httpRefresh();
-                } else if (this.status === 204) {
-                    httpRefresh();
-                } else {
-                    showReconnectionMessage(httpRefresh);
-                }
-            } catch(error) {
-                console.log(error);
-            }
-        };
-
-        xhr.onerror = function(event) {
-            showReconnectionMessage(httpRefresh);
-        };
-
-        xhr.onabort = function(event) {
-        };
-
-        xhr.ontimeout = function(event) {
-            showReconnectionMessage(httpRefresh);
-        };
-
-        xhr.send();
-    }
-
     function setup() {
         if (timer) {
             clearTimeout(timer);
@@ -97,10 +61,6 @@
 
         if (typeof(WebSocket) === "function" || typeof(WebSocket) === "object") {
             websocketRefresh();
-        } else {
-            // Wait a bit more to not consume right away one of the http
-            // connections allowed by the browser or server.
-            setTimeout(httpRefresh, 2000);
         }
 
         if (typeof _montageWillLoad === "function") {

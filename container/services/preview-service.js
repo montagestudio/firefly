@@ -42,59 +42,6 @@ exports.unregisterConnection = function(ws) {
     }
 };
 
-exports.registerDeferredResponse = function(url, responseDeferred) {
-    var previewId = exports.getPreviewIdFromUrl(url),
-        preview = _previews[previewId];
-
-    if (preview) {
-        var info = {
-            response: responseDeferred,
-            date: Math.round(new Date().getTime() / 1000)
-        };
-
-        if (!preview.requests) {
-            preview.requests = [info];
-        } else {
-            preview.requests.push(info);
-        }
-
-        log("new deferred response stored");
-
-        if (!registerDeferredRequestTimer) {
-            // Setup a time to reject old requests
-            registerDeferredRequestTimer = setInterval(function() {
-                var currentTime = Math.round(new Date().getTime() / 1000);
-
-                Object.keys(_previews).forEach(function(previewId) {
-                    var preview = _previews[previewId],
-                        cutIndex;
-
-                    if (preview.requests) {
-                        for (var j = 0, info; (info = preview.requests[j]); j++) {
-                            if (Math.abs(currentTime - info.date) > 30) {
-                                info.response.resolve({
-                                    status: 204
-                                });
-                                cutIndex = j;
-                            }
-                        }
-
-                        if (typeof cutIndex !== "undefined") {
-                            // Trim the array of all expired requests
-                            preview.requests.splice(0, j + 1);
-                            if (preview.requests.length === 0) {
-                                delete preview.requests;
-                            }
-                        }
-                    }
-                });
-            }, DEFERRED_REQUEST_TIMEOUT);
-        }
-    } else {
-        log("registerDeferredRequest: invalid previewID", previewId);
-        responseDeferred.reject(new Error("Invalid previewID: " + previewId));
-    }
-};
 
 exports.existsPreviewFromUrl = function(url) {
     var previewId = exports.getPreviewIdFromUrl(url);
@@ -160,14 +107,6 @@ function PreviewService() {
                     preview.connections[i].close();
                 }
             }
-            // HTTP requests
-            if (preview.requests) {
-                //jshint -W004
-                for (var i = 0, ii = preview.requests.length; i < ii; i++) {
-                    preview.requests[i].response.fail();
-                }
-                //jshint +W004
-            }
             delete _previews[previewId];
         }
 
@@ -201,15 +140,6 @@ function PreviewService() {
                 for (var i = 0, ii = preview.connections.length; i < ii; i++) {
                     preview.connections[i].send(content);
                 }
-            }
-            // HTTP requests
-            if (preview.requests) {
-                //jshint -W004
-                for (var i = 0, ii = preview.requests.length; i < ii; i++) {
-                    preview.requests[i].response.resolve(APPS.ok(
-                        content, "application/preview-message"));
-                }
-                //jshint +W004
             }
         }
     }
