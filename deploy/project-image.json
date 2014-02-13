@@ -56,6 +56,6 @@
     }, {
         "type": "file",
         "source": "{{user `home`}}/deploy/services/firefly-project.conf",
-        "destination": "/etc/init/projectserver.conf"
+        "destination": "/etc/init/firefly-project.conf"
     }]
 }
