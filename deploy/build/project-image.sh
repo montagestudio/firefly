@@ -18,12 +18,6 @@ pushd ${BUILD}
     fi
 popd
 
-# Package the project server
-pushd ${BUILD}
-	cp -R "${HOME}/projectserver" "projectserver"
-	tar -czf "projectserver.tgz" "projectserver"
-popd
-
 declare IMAGE_EXIST=`tugboat info_image "projectimage-$BUILD_NUMBER" | grep Name`
 if [[ -n ${IMAGE_EXIST} ]]; then
 	tugboat destroy_image "projectimage-$BUILD_NUMBER" -c
@@ -37,4 +31,3 @@ ${BUILD}/packerio/packer build \
 
 get-clean filament
 get-clean firefly
-rm -rf "${BUILD}/projectserver"
