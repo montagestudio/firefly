@@ -92,6 +92,30 @@ almost the same amount of time as the initial setup.
 Developing
 ==========
 
+Architecture overview
+---------------------
+
+```
+                                Request
+                                   v
+                        +-----------------------+
+.com/app/*   +----------+Load balancer (HAProxy)+-------+  .com/api/*
+.com/assets/*|          +----------+------------+       | *.net/*
+             |                     |                    |  websocket
+             v                     v                    v
+ +-------------------------+ +------------+ +-----------------------+
+ |Static files (Nginx)     | |Login server| |Project server         |
+ |filament + firefly/inject| +------------+ |+----------------+     |
+ +-------------------------+                ||Container server| ... |
+                                            |+----------------+     |
+                                            +-----------------------+
+
+ .com is short for the main app domain
+ .net is short for the project/preview domain
+```
+
+Created with http://www.asciiflow.com/
+
 Refreshing the server
 ---------------------
 
@@ -99,9 +123,13 @@ Run `npm run deploy`
 
 You will need to run this whenever you make changes to Firefly.
 
-This will restart both the `login` and `project` servers. If either fail to
-deploy the previous version will remain running and the last 20 lines of the
-error log will be output.
+This will restart the `login` and `project` servers, and stop all running
+containers so on the next request they will be restarted with the updated code.
+If either `login` or `project` fail to deploy the previous version will remain
+running and the last 20 lines of the error log will be output.
+
+If you make changes to the `Dockerfile` then you will need to rebuild the
+base container image. Run `npm run container-rebuild`.
 
 Debugging Node
 --------------
@@ -179,6 +207,13 @@ vagrant ssh project -c "tail -f /home/montage/stderr.log"
 vagrant ssh project -c "sudo tail -n 30 /var/log/upstart/firefly-project.log"
 ```
 
+### Container
+
+Run `npm run container-logs`
+
+This will find the most recently launched container and start following the
+logs.
+
 ### Static file server (Filament)
 
 ```bash
@@ -195,12 +230,20 @@ You can also see the state of the load-balancer (HAProxy) and the servers at
 http://local-firefly.declarativ.net:2440/haproxy?stats and logging in with
 user `montage`, password `Mont@ge1789`.
 
-Viewing the clone directory
----------------------------
+Viewing the files inside the container
+--------------------------------------
 
-Run `npm run project-clone`
+Run `npm run container-files`
 
-This will drop you into a shell inside the `/srv/clone` directory.
+This will find the most recently launched container and list all the
+files that have changed inside of it. This is a quick way to see the state of
+the container.
+
+Run `npm run container-copy-files`
+
+This will copy the files out of the container into a temporary directory. You
+can look at the files but of course any changes won't be reflected in the
+container.
 
 Session
 -------
