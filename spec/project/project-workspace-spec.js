@@ -1,5 +1,6 @@
 var Q = require("q");
 var fs = require("q-io/fs");
+var exec = require('child_process').exec;
 var MockGithubApi = require("../mocks/github-api");
 var ProjectWorkspace = require("../../project/project-workspace");
 
@@ -24,6 +25,10 @@ describe("ProjectWorkspace", function () {
         var workspacePath = fs.join(tmpPath, owner, repo);
         projectWorkspace = new ProjectWorkspace(session, workspacePath, owner, repo, minitPath);
         projectWorkspace.__githubApi = new MockGithubApi();
+    });
+
+    afterEach(function(done) {
+        exec("cd /tmp; rm -Rf git-clone-spec-*", done);
     });
 
     xit("template", function(done) {

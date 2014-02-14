@@ -4,7 +4,7 @@ var PATH = require('path');
 
 
 module.exports = ExtensionService;
-function ExtensionService(fs, environment, _, __, clientPath) {
+function ExtensionService(session, fs, environment, _, __, clientPath) {
     var extensionsRoot = PATH.join(clientPath, "extensions");
 
     // Returned service

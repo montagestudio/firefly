@@ -1,5 +1,5 @@
 module.exports = EnvService;
-function EnvService(_, environment, pathname) {
+function EnvService(_, __, environment, pathname) {
     // Returned service
     var service = {};
 

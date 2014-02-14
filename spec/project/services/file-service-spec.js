@@ -12,7 +12,7 @@ describe("file-service", function () {
             "package.json": "{}"
         });
 
-        service = FileService(fs, {
+        service = FileService(null, fs, {
             getProjectUrlFromAppUrl: function () {
                 return "http://localhost:2441";
             }
@@ -93,7 +93,7 @@ describe("file-service", function () {
 
         it("works", function (done) {
             return fs.reroot(fsPath).then(function (fs) {
-                service = FileService(fs, {
+                service = FileService(null, fs, {
                     getProjectUrlFromAppUrl: function () {
                         return "http://localhost:2441";
                     }

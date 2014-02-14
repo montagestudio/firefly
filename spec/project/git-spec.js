@@ -1,4 +1,5 @@
 var fs = require("q-io/fs");
+var exec = require('child_process').exec;
 var Git = require("../../project/git");
 
 describe("Git", function () {
@@ -7,6 +8,9 @@ describe("Git", function () {
         var accessToken = "xxx";
         git = new Git(fs, accessToken);
         tmpPath = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
+    });
+    afterEach(function(done) {
+        exec("cd /tmp; rm -Rf git-clone-spec-*", done);
     });
 
     describe("init", function () {
@@ -40,6 +44,27 @@ describe("Git", function () {
             })
             .then(done, done);
         });
+    });
+
+    describe("fetch and branch", function () {
+        it("works", function (done) {
+            git.init(tmpPath)
+            .then(function () {
+                return git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
+            })
+            .then(function () {
+                return git.fetch(tmpPath);
+
+            })
+            .then(function () {
+                return git.branch(tmpPath, "-a");
+
+            })
+            .then(function(branches) {
+                expect(branches.indexOf("remotes/origin/master")).not.toBe(-1);
+            })
+            .then(done, done);
+        }, 20000);
     });
 
     describe("add", function () {
