@@ -2,6 +2,8 @@
 #
 # VERSION 1.0
 
+# This file needs to me moved up as a sibling of firefly and filament
+
 FROM ubuntu
 MAINTAINER Stuart Knightley, stuart@stuartk.com
 
@@ -26,8 +28,11 @@ RUN adduser --disabled-password --gecos "" montage
 RUN mkdir /workspace
 RUN chown -R montage:montage /workspace
 
-ADD . /srv
+# If you change this then you also need to update `mountVolume` in
+# /srv/firefly/project.js for development
+ADD firefly /srv/firefly
+ADD filament /srv/filament
 
 EXPOSE 2441
-ENTRYPOINT ["node", "/srv/container/index.js"]
+ENTRYPOINT ["node", "/srv/firefly/container/index.js"]
 

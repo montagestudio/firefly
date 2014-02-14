@@ -97,7 +97,7 @@ function mountVolume(docker) {
     var originalCreateContainer = docker.createContainer;
     docker.createContainer = function (options) {
         // Create the volume on the container base image
-        options.Volumes = {"/srv": {}};
+        options.Volumes = {"/srv/firefly": {}, "/srv/filament": {}};
         return originalCreateContainer.call(this, options);
     };
 
@@ -109,7 +109,7 @@ function mountVolume(docker) {
     docker.Container.prototype.start = function (options) {
         // Map the volume to the server location inside the VM, and mark it
         // read-only (ro)
-        options.Binds = ["/srv/firefly:/srv:ro"];
+        options.Binds = ["/srv/firefly:/srv/firefly:ro", "/srv/filament:/srv/filament:ro"];
         return originalContainer.prototype.start.call(this, options);
     };
 
