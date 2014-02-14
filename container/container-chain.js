@@ -21,8 +21,12 @@ function server(options) {
     var setupProjectWorkspace = options.setupProjectWorkspace;
     if (!options.config) throw new Error("options.config required");
     var config = options.config;
+    if (!options.fs) throw new Error("options.fs required");
+    var fs = options.fs;
     if (!options.client) throw new Error("options.client required");
     var clientPath = options.client;
+    if (!options.clientServices) throw new Error("options.clientServices required");
+    var clientServices = options.clientServices;
     //jshint +W116
 
     var preview = Preview(config);
@@ -61,9 +65,9 @@ function server(options) {
     });
 
     var services = {};
-    // Object.keys(clientServices).forEach(function (name) {
-    //     services[name] = require(fs.join(client, clientServices[name]));
-    // });
+    Object.keys(clientServices).forEach(function (name) {
+        services[name] = require(fs.join(clientPath, clientServices[name]));
+    });
     services["file-service"] = require("./services/file-service");
     services["extension-service"] = require("./services/extension-service");
     services["env-service"] = require("./services/env-service");
