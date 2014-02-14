@@ -38,11 +38,11 @@ module.exports = function exec(command, args, cwd, shouldReturnOutput) {
     });
 
     proc.on("close", function (code) {
-        if (stderr) {
-            log("["+proc.pid+"]", "stderr", "*" + stderr.trim() + "*");
-        }
         if (code !== 0) {
             deferred.reject(new Error("'" + command + " " + args.join(" ") + "' in " + cwd + " exited with code " + code));
+            if (stderr) {
+                log("["+proc.pid+"]", "stderr", "*" + stderr.trim() + "*");
+            }
         } else {
             if (shouldReturnOutput) {
                 return deferred.resolve(stdout);
