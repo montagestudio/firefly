@@ -21,6 +21,8 @@ function server(options) {
     var setupProjectWorkspace = options.setupProjectWorkspace;
     if (!options.config) throw new Error("options.config required");
     var config = options.config;
+    if (!options.client) throw new Error("options.client required");
+    var clientPath = options.client;
     //jshint +W116
 
     var preview = Preview(config);
@@ -63,14 +65,12 @@ function server(options) {
     //     services[name] = require(fs.join(client, clientServices[name]));
     // });
     services["file-service"] = require("./services/file-service");
-    // services["extension-service"] = require("./services/extension-service");
+    services["extension-service"] = require("./services/extension-service");
     services["env-service"] = require("./services/env-service");
     services["preview-service"] = require("./services/preview-service").service;
     services["package-manager-service"] = require("./services/package-manager-service");
     services["repository-service"] = require("./services/repository-service");
 
-    // FIXME docker clientPath
-    var clientPath = "/srv/filament";
     var websocketServer = websocket(config, services, clientPath);
 
     chain.upgrade = function (request, socket, head) {

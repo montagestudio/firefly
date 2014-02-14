@@ -16,6 +16,11 @@ var commandOptions = {
         describe: "A JSON string of configuration for the server",
         demand: true
     },
+    "filament": {
+        alias: "f",
+        describe: "A directory containing filament",
+        default: "/srv/filament"
+    },
     "directory": {
         alias: "d",
         describe: "The directory to clone and serve projects from",
@@ -43,6 +48,7 @@ function main(options) {
 
     var containerChain = containerChainFactory({
         config: config,
+        client: options.filament,
         setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, null)
     });
     return containerChain.listen(options.port)

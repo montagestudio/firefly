@@ -15,11 +15,6 @@ var containerIndex = require("./project/make-container-index")("/srv/container-i
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
 var commandOptions = {
-    "client": {
-        alias: "c",
-        describe: "A directory containing filament",
-        default: "../filament"
-    },
     "directory": {
         alias: "d",
         describe: "The directory to clone and serve projects from",
@@ -48,9 +43,6 @@ function main(options) {
     }
 
     var projectChain = projectChainFactory({
-        fs: fs,
-        client: options.client,
-        clientServices: options.clientServices,
         sessions: sessions,
         checkSession: CheckSession,
         setupProjectContainer: SetupProjectContainer(docker, containerIndex)
