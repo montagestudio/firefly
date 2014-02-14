@@ -264,14 +264,14 @@ describe("list dependencies", function () {
                 "package.json": "{}\n"
             });
 
-            PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
+            PackageManagerService(null, mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
                 expect(dependencyTree.endLine).toEqual(true);
 
                 mockFS = QFSMock({
                     "package.json": "{}"
                 });
             }).then(function () {
-                return PackageManagerService(mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
+                return PackageManagerService(null, mockFS).listDependenciesAtUrl('/').then(function (dependencyTree) {
                     expect(dependencyTree.endLine).toEqual(false);
                 });
             }).then(done, done);
