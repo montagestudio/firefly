@@ -25,13 +25,3 @@ popd
 pushd /srv
 	docker build -t firefly_project -rm .
 popd
-
-# export FIREFLY_PORT="2440"
-# iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port $FIREFLY_PORT
-
-
-
-
-
-
-
