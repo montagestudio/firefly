@@ -51,12 +51,10 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
             // if false return null so directories aren't traversed
             return PATH.extname(filePath).toLowerCase() === ".filament-extension" ? true : (filePath ===  extensionFolder ? false : null);
         }).then(function (filePaths) {
-                return Q.all(filePaths.map(function (filePath) {
-                    return QFS.stat(filePath).then(function (stat) {
-                        return {url: convertPathToExtensionUrl(filePath), stat: stat};
-                    });
-                }));
+            return filePaths.map(function (filePath) {
+                return {url: convertPathToExtensionUrl(filePath)};
             });
+        });
     };
 
     service.listLibraryItemUrls = function (extensionUrl, packageName) {

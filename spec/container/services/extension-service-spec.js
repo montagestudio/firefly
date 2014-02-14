@@ -30,7 +30,6 @@ describe("extension-service", function () {
             .then(function (extensions) {
                 expect(extensions.length).toEqual(1);
                 expect(extensions[0].url).toEqual("http://example.com/app/extensions/pass.filament-extension");
-                expect(extensions[0].stat).toBeDefined();
             })
             .then(done, done);
         });
