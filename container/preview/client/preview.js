@@ -5,7 +5,8 @@
  */
 
 (function() {
-    var DEBUG_SPEED = false;
+    var DEBUG_OPSS = false;
+    var DEBUG_SPEED = true;
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
@@ -28,6 +29,7 @@
         var command = data.substring(0, data.indexOf(":"));
         var param = data.substring(data.indexOf(":") + 1);
         var args;
+        var startTime;
 
         if (!dataProcessingPromise) {
             dataProcessingPromise = Declarativ.Promise.resolve();
@@ -43,6 +45,9 @@
 
         dataProcessingPromise = dataProcessingPromise.then(function() {
             if (DEBUG_SPEED) {
+                startTime = window.performance.now();
+            }
+            if (DEBUG_OPSS) {
                 var time = window.performance.now();
                 if (time - previousTime >= 1000) {
                     console.log("ops/s: ", operations);
@@ -84,6 +89,12 @@
                     args.argumentName, args.cssSelector, args.attributeName, args.attributeValue);
             }
         });
+
+        if (DEBUG_SPEED) {
+            dataProcessingPromise = dataProcessingPromise.then(function() {
+                console.log(command + ": ", window.performance.now() - startTime);
+            });
+        }
     }
 
     function websocketRefresh() {
