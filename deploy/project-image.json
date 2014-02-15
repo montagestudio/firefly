@@ -35,6 +35,9 @@
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/base.sh"
     }, {
+        "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/base-additions.sh"
+    }, {
         "type": "file",
         "source": "{{user `build`}}/filament.tgz",
         "destination": "/srv/filament.tgz"

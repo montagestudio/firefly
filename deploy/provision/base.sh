@@ -1,22 +1,13 @@
 #!/usr/bin/env bash
 
-apt-get upgrade -y
+apt-get dist-upgrade -y
 
 # Curl
 apt-get install -y curl
 
-# Git
-apt-get install -y git
-
-# Node
+# Add the "add-apt-repository" command
 apt-get update
 apt-get install --yes python-software-properties python g++ make software-properties-common
-add-apt-repository --yes ppa:chris-lea/node.js
-apt-get update
-apt-get install --yes nodejs
-
-# Run with naught for zero-downtime deploys
-npm install -g naught
 
 # Create the montage user that the server will run under
 adduser --disabled-password --gecos "" admin
