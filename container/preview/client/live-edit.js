@@ -420,10 +420,14 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
                 var nextSibling = lastElement.nextElementSibling;
                 var previousSibling = firstElement.previousElementSibling;
 
-                this._updateLiveEditRangeTags(ATTR_LE_ARG_BEGIN,
-                    leArgRangeValue, firstElement, nextSibling);
-                this._updateLiveEditRangeTags(ATTR_LE_ARG_END, leArgRangeValue,
-                    lastElement, previousSibling);
+                if (nextSibling) {
+                    this._updateLiveEditRangeTags(ATTR_LE_ARG_BEGIN,
+                        leArgRangeValue, firstElement, nextSibling);
+                }
+                if (previousSibling) {
+                    this._updateLiveEditRangeTags(ATTR_LE_ARG_END,
+                        leArgRangeValue, lastElement, previousSibling);
+                }
             }
         },
 
