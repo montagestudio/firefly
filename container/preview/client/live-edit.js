@@ -273,12 +273,17 @@ Object.defineProperties(window.Declarativ, {
                     cssSelector);
                 var template = new Template(templateFragment.serialization,
                     templateFragment.html);
+                var promises = [];
 
                 for (var i = 0, node; (node = nodes[i]); i++) {
                     var owner = this._findParentComponentWithModuleId(
                         node, moduleId);
-                    this._addTemplateToElement(template, node, how, owner, label);
+                    promises.push(
+                        this._addTemplateToElement(template, node, how, owner, label)
+                    );
                 }
+
+                return Declarativ.Promise.all(promises);
             }
         },
 
