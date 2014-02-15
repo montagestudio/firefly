@@ -319,13 +319,9 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
         _addTemplateObjectsToOwner: {
             value: function(template, owner) {
                 var self = this;
-                var startTime = window.performance.now();
 
                 return template.instantiate(owner)
                 .then(function(objects) {
-                    var endTime = window.performance.now();
-                    console.log("_addTemplateObjectsToOwner() ", endTime - startTime);
-
                     self._updateScope(owner, objects);
                 });
             }
@@ -338,16 +334,13 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
             value: function(template, anchor, how, owner, label) {
                 var self = this;
 
-                var startTime = window.performance.now();
                 return template.instantiateIntoDocument(anchor, how, owner)
                     .then(function(result) {
-                        var endTime = window.performance.now();
                         self._updateScope(owner, result.objects, anchor);
                         if (label !== "owner") {
                             self._updateLiveEditTags(result.firstElement,
                                 result.lastElement, owner, label);
                         }
-                        console.log("_addTemplateToElement() ", endTime - startTime);
                     });
             }
         },
