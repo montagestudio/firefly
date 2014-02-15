@@ -124,15 +124,16 @@ function server(options) {
             }
             var details;
             if (preview.isPreview(request)) {
-                if (preview.hasAccess(request)) {
-                    log("preview websocket");
-                    // FIXME docker check session/do preview code stuff here
-                    details = environment.getDetailsfromProjectUrl(request.headers.host);
-                    return proxyPreviewWebsocket(request, socket, body, details);
-                } else {
-                    socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
-                    socket.destroy();
-                }
+                return sessions.getSession(request, function (session) {
+                    if (preview.hasAccess(request.headers.host, session)) {
+                        log("preview websocket");
+                        details = environment.getDetailsfromProjectUrl(request.headers.host);
+                        return proxyPreviewWebsocket(request, socket, body, details);
+                    } else {
+                        socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+                        socket.destroy();
+                    }
+                });
             } else {
                 log("filament websocket");
                 details = environment.getDetailsFromAppUrl(request.url);
