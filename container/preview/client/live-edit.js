@@ -480,6 +480,12 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
                     result.lastElement = element.lastElementChild;
                     self._removeElementWrapper(element);
 
+                    for (var key in objects) {
+                        if (objects[key].loadComponentTree) {
+                            objects[key].loadComponentTree();
+                        }
+                    }
+
                     return result;
                 });
         } else {
