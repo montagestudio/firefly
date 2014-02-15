@@ -338,7 +338,7 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
                     .then(function(result) {
                         self._updateScope(owner, result.objects, anchor);
                         if (label !== "owner") {
-                            self._updateLiveEditTags(result.firstElement,
+                            self._updateLiveEditAttributes(result.firstElement,
                                 result.lastElement, owner, label);
                         }
                     });
@@ -414,18 +414,18 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
             }
         },
 
-        _updateLiveEditTags: {
+        _updateLiveEditAttributes: {
             value: function(firstElement, lastElement, owner, label) {
                 var leArgRangeValue = owner._montage_metadata.moduleId + "," + label;
                 var nextSibling = lastElement.nextElementSibling;
                 var previousSibling = firstElement.previousElementSibling;
 
                 if (nextSibling) {
-                    this._updateLiveEditRangeTags(ATTR_LE_ARG_BEGIN,
+                    this._updateLiveEditRangeAttributes(ATTR_LE_ARG_BEGIN,
                         leArgRangeValue, firstElement, nextSibling);
                 }
                 if (previousSibling) {
-                    this._updateLiveEditRangeTags(ATTR_LE_ARG_END,
+                    this._updateLiveEditRangeAttributes(ATTR_LE_ARG_END,
                         leArgRangeValue, lastElement, previousSibling);
                 }
             }
@@ -436,7 +436,7 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
          * if it expanded the argument from the sides. This means that it is
          * now the new firstElement or the new lastElement of the star argument.
          */
-        _updateLiveEditRangeTags: {
+        _updateLiveEditRangeAttributes: {
             value: function(fringeAttrName, fringeAttrValue, newFringe, currentFringe) {
                 var leArgValue = currentFringe.getAttribute(fringeAttrName);
 
