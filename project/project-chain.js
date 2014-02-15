@@ -12,7 +12,7 @@ var parseCookies = require("../parse-cookies");
 
 var preview = require("./preview");
 
-var ProxyContainer = require("./proxy-container");
+var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
 
@@ -74,19 +74,18 @@ function server(options) {
         POST("access").app(preview.processAccessRequest);
     })
     .use(function (next) {
-        // TODO checkPreviewAccess
-        var servePreview = ProxyContainer(setupProjectContainer, "static");
-
         return function (request, response) {
             if (preview.isPreview(request)) {
                 if (preview.hasAccess(request.headers.host, request.session)) {
-                    // FIXME docker check session/do preview code stuff here
                     var details = environment.getDetailsfromProjectUrl(request.url);
-                    request.params = request.params || {};
-                    request.params.owner = details.owner;
-                    request.params.repo = details.repo;
 
-                    return servePreview(request, response);
+                    return setupProjectContainer(
+                        details.owner, // FIXME docker
+                        details.owner,
+                        details.repo
+                    ).then(function (projectWorkspacePort) {
+                        return proxyContainer(request, projectWorkspacePort, "static");
+                    });
                 } else {
                     // FIXME docker generate code a push notification to client
                     return preview.serveAccessForm(request);
@@ -99,7 +98,21 @@ function server(options) {
     })
     .use(checkSession)
     .route(function (route) {
-        route("api/:owner/:repo/...").app(ProxyContainer(setupProjectContainer, "api"));
+        route("api/:owner/:repo/...").app(function (request) {
+            var session = request.session;
+            return session.githubUser.then(function (githubUser) {
+                return setupProjectContainer(
+                    session.username,
+                    request.params.owner,
+                    request.params.repo,
+                    session.githubAccessToken,
+                    githubUser
+                );
+            })
+            .then(function (projectWorkspacePort) {
+                return proxyContainer(request, projectWorkspacePort, "api");
+            });
+        });
     });
 
     var proxyAppWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-app");
