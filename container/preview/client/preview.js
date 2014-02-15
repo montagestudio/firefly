@@ -88,6 +88,8 @@
                 return LiveEdit.setElementAttribute(args.moduleId, args.label,
                     args.argumentName, args.cssSelector, args.attributeName, args.attributeValue);
             }
+        }).fail(function(reason) {
+            console.log("fail: ", reason);
         });
 
         if (DEBUG_SPEED) {
