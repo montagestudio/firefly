@@ -18,8 +18,9 @@ fi
 mkdir ${BUILD}/digitalocean
 
 # We need a local install of tugboat as we want to have the rebuild command
-gem install ${HOME}/deploy/files/tugboat-0.0.10.gem --install-dir ${GEM_HOME}
-# gem install tugboat --install-dir ${GEM_HOME}
+# This has been merged and published so we don't need this until the next time
+# gem install ${HOME}/deploy/files/tugboat-0.0.10.gem --install-dir ${GEM_HOME}
+gem install tugboat --install-dir ${GEM_HOME}
 # gem install system_timer --install-dir ${GEM_HOME}
 
 # Install packer io
