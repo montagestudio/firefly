@@ -245,6 +245,33 @@ This will copy the files out of the container into a temporary directory. You
 can look at the files but of course any changes won't be reflected in the
 container.
 
+### Viewing a specific container
+
+Only `root` and the `docker` group can access the containers, so log into the
+project server and change to `root`:
+
+```bash
+vagrant ssh project
+sudo su
+```
+
+If don't know the ID of the container then you can get a list of all the
+running containers with `docker ps`, or include the stopped containers with
+`docker ps -a`.
+
+If don't know which of the IDs you want then there is a map from
+`{user, owner, repo}` to IDs in `/srv/container-index.json`. Look through that
+file to find the relevant ID. (I hope this will change pretty soon, probably
+to Redis.)
+
+Using the ID of the container you can perform various actions:
+
+```bash
+docker logs $ID
+docker diff $ID
+docker cp $ID:/workspace /tmp
+```
+
 Session
 -------
 
