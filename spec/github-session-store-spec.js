@@ -10,7 +10,7 @@ describe("GithubSessionStore", function () {
     describe("get", function () {
         it("returns a cached session", function (done) {
             var id = "test";
-            store.sessions[id] = '{"pass": true}';
+            store.sessions[id] = {pass: true};
             return store.get(id)
             .then(function (session) {
                 expect(session).toEqual({pass: true});
