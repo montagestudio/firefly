@@ -4,15 +4,17 @@ var PreviewService = require("../../project/services/preview-service");
 
 describe("check-preview-access", function () {
     var chain,
+        githubUser,
         checkPreviewAccess,
         host = "http://owner-repo.local-project.montagestudio.com:2440",
         request,
         previewService = new PreviewService.service();
 
     beforeEach(function () {
+        githubUser = {login: "owner"};
         request = {
             session: {
-                githubUser: {login: "owner"},
+                githubUser: Q(githubUser),
                 previewAccess: []
             },
             headers: {host: host}
@@ -34,7 +36,7 @@ describe("check-preview-access", function () {
     });
 
     it("should ignore case when granting access to the logged user", function(done) {
-        request.session.githubUser.login = "Owner";
+        githubUser.login = "Owner";
         checkPreviewAccess(request)
         .then(function() {
             expect(chain.next).toHaveBeenCalled();
@@ -42,7 +44,7 @@ describe("check-preview-access", function () {
     });
 
     it("should not grant access when the user doesn't have access and preview isn't registered", function(done) {
-        request.session.githubUser.login = "user";
+        githubUser.login = "user";
 
         checkPreviewAccess(request)
         .then(function() {
@@ -52,7 +54,7 @@ describe("check-preview-access", function () {
 
     it("should not grant access when the user doesn't have access and preview is registered", function(done) {
         previewService.register({name: "", url: host});
-        request.session.githubUser.login = "user";
+        githubUser.login = "user";
 
         checkPreviewAccess(request)
         .then(function() {
@@ -61,7 +63,7 @@ describe("check-preview-access", function () {
     });
 
     it("should not grant access when the user has access and the preview isn't registered", function(done) {
-        request.session.githubUser.login = "user";
+        githubUser.login = "user";
         request.session.previewAccess.push(host);
 
         checkPreviewAccess(request)
@@ -72,7 +74,7 @@ describe("check-preview-access", function () {
 
     it("should grant access when the user has access and a preview is registered", function(done) {
         previewService.register({name: "", url: host});
-        request.session.githubUser.login = "user";
+        githubUser.login = "user";
         request.session.previewAccess.push(host);
 
         checkPreviewAccess(request)
@@ -82,7 +84,7 @@ describe("check-preview-access", function () {
     });
 
     it("should serve the preview access form when the user isn't granted access", function(done) {
-        request.session.githubUser.login = "user";
+        githubUser.login = "user";
 
         checkPreviewAccess(request)
         .then(function(response) {

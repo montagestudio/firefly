@@ -19,14 +19,12 @@ GithubSessionStore.prototype.get = function get(id) {
 
         // ...otherwise try and unpack it
         var session = {};
-        return packedSession.unpack(id, session)
-        .then(function (valid) {
-            if (valid) {
-                return session;
-            }
-            // otherwise if it's not valid so return nothing
-        });
+        var valid = packedSession.unpack(id, session);
+        if (valid) {
             self.sessions[id] = session;
+            return session;
+        }
+        // otherwise if it's not valid so return nothing
     });
 };
 
@@ -39,14 +37,12 @@ GithubSessionStore.prototype.set = function set(id, session) {
             return;
         }
 
-        return packedSession.pack(session)
-        .then(function (id) {
-            // Remove previous session cache
-            delete self.sessions[session.sessionId];
-            // Update the sessionId
-            session.sessionId = id;
-            // And cache the new session
-        });
+        var newId = packedSession.pack(session);
+        // Remove previous session cache
+        delete self.sessions[session.sessionId];
+        // Update the sessionId
+        session.sessionId = newId;
+        // And cache the new session
         self.sessions[newId] = session;
     });
 };

@@ -10,25 +10,23 @@ describe("packedSession", function () {
         packed = "e2840fe3c165a547fe3bf4bb18d5dd12b2bd7bcb47cdcc35d54e6422dbc40473d43e307a";
     });
 
-    it("packs session", function (done) {
+    it("packs session", function () {
         var session = {
             githubAccessToken: token,
             username: username
         };
 
-        return packedSession.pack(session).then(function (sessionID) {
-            expect(typeof sessionID).toBe("string");
-            expect(sessionID.length).toEqual(72);
-        }).then(done, done);
+        var sessionID = packedSession.pack(session);
+        expect(typeof sessionID).toBe("string");
+        expect(sessionID.length).toEqual(72);
     });
 
-    it("unpacks session", function (done) {
+    it("unpacks session", function () {
         var session = {};
 
         packedSession._GithubApi = MockGithubApi;
-        return packedSession.unpack(packed, session).then(function (validUser) {
-            expect(validUser).toBe(true);
-            expect(session.username).toBe(username);
-        }).then(done, done);
+        var validUser = packedSession.unpack(packed, session);
+        expect(validUser).toBe(true);
+        expect(session.username).toBe(username);
     });
 });

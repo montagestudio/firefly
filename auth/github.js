@@ -73,8 +73,9 @@ module.exports = function ($) {
                 //jshint +W106
 
                 var githubApi = new GithubApi(request.session.githubAccessToken);
-                return githubApi.getUser().then(function(user) {
-                    request.session.githubUser = user;
+                var githubUser = githubApi.getUser();
+                request.session.githubUser = githubUser;
+                return githubUser.then(function (user) {
                     request.session.username = user.login.toLowerCase();
 
                     return HttpApps.redirect(request, "/projects");

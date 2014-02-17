@@ -252,13 +252,15 @@ ProjectWorkspace.prototype._commitWorkspace = function(message) {
  * Installs the needed node modules.
  */
 ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
-    var self = this,
-        name = this._session.githubUser.name || this._session.githubUser.login,
-        email = this._session.githubUser.email || DEFAULT_GIT_EMAIL;
+    var self = this;
+    return this._session.githubUser.then(function (githubUser) {
+        var name = githubUser.name || githubUser.login;
+        var email = githubUser.email || DEFAULT_GIT_EMAIL;
 
-    return this._git.config(this._workspacePath, "user.name", name)
-    .then(function() {
-        return self._git.config(self._workspacePath, "user.email", email);
+        return self._git.config(self._workspacePath, "user.name", name)
+        .then(function() {
+            return self._git.config(self._workspacePath, "user.email", email);
+        });
     })
     .then(function() {
         return self._npmInstall();
