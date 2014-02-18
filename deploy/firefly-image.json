@@ -16,6 +16,7 @@
         "size_id": 66,
         "private_networking": false,
 		"state_timeout": "12m",
+        "ssh_timeout": "5m",
         "snapshot_name": "{{user `snapshot_name`}}",
         "droplet_name": "firefly-image"
     }],
