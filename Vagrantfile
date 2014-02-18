@@ -150,7 +150,7 @@ Vagrant.configure('2') do |config|
         project.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.0.5 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
         project.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
 
-        login.vm.provision :shell, path: "deploy/provision/base-additions.sh"
+        project.vm.provision :shell, path: "deploy/provision/base-additions.sh"
 
         # TODO don't mount filament when server is split
         project.vm.synced_folder "../filament", "/srv/filament"
