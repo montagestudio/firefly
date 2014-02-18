@@ -117,6 +117,8 @@ Vagrant.configure('2') do |config|
         login.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.0.4 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
         login.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
 
+        login.vm.provision :shell, path: "deploy/provision/base-additions.sh"
+
         # TODO don't mount filament when server is split
         login.vm.synced_folder "../filament", "/srv/filament"
         login.vm.synced_folder ".", "/srv/firefly"
@@ -129,7 +131,7 @@ Vagrant.configure('2') do |config|
         login.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_SECRET=.*//' /etc/init/firefly-login.conf"
         login.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_APP_URL=.*//' /etc/init/firefly-login.conf"
         login.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_URL=.*//' /etc/init/firefly-login.conf"
-        
+
 
         # Start
         login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
@@ -147,6 +149,8 @@ Vagrant.configure('2') do |config|
         project.vm.provision :shell, :inline => "sudo apt-get install rinetd"
         project.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.0.5 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
         project.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
+
+        login.vm.provision :shell, path: "deploy/provision/base-additions.sh"
 
         # TODO don't mount filament when server is split
         project.vm.synced_folder "../filament", "/srv/filament"
