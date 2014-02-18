@@ -158,6 +158,25 @@ function FileService(session, fs, environment, pathname, fsPath) {
         return fs.write(path, buffer);
     };
 
+    service.makeTree = function (url, mode) {
+        var path = convertProjectUrlToPath(url);
+        return fs.makeTree(path, mode);
+    };
+
+    service.remove = function (url) {
+        var path = convertProjectUrlToPath(url);
+        return fs.remove(path).catch(function () {
+            throw new Error("Can't remove non-existant file: " + url);
+        });
+    };
+
+    service.removeTree = function (url) {
+        var path = convertProjectUrlToPath(url);
+        return fs.removeTree(path).fail(function () {
+            //TODO the original error was better about specifying where things went wrong
+            throw new Error('Can\'t find tree to remove given "' + url + '"');
+        });
+    };
 
     /**
      * Lists all the files in a package except node_modules, dotfiles and files

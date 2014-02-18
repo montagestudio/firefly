@@ -121,4 +121,220 @@ describe("file-service", function () {
         });
     });
 
+    describe("makeTree", function () {
+
+        describe("with no part of the desired tree existing", function () {
+
+            it("should create a directory with the specified name when the parent exists and the specified path does not", function (done) {
+                return service.makeTree("http://localhost:2441/foo")
+                    .then(function() {
+                        return fs.isDirectory("foo");
+                    })
+                    .then(function(isDir) {
+                        expect(isDir).toBe(true);
+                    })
+                    .then(done, done);
+            });
+
+            it("should create a directory and all parents up to the existing parent root", function (done) {
+                return service.makeTree("http://localhost:2441/foo/bar/baz")
+                    .then(function() {
+                        return [
+                            fs.isDirectory("foo"),
+                            fs.isDirectory("foo/bar"),
+                            fs.isDirectory("foo/bar/baz")
+                        ];
+                    })
+                    .spread(function(isFooDir, isBarDir, isBazDir) {
+                        expect(isFooDir).toBe(true);
+                        expect(isBarDir).toBe(true);
+                        expect(isBazDir).toBe(true);
+                    })
+                    .then(done, done);
+            });
+        });
+
+        describe("with parts of the expected tree existing", function () {
+
+            beforeEach(function () {
+                fs = MockFs({
+                    "foo": {
+                        "bar": {}
+                    }
+                });
+                service = FileService(null, fs, {
+                    getProjectUrlFromAppUrl: function () {
+                        return "http://localhost:2441";
+                    }
+                });
+            });
+
+            it("must not replace the specified existing directory", function (done) {
+                return service.makeTree("http://localhost:2441/foo")
+                    .then(function() {
+                        return [
+                            fs.isDirectory("foo"),
+                            fs.isDirectory("foo/bar")
+                        ];
+                    })
+                    .spread(function(isFooDir, isBarDir) {
+                        expect(isFooDir).toBe(true);
+                        expect(isBarDir).toBe(true);
+                    })
+                    .then(done, done);
+            });
+
+            it("should create directories along the specified path where they do not exist already", function (done) {
+                return service.makeTree("http://localhost:2441/foo/bar/baz")
+                    .then(function() {
+                        return fs.isDirectory("foo/bar/baz");
+                    })
+                    .then(function(isBazDir) {
+                        expect(isBazDir).toBe(true);
+                    })
+                    .then(done, done);
+            });
+        });
+
+    });
+
+    describe("remove", function () {
+
+        beforeEach(function () {
+            fs = MockFs({
+                "foo": {
+                    "bar": "abc",
+                    "baz": "xyz"
+                }
+            });
+            service = FileService(null, fs, {
+                getProjectUrlFromAppUrl: function () {
+                    return "http://localhost:2441";
+                }
+            });
+        });
+
+        it("must fail if the specified file does not exist, with no reference to the file path", function (done) {
+            return service.remove("http://localhost:2441/foo/qux")
+                .fail(function(error) {
+                    expect(error.message).toBe("Can't remove non-existant file: http://localhost:2441/foo/qux");
+                })
+                .then(done, done);
+        });
+
+        it("should remove the specified file that exists", function (done) {
+            return service.remove("http://localhost:2441/foo/bar")
+                .then(function() {
+                    return fs.isFile("foo/bar");
+                })
+                .then(function(isFile) {
+                    expect(isFile).toBe(false);
+                })
+                .then(done, done);
+        });
+
+        it("should resolve to undefined", function (done) {
+            return service.remove("http://localhost:2441/foo/bar")
+                .then(function(success) {
+                    expect(success).toBeUndefined();
+                })
+                .then(done, done);
+        });
+
+        it("must not remove the parent directory of the specified file", function (done) {
+            return service.remove("http://localhost:2441/foo/bar")
+                .then(function() {
+                    return fs.isDirectory("foo");
+                })
+                .then(function(isDir) {
+                    expect(isDir).toBe(true);
+                })
+                .then(done, done);
+        });
+
+        it("must not remove siblings of the specified file", function (done) {
+            return service.remove("http://localhost:2441/foo/bar")
+                .then(function() {
+                    return fs.isFile("foo/baz");
+                })
+                .then(function(isFile) {
+                    expect(isFile).toBe(true);
+                })
+                .then(done, done);
+        });
+
+    });
+
+    describe("removeTree", function () {
+
+        beforeEach(function () {
+            fs = MockFs({
+                "foo": {
+                    "bar": {
+                        "baz": "abc"
+                    },
+                    "qux": {}
+                }
+            });
+            service = FileService(null, fs, {
+                getProjectUrlFromAppUrl: function () {
+                    return "http://localhost:2441";
+                }
+            });
+        });
+
+        it("must fail if the specified directory does not exist, with no reference to the directory path", function (done) {
+            return service.removeTree("http://localhost:2441/foo/baz")
+                .fail(function(error) {
+                    expect(error.message).toBe('Can\'t find tree to remove given "http://localhost:2441/foo/baz"');
+                })
+                .then(done, done);
+        });
+
+        it("should remove the specified directory that exists", function (done) {
+            return service.removeTree("http://localhost:2441/foo/bar")
+                .then(function() {
+                    return [
+                        fs.isDirectory("foo/bar"),
+                        fs.isFile("foo/bar/baz")
+                    ];
+                })
+                .spread(function(isBarDir, isBazFile) {
+                    expect(isBarDir).toBe(false);
+                    expect(isBazFile).toBe(false);
+                })
+                .then(done, done);
+        });
+
+        it("should resolve to undefined", function (done) {
+            return service.removeTree("http://localhost:2441/foo/bar")
+                .then(function(success) {
+                    expect(success).toBeUndefined();
+                })
+                .then(done, done);
+        });
+        it("must not remove the parent directory of the specified directory", function (done) {
+            return service.removeTree("http://localhost:2441/foo/bar")
+                .then(function() {
+                    return fs.isDirectory("foo");
+                })
+                .then(function(isDir) {
+                    expect(isDir).toBe(true);
+                })
+                .then(done, done);
+        });
+
+        it("must not remove siblings of the specified file", function (done) {
+            return service.removeTree("http://localhost:2441/foo/bar")
+                .then(function() {
+                    return fs.isDirectory("foo/qux");
+                })
+                .then(function(isDir) {
+                    expect(isDir).toBe(true);
+                })
+                .then(done, done);
+        });
+
+    });
+
 });

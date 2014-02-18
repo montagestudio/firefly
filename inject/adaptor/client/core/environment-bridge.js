@@ -446,6 +446,24 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    remove: {
+        value: function (url) {
+            return this.backend.get("file-service").invoke("remove", url);
+        }
+    },
+
+    makeTree: {
+        value: function (url) {
+            return this.backend.get("file-service").invoke("makeTree", url);
+        }
+    },
+
+    removeTree: {
+        value: function (url) {
+            return this.backend.get("file-service").invoke("removeTree", url);
+        }
+    },
+
     /**
      * Saves a file and creates a new commit for the change.
      */
