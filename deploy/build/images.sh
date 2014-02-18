@@ -23,7 +23,3 @@ ${HOME}/deploy/build/login-image.sh
 
 # Buid Firefly Project Application Image
 ${HOME}/deploy/build/project-image.sh
-
-# Legacy
-# Buid Firefly Application Image
-${HOME}/deploy/build/firefly-image.sh
