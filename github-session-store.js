@@ -14,19 +14,17 @@ GithubSessionStore.prototype.get = function get(id) {
         // If this session is cached, just return it...
         var cachedSession = self.sessions[id];
         if (cachedSession) {
-            return JSON.parse(cachedSession);
+            return cachedSession;
         }
 
         // ...otherwise try and unpack it
         var session = {};
-        return packedSession.unpack(id, session)
-        .then(function (valid) {
-            if (valid) {
-                self.sessions[id] = JSON.stringify(session);
-                return session;
-            }
-            // otherwise if it's not valid so return nothing
-        });
+        var valid = packedSession.unpack(id, session);
+        if (valid) {
+            self.sessions[id] = session;
+            return session;
+        }
+        // otherwise if it's not valid so return nothing
     });
 };
 
@@ -35,19 +33,17 @@ GithubSessionStore.prototype.set = function set(id, session) {
     return Q.fcall(function () {
         // Don't do anything if the session hasn't changed at all
         var cachedSession = self.sessions[id];
-        if (cachedSession === JSON.stringify(session)) {
+        if (JSON.stringify(cachedSession) === JSON.stringify(session)) {
             return;
         }
 
-        return packedSession.pack(session)
-        .then(function (id) {
-            // Remove previous session cache
-            delete self.sessions[session.sessionId];
-            // Update the sessionId
-            session.sessionId = id;
-            // And cache the new session
-            self.sessions[id] = JSON.stringify(session);
-        });
+        var newId = packedSession.pack(session);
+        // Remove previous session cache
+        delete self.sessions[session.sessionId];
+        // Update the sessionId
+        session.sessionId = newId;
+        // And cache the new session
+        self.sessions[newId] = session;
     });
 };
 

@@ -1,4 +1,5 @@
 var loginChain = require("../../login/login-chain");
+var Q = require("q");
 var MockFs = require("q-io/fs-mock");
 var MockSession = require("../mocks/session");
 var mockRequest = require("../mocks/request");
@@ -62,7 +63,7 @@ describe("login chain", function () {
             var headers;
             beforeEach(function () {
                 sessions["abc-123"] = {
-                    githubUser: "test"
+                    githubUser: Q("test")
                 };
                 headers = {
                     "cookie": "session=abc-123"

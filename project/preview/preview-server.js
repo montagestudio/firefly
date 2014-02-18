@@ -162,20 +162,25 @@ function startWsServer(sessions) {
 
 
         sessions.getSession(request, function(session) {
-            if (preview.existsPreviewFromUrl(request.headers.host) &&
-                hasPreviewAccess(request.headers.host, session)) {
-                log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
+            if (preview.existsPreviewFromUrl(request.headers.host)) {
+                return hasPreviewAccess(request.headers.host, session).then(function (hasPreviewAccess) {
+                    if (hasPreviewAccess) {
+                        log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
-                preview.registerConnection(connection);
+                        preview.registerConnection(connection);
 
-                connection.on('close', function () {
-                    log("websocket connection closed: ", --websocketConnections);
-                    preview.unregisterConnection(connection);
-                });
+                        connection.on('close', function () {
+                            log("websocket connection closed: ", --websocketConnections);
+                            preview.unregisterConnection(connection);
+                        });
 
-                connection.on("error", function(err) {
-                    if (err.code !== 'ECONNRESET') {
-                        log("Preview connection error:", err);
+                        connection.on("error", function(err) {
+                            if (err.code !== 'ECONNRESET') {
+                                log("Preview connection error:", err);
+                            }
+                        });
+                    } else {
+                        connection.close();
                     }
                 });
             } else {

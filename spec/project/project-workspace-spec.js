@@ -9,16 +9,15 @@ function createWorkspace(tmpPath, owner, repo) {
 }
 
 describe("ProjectWorkspace", function () {
-    var projectWorkspace, tmpPath, owner, repo, session,
+    var projectWorkspace, tmpPath, owner, repo, session, githubUser,
         minitPath = fs.join(__dirname, "..", "..", "node_modules", "minit", "minit");
 
     beforeEach(function () {
+        githubUser = {login: "jdoe"};
         tmpPath = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
         session = {
             username: "jdoe",
-            githubUser: {
-                login: "jdoe"
-            }
+            githubUser: Q(githubUser)
         };
         owner = "owner";
         repo = "repo";
@@ -59,7 +58,7 @@ describe("ProjectWorkspace", function () {
         it("creates git config with name and default email", function(done) {
             spyOn(projectWorkspace, "_npmInstall");
 
-            session.githubUser.name = "John Doe";
+            githubUser.name = "John Doe";
 
             return projectWorkspace._git.init(projectWorkspace._workspacePath)
             .then(function() {
@@ -78,7 +77,7 @@ describe("ProjectWorkspace", function () {
         it("creates git config with login and email", function(done) {
             spyOn(projectWorkspace, "_npmInstall");
 
-            session.githubUser.email = "jdoe@declarativ.com";
+            githubUser.email = "jdoe@declarativ.com";
 
             return projectWorkspace._git.init(projectWorkspace._workspacePath)
             .then(function() {
