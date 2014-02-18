@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# To see the debug log add the x option to the folloing line: set -xe
-set -e
-
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
+
+# Parse the arguments list and setup the environment
+source ${HOME}/deploy/build/parse-arguments.sh "$@"
 
 ${BUILD}/packerio/packer build \
     -var "do_api_key=3b6311afca5bd8aac647b316704e9c6d" \

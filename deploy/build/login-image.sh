@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-# To see the debug log add the x option to the folloing line: set -xe
-set -e
-
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
+
+# Parse the arguments list and setup the environment
+source ${HOME}/deploy/build/parse-arguments.sh "$@"
 
 source "${HOME}/deploy/build/get.sh"
 
-get filament $FILAMENT_COMMIT
-get firefly $FIREFLY_COMMIT
+get filament ${FILAMENT_BRANCH} ${FILAMENT_COMMIT}
+get firefly ${FIREFLY_BRANCH} ${FIREFLY_COMMIT}
 
 # Lets do a bit of cleanup
 pushd ${BUILD}

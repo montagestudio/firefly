@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# To see the debug log add the x option to the folloing line: set -xe
-set -e
-
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
 # Setup the build enviroment
 ${HOME}/deploy/build/setup.sh
+
+# Parse the arguments list and setup the environment
+source ${HOME}/deploy/build/parse-arguments.sh "$@"
 
 # Build the base image
 # Not needed for the moment as each image runs the base steps itself
