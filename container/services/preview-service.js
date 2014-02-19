@@ -132,6 +132,14 @@ function PreviewService() {
         sendToPreviewClients(url, "setElementAttribute:" + JSON.stringify(params));
     };
 
+    service.setObjectTemplate = function(url, moduleId, templateFragment) {
+        var params = {
+            moduleId: moduleId,
+            templateFragment: templateFragment
+        };
+        sendToPreviewClients(url, "setObjectTemplate:" + JSON.stringify(params));
+    };
+
     service.close = function(request) {
         this.unregister();
     };

@@ -92,6 +92,11 @@
                 return LiveEdit.setElementAttribute(args.moduleId, args.label,
                     args.argumentName, args.cssSelector, args.attributeName, args.attributeValue);
             }
+
+            if (command === "setObjectTemplate") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectTemplate(args.moduleId, args.templateFragment);
+            }
         }).fail(function(reason) {
             console.log("fail: ", reason);
         });

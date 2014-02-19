@@ -347,6 +347,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    setPreviewObjectTemplate: {
+        value: function(previewId, moduleId, templateFragment) {
+            return this.backend.get("preview-service").invoke("setObjectTemplate", this._previewUrl, moduleId, templateFragment);
+        }
+    },
+
     setDocumentDirtyState: {
         value: function () {
         }

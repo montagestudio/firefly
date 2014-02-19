@@ -566,6 +566,19 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
+        setObjectTemplate: {
+            value: function(moduleId, templateFragment) {
+                var objects = this.findObjects(moduleId, "owner");
+
+                for (var i = 0, owner; (owner = objects[i]); i++) {
+                    var template = owner._template;
+                    template.objectsString = templateFragment.serialization;
+                    template.document = template.createHtmlDocumentWithHtml(
+                        templateFragment.html);
+                }
+            }
+        },
+
         _addTemplateObjectsToOwner: {
             value: function(template, owner) {
                 var self = this;
