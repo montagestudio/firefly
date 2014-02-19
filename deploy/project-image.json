@@ -48,7 +48,7 @@
         "destination": "/srv/firefly.tgz"
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/files/Dockerfile",
+        "source": "{{user `home`}}/Dockerfile",
         "destination": "/srv/Dockerfile"
     }, {
         "type": "shell",
