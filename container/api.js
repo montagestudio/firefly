@@ -7,13 +7,24 @@ var sanitize = require("./sanitize");
 module.exports = function (config) {
     // TODO version API by reading header Accept: application/vnd.firefly.v2+json
     return joey.route(function (route, GET, PUT, POST, DELETE) {
+        var initializingPromise;
+
         POST("init")
         .app(function (request) {
             return handleEndpoint(config, request, function() {
                 log("init handleEndpoint");
-                return request.projectWorkspace.initializeWorkspace();
+                initializingPromise = request.projectWorkspace.initializeWorkspace();
             }, function() {
-                return {message: "initialized"};
+                return {message: "initializing"};
+            });
+        });
+
+        GET("init/progress")
+        .app(function (request) {
+            return handleEndpoint(config, request, function() {
+                return initializingPromise && initializingPromise.inspect().state;
+            }, function (state) {
+                return {state: state};
             });
         });
 

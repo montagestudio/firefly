@@ -42,9 +42,32 @@ exports.RepositoryController = Montage.specialize({
 
     initializeRepositoryWorkspace: {
         value: function() {
+            var self = this;
+            var done = Promise.defer();
+
             return this._request({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/init"
+            }).then(function () {
+                function poll() {
+                    self._request({
+                        method: "GET",
+                        url: "/api/" + self.owner + "/" + self.repo + "/init/progress"
+                    })
+                    .then(function (message) {
+                        if (message.state === "pending") {
+                            setTimeout(poll, 5000);
+                        } else if (message.state === "fulfilled") {
+                            done.resolve();
+                        } else if (message.state === "rejected") {
+                            done.reject(new Error("Initialize failed"));
+                        }
+                    }).catch(done.reject);
+                }
+
+                poll();
+
+                return done.promise;
             });
         }
     },
