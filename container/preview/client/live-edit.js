@@ -33,6 +33,21 @@ Object.defineProperties(window.Declarativ, {
 
             return this._Promise;
         }
+    },
+
+    _Alias: {
+        value: null,
+        writable: true
+    },
+
+    Alias: {
+        get: function() {
+            if (!this._Alias) {
+                this._Alias = montageRequire("core/serialization/alias").Alias;
+            }
+
+            return this._Alias;
+        }
     }
 });
 
@@ -258,14 +273,140 @@ Object.defineProperties(window.Declarativ, {
 
         _defineBinding: {
             value: function(object, propertyName, propertyDescriptor) {
-                var objects = object._ownerDocumentPart.objects;
+                var self = this;
+                var ownerDocumentPart = object._ownerDocumentPart;
+                var owner = object.ownerComponent;
 
                 propertyDescriptor.components = {
                     getObjectByLabel: function(label) {
-                        return objects[label];
+                        return self._getObjectForBinding(owner,
+                            ownerDocumentPart, label);
                     }
                 };
                 object.defineBinding(propertyName, propertyDescriptor);
+            }
+        },
+
+        _getObjectForBinding: {
+            value: function(owner, ownerDocumentPart, label) {
+                var templateProperty;
+
+                if (label.indexOf(":") > 0) {
+                    templateProperty = this._resolveTemplatePropertyLabel(
+                        ownerDocumentPart, label, owner);
+                    if (!templateProperty) {
+                        return;
+                    }
+                    label = templateProperty.label;
+                    owner = templateProperty.owner;
+                }
+
+                return this._lookupObjectInScope(ownerDocumentPart, label, owner);
+            }
+        },
+
+        /**
+         * Resolves the alias template property to its final form.
+         * It returns the resolved label and respective owner.
+         */
+        _resolveTemplatePropertyLabel: {
+            value: function(documentPart, label, owner) {
+                var ix = label.indexOf(":");
+                var objectLabel = label.substr(0, ix);
+                var propertyLabel = label.substr(ix);
+                var alias;
+                var object;
+                var objectDocumentPart;
+
+                object = this._lookupObjectInScope(documentPart, objectLabel,
+                    owner);
+
+                // TODO: since the repetition has nodes that are not in the
+                // document but still in the component tree we can get into
+                // this situation where we're not able to lookup the object.
+                // This is a bug in the repetition. MON-607
+                if (!object) {
+                    return;
+                }
+
+                objectDocumentPart = object._templateDocumentPart;
+                if (objectDocumentPart) {
+                    alias = objectDocumentPart.objects[propertyLabel];
+                }
+
+                if (alias instanceof Declarativ.Alias) {
+                    // Strip the @ prefix
+                    label = alias.value.substr(1);
+                    return this._resolveTemplatePropertyLabel(documentPart,
+                        label, object);
+                } else {
+                    return {
+                        label: label,
+                        owner: owner
+                    };
+                }
+            }
+        },
+
+        /**
+         * Lookup the label/owner object through the document part chain.
+         * It starts at the documentPart given and stops at the owner's
+         * document part.
+         */
+        _lookupObjectInScope: {
+            value: function(documentPart, label, owner) {
+                var object,
+                    ownerDocumentPart = owner._templateDocumentPart;
+
+                do {
+                    object = this._getObjectFromScope(documentPart, label, owner);
+                } while (!object && documentPart !== ownerDocumentPart &&
+                    (documentPart = /*assign*/documentPart.parentDocumentPart));
+
+                return object;
+            }
+        },
+
+        /**
+         * Get an object by label/owner in the document part given if it exists.
+         */
+        _getObjectFromScope: {
+            value: function(documentPart, label, owner) {
+                var objects = documentPart.objects;
+                var scopeOwner = objects.owner;
+                var object;
+
+                var objectMatches = function(object, objectLabel) {
+                    //jshint -W106
+                    var metadata = object._montage_metadata;
+                    //jshint +W106
+                    // Only components have label in their montage metadata.
+                    if (metadata && metadata.label) {
+                        objectLabel = metadata.label;
+                    }
+                    return objectLabel === label &&
+                        (object.ownerComponent || scopeOwner) === owner;
+                };
+
+                // Let's try the fast track first, this is when the object
+                // maintains the same label it got in the original declaration.
+                object = objects[label];
+                if (object && objectMatches(object, label)) {
+                    return object;
+                }
+
+                // Let's go for the slow track then, need to search all objects
+                // define in this scope to check its original label. The object
+                // might be an argument that replaced a parameter (repetition
+                // will do this).
+                for (var name in objects) {
+                    object = objects[name];
+                    if (objectMatches(object, name)) {
+                        return object;
+                    }
+                }
+
+                return null;
             }
         },
 
@@ -310,7 +451,6 @@ Object.defineProperties(window.Declarativ, {
             value: function(moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
                 var nodes = this.findNodes(moduleId, label, argumentName,
                     cssSelector);
-console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector, attributeName, attributeValue);
 
                 for (var i = 0, node; (node = nodes[i]); i++) {
                     node.setAttribute(attributeName, attributeValue);
