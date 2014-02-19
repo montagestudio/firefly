@@ -99,10 +99,14 @@
         }
     }
 
+    var ws;
     function websocketRefresh() {
+        if (ws) {
+            // TODO find out why sometimes we make two connections at once.
+            return;
+        }
         var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        var ws = new WebSocket(protocol + "//" + document.location.host);
-
+        ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
         };
 
@@ -111,6 +115,7 @@
         };
 
         ws.onclose = function() {
+            ws = null;
             showReconnectionMessage(websocketRefresh);
         };
     }
