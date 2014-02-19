@@ -101,12 +101,16 @@ ProjectWorkspace.prototype.existsWorkspace = function() {
 ProjectWorkspace.prototype.initializeWorkspace = function() {
     var self = this;
 
-    return this._githubApi.isRepositoryEmpty(this._owner, this._repo)
-    .then(function(isEmpty) {
-        if (isEmpty) {
-            return self.initializeWithEmptyProject();
-        } else {
-            return self.initializeWithRepository();
+    return this.existsWorkspace().then(function (exists) {
+        if (!exists) {
+            return self._githubApi.isRepositoryEmpty(self._owner, self._repo)
+            .then(function(isEmpty) {
+                if (isEmpty) {
+                    return self.initializeWithEmptyProject();
+                } else {
+                    return self.initializeWithRepository();
+                }
+            });
         }
     });
 };
