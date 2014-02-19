@@ -227,7 +227,7 @@ vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
 ```
 
 You can also see the state of the load-balancer (HAProxy) and the servers at
-http://local-firefly.declarativ.net:2440/haproxy?stats and logging in with
+http://local-firefly.declarativ.net:2440/admin?stats and logging in with
 user `montage`, password `Mont@ge1789`.
 
 Viewing the files inside the container
