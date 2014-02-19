@@ -1,16 +1,13 @@
 /*global escape*/
 var Q = require("q");
-var PreviewServer = require("../../project/preview/preview-server");
+var PreviewServer = require("../../container/preview/preview-server");
 var FS = require("q-io/fs");
 var htmlparser = require("htmlparser2");
-var PreviewService = require("../../project/services/preview-service");
+var PreviewService = require("../../container/services/preview-service");
 
 var indexHtml = __dirname + "/../fixtures/preview/index.html";
 
 describe("preview-server", function () {
-    beforeEach(function () {
-        PreviewService.unregisterAllConnections();
-    });
 
     it("should inject the preview scripts into the html file", function(done) {
         var request = {
@@ -55,7 +52,7 @@ describe("preview-server", function () {
 
     it("should serve the preview js scripts", function(done) {
         var request = {
-            path: escape("/{$REFRESH}/preview.js"),
+            pathInfo: escape("/{$PREVIEW}/preview.js"),
             headers: {}
         };
 
@@ -80,9 +77,7 @@ describe("preview-server", function () {
                 headers: {host: host},
                 session: session
             };
-            PreviewService._previews["owner-repo"] = {
-                accessCode: "leCode"
-            };
+            PreviewService._getPreview().accessCode = "leCode";
         });
 
         it("should grant access with the correct preview access code", function(done) {

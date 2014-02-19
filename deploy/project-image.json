@@ -48,11 +48,7 @@
         "destination": "/srv/firefly.tgz"
     }, {
         "type": "file",
-        "source": "{{user `build`}}/projectserver.tgz",
-        "destination": "/srv/projectserver.tgz"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/Dockerfile",
+        "source": "{{user `home`}}/Dockerfile",
         "destination": "/srv/Dockerfile"
     }, {
         "type": "shell",
@@ -60,6 +56,6 @@
     }, {
         "type": "file",
         "source": "{{user `home`}}/deploy/services/firefly-project.conf",
-        "destination": "/etc/init/projectserver.conf"
+        "destination": "/etc/init/firefly-project.conf"
     }]
 }

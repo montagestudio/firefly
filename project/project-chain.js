@@ -1,41 +1,31 @@
 var log = require("logging").from(__filename);
+var Q = require("q");
 var joey = require("joey");
 var APPS = require("q-io/http-apps");
-var HttpApps = require("q-io/http-apps/fs");
-var StatusApps = require("q-io/http-apps/status");
+// FIXME docker
+// var PreviewServer = require("./preview/preview-server");
+// var checkPreviewAccess = require("./preview/check-preview-access");
 var environment = require("../environment");
-var PreviewServer = require("./preview/preview-server");
-var checkPreviewAccess = require("./preview/check-preview-access");
 
 var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
 
-var api = require("./api");
-var websocket = require("./websocket");
+var ProxyContainer = require("./proxy-container");
+var ProxyWebsocket = require("./proxy-websocket");
+var WebSocket = require("faye-websocket");
 
 module.exports = server;
 function server(options) {
     options = options || {};
 
     //jshint -W116
-    if (!options.fs) throw new Error("options.fs required");
-    var fs = options.fs;
-    if (!options.client) throw new Error("options.client required");
-    var client = fs.absolute(options.client);
-    if (!options.clientServices) throw new Error("options.clientServices required");
-    var clientServices = options.clientServices;
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
-    if (!options.setupProjectWorkspace) throw new Error("options.setupProjectWorkspace required");
-    var setupProjectWorkspace = options.setupProjectWorkspace;
-    if (!options.directory) throw new Error("options.directory required");
-    var directory = options.directory;
-    if (!options.minitPath) throw new Error("options.minitPath required");
-    var minitPath = options.minitPath;
+    if (!options.setupProjectContainer) throw new Error("options.setupProjectContainer required");
+    var setupProjectContainer = options.setupProjectContainer;
     //jshint +W116
-    var preview = PreviewServer.Preview(sessions);
 
     var chain = joey
     .error()
@@ -79,27 +69,21 @@ function server(options) {
             }
         });
 
-        POST("access").app(PreviewServer.processAccessRequest);
+        // POST("access").app(PreviewServer.processAccessRequest);
     })
     .use(function (next) {
-        var serveProject = checkPreviewAccess(preview(function (request) {
-            var path = environment.getProjectPathFromProjectUrl(request.headers.host);
-
-            log("rerooting to", fs.join(path));
-            return fs.reroot(fs.join(path)).then(function(fs) {
-                return fs.isFile(request.path).then(function(isFile) {
-                    if (isFile) {
-                        return HttpApps.file(request, request.path, null, fs);
-                    } else {
-                        return StatusApps.notFound(request);
-                    }
-                });
-            });
-        }));
+        // TODO checkPreviewAccess
+        var servePreview = ProxyContainer(setupProjectContainer, "static");
 
         return function (request, response) {
             if (endsWith(request.headers.host, environment.getProjectHost())) {
-                return serveProject(request, response);
+                // FIXME docker check session/do preview code stuff here
+                var details = environment.getDetailsfromProjectUrl(request.url);
+                request.params = request.params || {};
+                request.params.owner = details.owner;
+                request.params.repo = details.repo;
+
+                return servePreview(request, response);
             } else {
                 // route /:user/:app/:action
                 return next(request, response);
@@ -108,30 +92,33 @@ function server(options) {
     })
     .use(checkSession)
     .route(function (route) {
-        route("api/...").app(api(setupProjectWorkspace, directory, minitPath).end());
+        route("api/:owner/:repo/...").app(ProxyContainer(setupProjectContainer, "api"));
     });
 
-    // These services should be customized per websocket connection, to
-    // encompass the session information
-    var services = {};
-    Object.keys(clientServices).forEach(function (name) {
-        services[name] = require(fs.join(client, clientServices[name]));
-    });
-    services["file-service"] = require("./services/file-service");
-    services["extension-service"] = require("./services/extension-service");
-    services["env-service"] = require("./services/env-service");
-    services["preview-service"] = require("./services/preview-service").service;
-    services["package-manager-service"] = require("./services/package-manager-service");
-    services["repository-service"] = require("./services/repository-service");
-
-    var websocketServer = websocket(sessions, services, client);
-
-    chain.upgrade = function (request, socket, head) {
-        if (endsWith(request.headers.host, environment.getProjectHost())) {
-            preview.wsServer.handleUpgrade(request, socket, head);
-        } else {
-            websocketServer.handleUpgrade(request, socket, head);
-        }
+    var proxyAppWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-app");
+    var proxyPreviewWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-preview");
+    chain.upgrade = function (request, socket, body) {
+        Q.try(function () {
+            if (!WebSocket.isWebSocket(request)) {
+                return;
+            }
+            var details;
+            if (endsWith(request.headers.host, environment.getProjectHost())) {
+                log("preview websocket");
+                // FIXME docker check session/do preview code stuff here
+                details = environment.getDetailsfromProjectUrl(request.headers.host);
+                return proxyPreviewWebsocket(request, socket, body, details);
+            } else {
+                log("filament websocket");
+                details = environment.getDetailsFromAppUrl(request.url);
+                return proxyAppWebsocket(request, socket, body, details);
+            }
+        })
+        .catch(function (error) {
+            log("*Error setting up websocket*", error.stack);
+            socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+            socket.destroy();
+        });
     };
 
     return chain;

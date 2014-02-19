@@ -22,13 +22,6 @@ describe("login chain", function () {
             client: "/",
             sessions: MockSession(sessions),
             clientServices: {},
-            setupProjectWorkspace: function (fs, directory, minitPath) {
-                return function(next) {
-                    return function(request, response) {
-                        return next(request, response);
-                    };
-                };
-            },
             directory: ".",
             minitPath: "."
         }).end();

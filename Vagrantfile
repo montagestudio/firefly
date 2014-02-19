@@ -155,9 +155,8 @@ Vagrant.configure('2') do |config|
         # TODO don't mount filament when server is split
         project.vm.synced_folder "../filament", "/srv/filament"
         project.vm.synced_folder ".", "/srv/firefly"
-        project.vm.synced_folder "./projectserver", "/srv/projectserver"
 
-        project.vm.provision :shell, :inline => "cp /vagrant/deploy/files/Dockerfile /srv/Dockerfile"
+        project.vm.provision :shell, :inline => "ln -sf /srv/firefly/Dockerfile /srv/Dockerfile"
 
         project.vm.provision :shell, path: "deploy/provision/project.sh"
 
