@@ -42,7 +42,7 @@ Object.defineProperties(window.Declarativ, {
     var ATTR_LE_ARG_BEGIN = "data-montage-le-arg-begin";
     var ATTR_LE_ARG_END = "data-montage-le-arg-end";
 
-    ns.LiveEdit = Object.create(Object.prototype, {
+    var LiveEdit = ns.LiveEdit = Object.create(Object.prototype, {
         _rootComponent: {
             writable: true,
             value: null
@@ -340,8 +340,9 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
                     .then(function(result) {
                         self._updateScope(owner, result.objects, anchor);
                         if (label !== "owner") {
-                            self._updateLiveEditAttributes(result.firstElement,
-                                result.lastElement, owner, label);
+                            self._updateLiveEditAttributes(anchor,
+                                result.firstElement, result.lastElement, owner,
+                                label);
                         }
                     });
             }
@@ -417,18 +418,17 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
         },
 
         _updateLiveEditAttributes: {
-            value: function(firstElement, lastElement, owner, label) {
+            value: function(anchor, firstElement, lastElement, owner, label) {
                 var leArgRangeValue = owner._montage_metadata.moduleId + "," + label;
                 var nextSibling = lastElement.nextElementSibling;
                 var previousSibling = firstElement.previousElementSibling;
 
-                if (nextSibling) {
+                if (nextSibling === anchor) {
                     this._updateLiveEditRangeAttributes(ATTR_LE_ARG_BEGIN,
-                        leArgRangeValue, firstElement, nextSibling);
-                }
-                if (previousSibling) {
+                        leArgRangeValue, firstElement, anchor);
+                } else if (previousSibling === anchor) {
                     this._updateLiveEditRangeAttributes(ATTR_LE_ARG_END,
-                        leArgRangeValue, lastElement, previousSibling);
+                        leArgRangeValue, lastElement, anchor);
                 }
             }
         },
