@@ -47,7 +47,7 @@ module.exports = function ($) {
             method: "POST",
             headers: {
                 "Accept": "application/json",
-                "Content-Type": "application/x-www-form-urlencoded"
+                "Content-Type": "application/x-www-form-urlencoded; charset=utf8"
             },
             body: [querystring.stringify({
                 "client_id": CLIENT_ID,
