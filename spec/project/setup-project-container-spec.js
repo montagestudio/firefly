@@ -51,7 +51,7 @@ describe("SetupProjectContainer", function () {
     });
 
     it("removes a container from the index if it fails", function (done) {
-        docker.createContainer = function () { return  Q.reject(new Error()); }
+        docker.createContainer = function () { return  Q.reject(new Error()); };
         request(requestOpts)
         .then(function () {
             // expect failure

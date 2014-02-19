@@ -1,5 +1,5 @@
 /*jshint browser:true */
-/*global console, Declarativ */
+/*global Declarativ */
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
