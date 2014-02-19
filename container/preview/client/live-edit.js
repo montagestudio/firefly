@@ -156,6 +156,7 @@ Object.defineProperties(window.Declarativ, {
                 var component = this._findParentComponent(node),
                     iteration;
 
+                //jshint -W106
                 while (component._montage_metadata.moduleId !== ownerModuleId) {
                     if (component.clonesChildComponents) {
                         iteration = component._findIterationContainingElement(node);
@@ -165,6 +166,7 @@ Object.defineProperties(window.Declarativ, {
                     }
                     component = component.ownerComponent;
                 }
+                //jshint +W106
 
                 return component._templateDocumentPart;
             }
@@ -465,14 +467,23 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
 
     Template.prototype.instantiateIntoDocument = function(anchor, how, owner) {
         var self = this,
-            element;
+            element,
+            documentPart,
+            ownerModuleId;
 
         element = document.createElement("div");
         element.innerHTML = this.html;
         this._addElement(element, anchor, how);
 
+        //jshint -W106
+        ownerModuleId = owner._montage_metadata.moduleId;
+        //jshint +W106
+        // The new elements will be part of the same DocumentPart as the anchor
+        // node.
+        documentPart = LiveEdit.findNodeDocumentPart(ownerModuleId, anchor);
+
         if (this.serializationString) {
-            return this.instantiate(owner, element)
+            return this.instantiate(owner, element, documentPart)
                 .then(function(objects) {
                     var result = {
                         objects: objects
@@ -495,14 +506,14 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
         }
     };
 
-    Template.prototype.instantiate = function(owner, element) {
+    Template.prototype.instantiate = function(owner, element, documentPart) {
         var self = this;
         var deserializer = new Declarativ.Deserializer();
 
         deserializer.init(this.serializationString, require);
         return deserializer.deserialize({owner: owner}, element)
             .then(function(objects) {
-                self._invokeDelegates(owner, objects);
+                self._invokeDelegates(owner, objects, documentPart);
                 return objects;
             });
     };
@@ -520,8 +531,10 @@ console.log("setElementAttribute: ", moduleId, label, argumentName, cssSelector,
         this.serializationString = JSON.stringify(serialization);
     };
 
-    Template.prototype._invokeDelegates = function(owner, objects) {
-        var documentPart = owner._templateDocumentPart;
+    Template.prototype._invokeDelegates = function(owner, objects, documentPart) {
+        if (!documentPart) {
+            documentPart = owner._templateDocumentPart;
+        }
 
         for (var label in objects) {
             var object = objects[label];
