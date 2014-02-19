@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+apt-get update --fix-missing
 apt-get dist-upgrade -y
 
 # Curl
