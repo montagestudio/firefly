@@ -71,6 +71,17 @@ function PreviewService() {
         sendToPreviewClients("setObjectProperties:" + JSON.stringify(params));
     };
 
+    service.setObjectProperty = function(url, ownerModuleId, label, propertyName, propertyValue, propertyType) {
+        var params = {
+            ownerModuleId: ownerModuleId,
+            label: label,
+            propertyName: propertyName,
+            propertyValue: propertyValue,
+            propertyType: propertyType
+        };
+        sendToPreviewClients(url, "setObjectProperty:" + JSON.stringify(params));
+    };
+
     service.setObjectBinding = function(url, ownerModuleId, label, binding) {
         var params = {
             ownerModuleId: ownerModuleId,

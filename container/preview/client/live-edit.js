@@ -246,6 +246,114 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
+        setObjectProperty: {
+            value: function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
+                if (propertyType === "element") {
+                    return this._setObjectPropertyWithElement(ownerModuleId,
+                        label, propertyName, propertyValue);
+                } else {
+                    var objects = this.findObjects(ownerModuleId, label);
+
+                    for (var i = 0, object; (object = objects[i]); i++) {
+                        object[propertyName] = propertyValue;
+                    }
+                }
+            }
+        },
+
+        /**
+         * We need to set the elements this way because otherwise we need to
+         * perform a querySelector from the owner element and that could return
+         * us the wrong elements in the case of self nested components.
+         * We might also need to clone the object if the node is part of a
+         * repetition and the property is the component's element.
+         */
+        _setObjectPropertyWithElement: {
+            value: function(ownerModuleId, label, propertyName, elementValue) {
+                var nodes,
+                    documentPart,
+                    promises = [];
+
+                nodes = this.findNodes(ownerModuleId, elementValue.label,
+                    elementValue.argumentName, elementValue.cssSelector);
+
+                for (var i = 0, node; (node = nodes[i]); i++) {
+                    if (propertyName === "element") {
+                        promises.push(
+                            this._updateComponentElement(ownerModuleId, label, node)
+                        );
+                    } else {
+                        documentPart = this.findNodeDocumentPart(ownerModuleId, node);
+                        // TODO: will not work if the object is inside a
+                        // repetition and is an argument with a clashed name.
+                        if (label in documentPart.objects) {
+                            documentPart.objects[label][propertyName] = node;
+                        }
+                    }
+                }
+
+                return Declarativ.Promise.all(promises);
+            }
+        },
+
+        _updateComponentElement: {
+            value: function(ownerModuleId, label, node) {
+                var self = this;
+                var documentPart = this.findNodeDocumentPart(ownerModuleId, node);
+                var owner = this._findParentComponentWithModuleId(
+                    node, ownerModuleId)
+                var template;
+
+                // The documentPart of the node is the DocumentPart of the
+                // template scope where the node was instantiated, if this
+                // doesn't match the DocumentPart of the owner  it means
+                // this particular node was not instantiated in the scope
+                // of the owner's template but rather in the context of an
+                // iteration template.
+                if (owner._templateDocumentPart === documentPart) {
+                    self._setComponentElement(documentPart.objects[label], node);
+                } else {
+                    // This exact operation (creating the template) might happen
+                    // several times if the nodes are in a repetition....
+                    // Should try to optimize this somehow.
+                    template = this._createTemplateWithObject(owner._template, label);
+                    template.removeComponentElementReferences();
+                    return template.instantiate(owner, node)
+                        .then(function(objects) {
+                            self._updateScope(owner, objects, node);
+                            self._setComponentElement(objects[label], node);
+                        });
+                }
+            }
+        },
+
+        _setComponentElement: {
+            value: function(component, element) {
+                component.element = element;
+                component.attachToParentComponent();
+                component.loadComponentTree();
+            }
+        },
+
+        _createTemplateWithObject: {
+            value: function(template, label) {
+                var sourceSerialization = template.getSerialization().getSerializationObject();
+                var destinationSerialization = {};
+                var object = sourceSerialization[label];
+                var montageId;
+                var html;
+
+                destinationSerialization[label] = object;
+                if (object.properties && object.properties.element) {
+                    montageId = object.properties.element["#"];
+                    html = template.getElementById(montageId).outerHTML;
+                    html = "<html><body>" + html + "</body></html>";
+                }
+
+                return new Template(JSON.stringify(destinationSerialization), html);
+            }
+        },
+
         setObjectBinding: {
             value: function(ownerModuleId, label, binding) {
                 var objects = this.findObjects(ownerModuleId, label);
