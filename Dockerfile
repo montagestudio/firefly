@@ -24,6 +24,7 @@ RUN apt-get update
 RUN apt-get install -y nodejs
 
 RUN adduser --disabled-password --gecos "" montage
+ENV HOME /home/montage
 
 RUN mkdir /workspace
 RUN chown -R montage:montage /workspace
