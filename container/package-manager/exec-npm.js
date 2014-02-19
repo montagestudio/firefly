@@ -1,6 +1,6 @@
 /*global __dirname */
-
-var fork = require('child_process').fork,
+var log = require("logging").from(__filename),
+    fork = require('child_process').fork,
     Q = require("q"),
 
     COMMANDS = {
@@ -17,6 +17,8 @@ var fork = require('child_process').fork,
  * @return {Promise} A promise for the completion of the command.
  */
 var execNpm = function execNpm(command, args, npmfs) {
+    log(command, args);
+
     var deferred = Q.defer(),
         procChild = null;
 
