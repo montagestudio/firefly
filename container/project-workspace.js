@@ -276,7 +276,7 @@ ProjectWorkspace.prototype._npmInstall = function () {
 
     return this._fs.reroot(this._workspacePath)
     .then(function(fs) {
-        var service = PackageManagerService(fs, null, pathname, fsPath);
+        var service = PackageManagerService(null, fs, null, pathname, fsPath);
         return service.installProjectPackages();
     });
 };
