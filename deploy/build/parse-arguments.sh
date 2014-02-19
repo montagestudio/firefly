@@ -45,3 +45,6 @@ while getopts ":b:r:c:s:" opt; do
     esac
 done
 
+# This should be a parameter
+export REGION_ID=4
+
