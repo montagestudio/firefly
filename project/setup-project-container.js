@@ -22,14 +22,20 @@ function SetupProjectContainer(docker, containers, _request) {
             var repo = request.params.repo.toLowerCase();
             var githubAccessToken = session.githubAccessToken;
 
+            var containerKey = {user: user, owner: owner, repo: repo};
+
             return session.githubUser.then(function (githubUser) {
-                return getOrCreateContainer(user, owner, repo, githubAccessToken, githubUser);
+                return getOrCreateContainer(containerKey, user, owner, repo, githubAccessToken, githubUser);
             })
             .then(startContainer)
             .then(waitForServer)
             .then(function (port) {
                 request.projectWorkspacePort = port;
                 return next(request, response);
+            })
+            .catch(function (error) {
+                containers.delete(containerKey);
+                throw error;
             });
         };
     };
@@ -41,8 +47,8 @@ function SetupProjectContainer(docker, containers, _request) {
      * @param  {string} repo  The name of the repo
      * @return {Promise.<Object>} An object of information about the container
      */
-    function getOrCreateContainer(user, owner, repo, githubAccessToken, githubUser) {
-        var info = containers.get({user: user, owner: owner, repo: repo});
+    function getOrCreateContainer(containerKey, user, owner, repo, githubAccessToken, githubUser) {
+        var info = containers.get(containerKey);
 
         if (!info) {
             log("Creating container for", user, owner, repo, "...");
@@ -61,11 +67,11 @@ function SetupProjectContainer(docker, containers, _request) {
             .then(function (container) {
                 log("Created container", container.id, "for", user, owner, repo);
                 info = {id: container.id};
-                containers.set({user: user, owner: owner, repo: repo}, info);
+                containers.set(containerKey, info);
                 return info;
             });
 
-            containers.set({user: user, owner: owner, repo: repo}, {created: created});
+            containers.set(containerKey, {created: created});
 
             return created;
         } else if (info.created && info.created.then) {

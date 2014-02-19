@@ -14,18 +14,12 @@ function makeContainerIndex(filename) {
         if (entries) {
             entries.map(function (entry) { containers.set(entry[0], entry[1]); });
         }
-    }
 
-    // Override `set` to persist the data
-    var originalSet = containers.set;
-    containers.set = function (key, value) {
-        originalSet.call(this, key, value);
-
-        if (filename) {
-            var entries = this.entries();
+        containers.addMapChangeListener(function () {
+            var entries = containers.entries();
             fs.writeFileSync(filename, JSON.stringify(entries));
-        }
-    };
+        });
+    }
 
     return containers;
 }

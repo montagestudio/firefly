@@ -50,6 +50,19 @@ describe("SetupProjectContainer", function () {
         .then(done, done);
     });
 
+    it("removes a container from the index if it fails", function (done) {
+        docker.createContainer = function () { return  Q.reject(new Error()); }
+        request(requestOpts)
+        .then(function () {
+            // expect failure
+            expect(false).toBe(true);
+        }, function () {
+            var entries = containerIndex.entries();
+            expect(entries.length).toEqual(0);
+        })
+        .then(done, done);
+    });
+
     it("doesn't create two containers for one user/owner/repo", function (done) {
         spyOn(docker, "createContainer").andCallThrough();
         Q.all([
