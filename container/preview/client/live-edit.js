@@ -718,6 +718,48 @@ Object.defineProperties(window.Declarativ, {
                     }
                 }
             }
+        },
+
+        addObjectEventListener: {
+            value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
+                var objects = this.findObjects(ownerModuleId, label);
+
+                for (var i = 0, object; (object = objects[i]); i++) {
+                    this._addEventListener(object, type, listenerLabel, useCapture);
+                }
+            }
+        },
+
+        removeObjectEventListener: {
+            value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
+                var objects = this.findObjects(ownerModuleId, label);
+
+                for (var i = 0, object; (object = objects[i]); i++) {
+                    this._removeEventListener(object, type, listenerLabel, useCapture);
+                }
+            }
+        },
+
+        _addEventListener: {
+            value: function(object, type, listenerLabel, useCapture) {
+                var owner = object.ownerComponent;
+                var ownerDocumentPart = object._ownerDocumentPart;
+
+                var listener = this._lookupObjectInScope(ownerDocumentPart,
+                    listenerLabel, owner);
+                object.addEventListener(type, listener, useCapture);
+            }
+        },
+
+        _removeEventListener: {
+            value: function(object, type, listenerLabel, useCapture) {
+                var owner = object.ownerComponent;
+                var ownerDocumentPart = object._ownerDocumentPart;
+
+                var listener = this._lookupObjectInScope(ownerDocumentPart,
+                    listenerLabel, owner);
+                object.removeEventListener(type, listener, useCapture);
+            }
         }
     });
 

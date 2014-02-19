@@ -353,6 +353,18 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    addPreviewObjectEventListener: {
+        value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
+            return this.backend.get("preview-service").invoke("addObjectEventListener", this._previewUrl, moduleId, label, type, listenerLabel, useCapture);
+        }
+    },
+
+    removePreviewObjectEventListener: {
+        value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
+            return this.backend.get("preview-service").invoke("removeObjectEventListener", this._previewUrl, moduleId, label, type, listenerLabel, useCapture);
+        }
+    },
+
     setDocumentDirtyState: {
         value: function () {
         }

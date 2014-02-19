@@ -140,6 +140,28 @@ function PreviewService() {
         sendToPreviewClients(url, "setObjectTemplate:" + JSON.stringify(params));
     };
 
+    service.addObjectEventListener = function(url, moduleId, label, type, listenerLabel, useCapture) {
+        var params = {
+            moduleId: moduleId,
+            label: label,
+            type: type,
+            listenerLabel: listenerLabel,
+            useCapture: useCapture
+        };
+        sendToPreviewClients(url, "addObjectEventListener:" + JSON.stringify(params));
+    };
+
+    service.removeObjectEventListener = function(url, moduleId, label, type, listenerLabel, useCapture) {
+        var params = {
+            moduleId: moduleId,
+            label: label,
+            type: type,
+            listenerLabel: listenerLabel,
+            useCapture: useCapture
+        };
+        sendToPreviewClients(url, "removeObjectEventListener:" + JSON.stringify(params));
+    };
+
     service.close = function(request) {
         this.unregister();
     };

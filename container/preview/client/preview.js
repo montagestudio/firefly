@@ -97,6 +97,16 @@
                 args = JSON.parse(param);
                 return LiveEdit.setObjectTemplate(args.moduleId, args.templateFragment);
             }
+
+            if (command === "addObjectEventListener") {
+                args = JSON.parse(param);
+                return LiveEdit.addObjectEventListener(args.moduleId, args.label, args.type, args.listenerLabel, args.useCapture);
+            }
+
+            if (command === "removeObjectEventListener") {
+                args = JSON.parse(param);
+                return LiveEdit.removeObjectEventListener(args.moduleId, args.label, args.type, args.listenerLabel, args.useCapture);
+            }
         }).fail(function(reason) {
             console.log("fail: ", reason);
         });
