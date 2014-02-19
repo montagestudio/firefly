@@ -1,90 +1,87 @@
 /* jshint camelcase: false */
 
 var joey = require('joey'),
+    url = require("url"),
+    htmlparser = require("htmlparser2"),
 
     searchConfig = {
-        host: 'npmjs.org',
-        port: '9200',
-        path: '/npm/package/_search',
-        maxResult : 300
+        host: 'www.npmjs.org',
+        ssl: true,
+        method: 'GET',
+        path: "/search?q=",
+        charset: 'utf8'
     };
 
 module.exports = function searchPackages (packages) {
 
     function _search () {
-        var payload = {
-            fields : [
-                'name',
-                'description',
-                'author',
-                'version',
-                'repository',
-                'homepage',
-                'license'
-            ],
-            query : {
-                multi_match : {
-                    query : packages,
-                    fields : ['name^4', 'keywords', 'description', 'readme']
-                }
+        var options = {
+                host: searchConfig.host,
+                ssl: searchConfig.ssl,
+                method: searchConfig.method,
+                charset: searchConfig.charset,
+                path: searchConfig.path + url.format(packages),
             },
-            sort : ['_score'],
-            size: searchConfig.maxResult
-        };
+            request = joey.client();
 
-        return _request(payload).then(function (response) {
+        return request(options).then(function (response) {
             if (response.status !== 200) {
                 //Todo improve this error message
                 throw new Error("Error HTTP status code: " + response.statusCode);
             }
 
-            return response.body.read().then(JSON.parse).then(_formatResultSearchRequest);
+            return response.body.read().then(_formatResultSearchRequest);
         });
     }
 
-    function _request (payload) {
-        var payloadJSON = JSON.stringify(payload),
-
-            options = {
-                host: searchConfig.host,
-                port: searchConfig.port,
-                method: 'POST',
-                path: searchConfig.path,
-                charset: 'utf8',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': payloadJSON.length
-                },
-                body: [payloadJSON]
-            },
-            request = joey.client();
-
-        return request(options);
-    }
-
     function _formatResultSearchRequest(resultSearch) {
-        var results = [];
+        var details = false,
+            description = false,
+            results = [],
+            curResult = null;
 
-        if (resultSearch && typeof resultSearch === "object" && typeof resultSearch.hits === "object") {
-            var packageList = resultSearch.hits.hits;
+        var parser = new htmlparser.Parser({
+            onopentag: function (name, attribs) {
+                if (name === "li" && attribs.class === "search-result package"){
+                    curResult = {};
 
-            if (packageList) {
-                packageList.forEach(function (packageInformation) {
-                    if (packageInformation._type === "package") {
-                        var fields = packageInformation.fields;
+                } else if (curResult && name === "a" && /^\/package\//.test(attribs.href)) {
+                    curResult.name = /^\/package\/(.+)/.exec(attribs.href)[1];
 
-                        results.push({
-                            name: fields.name,
-                            version: fields.version,
-                            author: fields.author,
-                            description: fields.description,
-                            license: fields.license,
-                            homepage: fields.homepage
-                        });
-                    }
-                });
+                } else if (curResult && name === "p" && attribs.class === "details") {
+                    details = true;
+
+                } else if (curResult && name === "p") {
+                    description = true;
+                }
+            },
+            ontext: function (text) {
+                text = text.trim();
+
+                if (curResult && description) {
+                    curResult.description = text;
+                    description = false;
+
+                } else if (curResult && curResult.version && details && text.length > 0) {
+                    curResult.author = text.trim();
+
+                } else if (curResult && details && text.length > 0) {
+                    curResult.version = /([0-9]+\.[0-9]+\.[0-9]+)/.exec(text)[0];
+                }
+            },
+            onclosetag: function (tagname) {
+                if (curResult && tagname === "li") {
+                    results.push(curResult);
+                    curResult = null;
+
+                } else if (curResult && tagname === "p" && details) {
+                    details = false;
+                }
             }
-        }
+        });
+
+        parser.write(resultSearch);
+        parser.end();
 
         return results;
     }
