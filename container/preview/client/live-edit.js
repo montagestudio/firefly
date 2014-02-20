@@ -218,6 +218,9 @@ Object.defineProperties(window.Declarativ, {
                 if (propertyType === "element") {
                     return this._setObjectPropertyWithElement(ownerModuleId,
                         label, propertyName, propertyValue);
+                } else if (propertyType === "object") {
+                    return this._setObjectPropertyWithObject(ownerModuleId,
+                        label, propertyName, propertyValue.label);
                 } else {
                     var montageObjects = MontageObject.findAll(ownerModuleId, label);
 
@@ -299,6 +302,21 @@ Object.defineProperties(window.Declarativ, {
                 component.element = element;
                 component.attachToParentComponent();
                 component.loadComponentTree();
+            }
+        },
+
+        _setObjectPropertyWithObject: {
+            value: function(ownerModuleId, label, propertyName, objectLabel) {
+                var montageObjects,
+                    object;
+
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
+
+                for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
+                    object = this._lookupObjectInScope(montageObject.documentPart,
+                        objectLabel, montageObject.owner);
+                    montageObject.value[propertyName] = object;
+                }
             }
         },
 
