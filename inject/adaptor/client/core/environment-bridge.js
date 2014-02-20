@@ -58,7 +58,8 @@ exports.EnvironmentBridge = Montage.specialize({
             var self = this;
 
             if (!self._backend) {
-                var connection = adaptConnection(new WebSocket("ws://" + window.location.host + window.location.pathname));
+                var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+                var connection = adaptConnection(new WebSocket(protocol + "//" + window.location.host + window.location.pathname));
 
                 connection.closed.then(function () {
                     self._backend = null;
