@@ -101,12 +101,16 @@ ProjectWorkspace.prototype.existsWorkspace = function() {
 ProjectWorkspace.prototype.initializeWorkspace = function() {
     var self = this;
 
-    return this._githubApi.isRepositoryEmpty(this._owner, this._repo)
-    .then(function(isEmpty) {
-        if (isEmpty) {
-            return self.initializeWithEmptyProject();
-        } else {
-            return self.initializeWithRepository();
+    return this.existsWorkspace().then(function (exists) {
+        if (!exists) {
+            return self._githubApi.isRepositoryEmpty(self._owner, self._repo)
+            .then(function(isEmpty) {
+                if (isEmpty) {
+                    return self.initializeWithEmptyProject();
+                } else {
+                    return self.initializeWithRepository();
+                }
+            });
         }
     });
 };
@@ -276,7 +280,7 @@ ProjectWorkspace.prototype._npmInstall = function () {
 
     return this._fs.reroot(this._workspacePath)
     .then(function(fs) {
-        var service = PackageManagerService(fs, null, pathname, fsPath);
+        var service = PackageManagerService(null, fs, null, pathname, fsPath);
         return service.installProjectPackages();
     });
 };
