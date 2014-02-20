@@ -9,7 +9,7 @@ var querystring = require("querystring");
 exports.serveAccessForm = servePreviewAccessForm;
 exports.processAccessRequest = processAccessRequest;
 
-var CLIENT_ROOT = __dirname + "/client/";
+var CLIENT_ROOT = __dirname;
 var clientFs = FS.reroot(CLIENT_ROOT);
 
 function endsWith(str, suffix) {
@@ -26,27 +26,22 @@ exports.isPreview = function (request) {
  * this preview and the owner has it open in the tool.
  */
 exports.hasAccess = function (url, session) {
-    if (session) {
-        return session.githubUser.then(function (githubUser) {
-            var details = environment.getDetailsfromProjectUrl(url);
-            // The user doesn't need to have explicit access to its own previews.
-            if (githubUser && githubUser.login.toLowerCase() === details.owner) {
-                return true;
-            }
-            // FIXME docker
-            // else if (PreviewService.existsPreviewFromUrl(url)) {
-            //     // No reason to give a random user access to the preview if the owner
-            //     // doesn't have it open in the tool.
-            //     var previewAccess = session.previewAccess;
-            //     if (previewAccess && previewAccess.indexOf(url) >= 0) {
-            //         return true;
-            //     }
-            // }
-            return false;
-        });
-    } else {
-        return Q(false);
-    }
+    return Q.try(function () {
+        if (session && session.githubUser) {
+            return session.githubUser.then(function (githubUser) {
+                var details = environment.getDetailsfromProjectUrl(url);
+                // The user doesn't need to have explicit access to its own previews.
+                return githubUser && githubUser.login.toLowerCase() === details.owner;
+            });
+        } else if (false /*PreviewService.existsPreviewFromUrl(url)*/) {
+            // No reason to give a random user access to the preview if the owner
+            // doesn't have it open in the tool.
+            var previewAccess = session.previewAccess;
+            return previewAccess && previewAccess.indexOf(url) >= 0;
+        }
+
+        return false;
+    });
 };
 
 function servePreviewAccessForm(request) {

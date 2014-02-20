@@ -76,20 +76,23 @@ function server(options) {
     .use(function (next) {
         return function (request, response) {
             if (preview.isPreview(request)) {
-                if (preview.hasAccess(request.headers.host, request.session)) {
-                    var details = environment.getDetailsfromProjectUrl(request.url);
+                return preview.hasAccess(request.headers.host, request.session)
+                .then(function (hasAccess) {
+                    if (hasAccess) {
+                        var details = environment.getDetailsfromProjectUrl(request.url);
 
-                    return setupProjectContainer(
-                        details.owner, // FIXME docker
-                        details.owner,
-                        details.repo
-                    ).then(function (projectWorkspacePort) {
-                        return proxyContainer(request, projectWorkspacePort, "static");
-                    });
-                } else {
-                    // FIXME docker generate code a push notification to client
-                    return preview.serveAccessForm(request);
-                }
+                        return setupProjectContainer(
+                            details.owner, // FIXME docker
+                            details.owner,
+                            details.repo
+                        ).then(function (projectWorkspacePort) {
+                            return proxyContainer(request, projectWorkspacePort, "static");
+                        });
+                    } else {
+                        // FIXME docker generate code a push notification to client
+                        return preview.serveAccessForm(request);
+                    }
+                });
             } else {
                 // route /:user/:app/:action
                 return next(request, response);
@@ -125,7 +128,9 @@ function server(options) {
             var details;
             if (preview.isPreview(request)) {
                 return sessions.getSession(request, function (session) {
-                    if (preview.hasAccess(request.headers.host, session)) {
+                    return preview.hasAccess(request.headers.host, session);
+                }).then(function (hasAccess) {
+                    if (hasAccess) {
                         log("preview websocket");
                         details = environment.getDetailsfromProjectUrl(request.headers.host);
                         return proxyPreviewWebsocket(request, socket, body, details);
