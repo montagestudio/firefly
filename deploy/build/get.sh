@@ -29,7 +29,7 @@ get ()
         # if branch is set then check it out
         if [ "${BRANCH}" ]; then
             echo "checkout branch ${BRANCH} for ${1}"
-            git checkout -b "${BRANCH}"
+            git checkout "${BRANCH}"
         else
         # if commit hash is set then check it out
             if [ "${REFERENCE}" ]; then
