@@ -31,6 +31,14 @@
         "source": "{{user `home`}}/deploy/files/30-haproxy.conf",
         "destination": "/etc/rsyslog.d/30-haproxy.conf"
     }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/montagestudio.com.pem",
+        "destination": "/etc/ssl/montagestudio.com.pem"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/project.montagestudio.net.pem",
+        "destination": "/etc/ssl/project.montagestudio.net.pem"
+    }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/load-balancer.sh"
     }, {
