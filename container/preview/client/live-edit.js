@@ -91,10 +91,12 @@ Object.defineProperties(window.Declarativ, {
                     var childComponent;
 
                     for (var i = 0; (childComponent = childComponents[i]); i++) {
+                        //jshint -W106
                         if (childComponent._montage_metadata.label === label &&
                             childComponent.ownerComponent._montage_metadata.moduleId === ownerModuleId) {
                             objects.push(childComponent);
                         }
+                        //jshint +W106
                         findObjects(childComponent);
                     }
                 };
@@ -112,9 +114,11 @@ Object.defineProperties(window.Declarativ, {
                     var childComponent;
 
                     for (var i = 0; (childComponent = childComponents[i]); i++) {
+                        //jshint -W106
                         if (childComponent._montage_metadata.moduleId === moduleId) {
                             objects.push(childComponent);
                         }
+                        //jshint +W106
                         findObjects(childComponent);
                     }
                 };
@@ -157,9 +161,11 @@ Object.defineProperties(window.Declarativ, {
         _findParentComponentWithModuleId: {
             value: function(node, moduleId) {
                 while (node = /*assignment*/ node.parentNode) {
+                    //jshint -W106
                     if (node.component && node.component._montage_metadata.moduleId === moduleId) {
                         return node.component;
                     }
+                    //jshint +W106
                 }
 
                 return null;
@@ -680,7 +686,9 @@ Object.defineProperties(window.Declarativ, {
 
         _updateLiveEditAttributes: {
             value: function(anchor, firstElement, lastElement, owner, label) {
+                //jshint -W106
                 var leArgRangeValue = owner._montage_metadata.moduleId + "," + label;
+                //jshint +W106
                 var nextSibling = lastElement.nextElementSibling;
                 var previousSibling = firstElement.previousElementSibling;
 
