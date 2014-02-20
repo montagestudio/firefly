@@ -772,11 +772,16 @@ Object.defineProperties(window.Declarativ, {
         var self = this,
             element,
             documentPart,
-            ownerModuleId;
+            ownerModuleId,
+            result;
 
         element = document.createElement("div");
         element.innerHTML = this.html;
         this._addElement(element, anchor, how);
+        result = {
+            firstElement: element.firstElementChild,
+            lastElement: element.lastElementChild
+        };
 
         //jshint -W106
         ownerModuleId = owner._montage_metadata.moduleId;
@@ -788,12 +793,7 @@ Object.defineProperties(window.Declarativ, {
         if (this.serializationString) {
             return this.instantiate(owner, element, documentPart)
                 .then(function(objects) {
-                    var result = {
-                        objects: objects
-                    };
-
-                    result.firstElement = element.firstElementChild;
-                    result.lastElement = element.lastElementChild;
+                    result.objects = objects;
                     self._removeElementWrapper(element);
 
                     for (var key in objects) {
@@ -805,7 +805,7 @@ Object.defineProperties(window.Declarativ, {
                     return result;
                 });
         } else {
-            return Declarativ.Promise.resolve();
+            return Declarativ.Promise.resolve(result);
         }
     };
 
