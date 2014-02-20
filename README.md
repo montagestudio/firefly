@@ -128,8 +128,12 @@ containers so on the next request they will be restarted with the updated code.
 If either `login` or `project` fail to deploy the previous version will remain
 running and the last 20 lines of the error log will be output.
 
-If you make changes to the `Dockerfile` then you will need to rebuild the
-base container image. Run `npm run container-rebuild`.
+### Containers
+
+Run `npm run container-rm-all` to remove all containers from the project server.
+
+Run `npm run container-rebuild` if you make changes to the `Dockerfile`. This
+will rebuid the base container image.
 
 Debugging Node
 --------------
