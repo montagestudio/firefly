@@ -249,6 +249,25 @@ This will copy the files out of the container into a temporary directory. You
 can look at the files but of course any changes won't be reflected in the
 container.
 
+### Mounting container workspaces
+
+Run `npm run container-rm-all` to remove existing containers then,
+
+run `npm run project-mount-workspaces`
+
+You can then `vagrant ssh project` and find the workspaces from the containers
+at `/srv/workspaces/$ID`, where `$ID` can be copied from the logs output
+(look for something like
+`Existing container for stuk stuk asdf is fdfe3244c4201429d4e28266cb3bbb488a132f21ae818ddd1ee693dcddc0bcf8`)
+
+To reload the server just Ctrl+C the server and run the second command above
+again, instead of running `npm run deploy`.
+
+When finished run `npm run project-unmount-workspaces`
+
+This will remove all the containers and workspaces on the project server, and
+then restart the regular server.
+
 ### Viewing a specific container
 
 Only `root` and the `docker` group can access the containers, so log into the

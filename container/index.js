@@ -1,3 +1,10 @@
+// Make sure permissions on the workspace dir are correct before dropping
+// uid and gid
+// Magic number 1000 is the `montage` user's UID, because I couldn't find a
+// way to easily look up a user's UID from a username in Node (even though
+// process.setuid does it below!)
+require("fs").chownSync("/workspace", 1000, 1000);
+
 // If root drop to unprivileged user
 if (process.getgid() === 0) {
     process.setgid("montage");
