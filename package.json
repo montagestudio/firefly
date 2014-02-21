@@ -18,7 +18,7 @@
     "container-files": "vagrant ssh project -c 'sudo su -c \"docker ps -a -q | head -n 1 | xargs docker diff\"'",
     "container-copy-files": "vagrant ssh project -c 'rm -rf /tmp/workspace && sudo su -c \"docker ps -a -q | head -n 1 | xargs -I {} docker cp {}:/workspace /tmp\" && cd /tmp/workspace && bash'",
     "container-rm-all": "deploy/vagrant/remove-containers.sh",
-    "container-rebuild": "npm run container-rm && deploy/vagrant/rebuild-container.sh && npm run deploy",
+    "container-rebuild": "npm run container-rm-all && deploy/vagrant/rebuild-container.sh && npm run deploy",
     "login-debug": "vagrant ssh login -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\" && node-inspector --web-port=8104'",
     "login-remote-debug": "vagrant ssh login -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\"'",
     "project-debug": "vagrant ssh project -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\" && node-inspector --web-port=8105'",
