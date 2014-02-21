@@ -1,4 +1,5 @@
 var URL = require("url");
+var Q = require("q");
 var normalizeRequest = require("q-io/http").normalizeRequest;
 
 module.exports = request;
@@ -29,6 +30,12 @@ function request(req) {
     //jshint -W089
     for (var p in defaults) {
         req[p] = req[p] || defaults[p];
+    }
+
+    if (Array.isArray(req.body)) {
+        req.body.read = function () {
+            return Q(this.join(""));
+        };
     }
 
     return req;
