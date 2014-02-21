@@ -40,7 +40,8 @@
     }
 
     function websocketRefresh() {
-        var ws = new WebSocket("ws://" + document.location.host);
+        var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        var ws = new WebSocket(protocol + "//" + document.location.host);
 
         ws.onopen = function() {
         };
