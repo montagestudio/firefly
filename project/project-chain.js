@@ -55,7 +55,7 @@ function server(options) {
                             request.session = session;
                             return APPS.ok();
                         } else {
-                            return APPS.badRequest();
+                            return APPS.badRequest(request);
                         }
                     });
                 });
