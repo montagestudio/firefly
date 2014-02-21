@@ -32,21 +32,44 @@ describe("GithubSessionStore", function () {
         it("changes the sessionId", function (done) {
             var session = {
                 sessionId: "fail",
-                pass: true
+                githubAccessToken: "xxx",
+                username: "test"
             };
             return store.set("old", session)
             .then(function () {
-                expect(session.id).not.toEqual("fail");
+                expect(session.sessionId).not.toEqual("fail");
+            })
+            .done(done, done);
+        });
+
+        it("does not save empty sessions", function (done) {
+            var session = {};
+            return store.set("old", session)
+            .then(function () {
+                expect(Object.keys(store.sessions).length).toEqual(0);
+            })
+            .done(done, done);
+        });
+
+        it("saves sessions without a sessionId", function (done) {
+            var session = {
+                githubAccessToken: "xxx",
+                username: "test"
+            };
+            return store.set("old", session)
+            .then(function () {
+                expect(session.sessionId).toBeDefined();
+                expect(Object.keys(store.sessions).length).toEqual(1);
             })
             .done(done, done);
         });
     });
 
     describe("create", function () {
-        it("returns a session with a blank sessionId", function (done) {
+        it("returns a session with a no sessionId", function (done) {
             return store.create()
             .then(function (session) {
-                expect(session.sessionId).toEqual("");
+                expect(session.sessionId).toBeUndefined();
             })
             .done(done, done);
         });
