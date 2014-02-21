@@ -19,5 +19,5 @@ npm install -g naught
 
 # Redis
 apt-get install --yes redis-server
-npm install -g redis
-npm install -g hiredis redis
+# npm install -g redis
+# npm install -g hiredis redis

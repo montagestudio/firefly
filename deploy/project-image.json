@@ -4,15 +4,17 @@
         "do_client_id": null,
         "snapshot_name": null,
         "home": "{{env `HOME`}}",
-        "build": "{{env `BUILD`}}"
+        "build": "{{env `BUILD`}}",
+        "image_id": "{{env `BASE_IMAGE_ID`}}",
+        "region_id": "{{env `REGION_ID`}}"
     },
 
     "builders": [{
         "type": "digitalocean",
         "api_key": "{{user `do_api_key`}}",
         "client_id": "{{user `do_client_id`}}",
-        "image_id": 1505447,
-        "region_id": 4,
+        "image_id": "{{user `image_id`}}",
+        "region_id": "{{user `region_id`}}",
         "size_id": 66,
         "private_networking": false,
         "ssh_timeout": "5m",
@@ -24,17 +26,6 @@
     "provisioners": [{
         "type": "shell",
         "inline": ["sleep 30"]
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/authorized_keys",
-        "destination": "/tmp/authorized_keys"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/sudoers",
-        "destination": "/etc/sudoers.d/sudoers"
-    }, {
-        "type": "shell",
-        "script": "{{user `home`}}/deploy/provision/base.sh"
     }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/base-additions.sh"

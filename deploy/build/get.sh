@@ -7,7 +7,17 @@ fi
 get ()
 {
   # $1 is directory
-  # $2 is commit hash
+  # $2 is branch name
+  # $3 is commit hash
+
+  BRANCH=
+  if [ "$2" ]; then
+    BRANCH="$2"
+  fi
+  REFERENCE=
+  if [ "$3" ]; then
+    REFERENCE="$3"
+  fi
 
   rm -rf ${BUILD}/$1
   git clone git@$GITHUBDECLARATIV:declarativ/$1.git ${BUILD}/$1
@@ -16,9 +26,16 @@ get ()
         git config user.name "Declarativ Bot"
         git config user.email dev@declarativ.com
 
+        # if branch is set then check it out
+        if [ "${BRANCH}" ]; then
+            echo "checkout branch ${BRANCH} for ${1}"
+            git checkout "${BRANCH}"
+        else
         # if commit hash is set then check it out
-        if [ "$2" ]; then
-            git checkout "$2"
+            if [ "${REFERENCE}" ]; then
+                echo "checkout reference ${REFERENCE} for ${1}"
+                git checkout "${REFERENCE}"
+            fi
         fi
 
         # Tag every deploy

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-# To see the debug log add the x option to the folloing line: set -xe
-set -e
-
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
+
+# Parse the arguments list and setup the environment
+source ${HOME}/deploy/build/parse-arguments.sh "$@"
 
 source "${HOME}/deploy/build/get.sh"
 
-get filament $FILAMENT_COMMIT
-get firefly $FIREFLY_COMMIT
+get filament ${FILAMENT_BRANCH} ${FILAMENT_COMMIT}
+get firefly ${FIREFLY_BRANCH} ${FIREFLY_COMMIT}
 
 # Lets do a bit of cleanup
 pushd ${BUILD}
@@ -17,6 +17,17 @@ pushd ${BUILD}
         tar -czf "firefly.tgz" "firefly"
     fi
 popd
+
+export BASE_IMAGE_ID=`tugboat info_image "baseimage-$BUILD_NUMBER" | grep ID: | sed 's/ID:[ ]*\([0-9]*\)/\1/'`
+if [[ -z ${BASE_IMAGE_ID} ]]; then
+	echo "The base image must be build before the current image"
+	${HOME}/deploy/build/base-image.sh
+	export BASE_IMAGE_ID=`tugboat info_image "baseimage-$BUILD_NUMBER" | grep ID: | sed 's/ID:[ ]*\([0-9]*\)/\1/'`
+	if [[ -z ${BASE_IMAGE_ID} ]]; then
+	    echo "Error building the base image"
+	    exit 1
+	fi
+fi
 
 declare IMAGE_EXIST=`tugboat info_image "projectimage-$BUILD_NUMBER" | grep Name`
 if [[ -n ${IMAGE_EXIST} ]]; then
