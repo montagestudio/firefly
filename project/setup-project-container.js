@@ -1,6 +1,7 @@
 var log = require("logging").from(__filename);
 var request = require("q-io/http").request;
 var Q = require("q");
+var environment = require("../environment");
 
 module.exports = SetupProjectContainer;
 function SetupProjectContainer(docker, containers, _request) {
@@ -62,7 +63,12 @@ function SetupProjectContainer(docker, containers, _request) {
 
             var created = docker.createContainer({
                 Image: IMAGE_NAME,
-                Cmd: ['-c', JSON.stringify(config)]
+                Cmd: ['-c', JSON.stringify(config)],
+                Env: [
+                    "NODE_ENV=" + environment.production ? "production" : "",
+                    "FIREFLY_APP_URL=" + environment.app.href,
+                    "FIREFLY_PROJECT_URL=" + environment.project.href
+                ]
             })
             .then(function (container) {
                 log("Created container", container.id, "for", user, owner, repo);
