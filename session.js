@@ -91,7 +91,7 @@ function Session(key, secret, cookie, store) {
                                 }
                             })
                             .then(function() {
-                                if (_setCookie) {
+                                if (_setCookie && _id) {
                                     log("set cookie");
                                     var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
                                     setSessionCookie(response, _id, timeoutDate);
