@@ -9,27 +9,19 @@ COMMAND_PATH="$0"
 
 usage() {
     echo ""
-    echo "${COMMAND_PATH} ([-b <branch>] | [-r <ref>]) ([-c <branch>] | [-s <ref>]) ";
+    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] ";
     echo "     -b filament branch"
-    echo "     -r filament reference"
     echo "     -c firefly branch"
-    echo "     -s firefly reference"
     echo ""
     exit 1;
 }
 
-while getopts ":b:r:c:s:" opt; do
+while getopts ":b:c:" opt; do
     case $opt in
         b)
-            export FILAMENT_BRANCH="$OPTARG"
-            ;;
-        r)
             export FILAMENT_COMMIT="$OPTARG"
             ;;
         c)
-            export FIREFLY_BRANCH="$OPTARG"
-            ;;
-        s)
             export FIREFLY_COMMIT="$OPTARG"
             ;;
         \?)

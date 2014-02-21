@@ -388,16 +388,46 @@ why you run this command inside the VM).
 Deploying
 =========
 
-Deploying in managed through Jenkins at https://build.declarativ.com/jenkins/view/Aurora/job/Deploy%20Aurora/.
+Deploying is managed through Jenkins at
+https://build.declarativ.com/jenkins/view/Aurora/job/Deploy%20Aurora/.
 
-The server that is being deployed to must have the following environment variables set:
+We currently deploy on Digital Ocean. This is done with 2 tools, Tugboat and
+Packer. They get installed in the `./build` directory as part of the images
+build process.
 
- * `IP_ADDRESS`
- * `NODE_ENV="production"`
- * `FIREFLY_PORT`
- * `FIREFLY_APP_URL`
- * `FIREFLY_PROJECT_URL`
- * `GITHUB_CLIENT_ID`
- * `GITHUB_CLIENT_SECRET`
+It is very useful to have Tugboat installed on your machine so run
+`gem install tugboat` This will give a nice command line tool to access
+Digital Ocean.
 
-The script currently used to deploy is available in `deploy.sh`.
+There 6 scripts you will be interested in:
+
+ * `deploy/build/images.sh`
+   It builds all 4 images including rebuilding the base image. It takes 30~40
+   minutes to run.
+ * `deploy/build/load-balancer-image.sh`
+   It will build the load balancer image. It will not rebuild the base image if
+   it already exists.
+ * `deploy/build/web-server-image.sh`
+   It will build the web server image. It will not rebuild the base image if it
+   already exists.
+ * `deploy/build/login-image.sh`
+   It will build the login image. It will not rebuild the base image if it
+   already exists.
+ * `deploy/build/project-image.sh`
+   It will build the project image. It will not rebuild the base image if it
+   already exists.
+
+Those 5 scripts accept 2 command line parameters: `-b firefly_branch` and
+`-c filament_branch`
+
+**Danger**
+
+ * deploy/build/rebuild.sh
+   This script rebuild the droplet from the existing images. By default it will
+   rebuild the staging system. It will rebuild production with the `-p` argument.
+   
+**Danger**
+
+In order to be able to login the droplets you will need to have your public key
+added to `deploy/files/authorized_keys`. The only user on the production/
+staging machines is admin and it is a sudoer.

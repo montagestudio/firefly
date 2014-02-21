@@ -8,15 +8,10 @@ get ()
 {
   # $1 is directory
   # $2 is branch name
-  # $3 is commit hash
 
   BRANCH=
   if [ "$2" ]; then
     BRANCH="$2"
-  fi
-  REFERENCE=
-  if [ "$3" ]; then
-    REFERENCE="$3"
   fi
 
   rm -rf ${BUILD}/$1
@@ -31,12 +26,6 @@ get ()
             echo "checkout branch ${BRANCH} for ${1}"
             git checkout "${BRANCH}"
         else
-        # if commit hash is set then check it out
-            if [ "${REFERENCE}" ]; then
-                echo "checkout reference ${REFERENCE} for ${1}"
-                git checkout "${REFERENCE}"
-            fi
-        fi
 
         # Tag every deploy
         # git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"

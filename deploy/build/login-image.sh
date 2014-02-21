@@ -7,8 +7,8 @@ source ${HOME}/deploy/build/parse-arguments.sh "$@"
 
 source "${HOME}/deploy/build/get.sh"
 
-get filament ${FILAMENT_BRANCH} ${FILAMENT_COMMIT}
-get firefly ${FIREFLY_BRANCH} ${FIREFLY_COMMIT}
+get filament ${FILAMENT_COMMIT}
+get firefly ${FIREFLY_COMMIT}
 
 # Lets do a bit of cleanup
 pushd ${BUILD}
