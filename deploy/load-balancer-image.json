@@ -45,5 +45,9 @@
         "type": "file",
 	    "source": "{{user `home`}}/deploy/files/haproxy.cfg",
 	    "destination": "/etc/haproxy/haproxy.cfg"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/errors/",
+        "destination": "/etc/haproxy/errors"
     }]
 }
