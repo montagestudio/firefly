@@ -25,7 +25,7 @@ get ()
         if [ "${BRANCH}" ]; then
             echo "checkout branch ${BRANCH} for ${1}"
             git checkout "${BRANCH}"
-        else
+        fi
 
         # Tag every deploy
         # git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"
