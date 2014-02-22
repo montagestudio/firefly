@@ -25,7 +25,7 @@ describe("extension-service", function () {
     });
 
     describe("getExtensions", function () {
-        it("works", function (done) {
+        it("returns an array of files with the '.filament-extension' extension", function (done) {
             return service.getExtensions()
             .then(function (extensions) {
                 expect(extensions.length).toEqual(1);

@@ -38,7 +38,7 @@ describe("repository-service", function () {
             });
 
             describe("list branches", function () {
-                it ("works", function(done) {
+                it ("returns the different types of branches in the repo", function(done) {
                     /* branchRepo branches:
 
                         * master                      8b475dd4af6358024da1845895a773903788c165 How to compress the test repository
