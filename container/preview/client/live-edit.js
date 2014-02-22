@@ -87,105 +87,6 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
-        findNodes: {
-            value: function(moduleId, label, argumentName, cssSelector) {
-                var moduleIdSelector;
-
-                if (label === "owner") {
-                    moduleIdSelector = "*[" + ATTR_LE_COMPONENT + "='" + moduleId + "']";
-                } else if (argumentName) {
-                    moduleIdSelector = "*[" + ATTR_LE_ARG + "='" + moduleId + "," + label + "," + argumentName + "']";
-                } else {
-                    moduleIdSelector = "*[" + ATTR_LE_ARG_BEGIN + "~='" + moduleId + "," + label + "']";
-                }
-
-                cssSelector = cssSelector.replace(":scope", moduleIdSelector);
-
-                return document.querySelectorAll(cssSelector);
-            }
-        },
-
-        _findParentComponent: {
-            value: function(node) {
-                while (node = /*assignment*/ node.parentNode) {
-                    if (node.component) {
-                        return node.component;
-                    }
-                }
-
-                return null;
-            }
-        },
-
-        _findParentComponentWithModuleId: {
-            value: function(node, moduleId) {
-                while (node = /*assignment*/ node.parentNode) {
-                    //jshint -W106
-                    if (node.component && node.component._montage_metadata.moduleId === moduleId) {
-                        return node.component;
-                    }
-                    //jshint +W106
-                }
-
-                return null;
-            }
-        },
-
-        findNodeDocumentPart: {
-            value: function(ownerModuleId, node) {
-                var component = this._findParentComponent(node),
-                    iteration;
-
-                //jshint -W106
-                while (component._montage_metadata.moduleId !== ownerModuleId) {
-                    if (component.clonesChildComponents) {
-                        iteration = component._findIterationContainingElement(node);
-                        return iteration._templateDocumentPart;
-                    } else if (this._isComponentPartOfIteration(component)) {
-                        return component._ownerDocumentPart;
-                    }
-                    component = component.ownerComponent;
-                }
-                //jshint +W106
-
-                return component._templateDocumentPart;
-            }
-        },
-
-        findIterationContainingNode: {
-            value: function(node) {
-                var component = this._findParentComponent(node);
-
-                //jshint -W106
-                do {
-                    if (component.clonesChildComponents) {
-                        return component._findIterationContainingElement(node);
-                    }
-                } while (component = /* assignment */ component.parentComponent);
-                //jshint +W106
-
-                return null;
-            }
-        },
-
-        _isNodePartOfIteration: {
-            value: function(ownerModuleId, node) {
-                var component = this._findParentComponent(node);
-
-                //jshint -W106
-                while (component._montage_metadata.moduleId !== ownerModuleId) {
-                    if (component.clonesChildComponents ||
-                        this._isComponentPartOfIteration(component)) {
-                        return true;
-                    }
-                    component = component.ownerComponent;
-                }
-                //jshint +W106
-
-                return false;
-            }
-        },
-
         _isComponentPartOfIteration: {
             value: function(component) {
                 // The ownerDocumentPart of a component is the DocumentPart of
@@ -235,29 +136,30 @@ Object.defineProperties(window.Declarativ, {
          * We need to set the elements this way because otherwise we need to
          * perform a querySelector from the owner element and that could return
          * us the wrong elements in the case of self nested components.
-         * We might also need to clone the object if the node is part of a
+         * We might also need to clone the object if the element is part of a
          * repetition and the property is the component's element.
          */
         _setObjectPropertyWithElement: {
             value: function(ownerModuleId, label, propertyName, elementValue) {
-                var nodes,
+                var montageElements,
                     documentPart,
                     promises = [];
 
-                nodes = this.findNodes(ownerModuleId, elementValue.label,
-                    elementValue.argumentName, elementValue.cssSelector);
+                montageElements = MontageElement.findAll(ownerModuleId,
+                    elementValue.label, elementValue.argumentName,
+                    elementValue.cssSelector);
 
-                for (var i = 0, node; (node = nodes[i]); i++) {
+                for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     if (propertyName === "element") {
                         promises.push(
-                            this._updateComponentElement(ownerModuleId, label, node)
+                            this._updateComponentElement(ownerModuleId, label, montageElement)
                         );
                     } else {
-                        documentPart = this.findNodeDocumentPart(ownerModuleId, node);
+                        documentPart = montageElement.documentPart;
                         // TODO: will not work if the object is inside a
                         // repetition and is an argument with a clashed name.
                         if (label in documentPart.objects) {
-                            documentPart.objects[label][propertyName] = node;
+                            documentPart.objects[label][propertyName] = montageElement.value;
                         }
                     }
                 }
@@ -267,31 +169,31 @@ Object.defineProperties(window.Declarativ, {
         },
 
         _updateComponentElement: {
-            value: function(ownerModuleId, label, node) {
+            value: function(ownerModuleId, label, montageElement) {
                 var self = this;
-                var documentPart = this.findNodeDocumentPart(ownerModuleId, node);
-                var owner = this._findParentComponentWithModuleId(
-                    node, ownerModuleId);
+                var documentPart = montageElement.documentPart;
+                var owner = montageElement.owner;
+                var element = montageElement.value;
                 var template;
 
-                // The documentPart of the node is the DocumentPart of the
-                // template scope where the node was instantiated, if this
+                // The documentPart of the element is the DocumentPart of the
+                // template scope where the element was instantiated, if this
                 // doesn't match the DocumentPart of the owner  it means
-                // this particular node was not instantiated in the scope
+                // this particular element was not instantiated in the scope
                 // of the owner's template but rather in the context of an
                 // iteration template.
                 if (owner._templateDocumentPart === documentPart) {
-                    self._setComponentElement(documentPart.objects[label], node);
+                    self._setComponentElement(documentPart.objects[label], element);
                 } else {
                     // This exact operation (creating the template) might happen
-                    // several times if the nodes are in a repetition....
+                    // several times if the elements are in a repetition....
                     // Should try to optimize this somehow.
                     template = this._createTemplateWithObject(owner._template, label);
                     template.removeComponentElementReferences();
-                    return template.instantiate(owner, node)
+                    return template.instantiate(owner, element)
                         .then(function(objects) {
-                            self._updateScope(owner, objects, node);
-                            self._setComponentElement(objects[label], node);
+                            self._setComponentElement(objects[label], element);
+                            self._updateScope(owner, objects, montageElement);
                         });
                 }
             }
@@ -394,7 +296,7 @@ Object.defineProperties(window.Declarativ, {
                 object = this._lookupObjectInScope(documentPart, objectLabel,
                     owner);
 
-                // TODO: since the repetition has nodes that are not in the
+                // TODO: since the repetition has elements that are not in the
                 // document but still in the component tree we can get into
                 // this situation where we're not able to lookup the object.
                 // This is a bug in the repetition. MON-607
@@ -484,18 +386,17 @@ Object.defineProperties(window.Declarativ, {
         },
 
         addTemplateFragment: {
-            value: function(moduleId, label, argumentName, cssSelector, how, templateFragment) {
-                var nodes = this.findNodes(moduleId, label, argumentName,
-                    cssSelector);
+            value: function(ownerModuleId, label, argumentName, cssSelector, how, templateFragment) {
+                var montageElements = MontageElement.findAll(ownerModuleId,
+                    label, argumentName, cssSelector);
                 var template = new Template(templateFragment.serialization,
                     templateFragment.html);
                 var promises = [];
 
-                for (var i = 0, node; (node = nodes[i]); i++) {
-                    var owner = this._findParentComponentWithModuleId(
-                        node, moduleId);
+                for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     promises.push(
-                        this._addTemplateToElement(template, node, how, owner, label)
+                        this._addTemplateToMontageElement(template,
+                            montageElement, how)
                     );
                 }
 
@@ -523,12 +424,13 @@ Object.defineProperties(window.Declarativ, {
         },
 
         setElementAttribute: {
-            value: function(moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
-                var nodes = this.findNodes(moduleId, label, argumentName,
-                    cssSelector);
+            value: function(ownerModuleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+                var montageElements = MontageElement.findAll(ownerModuleId,
+                    label, argumentName, cssSelector);
 
-                for (var i = 0, node; (node = nodes[i]); i++) {
-                    node.setAttribute(attributeName, attributeValue);
+                for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
+                    montageElement.value.setAttribute(attributeName,
+                        attributeValue);
                 }
             }
         },
@@ -557,17 +459,17 @@ Object.defineProperties(window.Declarativ, {
         /**
          * @param how string 'before', 'after', 'append'
          */
-        _addTemplateToElement: {
-            value: function(template, anchor, how, owner, label) {
+        _addTemplateToMontageElement: {
+            value: function(template, anchor, how) {
                 var self = this;
+                var owner = anchor.owner;
 
-                return template.instantiateIntoDocument(anchor, how, owner)
+                return template.instantiateIntoDocument(anchor, how)
                     .then(function(result) {
                         self._updateScope(owner, result.objects, anchor);
-                        if (label !== "owner") {
-                            self._updateLiveEditAttributes(anchor,
-                                result.firstElement, result.lastElement, owner,
-                                label);
+                        if (anchor.label !== "owner") {
+                            anchor.updateLiveEditAttributes(result.firstElement,
+                                result.lastElement);
                         }
                     });
             }
@@ -580,25 +482,18 @@ Object.defineProperties(window.Declarativ, {
          * also need to be added to the iteration's documentPart.
          */
         _updateScope: {
-            value: function(owner, objects, node) {
+            value: function(owner, objects, montageElement) {
                 var object,
                     ownerDocumentPart = owner._templateDocumentPart,
-                    ownerModuleId,
                     iteration;
 
-                if (node) {
-                    //jshint -W106
-                    ownerModuleId = owner._montage_metadata.moduleId;
-                    //jshint +W106
-
-                    if (this._isNodePartOfIteration(ownerModuleId, node)) {
-                        iteration = this.findIterationContainingNode(node);
-                    }
+                if (montageElement) {
+                    iteration = montageElement.iteration;
                 }
 
                 for (var key in objects) {
                     object = objects[key];
-                    // these components are actually created by a repetition
+                    // These components were created by a repetition
                     if (object.element && iteration) {
                         this._updateIteration(iteration, object);
                     }
@@ -679,50 +574,6 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
-        _updateLiveEditAttributes: {
-            value: function(anchor, firstElement, lastElement, owner, label) {
-                //jshint -W106
-                var leArgRangeValue = owner._montage_metadata.moduleId + "," + label;
-                //jshint +W106
-                var nextSibling = lastElement.nextElementSibling;
-                var previousSibling = firstElement.previousElementSibling;
-
-                if (nextSibling === anchor) {
-                    this._updateLiveEditRangeAttributes(ATTR_LE_ARG_BEGIN,
-                        leArgRangeValue, firstElement, anchor);
-                } else if (previousSibling === anchor) {
-                    this._updateLiveEditRangeAttributes(ATTR_LE_ARG_END,
-                        leArgRangeValue, lastElement, anchor);
-                }
-            }
-        },
-
-        /**
-         * The new content needs to be tagged with the argument range attributes
-         * if it expanded the argument from the sides. This means that it is
-         * now the new firstElement or the new lastElement of the star argument.
-         */
-        _updateLiveEditRangeAttributes: {
-            value: function(fringeAttrName, fringeAttrValue, newFringe, currentFringe) {
-                var leArgValue = currentFringe.getAttribute(fringeAttrName);
-
-                if (leArgValue) {
-                    var values = leArgValue.trim().split(/\s+/);
-                    var ix = values.indexOf(fringeAttrValue);
-                    if (ix >= 0) {
-                        values.splice(ix, 1);
-                        if (values.length === 0) {
-                            currentFringe.removeAttribute(fringeAttrName);
-                        } else {
-                            currentFringe.setAttribute(fringeAttrName,
-                                values.join(" "));
-                        }
-                        newFringe.setAttribute(fringeAttrName, fringeAttrValue);
-                    }
-                }
-            }
-        },
-
         addObjectEventListener: {
             value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
@@ -773,12 +624,12 @@ Object.defineProperties(window.Declarativ, {
         this.serializationString = serializationString;
     }
 
-    Template.prototype.instantiateIntoDocument = function(anchor, how, owner) {
+    Template.prototype.instantiateIntoDocument = function(anchor, how) {
         var self = this,
             element,
             documentPart,
-            ownerModuleId,
-            result;
+            result,
+            owner;
 
         element = document.createElement("div");
         element.innerHTML = this.html;
@@ -788,12 +639,10 @@ Object.defineProperties(window.Declarativ, {
             lastElement: element.lastElementChild
         };
 
-        //jshint -W106
-        ownerModuleId = owner._montage_metadata.moduleId;
-        //jshint +W106
+        owner = anchor.owner;
         // The new elements will be part of the same DocumentPart as the anchor
-        // node.
-        documentPart = LiveEdit.findNodeDocumentPart(ownerModuleId, anchor);
+        // element.
+        documentPart = anchor.documentPart;
 
         if (this.serializationString) {
             return this.instantiate(owner, element, documentPart)
@@ -859,12 +708,15 @@ Object.defineProperties(window.Declarativ, {
     };
 
     Template.prototype._addElement = function(element, anchor, how) {
+        var anchorElement = anchor.value;
+
         if (how === "before") {
-            anchor.parentNode.insertBefore(element, anchor);
+            anchorElement.parentNode.insertBefore(element, anchorElement);
         } else if (how === "after") {
-            anchor.parentNode.insertBefore(element, anchor.nextSibling);
+            anchorElement.parentNode.insertBefore(element,
+                anchorElement.nextSibling);
         } else if (how === "append") {
-            anchor.appendChild(element);
+            anchorElement.appendChild(element);
         }
     };
 
@@ -1003,4 +855,229 @@ Object.defineProperties(window.Declarativ, {
         return montageObjects;
     };
 
+    function MontageElement(value, ownerModuleId, label, argumentName, cssSelector) {
+        this.value = value;
+        this.ownerModuleId = ownerModuleId;
+        this.label = label;
+        this.argumentName = argumentName;
+        this.cssSelector = cssSelector;
+    }
+
+    MontageElement.findAll = function(ownerModuleId, label, argumentName, cssSelector) {
+        var moduleIdSelector;
+        var elements;
+        var montageElements = [];
+
+        if (label === "owner") {
+            moduleIdSelector = "*[" + ATTR_LE_COMPONENT + "='" + ownerModuleId + "']";
+        } else if (argumentName) {
+            moduleIdSelector = "*[" + ATTR_LE_ARG + "='" + ownerModuleId + "," + label + "," + argumentName + "']";
+        } else {
+            moduleIdSelector = "*[" + ATTR_LE_ARG_BEGIN + "~='" + ownerModuleId + "," + label + "']";
+        }
+
+        cssSelector = cssSelector.replace(":scope", moduleIdSelector);
+        elements = document.querySelectorAll(cssSelector);
+
+        for (var i = 0, element; element = elements[i]; i++) {
+            montageElements.push(
+                new MontageElement(element, ownerModuleId, label, argumentName,
+                    cssSelector)
+            );
+        }
+
+        return montageElements;
+    };
+
+    Object.defineProperties(MontageElement.prototype, {
+        _owner: {value: false, writable: true},
+        owner: {
+            get: function() {
+                if (this._owner === false) {
+                    var element = this.value;
+                    var ownerModuleId = this.ownerModuleId;
+                    var matchComponent = function(component) {
+                        //jshint -W106
+                        return component &&
+                            component._montage_metadata.moduleId === ownerModuleId;
+                        //jshint +W106
+                    };
+
+                    this._owner = null;
+                    if (this.label === "owner" &&
+                        matchComponent(element.component)) {
+                        this._owner = element.component;
+                    } else {
+                        while (element = /*assignment*/ element.parentNode) {
+                            if (matchComponent(element.component)) {
+                                this._owner = element.component;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return this._owner;
+            }
+        }
+    });
+
+    Object.defineProperties(MontageElement.prototype, {
+        _documentPart: {value: false, writable: true},
+        documentPart: {
+            get: function() {
+                if (this._documentPart === false) {
+                    var component = this.parentComponent,
+                        ownerModuleId = this.ownerModuleId,
+                        iteration;
+
+                    //jshint -W106
+                    // Go up the scope tree up till the owner to check if the
+                    // element was created by an iteration.
+                    while (component._montage_metadata.moduleId !== ownerModuleId) {
+                        if (component.clonesChildComponents) {
+                            iteration = component._findIterationContainingElement(this.value);
+                            this._documentPart = iteration._templateDocumentPart;
+                            break;
+                        } else if (LiveEdit._isComponentPartOfIteration(component)) {
+                            this._documentPart = component._ownerDocumentPart;
+                            break;
+                        }
+                        component = component.ownerComponent;
+                    }
+                    //jshint +W106
+
+                    // If the element was not created by an iteration then the
+                    // previous block stopped at the owner.
+                    if (!this._documentPart) {
+                        this._documentPart = component._templateDocumentPart;
+                        this._owner = component;
+                    }
+                }
+
+                return this._documentPart;
+            }
+        }
+    });
+
+    Object.defineProperties(MontageElement.prototype, {
+        _parentComponent: {value: false, writable: true},
+        parentComponent: {
+            get: function() {
+                if (this._parentComponent === false) {
+                    var element = this.value;
+
+                    this._parentComponent = null;
+                    if (this.label === "owner" && element.component) {
+                        this._parentComponent = element.component;
+                    } else {
+                        while (element = /*assignment*/ element.parentNode) {
+                            if (element.component) {
+                                this._parentComponent = element.component;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return this._parentComponent;
+            }
+        }
+    });
+
+    Object.defineProperties(MontageElement.prototype, {
+        _iteration: {value: false, writable: true},
+        iteration: {
+            get: function() {
+                if (this._iteration === false) {
+                    var ownerModuleId = this.ownerModuleId;
+                    var component = this.parentComponent;
+
+                    var componentIteration = function(component) {
+                        //jshint -W106
+                        while (component = /* assignment */ component.parentComponent) {
+                            if (component.clonesChildComponents) {
+                                return component._findIterationContainingElement(component.element);
+                            }
+                        }
+                        //jshint +W106
+                    };
+
+                    this._iteration = null;
+                    //jshint -W106
+                    while (component._montage_metadata.moduleId !== ownerModuleId) {
+                        if (component.clonesChildComponents) {
+                            this._iteration = component._findIterationContainingElement(this.value);
+                            break;
+                        } else if (LiveEdit._isComponentPartOfIteration(component)) {
+                            this._iteration = componentIteration(component);
+                            break;
+                        }
+                        component = component.ownerComponent;
+                    }
+                    //jshint +W106
+                }
+
+                return this._iteration;
+            }
+        }
+    });
+
+    /**
+     * Update the Live Edit attributes this element might have, this will happen
+     * when this element gains new siblings. The new siblings might take away
+     * the arg-begin or arg-end that the element might have.
+     * This is the case when this element is the beginning or the end of a DOM
+     * argument star range.
+     */
+    MontageElement.prototype.updateLiveEditAttributes = function(siblingFirstElement, siblingLastElement) {
+        var element = this.value;
+        /*
+        var owner = this.owner;
+        if (!owner) {
+            this._owner = false;
+            console.log("MISSING OWNER");
+        }
+        */
+        this._owner = false;
+        //jshint -W106
+        var leArgRangeValue = this.owner._montage_metadata.moduleId + "," +
+            this.label;
+        //jshint +W106
+        var nextSibling = siblingLastElement.nextElementSibling;
+        var previousSibling = siblingFirstElement.previousElementSibling;
+
+        if (nextSibling === element) {
+            this._updateLiveEditRangeAttributes(ATTR_LE_ARG_BEGIN,
+                leArgRangeValue, siblingFirstElement);
+        } else if (previousSibling === element) {
+            this._updateLiveEditRangeAttributes(ATTR_LE_ARG_END,
+                leArgRangeValue, siblingLastElement);
+        }
+    };
+
+    /**
+     * The new content needs to be tagged with the argument range attributes
+     * if it expanded the argument from the sides. This means that it is
+     * now the new firstElement or the new lastElement of the star argument.
+     */
+    MontageElement.prototype._updateLiveEditRangeAttributes = function(fringeAttrName, fringeAttrValue, newFringe) {
+        var element = this.value;
+        var leArgValue = element.getAttribute(fringeAttrName);
+
+        if (leArgValue) {
+            var values = leArgValue.trim().split(/\s+/);
+            var ix = values.indexOf(fringeAttrValue);
+            if (ix >= 0) {
+                values.splice(ix, 1);
+                if (values.length === 0) {
+                    element.removeAttribute(fringeAttrName);
+                } else {
+                    element.setAttribute(fringeAttrName,
+                        values.join(" "));
+                }
+                newFringe.setAttribute(fringeAttrName, fringeAttrValue);
+            }
+        }
+    };
 })(window.Declarativ);
