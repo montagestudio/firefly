@@ -605,6 +605,11 @@ Object.defineProperties(window.Declarativ, {
 
                     ownerDocumentPart.objects[key] = objects[key];
                 }
+
+                if (iteration) {
+                    this._updateIterationElements(iteration);
+                }
+
                 owner._addTemplateObjects(objects);
             }
         },
@@ -637,8 +642,40 @@ Object.defineProperties(window.Declarativ, {
                 template.setObjectMetadata(label, null, componentLabel,
                     component.ownerComponent);
                 if (repetition.element === element.parentNode) {
-                    repetition._iterationForElement.set(element, iteration);
+                    var firstDraw = function() {
+                        component.removeEventListener("firstDraw", firstDraw, false);
+                        repetition._iterationForElement.set(component.element, iteration);
+                    };
+                    component.addEventListener("firstDraw", firstDraw, false);
                 }
+            }
+        },
+
+        _updateIterationElements: {
+            value: function(iteration) {
+                var repetition = iteration.repetition;
+                var index = iteration._drawnIndex;
+
+                // Check to see if new elements were added to the bottom
+                // boundary and move the text comment boundary if that's the
+                // case. This only happens to the bottom boundary because new
+                // elements at the start of the iteration are added with
+                // insertBefore.
+                var bottomBoundary = repetition._boundaries[index+1];
+                var nextBoundary = repetition._boundaries[index+2];
+
+                if (bottomBoundary.nextSibling != nextBoundary) {
+                    var newBoundaryNextSibling = bottomBoundary;
+                    do {
+                        newBoundaryNextSibling = newBoundaryNextSibling.nextSibling;
+                    } while (newBoundaryNextSibling != nextBoundary);
+                    bottomBoundary.parentNode.insertBefore(bottomBoundary, newBoundaryNextSibling);
+                }
+
+                repetition._iterationForElement.clear();
+                iteration.forEachElement(function (element) {
+                    repetition._iterationForElement.set(element, iteration);
+                });
             }
         },
 
