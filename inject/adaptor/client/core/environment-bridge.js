@@ -98,6 +98,8 @@ exports.EnvironmentBridge = Montage.specialize({
                     // The PreviewController depends on this changing
                     self.dispatchOwnPropertyChange("previewUrl", self.previewUrl);
 
+                    self._patchXhr(url);
+
                     return self.repositoryController._request({
                         method: "POST",
                         url: url + "/session",
@@ -112,6 +114,25 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    // This hack ensures that all XHRs to the projectUrl, which is on a
+    // separate domain, are made with credentials (cookies) so that the session
+    // cookie that gives access to the files is sent.
+    _patchXhr: {
+        value: function (withCredentialsUrl) {
+            var XHR = window.XMLHttpRequest;
+            window.XMLHttpRequest = function () {
+                var xhr = new XHR();
+                var open = xhr.open;
+                xhr.open = function (method, url) {
+                    if (url.indexOf(withCredentialsUrl) !== -1) {
+                        this.withCredentials = true;
+                    }
+                    return open.apply(this, arguments);
+                };
+                return xhr;
+            };
+        }
+    },
 
     projectUrl: {
         get: function () {
