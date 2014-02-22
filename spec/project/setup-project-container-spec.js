@@ -36,10 +36,6 @@ describe("SetupProjectContainer", function () {
         };
     });
 
-    it("works", function (done) {
-        request(requestOpts).then(done, done);
-    });
-
     it("adds a new container to the index", function (done) {
         request(requestOpts)
         .then(function () {

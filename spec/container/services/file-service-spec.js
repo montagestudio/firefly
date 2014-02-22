@@ -51,7 +51,7 @@ describe("file-service", function () {
     });
 
     describe("list", function () {
-        it("works", function (done) {
+        it("returns an array of {url, stat} of files in the directory", function (done) {
             return service.list("/")
             .then(function (list) {
                 expect(list.length).toEqual(2);
@@ -66,7 +66,7 @@ describe("file-service", function () {
     });
 
     describe("listTree", function () {
-        it("works", function (done) {
+        it("returns an array of {url, stat} files in and under the directory", function (done) {
             return service.listTree("/")
             .then(function (list) {
                 expect(list.length).toEqual(4);
@@ -91,7 +91,7 @@ describe("file-service", function () {
             fs = require("q-io/fs");
         });
 
-        it("works", function (done) {
+        it("returns a list of assets with urls and MIME-types", function (done) {
             return fs.reroot(fsPath).then(function (fs) {
                 service = FileService(null, fs, {
                     getProjectUrlFromAppUrl: function () {

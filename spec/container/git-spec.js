@@ -14,7 +14,7 @@ describe("Git", function () {
     });
 
     describe("init", function () {
-        it("works", function (done) {
+        it("creates a git repo", function (done) {
             git.init(tmpPath)
             .then(function () {
                 return git.isCloned(tmpPath);
@@ -30,7 +30,7 @@ describe("Git", function () {
     });
 
     describe("addRemote", function () {
-        it("works", function (done) {
+        it("adds a remote to the .git/config file", function (done) {
             git.init(tmpPath)
             .then(function () {
                 return git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
@@ -47,7 +47,7 @@ describe("Git", function () {
     });
 
     describe("fetch and branch", function () {
-        it("works", function (done) {
+        it("fetches the branches from the remote", function (done) {
             git.init(tmpPath)
             .then(function () {
                 return git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
@@ -68,7 +68,7 @@ describe("Git", function () {
     });
 
     describe("add", function () {
-        it("works", function (done) {
+        it("creates .git/index, impling the file has been staged", function (done) {
             git.init(tmpPath)
             .then(function () {
                 fs.write(fs.join(tmpPath, "test.txt"), "pass");
@@ -87,7 +87,7 @@ describe("Git", function () {
     });
 
     describe("commit", function () {
-        it("works", function (done) {
+        it("creates the master ref", function (done) {
             git.init(tmpPath)
             .then(function () {
                 fs.write(fs.join(tmpPath, "test.txt"), "pass");
@@ -110,7 +110,7 @@ describe("Git", function () {
 
     // Disabled because timeouts keep affecting the test run
     xdescribe("clone", function () {
-        it("works", function (done) {
+        it("creates a git repo", function (done) {
             git.clone("https://github.com/montagejs/mousse.git", tmpPath)
             .then(function () {
                 return git.isCloned(tmpPath);
