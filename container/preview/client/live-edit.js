@@ -334,8 +334,7 @@ Object.defineProperties(window.Declarativ, {
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     promises.push(
-                        this._addTemplateToMontageElement(template,
-                            montageElement, how)
+                        montageElement.addTemplate(template, how)
                     );
                 }
 
@@ -384,29 +383,12 @@ Object.defineProperties(window.Declarativ, {
         },
 
         /**
-         * @param how string 'before', 'after', 'append'
-         */
-        _addTemplateToMontageElement: {
-            value: function(template, anchor, how) {
-                var self = this;
-                var owner = anchor.owner;
-
-                return template.instantiateIntoDocument(anchor, how)
-                    .then(function(result) {
-                        self._updateScope(owner, result.objects, anchor);
-                        if (anchor.label !== "owner") {
-                            anchor.updateLiveEditAttributes(result.firstElement,
-                                result.lastElement);
-                        }
-                    });
-            }
-        },
-
-        /**
          * When objects are added to a live application they need to be added to
          * the owner's templateObjects and documentPart.
          * Also, if components were added to a repetition's iteration then they
          * also need to be added to the iteration's documentPart.
+         * The montageElement when given is used to update an iteration scope
+         * if the montageElement is created by an iteration.
          */
         _updateScope: {
             value: function(owner, objects, montageElement) {
@@ -923,6 +905,25 @@ Object.defineProperties(window.Declarativ, {
         }
 
         return montageElements;
+    };
+
+    /**
+     * Instantiates and adds the template using this element as an anchor point.
+     * @param template Template The template to add.
+     * @param how string How to add: "before", "after" or "append" to this node.
+     */
+    MontageElement.prototype.addTemplate = function(template, how) {
+        var self = this;
+        var owner = this.owner;
+
+        return template.instantiateIntoDocument(this, how)
+            .then(function(result) {
+                LiveEdit._updateScope(owner, result.objects, self);
+                if (self.label !== "owner") {
+                    self.updateLiveEditAttributes(result.firstElement,
+                        self.lastElement);
+                }
+            });
     };
 
     Object.defineProperties(MontageElement.prototype, {
