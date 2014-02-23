@@ -537,8 +537,8 @@ Object.defineProperties(window.Declarativ, {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
 
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                    this._addEventListener(montageObject.value, type,
-                        listenerLabel, useCapture);
+                    montageObject.addEventListener(type, listenerLabel,
+                        useCapture);
                 }
             }
         },
@@ -548,31 +548,9 @@ Object.defineProperties(window.Declarativ, {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
 
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                    this._removeEventListener(montageObject.value, type,
-                        listenerLabel, useCapture);
+                    montageObject.removeEventListener(type, listenerLabel,
+                        useCapture);
                 }
-            }
-        },
-
-        _addEventListener: {
-            value: function(object, type, listenerLabel, useCapture) {
-                var owner = object.ownerComponent;
-                var ownerDocumentPart = object._ownerDocumentPart;
-
-                var listener = this._lookupObjectInScope(ownerDocumentPart,
-                    listenerLabel, owner);
-                object.addEventListener(type, listener, useCapture);
-            }
-        },
-
-        _removeEventListener: {
-            value: function(object, type, listenerLabel, useCapture) {
-                var owner = object.ownerComponent;
-                var ownerDocumentPart = object._ownerDocumentPart;
-
-                var listener = this._lookupObjectInScope(ownerDocumentPart,
-                    listenerLabel, owner);
-                object.removeEventListener(type, listener, useCapture);
             }
         }
     });
@@ -719,6 +697,18 @@ Object.defineProperties(window.Declarativ, {
         if (this.value.getBinding(path)) {
             this.value.cancelBinding(path);
         }
+    };
+
+    MontageObject.prototype.addEventListener = function(type, listenerLabel, useCapture) {
+        var listener = LiveEdit._lookupObjectInScope(this.documentPart,
+            listenerLabel, this.owner);
+        this.value.addEventListener(type, listener, useCapture);
+    };
+
+    MontageObject.prototype.removeEventListener = function(type, listenerLabel, useCapture) {
+        var listener = LiveEdit._lookupObjectInScope(this.documentPart,
+            listenerLabel, this.owner);
+        this.value.removeEventListener(type, listener, useCapture);
     };
 
     MontageObject.findAll = function(ownerModuleId, label) {
