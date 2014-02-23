@@ -140,7 +140,9 @@ Object.defineProperties(window.Declarativ, {
                     elementValue.cssSelector);
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
-                    // TODO: should look this object in the scope.
+                    // TODO: should look this object in the scope. Could be
+                    // setting an object that already has an element and is
+                    // inside a repetition.
                     object = montageElement.owner._templateDocumentPart.objects[label];
                     if (propertyName === "element" && object.childComponents) {
                         montageComponent = new MontageComponent(object);
@@ -342,14 +344,14 @@ Object.defineProperties(window.Declarativ, {
         },
 
         addTemplateFragmentObjects: {
-            value: function(moduleId, templateFragment) {
-                var montageObjects = MontageObject.findAll(moduleId, "owner");
+            value: function(ownerModuleId, templateFragment) {
+                var montageComponents = MontageComponent.findAll(ownerModuleId);
 
                 var template = new Template(templateFragment.serialization);
                 var promises = [];
 
                 template.removeComponentElementReferences();
-                for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
+                for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
                     promises.push(
                         this._addTemplateObjectsToOwner(template,
                             montageObject.value)
@@ -711,51 +713,13 @@ Object.defineProperties(window.Declarativ, {
 
     MontageObject.findAll = function(ownerModuleId, label) {
         if (label === "owner") {
-            return this.findAllByModuleId(ownerModuleId);
+            return MontageComponent.findAll(ownerModuleId);
         } else {
-            return this.findAllByLabel(label, ownerModuleId);
+            return this.findAllByLabel(ownerModuleId, label);
         }
     };
 
-    MontageObject.findAllByModuleId = function(moduleId) {
-        var montageObjects = [];
-        var findObjects = function(component) {
-            var childComponents = component.childComponents;
-            var childComponent;
-            var objects;
-            var object;
-            var info;
-
-            // Non-components will only be available in the document part.
-            if (component._templateDocumentPart) {
-                objects = component._templateDocumentPart.objects;
-                for (var label in objects) {
-                    object = objects[label];
-                    if (!object.childComponents) {
-                        info = Declarativ.Montage.getInfoForObject(object);
-                        if (info.moduleId === moduleId) {
-                            montageObjects.push(
-                                new MontageObject(object, label, component, component._templateDocumentPart));
-                        }
-                    }
-                }
-            }
-
-            for (var i = 0; (childComponent = childComponents[i]); i++) {
-                //jshint -W106
-                if (childComponent._montage_metadata.moduleId === moduleId) {
-                    montageObjects.push(new MontageComponent(childComponent));
-                }
-                //jshint +W106
-                findObjects(childComponent);
-            }
-        };
-
-        findObjects(LiveEdit.rootComponent);
-        return montageObjects;
-    };
-
-    MontageObject.findAllByLabel = function(label, ownerModuleId) {
+    MontageObject.findAllByLabel = function(ownerModuleId, label) {
         var montageObjects = [];
         var findObjects = function(component) {
             var childComponents = component.childComponents;
@@ -803,6 +767,25 @@ Object.defineProperties(window.Declarativ, {
     MontageComponent.prototype = Object.create(MontageObject.prototype);
     MontageComponent.prototype.constructor = MontageComponent;
 
+    MontageComponent.findAll = function(moduleId) {
+        var montageComponents = [];
+        var findObjects = function(component) {
+            var childComponents = component.childComponents;
+            var childComponent;
+
+            for (var i = 0; (childComponent = childComponents[i]); i++) {
+                //jshint -W106
+                if (childComponent._montage_metadata.moduleId === moduleId) {
+                    montageComponents.push(new MontageComponent(childComponent));
+                }
+                //jshint +W106
+                findObjects(childComponent);
+            }
+        };
+
+        findObjects(LiveEdit.rootComponent);
+        return montageComponents;
+    };
     MontageComponent.prototype.setElement = function(montageElement) {
         var documentPart = montageElement.documentPart;
         var element = montageElement.value;
