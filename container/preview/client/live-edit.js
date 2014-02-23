@@ -353,8 +353,7 @@ Object.defineProperties(window.Declarativ, {
                 template.removeComponentElementReferences();
                 for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
                     promises.push(
-                        this._addTemplateObjectsToOwner(template,
-                            montageObject.value)
+                        montageComponent.addTemplateObjects(template)
                     );
                 }
 
@@ -381,17 +380,6 @@ Object.defineProperties(window.Declarativ, {
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.setTemplate(templateFragment);
                 }
-            }
-        },
-
-        _addTemplateObjectsToOwner: {
-            value: function(template, owner) {
-                var self = this;
-
-                return template.instantiate(owner)
-                .then(function(objects) {
-                    self._updateScope(owner, objects);
-                });
             }
         },
 
@@ -786,6 +774,20 @@ Object.defineProperties(window.Declarativ, {
         findObjects(LiveEdit.rootComponent);
         return montageComponents;
     };
+
+    /**
+     * Instantiates the template and adds all objects to the component's
+     * template
+     */
+    MontageComponent.prototype.addTemplateObjects = function(template) {
+        var owner = this.value;
+
+        return template.instantiate(owner)
+            .then(function(objects) {
+                LiveEdit._updateScope(owner, objects);
+            });
+    };
+
     MontageComponent.prototype.setElement = function(montageElement) {
         var documentPart = montageElement.documentPart;
         var element = montageElement.value;
