@@ -178,25 +178,6 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
-        _createTemplateWithObject: {
-            value: function(template, label) {
-                var sourceSerialization = template.getSerialization().getSerializationObject();
-                var destinationSerialization = {};
-                var object = sourceSerialization[label];
-                var montageId;
-                var html;
-
-                destinationSerialization[label] = object;
-                if (object.properties && object.properties.element) {
-                    montageId = object.properties.element["#"];
-                    html = template.getElementById(montageId).outerHTML;
-                    html = "<html><body>" + html + "</body></html>";
-                }
-
-                return new Template(JSON.stringify(destinationSerialization), html);
-            }
-        },
-
         setObjectBinding: {
             value: function(ownerModuleId, label, binding) {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
@@ -656,14 +637,31 @@ Object.defineProperties(window.Declarativ, {
         }
     };
 
-    Template._range = document.createRange();
-
     Template.prototype._removeElementWrapper = function(element) {
         var range = Template._range;
 
         range.selectNodeContents(element);
         element.parentNode.insertBefore(range.extractContents(), element);
         element.parentNode.removeChild(element);
+    };
+
+    Template._range = document.createRange();
+
+    Template.createTemplateWithObject = function(template, label) {
+        var sourceSerialization = template.getSerialization().getSerializationObject();
+        var destinationSerialization = {};
+        var object = sourceSerialization[label];
+        var montageId;
+        var html;
+
+        destinationSerialization[label] = object;
+        if (object.properties && object.properties.element) {
+            montageId = object.properties.element["#"];
+            html = template.getElementById(montageId).outerHTML;
+            html = "<html><body>" + html + "</body></html>";
+        }
+
+        return new Template(JSON.stringify(destinationSerialization), html);
     };
 
     /// MONTAGE OBJECT
@@ -825,7 +823,7 @@ Object.defineProperties(window.Declarativ, {
             // This exact operation (creating the template) might happen
             // several times if the elements are in a repetition....
             // Should try to optimize this somehow.
-            template = LiveEdit._createTemplateWithObject(owner._template, label);
+            template = Template.createTemplateWithObject(owner._template, label);
             template.removeComponentElementReferences();
             return template.instantiate(owner, element)
                 .then(function(objects) {
