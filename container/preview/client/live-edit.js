@@ -87,17 +87,6 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
-        _isComponentPartOfIteration: {
-            value: function(component) {
-                // The ownerDocumentPart of a component is the DocumentPart of
-                // the template scope where the component was instantiated, if
-                // this doesn't match the DocumentPart of the owner it means
-                // this it was not instantiated in the scope of the owner's
-                // template but rather in the context of an iteration template.
-                return component._ownerDocumentPart !== component.ownerComponent._templateDocumentPart;
-            }
-        },
-
         setObjectProperties: {
             value: function(label, ownerModuleId, properties) {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
@@ -142,7 +131,8 @@ Object.defineProperties(window.Declarativ, {
         _setObjectPropertyWithElement: {
             value: function(ownerModuleId, label, propertyName, elementValue) {
                 var montageElements,
-                    documentPart,
+                    object,
+                    montageComponent,
                     promises = [];
 
                 montageElements = MontageElement.findAll(ownerModuleId,
@@ -150,60 +140,26 @@ Object.defineProperties(window.Declarativ, {
                     elementValue.cssSelector);
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
-                    if (propertyName === "element") {
+                    // TODO: should look this object in the scope.
+                    object = montageElement.owner._templateDocumentPart.objects[label];
+                    if (propertyName === "element" && object.childComponents) {
+                        montageComponent = new MontageComponent(object);
                         promises.push(
-                            this._updateComponentElement(ownerModuleId, label, montageElement)
+                            montageComponent.setElement(montageElement)
                         );
                     } else {
-                        documentPart = montageElement.documentPart;
-                        // TODO: will not work if the object is inside a
+                        // Will not work if the object is inside a
                         // repetition and is an argument with a clashed name.
-                        if (label in documentPart.objects) {
-                            documentPart.objects[label][propertyName] = montageElement.value;
+                        // Not an issue at the moment, could be in the future
+                        // when we add support to put non-components into the
+                        // repetition iteration template.
+                        if (object) {
+                            object[propertyName] = montageElement.value;
                         }
                     }
                 }
 
                 return Declarativ.Promise.all(promises);
-            }
-        },
-
-        _updateComponentElement: {
-            value: function(ownerModuleId, label, montageElement) {
-                var self = this;
-                var documentPart = montageElement.documentPart;
-                var owner = montageElement.owner;
-                var element = montageElement.value;
-                var template;
-
-                // The documentPart of the element is the DocumentPart of the
-                // template scope where the element was instantiated, if this
-                // doesn't match the DocumentPart of the owner  it means
-                // this particular element was not instantiated in the scope
-                // of the owner's template but rather in the context of an
-                // iteration template.
-                if (owner._templateDocumentPart === documentPart) {
-                    self._setComponentElement(documentPart.objects[label], element);
-                } else {
-                    // This exact operation (creating the template) might happen
-                    // several times if the elements are in a repetition....
-                    // Should try to optimize this somehow.
-                    template = this._createTemplateWithObject(owner._template, label);
-                    template.removeComponentElementReferences();
-                    return template.instantiate(owner, element)
-                        .then(function(objects) {
-                            self._setComponentElement(objects[label], element);
-                            self._updateScope(owner, objects, montageElement);
-                        });
-                }
-            }
-        },
-
-        _setComponentElement: {
-            value: function(component, element) {
-                component.element = element;
-                component.attachToParentComponent();
-                component.loadComponentTree();
             }
         },
 
@@ -505,6 +461,8 @@ Object.defineProperties(window.Declarativ, {
                     this._updateIterationElements(iteration);
                 }
 
+                // TODO: Should we update the owner template objects if the
+                // scope was an iteration?
                 owner._addTemplateObjects(objects);
             }
         },
@@ -730,6 +688,8 @@ Object.defineProperties(window.Declarativ, {
         element.parentNode.removeChild(element);
     };
 
+    /// MONTAGE OBJECT
+
     function MontageObject(value, label, owner, documentPart) {
         this.value = value;
         this.label = label;
@@ -759,14 +719,6 @@ Object.defineProperties(window.Declarativ, {
         if (this.value.getBinding(path)) {
             this.value.cancelBinding(path);
         }
-    };
-
-    MontageObject.prototype.setTemplate = function(templateFragment) {
-        var template = this.value._template;
-
-        template.objectsString = templateFragment.serialization;
-        template.document = template.createHtmlDocumentWithHtml(
-            templateFragment.html);
     };
 
     MontageObject.findAll = function(ownerModuleId, label) {
@@ -804,10 +756,7 @@ Object.defineProperties(window.Declarativ, {
             for (var i = 0; (childComponent = childComponents[i]); i++) {
                 //jshint -W106
                 if (childComponent._montage_metadata.moduleId === moduleId) {
-                    montageObjects.push(
-                        new MontageObject(childComponent,
-                            childComponent._montage_metadata.label, component,
-                            childComponent._ownerDocumentPart));
+                    montageObjects.push(new MontageComponent(childComponent));
                 }
                 //jshint +W106
                 findObjects(childComponent);
@@ -841,10 +790,7 @@ Object.defineProperties(window.Declarativ, {
                 //jshint -W106
                 if (childComponent._montage_metadata.label === label &&
                     childComponent.ownerComponent._montage_metadata.moduleId === ownerModuleId) {
-                    montageObjects.push(
-                        new MontageObject(childComponent,
-                            childComponent._montage_metadata.label, component,
-                            childComponent._ownerDocumentPart));
+                    montageObjects.push(new MontageComponent(childComponent));
                 }
                 //jshint +W106
                 findObjects(childComponent);
@@ -854,6 +800,123 @@ Object.defineProperties(window.Declarativ, {
         findObjects(LiveEdit.rootComponent);
         return montageObjects;
     };
+
+    /// MONTAGE COMPONENT
+
+    function MontageComponent(value) {
+        this.value = value;
+        //jshint -W106
+        this.label = value._montage_metadata.label;
+        //jshint +W106
+        this.owner = value.ownerComponent;
+        this.documentPart = value._ownerDocumentPart;
+    }
+
+    MontageComponent.prototype = Object.create(MontageObject.prototype);
+    MontageComponent.prototype.constructor = MontageComponent;
+
+    MontageComponent.prototype.setElement = function(montageElement) {
+        var documentPart = montageElement.documentPart;
+        var element = montageElement.value;
+        var owner = this.owner;
+        var label = this.label;
+        var template;
+
+        // The documentPart of the element is the DocumentPart of the
+        // template scope where the element was instantiated, if this
+        // doesn't match the DocumentPart of the owner  it means
+        // this particular element was not instantiated in the scope
+        // of the owner's template but rather in the context of an
+        // iteration template.
+        // TODO: use .iteration
+        if (owner._templateDocumentPart === documentPart) {
+            MontageComponent._setComponentElement(documentPart.objects[label], element);
+        } else {
+            // This exact operation (creating the template) might happen
+            // several times if the elements are in a repetition....
+            // Should try to optimize this somehow.
+            template = LiveEdit._createTemplateWithObject(owner._template, label);
+            template.removeComponentElementReferences();
+            return template.instantiate(owner, element)
+                .then(function(objects) {
+                    MontageComponent._setComponentElement(objects[label], element);
+                    LiveEdit._updateScope(owner, objects, montageElement);
+                });
+        }
+    };
+
+    MontageComponent.prototype.setTemplate = function(templateFragment) {
+        var template = this.value._template;
+
+        template.objectsString = templateFragment.serialization;
+        template.document = template.createHtmlDocumentWithHtml(
+            templateFragment.html);
+    };
+
+    Object.defineProperties(MontageComponent.prototype, {
+        _inIteration: {value: null, writable: true},
+        inIteration: {
+            get: function() {
+                if (this._inIteration === null) {
+                    // The ownerDocumentPart of a component is the DocumentPart of
+                    // the template scope where the component was instantiated, if
+                    // this doesn't match the DocumentPart of the owner it means
+                    // this it was not instantiated in the scope of the owner's
+                    // template but rather in the context of an iteration template.
+                    this._inIteration = this.documentPart !== this.owner._templateDocumentPart;
+                }
+
+                return this._inIteration;
+            }
+        }
+    });
+
+    Object.defineProperties(MontageComponent.prototype, {
+        _iteration: {value: false, writable: true},
+        iteration: {
+            get: function() {
+                if (this._iteration === false) {
+                    var component = this.value;
+
+                    this._iteration = null;
+                    while (component = /* assignment */ component.parentComponent) {
+                        if (component.clonesChildComponents) {
+                            this._iteration = component._findIterationContainingElement(component.element);
+                        }
+                    }
+                }
+
+                return this._iteration;
+            }
+        }
+    });
+
+    MontageComponent._setComponentElement = function(component, element) {
+        component.element = element;
+        component.attachToParentComponent();
+        component.loadComponentTree();
+    };
+
+    MontageComponent._isComponentPartOfIteration = function(component) {
+        // The ownerDocumentPart of a component is the DocumentPart of
+        // the template scope where the component was instantiated, if
+        // this doesn't match the DocumentPart of the owner it means
+        // this it was not instantiated in the scope of the owner's
+        // template but rather in the context of an iteration template.
+        return component._ownerDocumentPart !== component.ownerComponent._templateDocumentPart;
+    };
+
+    MontageComponent._getComponentIteration = function(component) {
+        //jshint -W106
+        while (component = /* assignment */ component.parentComponent) {
+            if (component.clonesChildComponents) {
+                return component._findIterationContainingElement(component.element);
+            }
+        }
+        //jshint +W106
+    };
+
+    /// MONTAGE ELEMENT
 
     function MontageElement(value, ownerModuleId, label, argumentName, cssSelector) {
         this.value = value;
@@ -939,7 +1002,7 @@ Object.defineProperties(window.Declarativ, {
                             iteration = component._findIterationContainingElement(this.value);
                             this._documentPart = iteration._templateDocumentPart;
                             break;
-                        } else if (LiveEdit._isComponentPartOfIteration(component)) {
+                        } else if (MontageComponent._isComponentPartOfIteration(component)) {
                             this._documentPart = component._ownerDocumentPart;
                             break;
                         }
@@ -993,24 +1056,14 @@ Object.defineProperties(window.Declarativ, {
                     var ownerModuleId = this.ownerModuleId;
                     var component = this.parentComponent;
 
-                    var componentIteration = function(component) {
-                        //jshint -W106
-                        while (component = /* assignment */ component.parentComponent) {
-                            if (component.clonesChildComponents) {
-                                return component._findIterationContainingElement(component.element);
-                            }
-                        }
-                        //jshint +W106
-                    };
-
                     this._iteration = null;
                     //jshint -W106
                     while (component._montage_metadata.moduleId !== ownerModuleId) {
                         if (component.clonesChildComponents) {
                             this._iteration = component._findIterationContainingElement(this.value);
                             break;
-                        } else if (LiveEdit._isComponentPartOfIteration(component)) {
-                            this._iteration = componentIteration(component);
+                        } else if (MontageComponent._isComponentPartOfIteration(component)) {
+                            this._iteration = MontageComponent._getComponentIteration(component);
                             break;
                         }
                         component = component.ownerComponent;
