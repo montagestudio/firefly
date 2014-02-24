@@ -270,7 +270,14 @@ Object.defineProperties(window.Declarativ, {
         _lookupObjectInScope: {
             value: function(documentPart, label, owner) {
                 var object,
-                    ownerDocumentPart = owner._templateDocumentPart;
+                    ownerDocumentPart;
+
+                // If the label is the owner then we don't need to search for it.
+                if (label === "owner") {
+                    return owner;
+                }
+
+                ownerDocumentPart = owner._templateDocumentPart;
 
                 do {
                     object = this._getObjectFromScope(documentPart, label, owner);
@@ -295,6 +302,7 @@ Object.defineProperties(window.Declarativ, {
                     var metadata = object._montage_metadata;
                     //jshint +W106
                     // Only components have label in their montage metadata.
+                    // owner objects need to keep the owner label.
                     if (metadata && metadata.label) {
                         objectLabel = metadata.label;
                     }
