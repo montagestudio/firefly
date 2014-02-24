@@ -72,21 +72,7 @@ Object.defineProperties(window.Declarativ, {
     var ATTR_LE_ARG_BEGIN = "data-montage-le-arg-begin";
     var ATTR_LE_ARG_END = "data-montage-le-arg-end";
 
-    var LiveEdit = ns.LiveEdit = Object.create(Object.prototype, {
-        _rootComponent: {
-            writable: true,
-            value: null
-        },
-
-        rootComponent: {
-            get: function() {
-                if (!this._rootComponent) {
-                    this._rootComponent = montageRequire("ui/component").__root__;
-                }
-                return this._rootComponent;
-            }
-        },
-
+    ns.LiveEdit = Object.create(Object.prototype, {
         setObjectProperties: {
             value: function(label, ownerModuleId, properties) {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
@@ -727,7 +713,7 @@ Object.defineProperties(window.Declarativ, {
             }
         };
 
-        findObjects(LiveEdit.rootComponent);
+        findObjects(MontageComponent.rootComponent);
         return montageObjects;
     };
 
@@ -761,7 +747,7 @@ Object.defineProperties(window.Declarativ, {
             }
         };
 
-        findObjects(LiveEdit.rootComponent);
+        findObjects(MontageComponent.rootComponent);
         return montageComponents;
     };
 
@@ -878,6 +864,20 @@ Object.defineProperties(window.Declarativ, {
         }
         //jshint +W106
     };
+
+    Object.defineProperties(MontageComponent, {
+        _rootComponent: {value: null, writable: true},
+        rootComponent: {
+            get: function() {
+                if (!this._rootComponent) {
+                    //jshint -W106
+                    this._rootComponent = montageRequire("ui/component").__root__;
+                    //jshint +W106
+                }
+                return this._rootComponent;
+            }
+        }
+    });
 
     /// MONTAGE ELEMENT
 
