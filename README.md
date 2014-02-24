@@ -40,6 +40,27 @@ that would usually only be seen in production.
 
 You can then access the server at http://local-firefly.declarativ.net:2440/
 
+### Error mounting folders
+
+The following error occurs occasionally:
+
+```
+Failed to mount folders in Linux guest. This is usually beacuse
+the "vboxsf" file system is not available. Please verify that
+the guest additions are properly installed in the guest and
+can work properly.
+```
+
+To fix this run
+
+```
+vagrant ssh <MACHINE_NAME> -c "sudo /etc/init.d/vboxadd setup"
+vagrant halt -f <MACHINE_NAME>
+vagrant up <MACHINE_NAME>
+```
+
+The folders should now mount correctly.
+
 ### Expected warnings
 
 There is a lot of output when provisioning, and a number of warnings. The ones
@@ -445,7 +466,7 @@ Those 5 scripts accept 2 command line parameters: `-b firefly_branch` and
  * deploy/build/rebuild.sh
    This script rebuild the droplet from the existing images. By default it will
    rebuild the staging system. It will rebuild production with the `-p` argument.
-   
+
 **Danger**
 
 In order to be able to login the droplets you will need to have your public key
