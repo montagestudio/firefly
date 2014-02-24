@@ -1,5 +1,6 @@
 var Q = require("q");
 var packedSession = require("./packed-session");
+var uuid = require("uuid");
 
 // TODO expire sessions that have not been used in a while
 
@@ -43,7 +44,12 @@ GithubSessionStore.prototype.set = function set(_, session) {
             return;
         }
 
-        var newId = packedSession.pack(session);
+        var newId;
+        if (session.githubAccessToken && session.username) {
+            newId = packedSession.pack(session);
+        } else {
+            newId = uuid.v4();
+        }
         // If the session wasn't able to be packed don't change the session
         if (!newId) {
             return;

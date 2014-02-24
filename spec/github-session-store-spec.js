@@ -59,6 +59,20 @@ describe("GithubSessionStore", function () {
             return store.set("old", session)
             .then(function () {
                 expect(session.sessionId).toBeDefined();
+                expect(session.sessionId.length).toBeGreaterThan(39);
+                expect(Object.keys(store.sessions).length).toEqual(1);
+            })
+            .done(done, done);
+        });
+
+        it("uses a UUID for sessions without Github access Token and username", function (done) {
+            var session = {
+                pass: true
+            };
+            return store.set("old", session)
+            .then(function () {
+                expect(session.sessionId).toBeDefined();
+                expect(session.sessionId.length).toEqual(36);
                 expect(Object.keys(store.sessions).length).toEqual(1);
             })
             .done(done, done);
