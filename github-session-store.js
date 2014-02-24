@@ -31,12 +31,15 @@ GithubSessionStore.prototype.get = function get(id) {
 GithubSessionStore.prototype.set = function set(_, session) {
     var self = this;
     return Q.fcall(function () {
-        if (Object.keys(session).length === 0) {
-            return;
-        }
-        // Don't do anything if the session hasn't changed at all
-        var cachedSession = self.sessions[session.sessionId];
-        if (JSON.stringify(cachedSession) === JSON.stringify(session)) {
+        // Don't do anything if there is no data in the session, or if the
+        // session hasn't changed from the previous one at all
+        if (
+            Object.keys(session).length === 0 ||
+            (
+                session.sessionId &&
+                JSON.stringify(self.sessions[session.sessionId]) === JSON.stringify(session)
+            )
+        ) {
             return;
         }
 
