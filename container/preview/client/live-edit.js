@@ -929,7 +929,7 @@ Object.defineProperties(window.Declarativ, {
                 LiveEdit._updateScope(owner, result.objects, self);
                 if (self.label !== "owner") {
                     self.updateLiveEditAttributes(result.firstElement,
-                        self.lastElement);
+                        result.lastElement);
                 }
             });
     };
@@ -1067,14 +1067,6 @@ Object.defineProperties(window.Declarativ, {
      */
     MontageElement.prototype.updateLiveEditAttributes = function(siblingFirstElement, siblingLastElement) {
         var element = this.value;
-        /*
-        var owner = this.owner;
-        if (!owner) {
-            this._owner = false;
-            console.log("MISSING OWNER");
-        }
-        */
-        this._owner = false;
         //jshint -W106
         var leArgRangeValue = this.owner._montage_metadata.moduleId + "," +
             this.label;
