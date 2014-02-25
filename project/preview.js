@@ -5,9 +5,12 @@ var FS = require("q-io/fs");
 var Q = require("q");
 var HttpApps = require("q-io/http-apps/fs");
 var querystring = require("querystring");
+var generateAccessCode = require("./generate-access-code");
 
 var CLIENT_ROOT = FS.join(__dirname, "preview");
 var clientFs = FS.reroot(CLIENT_ROOT);
+
+var HOST_ACCESS_CODE_MAP = {};
 
 function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -30,7 +33,7 @@ exports.hasAccess = function (url, session) {
                 // The user doesn't need to have explicit access to its own previews.
                 return githubUser && githubUser.login.toLowerCase() === details.owner;
             });
-        } else {
+        } else if (session.previewAccess) {
             // No reason to give a random user access to the preview if the owner
             // doesn't have it open in the tool.
             var previewAccess = session.previewAccess;
@@ -76,13 +79,21 @@ exports.processAccessRequest = function (request) {
             }
         };
     });
-}
+};
+
+exports.getAccessCode = function (host) {
+    var code = HOST_ACCESS_CODE_MAP[host];
+    if (!code) {
+        code = generateAccessCode();
+        HOST_ACCESS_CODE_MAP[host] = code;
+    }
+    return code;
+};
 
 function maybeGrantAccessToPreview(code, previewHost, session) {
-    // var accessCode = preview.getPreviewAccessCode(previewHost);
+    var accessCode = exports.getAccessCode(previewHost);
 
-    // if (code && accessCode && code === accessCode) {
-    if (code === "XXX") {
+    if (code && accessCode && code === accessCode) {
         if (session.previewAccess) {
             if (session.previewAccess.indexOf(previewHost) === -1) {
                 session.previewAccess.push(previewHost);

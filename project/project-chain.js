@@ -1,6 +1,7 @@
 var log = require("logging").from(__filename);
 var Q = require("q");
 var joey = require("joey");
+var HTTP = require("q-io/http");
 var APPS = require("q-io/http-apps");
 // FIXME docker
 // var PreviewServer = require("./preview/preview-server");
@@ -78,9 +79,8 @@ function server(options) {
             if (preview.isPreview(request)) {
                 return preview.hasAccess(request.headers.host, request.session)
                 .then(function (hasAccess) {
+                    var details = environment.getDetailsfromProjectUrl(request.url);
                     if (hasAccess) {
-                        var details = environment.getDetailsfromProjectUrl(request.url);
-
                         return setupProjectContainer(
                             details.owner, // FIXME docker
                             details.owner,
@@ -92,7 +92,29 @@ function server(options) {
                             return proxyContainer(request, projectWorkspacePort, "static");
                         });
                     } else {
-                        // FIXME docker generate code a push notification to client
+                        setupProjectContainer(
+                            details.owner, // FIXME
+                            details.owner,
+                            details.repo
+                        )
+                        .then(function (projectWorkspacePort) {
+                            if (!projectWorkspacePort) {
+                                return;
+                            }
+                            var code = preview.getAccessCode(request.headers.host);
+                            return HTTP.request({
+                                method: "POST",
+                                url: "http://127.0.0.1:" + projectWorkspacePort + "/notice",
+                                headers: {"content-type": "application/json; charset=utf8"},
+                                body: [JSON.stringify("Access code: " + code)]
+                            });
+                        })
+                        .catch(function (error) {
+                            log("*Error with access code", error.stack);
+                        });
+
+                        // Serve the access form regardless, so that people
+                        // can't work out if a project exists or not.
                         return preview.serveAccessForm(request);
                     }
                 });
