@@ -5,8 +5,9 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "test": "if [ \"`uname`\" = \"Linux\" ]; then npm_config_coverage=$npm_config_coverage npm run tests; else echo Running tests in VM; vagrant ssh login -c \"cd /srv/firefly; npm_config_coverage=$npm_config_coverage npm run tests\"; fi",
+    "test": "if [ \"`uname`\" = \"Linux\" ]; then npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs npm run tests; else echo Running tests in VM; vagrant ssh login -c \"cd /srv/firefly; npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs npm run tests\"; fi",
     "tests": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
+    "slow-tests": "runSlowSpecs=true npm test",
     "start": "vagrant up || (echo 'To run Aurora please install Vagrant from http://www.vagrantup.com/downloads.html' && exit 1)",
     "deploy": "deploy/vagrant/deploy.sh",
     "stop": "vagrant halt && echo 'Run `vagrant destroy` to completely remove the VMs (this will make `npm start` a lot slower)'",
@@ -46,7 +47,7 @@
     "semver": "2.2.1",
     "mmmagic": "0.3.5",
     "watchr": "2.3.3",
-	
+
     "collections": "~0.2.2",
     "dockerode": "~1.2.7",
     "faye-websocket": "~0.7.2"
