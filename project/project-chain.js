@@ -86,6 +86,9 @@ function server(options) {
                             details.owner,
                             details.repo
                         ).then(function (projectWorkspacePort) {
+                            if (!projectWorkspacePort) {
+                                return preview.serveNoPreviewPage(request);
+                            }
                             return proxyContainer(request, projectWorkspacePort, "static");
                         });
                     } else {

@@ -7,6 +7,7 @@ var HttpApps = require("q-io/http-apps/fs");
 var querystring = require("querystring");
 
 exports.serveAccessForm = servePreviewAccessForm;
+exports.serveNoPreviewPage = serveNoPreviewPage;
 exports.processAccessRequest = processAccessRequest;
 
 var CLIENT_ROOT = FS.join(__dirname, "preview");
@@ -47,6 +48,16 @@ exports.hasAccess = function (url, session) {
 function servePreviewAccessForm(request) {
     return clientFs.then(function(fs) {
         return HttpApps.file(request, "access.html", null, fs);
+    });
+}
+
+function serveNoPreviewPage(request) {
+    return clientFs.then(function(fs) {
+        return HttpApps.file(request, "no-preview.html", null, fs)
+        .then(function (response) {
+            response.status = 404;
+            return response;
+        });
     });
 }
 
