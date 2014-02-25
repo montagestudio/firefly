@@ -9,7 +9,7 @@ var querystring = require("querystring");
 exports.serveAccessForm = servePreviewAccessForm;
 exports.processAccessRequest = processAccessRequest;
 
-var CLIENT_ROOT = __dirname;
+var CLIENT_ROOT = FS.join(__dirname, "preview");
 var clientFs = FS.reroot(CLIENT_ROOT);
 
 function endsWith(str, suffix) {
