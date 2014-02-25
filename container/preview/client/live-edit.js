@@ -187,137 +187,6 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
-        _getObjectForBinding: {
-            value: function(owner, ownerDocumentPart, label) {
-                var templateProperty;
-
-                if (label.indexOf(":") > 0) {
-                    templateProperty = this._resolveTemplatePropertyLabel(
-                        ownerDocumentPart, label, owner);
-                    if (!templateProperty) {
-                        return;
-                    }
-                    label = templateProperty.label;
-                    owner = templateProperty.owner;
-                }
-
-                return this._lookupObjectInScope(ownerDocumentPart, label, owner);
-            }
-        },
-
-        /**
-         * Resolves the alias template property to its final form.
-         * It returns the resolved label and respective owner.
-         */
-        _resolveTemplatePropertyLabel: {
-            value: function(documentPart, label, owner) {
-                var ix = label.indexOf(":");
-                var objectLabel = label.substr(0, ix);
-                var propertyLabel = label.substr(ix);
-                var alias;
-                var object;
-                var objectDocumentPart;
-
-                object = this._lookupObjectInScope(documentPart, objectLabel,
-                    owner);
-
-                // TODO: since the repetition has elements that are not in the
-                // document but still in the component tree we can get into
-                // this situation where we're not able to lookup the object.
-                // This is a bug in the repetition. MON-607
-                if (!object) {
-                    return;
-                }
-
-                objectDocumentPart = object._templateDocumentPart;
-                if (objectDocumentPart) {
-                    alias = objectDocumentPart.objects[propertyLabel];
-                }
-
-                if (alias instanceof Declarativ.Alias) {
-                    // Strip the @ prefix
-                    label = alias.value.substr(1);
-                    return this._resolveTemplatePropertyLabel(documentPart,
-                        label, object);
-                } else {
-                    return {
-                        label: label,
-                        owner: owner
-                    };
-                }
-            }
-        },
-
-        /**
-         * Lookup the label/owner object through the document part chain.
-         * It starts at the documentPart given and stops at the owner's
-         * document part.
-         */
-        _lookupObjectInScope: {
-            value: function(documentPart, label, owner) {
-                var object,
-                    ownerDocumentPart;
-
-                // If the label is the owner then we don't need to search for it.
-                if (label === "owner") {
-                    return owner;
-                }
-
-                ownerDocumentPart = owner._templateDocumentPart;
-
-                do {
-                    object = this._getObjectFromScope(documentPart, label, owner);
-                } while (!object && documentPart !== ownerDocumentPart &&
-                    (documentPart = /*assign*/documentPart.parentDocumentPart));
-
-                return object;
-            }
-        },
-
-        /**
-         * Get an object by label/owner in the document part given if it exists.
-         */
-        _getObjectFromScope: {
-            value: function(documentPart, label, owner) {
-                var objects = documentPart.objects;
-                var scopeOwner = objects.owner;
-                var object;
-
-                var objectMatches = function(object, objectLabel) {
-                    //jshint -W106
-                    var metadata = object._montage_metadata;
-                    //jshint +W106
-                    // Only components have label in their montage metadata.
-                    // owner objects need to keep the owner label.
-                    if (metadata && metadata.label) {
-                        objectLabel = metadata.label;
-                    }
-                    return objectLabel === label &&
-                        (object.ownerComponent || scopeOwner) === owner;
-                };
-
-                // Let's try the fast track first, this is when the object
-                // maintains the same label it got in the original declaration.
-                object = objects[label];
-                if (object && objectMatches(object, label)) {
-                    return object;
-                }
-
-                // Let's go for the slow track then, need to search all objects
-                // define in this scope to check its original label. The object
-                // might be an argument that replaced a parameter (repetition
-                // will do this).
-                for (var name in objects) {
-                    object = objects[name];
-                    if (objectMatches(object, name)) {
-                        return object;
-                    }
-                }
-
-                return null;
-            }
-        },
-
         addTemplateFragment: {
             value: function(ownerModuleId, label, argumentName, cssSelector, how, templateFragment) {
                 var montageElements = MontageElement.findAll(ownerModuleId,
@@ -367,115 +236,12 @@ Object.defineProperties(window.Declarativ, {
         },
 
         setObjectTemplate: {
-            value: function(moduleId, templateFragment) {
-                var montageObjects = MontageObject.findAll(moduleId, "owner");
+            value: function(ownerModuleId, templateFragment) {
+                var montageComponents = MontageComponent.findAll(ownerModuleId);
 
-                for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                    montageObject.setTemplate(templateFragment);
+                for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
+                    montageComponent.setTemplate(templateFragment);
                 }
-            }
-        },
-
-        /**
-         * When objects are added to a live application they need to be added to
-         * the owner's templateObjects and documentPart.
-         * Also, if components were added to a repetition's iteration then they
-         * also need to be added to the iteration's documentPart.
-         * The montageElement when given is used to update an iteration scope
-         * if the montageElement is created by an iteration.
-         */
-        _updateScope: {
-            value: function(owner, objects, montageElement) {
-                var object,
-                    ownerDocumentPart = owner._templateDocumentPart,
-                    iteration;
-
-                if (montageElement) {
-                    iteration = montageElement.iteration;
-                }
-
-                for (var key in objects) {
-                    object = objects[key];
-                    // These components were created by a repetition
-                    if (object.element && iteration) {
-                        this._updateIteration(iteration, object);
-                    }
-
-                    ownerDocumentPart.objects[key] = objects[key];
-                }
-
-                if (iteration) {
-                    this._updateIterationElements(iteration);
-                }
-
-                // TODO: Should we update the owner template objects if the
-                // scope was an iteration?
-                owner._addTemplateObjects(objects);
-            }
-        },
-
-        /**
-         * Updates all iteration related state when a new component is added to
-         * it. This includes the DocumentPart, template metadata and other
-         * internal state of the iteration.
-         */
-        _updateIteration: {
-            value: function(iteration, component) {
-                var iterationDocumentPart = iteration._templateDocumentPart;
-                var objects = iterationDocumentPart.objects;
-                var template = iterationDocumentPart.template;
-                //jshint -W106
-                var componentLabel = component._montage_metadata.label;
-                //jshint +W106
-                var label = componentLabel;
-                var repetition = iteration.repetition;
-                var element = component.element;
-
-                if (label in objects) {
-                    //jshint -W106
-                    label = component.ownerComponent._montage_metadata.moduleId +
-                        "," + label;
-                    //jshint +W106
-                }
-
-                objects[label] = component;
-                template.setObjectMetadata(label, null, componentLabel,
-                    component.ownerComponent);
-                if (repetition.element === element.parentNode) {
-                    var firstDraw = function() {
-                        component.removeEventListener("firstDraw", firstDraw, false);
-                        repetition._iterationForElement.set(component.element, iteration);
-                    };
-                    component.addEventListener("firstDraw", firstDraw, false);
-                }
-            }
-        },
-
-        _updateIterationElements: {
-            value: function(iteration) {
-                var repetition = iteration.repetition;
-                var index = iteration._drawnIndex;
-
-                // Check to see if new elements were added to the bottom
-                // boundary and move the text comment boundary if that's the
-                // case. This only happens to the bottom boundary because new
-                // elements at the start of the iteration are added with
-                // insertBefore.
-                var bottomBoundary = repetition._boundaries[index+1];
-                var nextBoundary = repetition._boundaries[index+2];
-
-                if (bottomBoundary.nextSibling != nextBoundary) {
-                    var newBoundaryNextSibling = bottomBoundary;
-                    do {
-                        newBoundaryNextSibling = newBoundaryNextSibling.nextSibling;
-                    } while (newBoundaryNextSibling != nextBoundary);
-                    bottomBoundary.parentNode.insertBefore(bottomBoundary, newBoundaryNextSibling);
-                }
-
-                repetition._iterationForElement.clear();
-                iteration.forEachElement(function (element) {
-                    repetition._iterationForElement.set(element, iteration);
-                });
             }
         },
 
@@ -641,8 +407,8 @@ Object.defineProperties(window.Declarativ, {
 
     MontageObject.prototype.defineBinding = function(path, bindingDescriptor) {
         var object = this.value;
-        var documentPart = this.documentPart;
         var owner = this.owner;
+        var scope = this.scope;
 
         if (object.getBinding(path)) {
             object.cancelBinding(path);
@@ -650,8 +416,7 @@ Object.defineProperties(window.Declarativ, {
 
         bindingDescriptor.components = {
             getObjectByLabel: function(label) {
-                return LiveEdit._getObjectForBinding(owner,
-                    documentPart, label);
+                return scope.lookupObject(label, owner);
             }
         };
         object.defineBinding(path, bindingDescriptor);
@@ -664,16 +429,27 @@ Object.defineProperties(window.Declarativ, {
     };
 
     MontageObject.prototype.addEventListener = function(type, listenerLabel, useCapture) {
-        var listener = LiveEdit._lookupObjectInScope(this.documentPart,
-            listenerLabel, this.owner);
+        var listener = this.scope.lookupObject(listenerLabel, this.owner);
         this.value.addEventListener(type, listener, useCapture);
     };
 
     MontageObject.prototype.removeEventListener = function(type, listenerLabel, useCapture) {
-        var listener = LiveEdit._lookupObjectInScope(this.documentPart,
-            listenerLabel, this.owner);
+        var listener = this.scope.lookupObject(listenerLabel, this.owner);
         this.value.removeEventListener(type, listener, useCapture);
     };
+
+    Object.defineProperties(MontageObject.prototype, {
+        _scope: {value: false, writable: true},
+        scope: {
+            get: function() {
+                if (this._scope === false) {
+                    this._scope = new MontageScope(this.documentPart);
+                }
+
+                return this._scope;
+            }
+        }
+    });
 
     MontageObject.findAll = function(ownerModuleId, label) {
         if (label === "owner") {
@@ -760,11 +536,12 @@ Object.defineProperties(window.Declarativ, {
      * template
      */
     MontageComponent.prototype.addTemplateObjects = function(template) {
+        var scope = this.scope;
         var owner = this.value;
 
         return template.instantiate(owner)
             .then(function(objects) {
-                LiveEdit._updateScope(owner, objects);
+                scope.addObjects(objects, owner);
             });
     };
 
@@ -793,7 +570,7 @@ Object.defineProperties(window.Declarativ, {
             return template.instantiate(owner, element)
                 .then(function(objects) {
                     MontageComponent._setComponentElement(objects[label], element);
-                    LiveEdit._updateScope(owner, objects, montageElement);
+                    montageElement.scope.addObjects(objects, owner);
                 });
         }
     };
@@ -820,26 +597,6 @@ Object.defineProperties(window.Declarativ, {
                 }
 
                 return this._inIteration;
-            }
-        }
-    });
-
-    Object.defineProperties(MontageComponent.prototype, {
-        _iteration: {value: false, writable: true},
-        iteration: {
-            get: function() {
-                if (this._iteration === false) {
-                    var component = this.value;
-
-                    this._iteration = null;
-                    while (component = /* assignment */ component.parentComponent) {
-                        if (component.clonesChildComponents) {
-                            this._iteration = component._findIterationContainingElement(component.element);
-                        }
-                    }
-                }
-
-                return this._iteration;
             }
         }
     });
@@ -930,7 +687,7 @@ Object.defineProperties(window.Declarativ, {
 
         return template.instantiateIntoDocument(this, how)
             .then(function(result) {
-                LiveEdit._updateScope(owner, result.objects, self);
+                self.scope.addObjects(result.objects, owner);
                 if (self.label !== "owner") {
                     self.updateLiveEditAttributes(result.firstElement,
                         result.lastElement);
@@ -1062,6 +819,19 @@ Object.defineProperties(window.Declarativ, {
         }
     });
 
+    Object.defineProperties(MontageElement.prototype, {
+        _scope: {value: false, writable: true},
+        scope: {
+            get: function() {
+                if (this._scope === false) {
+                    this._scope = new MontageScope(this.documentPart);
+                }
+
+                return this._scope;
+            }
+        }
+    });
+
     /**
      * Update the Live Edit attributes this element might have, this will happen
      * when this element gains new siblings. The new siblings might take away
@@ -1110,5 +880,248 @@ Object.defineProperties(window.Declarativ, {
                 newFringe.setAttribute(fringeAttrName, fringeAttrValue);
             }
         }
+    };
+
+    /// MONTAGE SCOPE
+    function MontageScope(documentPart) {
+        if (!documentPart) {
+            throw new Error("DocumentPart is needed");
+        }
+        this.documentPart = documentPart;
+    }
+
+    MontageScope.prototype.lookupObject = function(label, owner) {
+        var templateProperty;
+
+        if (label.indexOf(":") > 0) {
+            templateProperty = this.lookupTemplatePropertyLabel(label, owner);
+            if (!templateProperty) {
+                return;
+            }
+            label = templateProperty.label;
+            owner = templateProperty.owner;
+        }
+
+        return this._lookupObject(label, owner);
+    };
+
+    MontageScope.prototype._lookupObject = function(label, owner) {
+        var object,
+            ownerDocumentPart = owner._templateDocumentPart,
+            scope = this;
+
+        // If the label is the owner then we don't need to search for it.
+        if (label === "owner") {
+            return owner;
+        }
+
+        do {
+            object = scope.getObject(label, owner);
+        } while (!object && scope.documentPart !== ownerDocumentPart &&
+            (scope = /*assign*/scope.parentScope));
+
+        return object;
+    };
+
+    MontageScope.prototype.lookupTemplatePropertyLabel = function(label, owner) {
+        var ix = label.indexOf(":");
+        var objectLabel = label.substr(0, ix);
+        var propertyLabel = label.substr(ix);
+        var objectDocumentPart;
+        var alias;
+        var object;
+
+        object = this._lookupObject(objectLabel, owner);
+
+        // TODO: since the repetition has elements that are not in the
+        // document but still in the component tree we can get into
+        // this situation where we're not able to lookup the object.
+        // This is a bug in the repetition. MON-607
+        if (!object) {
+            return;
+        }
+
+        objectDocumentPart = object._templateDocumentPart;
+        if (objectDocumentPart) {
+            alias = objectDocumentPart.objects[propertyLabel];
+        }
+
+        if (alias instanceof Declarativ.Alias) {
+            // Strip the @ prefix
+            label = alias.value.substr(1);
+            return this.lookupTemplatePropertyLabel(label, object);
+        } else {
+            return {
+                label: label,
+                owner: owner
+            };
+        }
+    };
+
+    MontageScope.prototype.getObject = function(label, owner) {
+        var objects = this.documentPart.objects;
+        var scopeOwner = objects.owner;
+        var object;
+
+        var objectMatches = function(object, objectLabel) {
+            //jshint -W106
+            var metadata = object._montage_metadata;
+            //jshint +W106
+            // Only components have label in their montage metadata.
+            // owner objects need to keep the owner label.
+            if (metadata && metadata.label) {
+                objectLabel = metadata.label;
+            }
+            return objectLabel === label &&
+                (object.ownerComponent || scopeOwner) === owner;
+        };
+
+        // Let's try the fast track first, this is when the object
+        // maintains the same label it got in the original declaration.
+        object = objects[label];
+        if (object && objectMatches(object, label)) {
+            return object;
+        }
+
+        // Let's go for the slow track then, need to search all objects
+        // define in this scope to check its original label. The object
+        // might be an argument that replaced a parameter (repetition
+        // will do this).
+        for (var name in objects) {
+            object = objects[name];
+            if (objectMatches(object, name)) {
+                return object;
+            }
+        }
+
+        return null;
+    };
+
+    Object.defineProperties(MontageScope.prototype, {
+        _parentScope: {value: false, writable: true},
+        parentScope: {
+            get: function() {
+                if (this._parentScope === false) {
+                    this._parentScope = null;
+                    if (this.documentPart.parentDocumentPart) {
+                        this._parentScope = new MontageScope(
+                            this.documentPart.parentDocumentPart);
+                    }
+                }
+
+                return this._parentScope;
+            }
+        }
+    });
+
+    Object.defineProperties(MontageScope.prototype, {
+        _iteration: {value: false, writable: true},
+        iteration: {
+            get: function() {
+                if (this._iteration === false) {
+                    this._iteration = null;
+                    var documentPart = this.documentPart;
+                    var objects = documentPart.objects;
+                    var object;
+                    var parentDocumentPart = documentPart.parentDocumentPart;
+
+                    // If this scope has the same owner as the parent scope
+                    // then it is the scope of an iteration.
+                    if (parentDocumentPart &&
+                        objects.owner === parentDocumentPart.objects.owner) {
+                        // To find the iteration in the objects we search for
+                        // an object with the same document part that isn't the
+                        // owner.
+                        for (var name in objects) {
+                            object = objects[name];
+                            if (object._templateDocumentPart === documentPart &&
+                                name !== "owner") {
+                                this._iteration = object;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return this._iteration;
+            }
+        }
+    });
+
+    MontageScope.prototype.addObjects = function(objects, owner) {
+        var object,
+            ownerDocumentPart = owner._templateDocumentPart,
+            iteration = this.iteration;
+
+        for (var name in objects) {
+            object = objects[name];
+            // These components were created by a repetition
+            if (iteration && object.element) {
+                this._addObjectToIteration(owner, object, name);
+            }
+
+            ownerDocumentPart.objects[name] = objects[name];
+        }
+
+        if (iteration) {
+            this._updateIterationBoundaries();
+        }
+
+        // TODO: Should we update the owner template objects if the
+        // scope was an iteration? We do need to update the templateObjects.
+        owner._addTemplateObjects(objects);
+    };
+
+    MontageScope.prototype._addObjectToIteration = function(owner, object, objectLabel) {
+        var iteration = this.iteration;
+        var documentPart = this.documentPart;
+        var objects = documentPart.objects;
+        var template = documentPart.template;
+        var label = objectLabel;
+        var repetition = iteration.repetition;
+        var element = object.element;
+
+        if (label in objects) {
+            //jshint -W106
+            label = owner._montage_metadata.moduleId + "," + label;
+            //jshint +W106
+        }
+
+        objects[label] = object;
+        template.setObjectMetadata(label, null, objectLabel, owner);
+        if (element && repetition.element === element.parentNode) {
+            var firstDraw = function() {
+                object.removeEventListener("firstDraw", firstDraw, false);
+                repetition._iterationForElement.set(element, iteration);
+            };
+            object.addEventListener("firstDraw", firstDraw, false);
+        }
+    };
+
+    MontageScope.prototype._updateIterationBoundaries = function() {
+        var iteration = this.iteration;
+        var repetition = iteration.repetition;
+        var index = iteration._drawnIndex;
+
+        // Check to see if new elements were added to the bottom
+        // boundary and move the text comment boundary if that's the
+        // case. This only happens to the bottom boundary because new
+        // elements at the start of the iteration are added with
+        // insertBefore.
+        var bottomBoundary = repetition._boundaries[index+1];
+        var nextBoundary = repetition._boundaries[index+2];
+
+        if (bottomBoundary.nextSibling != nextBoundary) {
+            var newBoundaryNextSibling = bottomBoundary;
+            do {
+                newBoundaryNextSibling = newBoundaryNextSibling.nextSibling;
+            } while (newBoundaryNextSibling != nextBoundary);
+            bottomBoundary.parentNode.insertBefore(bottomBoundary, newBoundaryNextSibling);
+        }
+
+        repetition._iterationForElement.clear();
+        iteration.forEachElement(function (element) {
+            repetition._iterationForElement.set(element, iteration);
+        });
     };
 })(window.Declarativ);
