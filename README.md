@@ -26,7 +26,9 @@ Initial setup
     `/Applications/VirtualBox.app/Contents/MacOS/VBoxManage` to your `PATH`.
  3. Install Vagrant from http://www.vagrantup.com/downloads.html
  4. Run `vagrant plugin install vagrant-cachier`. This will cache apt packages
-    to speed up the initialization of the VMs
+    to speed up the initialization of the VMs.
+ 5. Run `vagrant plugin install vagrant-vbguest`. This will keep the
+    VirtualBox Guest additions up to date.
 
 Starting
 --------
@@ -39,27 +41,6 @@ production setup. This means that we should be able to avoid causing problems
 that would usually only be seen in production.
 
 You can then access the server at http://local-firefly.declarativ.net:2440/
-
-### Error mounting folders
-
-The following error occurs occasionally:
-
-```
-Failed to mount folders in Linux guest. This is usually beacuse
-the "vboxsf" file system is not available. Please verify that
-the guest additions are properly installed in the guest and
-can work properly.
-```
-
-To fix this run
-
-```
-vagrant ssh <MACHINE_NAME> -c "sudo /etc/init.d/vboxadd setup"
-vagrant halt -f <MACHINE_NAME>
-vagrant up <MACHINE_NAME>
-```
-
-The folders should now mount correctly.
 
 ### Expected warnings
 
