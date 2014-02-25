@@ -11,75 +11,14 @@
             }
         },
 
-        "undoMenuItem": {
-            "prototype": "../menu-item.reel",
+        "mainMenu": {
+            "prototype": "../menu.reel",
             "properties": {
-                "element": {"#": "undoMenuItem"}
+                "element": {"#": "mainMenu"}
             },
             "bindings": {
-                "menuItemModel": {"<-": "@owner.undoMenuItemModel"}
+                "menu": {"<-": "@owner.mainMenu"}
             }
-        },
-
-        "redoMenuItem": {
-            "prototype": "../menu-item.reel",
-            "properties": {
-                "element": {"#": "redoMenuItem"}
-            },
-            "bindings": {
-                "menuItemModel": {"<-": "@owner.redoMenuItemModel"}
-            }
-        },
-
-        "deleteMenuItem": {
-            "prototype": "../menu-item.reel",
-            "properties": {
-                "element": {"#": "deleteMenuItem"}
-            },
-            "bindings": {
-                "menuItemModel": {"<-": "@owner.deleteMenuItemModel"}
-            }
-        },
-
-        "newButton": {
-            "prototype": "matte/ui/button.reel",
-            "properties": {
-                "element": {"#": "newButton"}
-            },
-            "listeners": [
-                {"type": "action", "listener": {"@": "owner"}}
-            ]
-        },
-
-        "openButton": {
-            "prototype": "matte/ui/button.reel",
-            "properties": {
-                "element": {"#": "openButton"}
-            },
-            "listeners": [
-                {"type": "action", "listener": {"@": "owner"}}
-            ]
-        },
-
-        "saveMenuItem": {
-            "prototype": "../menu-item.reel",
-            "properties": {
-                "element": {"#": "saveMenuItem"}
-            },
-            "bindings": {
-                "menuItemModel": {"<-": "@owner.saveMenuItemModel"}
-            }
-        },
-
-        "sourceButton": {
-            "prototype": "matte/ui/button.reel",
-            "properties": {
-                "element": {"#": "sourceButton"}
-            },
-            "listeners": [{
-                "type": "action",
-                "listener": {"@": "owner"}
-            }]
         },
 
         "avatar": {
@@ -100,17 +39,6 @@
             "bindings": {
                 "value": {"<-": "@owner.user.name"}
             }
-        },
-
-        "logoutButton": {
-            "prototype": "matte/ui/button.reel",
-            "properties": {
-                "element": {"#": "logoutButton"}
-            },
-            "listeners": [{
-                "type": "action",
-                "listener": {"@": "owner"}
-            }]
         }
     }
     </script>
@@ -124,22 +52,12 @@
         </div>
         
         <div class="Toolbar-group">
-            <button data-montage-id="newButton" class="Toolbar-button" data-icon="&oplus;">New</button>
-            <button data-montage-id="openButton" class="Toolbar-button" data-icon="&#128228;">Open</button>
-            <div data-montage-id="saveMenuItem" data-icon="&#128190;"></div>
-        </div>
-        
-        <div class="Toolbar-group">
-            <div data-montage-id="undoMenuItem" data-icon="&#59154;"></div>
-            <div data-montage-id="redoMenuItem" data-icon="&#10150;"></div>
-            <div data-montage-id="deleteMenuItem" data-icon="&#10006;"></div>
+            <div data-montage-id="mainMenu"></div>
         </div>
 
         <div class="Toolbar-group">
             <span data-montage-id="username" class="Toolbar-username"></span>
             <img data-montage-id="avatar" class="Toolbar-avatar" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
-            <button data-montage-id="sourceButton" class="Toolbar-button" data-icon="&#59156;">Source</button>
-            <button data-montage-id="logoutButton" class="Toolbar-button" data-icon="&#59201;">Logout</button>
         </div>
 
     </div>

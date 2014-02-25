@@ -12,18 +12,19 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
     constructor: {
         value: function Toolbar() {
             var self = this;
-
             this.super();
 
-            this.addPathChangeListener("mainMenu", this, "handleMainMenuChange");
-            this.addPathChangeListener("environmentBridge", function(value) {
-                if (value) {
-                    value.userController.getUser()
+            this.addPathChangeListener("environmentBridge", function(bridge) {
+                if (bridge) {
+
+                    self.mainMenu = bridge.mainMenu;
+
+                    bridge.userController.getUser()
                         .then(function (user) {
                             self.user = user;
                         }).done();
 
-                    value.repositoryController.getRepositoryUrl()
+                    bridge.repositoryController.getRepositoryUrl()
                     .then(function(url) {
                         self.sourceUrl = url;
                     }).done();
@@ -40,29 +41,6 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
         value: null
     },
 
-    handleMainMenuChange: {
-        value: function (menuModel) {
-            if (menuModel) {
-                this.undoMenuItemModel = menuModel.menuItemForIdentifier("undo");
-                this.redoMenuItemModel = menuModel.menuItemForIdentifier("redo");
-                this.saveMenuItemModel = menuModel.menuItemForIdentifier("save");
-                this.deleteMenuItemModel = menuModel.menuItemForIdentifier("delete");
-            }
-        }
-    },
-
-    handleNewButtonAction: {
-        value: function (event) {
-            this.environmentBridge.openHttpUrl(window.location.origin + "/projects#new");
-        }
-    },
-
-    handleOpenButtonAction: {
-        value: function (event) {
-            this.environmentBridge.openHttpUrl(window.location.origin + "/projects");
-        }
-    },
-
     handleSourceButtonAction: {
         value: function() {
             window.open(this.sourceUrl);
@@ -76,18 +54,6 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
     },
 
     sourceUrl: {
-        value: null
-    },
-
-    undoMenuItemModel: {
-        value: null
-    },
-
-    redoMenuItemModel: {
-        value: null
-    },
-
-    deleteMenuItemModel: {
         value: null
     }
 
