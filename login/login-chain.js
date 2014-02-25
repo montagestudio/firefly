@@ -48,14 +48,14 @@ function server(options) {
     //////////////////////////////////////////////////////////////////////
     .use(checkSession)
     //////////////////////////////////////////////////////////////////////
-	.use(function (next) {
-	    return function (request) {
-	        return Q.when(next(request))
-	        .then(function (response) {
+    .use(function (next) {
+        return function (request) {
+            return Q.when(next(request))
+            .then(function (response) {
                 return RouteProject.addRouteProjectCookie(request, response);
-	        })
-	    }
-	})
+            });
+        };
+    })
     //////////////////////////////////////////////////////////////////////
     .route(function (route) {
         // Private/authenticated routes

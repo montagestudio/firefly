@@ -7,7 +7,7 @@ describe("packedSession", function () {
     beforeEach(function () {
         token = "0000000000000000";
         username = "jasmine";
-        packed = "e2840fe3c165a547fe3bf4bb18d5dd12b2bd7bcb47cdcc35d54e6422dbc40473d43e307a";
+        packed = "f413f5aa777eea9584bfae04e11f166d60d95b6d8a7d4268e894dc614c47383c93cb606e";
     });
 
     it("packs session", function () {

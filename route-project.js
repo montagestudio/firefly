@@ -3,7 +3,6 @@
  * Created by pierre on 2/12/2014.
  */
 var Env = require("./environment");
-var Q = require("q");
 
 exports = module.exports = RouteProject;
 
@@ -22,11 +21,11 @@ RouteProject.addRouteProjectCookie = function (request, response) {
     setCookies.push(cookie);
     response.headers["set-cookie"] = setCookies;
     return response;
-}
+};
 
 RouteProject.podForUsername = function (username) {
     return RouteProject.checksum(username) % Env.projectServers + 1;
-}
+};
 
 RouteProject.checksum = function (s) {
     var hash = 0,
@@ -36,10 +35,12 @@ RouteProject.checksum = function (s) {
     if (strlen === 0) {
         return hash;
     }
+    //jshint -W016
     for (i = 0; i < strlen; i++) {
         c = s.charCodeAt(i);
         hash = ((hash << 5) - hash ) + c;
         hash = hash & hash; // Convert to 32bit integer
     }
+    //jshint +W016
     return hash;
 };
