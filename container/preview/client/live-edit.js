@@ -1,4 +1,6 @@
-/*global window, montageRequire, document, XPathResult, Declarativ */
+/*global window, montageRequire, document, Declarativ */
+//jshint -W106
+//jshint -W089
 window.MONTAGE_LE_FLAG = true;
 if (typeof window.Declarativ === "undefined") {
     window.Declarativ = {};
@@ -66,6 +68,7 @@ Object.defineProperties(window.Declarativ, {
     }
 });
 
+//jshint -W030
 (function(ns) {
     var ATTR_LE_COMPONENT = "data-montage-le-component";
     var ATTR_LE_ARG = "data-montage-le-arg";
@@ -326,11 +329,14 @@ Object.defineProperties(window.Declarativ, {
 
     Template.prototype.removeComponentElementReferences = function() {
         var serialization = JSON.parse(this.serializationString);
+        var object;
 
         for (var key in serialization) {
-            var object = serialization[key];
-            if (object.properties && object.properties.element) {
-                delete object.properties.element;
+            if (serialization.hasOwnProperty(key)) {
+                object = serialization[key];
+                if (object.properties && object.properties.element) {
+                    delete object.properties.element;
+                }
             }
         }
 
@@ -479,12 +485,10 @@ Object.defineProperties(window.Declarativ, {
             }
 
             for (var i = 0; (childComponent = childComponents[i]); i++) {
-                //jshint -W106
                 if (childComponent._montage_metadata.label === label &&
                     childComponent.ownerComponent._montage_metadata.moduleId === ownerModuleId) {
                     montageObjects.push(new MontageComponent(childComponent, label));
                 }
-                //jshint +W106
                 findObjects(childComponent);
             }
         };
@@ -497,9 +501,7 @@ Object.defineProperties(window.Declarativ, {
 
     function MontageComponent(value, label) {
         this.value = value;
-        //jshint -W106
         this.label = label;
-        //jshint +W106
         this.owner = value.ownerComponent;
         if (label === "owner") {
             this.documentPart = value._templateDocumentPart;
@@ -518,11 +520,9 @@ Object.defineProperties(window.Declarativ, {
             var childComponent;
 
             for (var i = 0; (childComponent = childComponents[i]); i++) {
-                //jshint -W106
                 if (childComponent._montage_metadata.moduleId === moduleId) {
                     montageComponents.push(new MontageComponent(childComponent, "owner"));
                 }
-                //jshint +W106
                 findObjects(childComponent);
             }
         };
@@ -617,13 +617,11 @@ Object.defineProperties(window.Declarativ, {
     };
 
     MontageComponent._getComponentIteration = function(component) {
-        //jshint -W106
         while (component = /* assignment */ component.parentComponent) {
             if (component.clonesChildComponents) {
                 return component._findIterationContainingElement(component.element);
             }
         }
-        //jshint +W106
     };
 
     Object.defineProperties(MontageComponent, {
@@ -631,9 +629,7 @@ Object.defineProperties(window.Declarativ, {
         rootComponent: {
             get: function() {
                 if (!this._rootComponent) {
-                    //jshint -W106
                     this._rootComponent = montageRequire("ui/component").__root__;
-                    //jshint +W106
                 }
                 return this._rootComponent;
             }
@@ -703,10 +699,8 @@ Object.defineProperties(window.Declarativ, {
                     var element = this.value;
                     var ownerModuleId = this.ownerModuleId;
                     var matchComponent = function(component) {
-                        //jshint -W106
                         return component &&
                             component._montage_metadata.moduleId === ownerModuleId;
-                        //jshint +W106
                     };
 
                     this._owner = null;
@@ -737,7 +731,6 @@ Object.defineProperties(window.Declarativ, {
                         ownerModuleId = this.ownerModuleId,
                         iteration;
 
-                    //jshint -W106
                     // Go up the scope tree up till the owner to check if the
                     // element was created by an iteration.
                     while (component._montage_metadata.moduleId !== ownerModuleId) {
@@ -751,7 +744,6 @@ Object.defineProperties(window.Declarativ, {
                         }
                         component = component.ownerComponent;
                     }
-                    //jshint +W106
 
                     // If the element was not created by an iteration then the
                     // previous block stopped at the owner.
@@ -800,7 +792,6 @@ Object.defineProperties(window.Declarativ, {
                     var component = this.parentComponent;
 
                     this._iteration = null;
-                    //jshint -W106
                     while (component._montage_metadata.moduleId !== ownerModuleId) {
                         if (component.clonesChildComponents) {
                             this._iteration = component._findIterationContainingElement(this.value);
@@ -811,7 +802,6 @@ Object.defineProperties(window.Declarativ, {
                         }
                         component = component.ownerComponent;
                     }
-                    //jshint +W106
                 }
 
                 return this._iteration;
@@ -841,10 +831,8 @@ Object.defineProperties(window.Declarativ, {
      */
     MontageElement.prototype.updateLiveEditAttributes = function(siblingFirstElement, siblingLastElement) {
         var element = this.value;
-        //jshint -W106
         var leArgRangeValue = this.owner._montage_metadata.moduleId + "," +
             this.label;
-        //jshint +W106
         var nextSibling = siblingLastElement.nextElementSibling;
         var previousSibling = siblingFirstElement.previousElementSibling;
 
@@ -964,9 +952,7 @@ Object.defineProperties(window.Declarativ, {
         var object;
 
         var objectMatches = function(object, objectLabel) {
-            //jshint -W106
             var metadata = object._montage_metadata;
-            //jshint +W106
             // Only components have label in their montage metadata.
             // owner objects need to keep the owner label.
             if (metadata && metadata.label) {
@@ -1082,9 +1068,7 @@ Object.defineProperties(window.Declarativ, {
         var element = object.element;
 
         if (label in objects) {
-            //jshint -W106
             label = owner._montage_metadata.moduleId + "," + label;
-            //jshint +W106
         }
 
         objects[label] = object;
@@ -1111,6 +1095,7 @@ Object.defineProperties(window.Declarativ, {
         var bottomBoundary = repetition._boundaries[index+1];
         var nextBoundary = repetition._boundaries[index+2];
 
+        //jshint -W116
         if (bottomBoundary.nextSibling != nextBoundary) {
             var newBoundaryNextSibling = bottomBoundary;
             do {
@@ -1118,6 +1103,7 @@ Object.defineProperties(window.Declarativ, {
             } while (newBoundaryNextSibling != nextBoundary);
             bottomBoundary.parentNode.insertBefore(bottomBoundary, newBoundaryNextSibling);
         }
+        //jshint +W116
 
         repetition._iterationForElement.clear();
         iteration.forEachElement(function (element) {
@@ -1125,3 +1111,6 @@ Object.defineProperties(window.Declarativ, {
         });
     };
 })(window.Declarativ);
+//jshint +W030
+//jshint +W106
+//jshint +W089

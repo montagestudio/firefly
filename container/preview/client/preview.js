@@ -1,5 +1,5 @@
 /*jshint browser:true */
-/*global Declarativ */
+/*global Declarativ, console */
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
@@ -43,6 +43,7 @@
             return;
         }
 
+        //jshint -W074
         dataProcessingPromise = dataProcessingPromise.then(function() {
             if (DEBUG_SPEED) {
                 startTime = window.performance.now();
@@ -110,6 +111,7 @@
         }).fail(function(reason) {
             console.log("fail: ", reason);
         });
+        //jshint +W074
 
         if (DEBUG_SPEED) {
             dataProcessingPromise = dataProcessingPromise.then(function() {
