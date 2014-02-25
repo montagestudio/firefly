@@ -1,7 +1,7 @@
 /*global window, montageRequire, document, Declarativ */
 //jshint -W106
 //jshint -W089
-window.MONTAGE_LE_FLAG = true;
+Object.defineProperty(window, "_montage_le_flag", { value: true });
 if (typeof window.Declarativ === "undefined") {
     window.Declarativ = {};
 }
