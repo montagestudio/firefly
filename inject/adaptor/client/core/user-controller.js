@@ -1,7 +1,7 @@
 var Montage = require("montage").Montage;
-var github = require("./github");
+    github = require("./github");
 
-var UserController = Montage.specialize({
+exports.UserController = Montage.specialize({
     constructor: {
         value: function UserController() {
             this.super();
@@ -9,24 +9,49 @@ var UserController = Montage.specialize({
     },
 
     init: {
-        value: function() {
+        value: function () {
+            return this;
+        }
+    },
+
+    _user: {
+        value: null
+    },
+
+    user: {
+        get: function () {
+            if (!this._user) {
+                this.getUser().done();
+            }
+
+            return this._user;
+        }
+    },
+
+    getUser: {
+        value: function () {
+
             var self = this;
 
             return github.githubApi()
-            .then(function(githubApi) {
-                return githubApi.getUser();
-            })
-            .then(function(user) {
-                self.name = user.name || user.login;
-                self.login = user.login;
-                //jshint -W106
-                self.avatarUrl = user.avatar_url;
-                self.url = user.html_url;
-                //jshint +W106
-                return self;
-            });
+                .then(function(githubApi) {
+                    return githubApi.getUser();
+                })
+                .then(function(record) {
+                    var user = Object.create(null);
+                    user.name = record.name || record.login;
+                    user.login = record.login;
+                    //jshint -W106
+                    user.avatarUrl = record.avatar_url;
+                    user.url = record.html_url;
+                    //jshint +W106
+
+                    self.dispatchBeforeOwnPropertyChange("user", self._user);
+                    self._user = user;
+                    self.dispatchOwnPropertyChange("user", self._user);
+
+                    return user;
+                });
         }
     }
 });
-
-exports.userController = new UserController().init();

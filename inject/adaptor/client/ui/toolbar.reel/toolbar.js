@@ -4,7 +4,6 @@
  * @requires montage/ui/component
  */
 var Component = require("montage/ui/component").Component;
-var userController = require("adaptor/client/core/user-controller").userController;
 /**
  * @class Toolbar
  * @extends Component
@@ -17,11 +16,13 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
             this.super();
 
             this.addPathChangeListener("mainMenu", this, "handleMainMenuChange");
-            userController.then(function(userController) {
-                self.userController = userController;
-            });
             this.addPathChangeListener("environmentBridge", function(value) {
                 if (value) {
+                    value.userController.getUser()
+                        .then(function (user) {
+                            self.user = user;
+                        }).done();
+
                     value.repositoryController.getRepositoryUrl()
                     .then(function(url) {
                         self.sourceUrl = url;
@@ -32,6 +33,10 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
     },
 
     mainMenu: {
+        value: null
+    },
+
+    user: {
         value: null
     },
 
@@ -84,9 +89,6 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
 
     deleteMenuItemModel: {
         value: null
-    },
-
-    userController: {
-        value: null
     }
+
 });
