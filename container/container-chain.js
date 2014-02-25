@@ -11,6 +11,7 @@ var api = require("./api");
 var Preview = require("./preview/preview-server").Preview;
 var WebSocket = require("faye-websocket");
 var websocket = require("./websocket");
+var Frontend = require("./frontend");
 
 module.exports = server;
 function server(options) {
@@ -40,7 +41,7 @@ function server(options) {
     })
     .use(LogStackTraces(log))
     .tap(setupProjectWorkspace)
-    .route(function (route) {
+    .route(function (route, _, __, POST) {
         var fs = require("q-io/fs");
 
         var serveProject = preview(function (request) {
@@ -62,6 +63,19 @@ function server(options) {
 
         route("static/...")
         .app(serveProject);
+
+        POST("notice")
+        .app(function (request) {
+            return request.body.read()
+            .then(function (body) {
+                var message = JSON.parse(body.toString());
+                Frontend.showNotification(message)
+                .catch(function (error) {
+                    log("*Error notifying", error.stack);
+                });
+                return {status: 200, body: []};
+            });
+        });
     });
 
     var services = {};
