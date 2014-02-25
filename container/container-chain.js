@@ -42,11 +42,11 @@ function server(options) {
     .use(LogStackTraces(log))
     .tap(setupProjectWorkspace)
     .route(function (route, _, __, POST) {
-        var fs = require("q-io/fs");
-
         var serveProject = preview(function (request) {
-            // Strip leading slash on pathInfo so that the `join` works
-            var path = fs.join("/workspace", request.pathInfo.replace(/^\//, ""));
+            // Aboslute the path so that ".." components are removed, then
+            // strip leading slash on pathInfo so that the `join` works
+            var path = fs.absolute(request.pathInfo).replace(/^\//, "");
+            path = fs.join("/workspace", path);
 
             return fs.isFile(path).then(function(isFile) {
                 if (isFile) {
