@@ -31,18 +31,24 @@ exports.hasAccess = function (url, session) {
             return session.githubUser.then(function (githubUser) {
                 var details = environment.getDetailsfromProjectUrl(url);
                 // The user doesn't need to have explicit access to its own previews.
-                return githubUser && githubUser.login.toLowerCase() === details.owner;
-            });
-        } else if (session.previewAccess) {
-            // No reason to give a random user access to the preview if the owner
-            // doesn't have it open in the tool.
-            var previewAccess = session.previewAccess;
-            return previewAccess && previewAccess.indexOf(url) >= 0;
-        }
+                var access = githubUser && githubUser.login.toLowerCase() === details.owner;
 
-        return false;
+                return access || has3rdPartyAccess(url, session);
+            });
+        } else {
+            return has3rdPartyAccess(url, session);
+        }
     });
 };
+
+function has3rdPartyAccess(url, session) {
+    if (session.previewAccess) {
+        var previewAccess = session.previewAccess;
+        return previewAccess && previewAccess.indexOf(url) >= 0;
+    } else {
+        return false;
+    }
+}
 
 exports.serveAccessForm = function (request) {
     return clientFs.then(function(fs) {
