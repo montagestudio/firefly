@@ -64,4 +64,12 @@ describe("SetupProjectContainer", function () {
         .then(done, done);
     });
 
+    it("returns false if there's no container and no github access token or username are given", function (done) {
+        setupProjectContainer("user", "owner", "repo")
+        .then(function (port) {
+            expect(port).toBe(false);
+        })
+        .then(done, done);
+    });
+
 });

@@ -23,6 +23,11 @@ function SetupProjectContainer(docker, containers, _request) {
 
         var containerKey = {user: user, owner: owner, repo: repo};
 
+        var info = containers.get(containerKey);
+        if (!info && (!githubAccessToken || !githubUser)) {
+            return Q(false);
+        }
+
         return getOrCreateContainer(containerKey, user, owner, repo, githubAccessToken, githubUser)
         .then(startContainer)
         .then(waitForServer)
