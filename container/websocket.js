@@ -3,12 +3,13 @@ var log = require("logging").from(__filename);
 
 var Q = require("q");
 var URL = require("url");
+var uuid = require("uuid");
 var FS = require("q-io/fs");
 var WebSocket = require("faye-websocket");
 var adaptWebsocket = require("./adapt-websocket");
 var Connection = require("q-connection");
 // FIXME docker
-// var Frontend = require("./frontend");
+var Frontend = require("./frontend");
 
 var websocketConnections = 0;
 
@@ -30,7 +31,7 @@ function websocket(config, services, clientPath) {
         // FIXME docker use passed in config
         var path = "/workspace";
 
-        frontendId = config.githubUser + "/" + config.owner + "/" + config.repo;
+        frontendId = uuid.v4();
 
         log("Limiting", remoteAddress, pathname, "to", path);
         var connectionServices = FS.reroot(path)
@@ -48,7 +49,7 @@ function websocket(config, services, clientPath) {
         frontend = Connection(wsQueue, connectionServices);
         connectionServices.then(function() {
             // FIXME docker
-            // return Frontend.addFrontend(frontendId, frontend);
+            return Frontend.addFrontend(frontendId, frontend);
         })
         .done();
 
@@ -59,7 +60,7 @@ function websocket(config, services, clientPath) {
                 }
             });
             // FIXME docker
-            // Frontend.deleteFrontend(frontendId).done();
+            Frontend.deleteFrontend(frontendId).done();
             log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
     };
