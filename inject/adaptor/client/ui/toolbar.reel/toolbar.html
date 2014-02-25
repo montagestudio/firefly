@@ -11,16 +11,6 @@
             }
         },
 
-        "mainMenu": {
-            "prototype": "../menu.reel",
-            "properties": {
-                "element": {"#": "mainMenu"}
-            },
-            "bindings": {
-                "menu": {"<-": "@owner.mainMenu"}
-            }
-        },
-
         "avatar": {
             "prototype": "matte/ui/image.reel",
             "properties": {
@@ -50,9 +40,9 @@
             <img src="../../../../assets/img/logo-toolbar.svg" class="Toolbar-logo">
             <span class="Toolbar-name">Builder</span>
         </div>
-        
+
         <div class="Toolbar-group">
-            <div data-montage-id="mainMenu"></div>
+            <div data-param="*"></div>
         </div>
 
         <div class="Toolbar-group">
