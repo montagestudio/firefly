@@ -131,7 +131,7 @@ Object.defineProperties(window.Declarativ, {
                     // inside a repetition.
                     object = montageElement.owner._templateDocumentPart.objects[label];
                     if (propertyName === "element" && object.childComponents) {
-                        montageComponent = new MontageComponent(object);
+                        montageComponent = new MontageComponent(object, label);
                         promises.push(
                             montageComponent.setElement(montageElement)
                         );
@@ -159,8 +159,8 @@ Object.defineProperties(window.Declarativ, {
                 montageObjects = MontageObject.findAll(ownerModuleId, label);
 
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                    object = this._lookupObjectInScope(montageObject.documentPart,
-                        objectLabel, montageObject.owner);
+                    object = montageObject.scope.lookupObject(objectLabel,
+                        montageObject.owner);
                     montageObject.value[propertyName] = object;
                 }
             }
@@ -706,7 +706,7 @@ Object.defineProperties(window.Declarativ, {
                 //jshint -W106
                 if (childComponent._montage_metadata.label === label &&
                     childComponent.ownerComponent._montage_metadata.moduleId === ownerModuleId) {
-                    montageObjects.push(new MontageComponent(childComponent));
+                    montageObjects.push(new MontageComponent(childComponent, label));
                 }
                 //jshint +W106
                 findObjects(childComponent);
@@ -719,13 +719,17 @@ Object.defineProperties(window.Declarativ, {
 
     /// MONTAGE COMPONENT
 
-    function MontageComponent(value) {
+    function MontageComponent(value, label) {
         this.value = value;
         //jshint -W106
-        this.label = value._montage_metadata.label;
+        this.label = label;
         //jshint +W106
         this.owner = value.ownerComponent;
-        this.documentPart = value._ownerDocumentPart;
+        if (label === "owner") {
+            this.documentPart = value._templateDocumentPart;
+        } else {
+            this.documentPart = value._ownerDocumentPart;
+        }
     }
 
     MontageComponent.prototype = Object.create(MontageObject.prototype);
@@ -740,7 +744,7 @@ Object.defineProperties(window.Declarativ, {
             for (var i = 0; (childComponent = childComponents[i]); i++) {
                 //jshint -W106
                 if (childComponent._montage_metadata.moduleId === moduleId) {
-                    montageComponents.push(new MontageComponent(childComponent));
+                    montageComponents.push(new MontageComponent(childComponent, "owner"));
                 }
                 //jshint +W106
                 findObjects(childComponent);
