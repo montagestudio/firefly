@@ -84,6 +84,8 @@ Vagrant.configure('2') do |config|
         lb.vm.provision :shell, inline: "sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg"
         lb.vm.provision :shell, inline: "sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg"
 
+        lb.vm.provision :shell, inline: "cp -R /vagrant/deploy/files/errors/* /etc/haproxy/errors"
+
         # Start
         # HAProxy uses rsyslog. It needs to be restarted to pick up the
         # configuration change
