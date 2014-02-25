@@ -19,10 +19,6 @@ exports.unregisterConnection = function(ws) {
     }
 };
 
-exports.getPreviewAccessCode = function () {
-    return preview.accessCode;
-};
-
 // For testing
 exports._getPreview = function () {
     return preview;

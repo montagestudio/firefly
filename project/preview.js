@@ -6,10 +6,6 @@ var Q = require("q");
 var HttpApps = require("q-io/http-apps/fs");
 var querystring = require("querystring");
 
-exports.serveAccessForm = servePreviewAccessForm;
-exports.serveNoPreviewPage = serveNoPreviewPage;
-exports.processAccessRequest = processAccessRequest;
-
 var CLIENT_ROOT = FS.join(__dirname, "preview");
 var clientFs = FS.reroot(CLIENT_ROOT);
 
@@ -45,13 +41,13 @@ exports.hasAccess = function (url, session) {
     });
 };
 
-function servePreviewAccessForm(request) {
+exports.serveAccessForm = function (request) {
     return clientFs.then(function(fs) {
         return HttpApps.file(request, "access.html", null, fs);
     });
-}
+};
 
-function serveNoPreviewPage(request) {
+exports.serveNoPreviewPage = function (request) {
     return clientFs.then(function(fs) {
         return HttpApps.file(request, "no-preview.html", null, fs)
         .then(function (response) {
@@ -59,9 +55,9 @@ function serveNoPreviewPage(request) {
             return response;
         });
     });
-}
+};
 
-function processAccessRequest(request) {
+exports.processAccessRequest = function (request) {
     // Get code from the body data
     return request.body.read()
     .then(function(body) {
