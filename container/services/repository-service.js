@@ -1,6 +1,7 @@
 var Q = require("q");
 var Queue = require("q/queue");
 var Git = require("../git");
+var log = require("logging").from(__filename);
 
 module.exports = exports = RepositoryService;
 
@@ -27,11 +28,47 @@ function exclusive(method) {
 
 function RepositoryService(session, fs, environment, pathname, fsPath) {
     // Returned service
-    var service = {};
-    var _git = new Git(fs, session.githubAccessToken);
+    var service = {},
+        _git = new Git(fs, session.githubAccessToken),
+        _repositoryUrl = null;
+
     service.listBranches = exclusive(function() {
         return this._listBranches(true);
     });
+
+    service.checkoutShadowBranch = exclusive(function(branch) {
+        return this._checkoutShadowBranch(branch);
+    });
+
+
+    service._getRepositoryUrl = function() {
+        var self = this;
+
+        if (_repositoryUrl) {
+            return Q.resolve(_repositoryUrl);
+        } else {
+            return _git.command(fsPath, "remote", ["-v"], true)
+            .then(function(output) {
+                output.split(/\r?\n/).some(function(line){
+                    if (line.length) {
+                        var parsedLine = line.match(/([^\s]+)[\s]+([^\s]*)[\s]*\(([^)]+)\)/);
+                        if (parsedLine.length === 4) {
+                            var remote = parsedLine[1],
+                                url = parsedLine[2],
+                                mode = parsedLine[3];
+
+                            if (remote === self.REMOTE_REPOSITORY_NAME && mode === "push") {
+                                _repositoryUrl = url;
+                                return true;
+                            }
+                        }
+                    }
+                });
+
+                return _repositoryUrl;
+            });
+        }
+    };
 
     service._branchLineParser = function(line, result) {
         /*
@@ -131,6 +168,119 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         });
     };
 
+
+    service._checkoutShadowBranch = function(branch) {
+        var self = this,
+            branchesInfo;
+
+        // Validate arguments
+        branch = branch || "master";
+        if (typeof branch !== "string") {
+            return Q.fail("Invalid checkoutWorkingBranch argument.");
+        }
+
+        return self._listBranches(true)
+        .then(function(result) {
+            var next;
+
+            branchesInfo = result;
+
+            // Checkout the branch if needed
+            if (branchesInfo.current !== branch) {
+                if (!branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch]) {
+                    // we do not have a local branch, make sure it exit remotely
+                    if (!branchesInfo.branches[REMOTE_REPOSITORY_NAME][branch]) {
+                        throw new Error("Unknown branch " + branch);
+                    }
+                }
+                next = _git.checkout(fsPath, branch)    // will create the local branch and track the remote one if needed
+                .then(function() {
+                    return self._listBranches(false);
+                })
+                .then(function(result) {
+                    branchesInfo = result;
+                });
+            } else {
+                next = Q();
+            }
+            return next;
+        })
+        .then(function() {
+            // Make sure we have a shadow branch
+            return self._createShadowBranch(branchesInfo).then(function(remoteModified) {
+                if (remoteModified || !branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].shadow) {
+                    // we need to refresh the branchesInfo
+                    return self._listBranches(remoteModified)
+                    .then(function(result) {
+                        branchesInfo = result;
+                    });
+                }
+            });
+        })
+        .then(function() {
+            // Checkout the shadow branch if needed
+            if (!(branchesInfo.current === branch && branchesInfo.currentIsShadow)) {
+                return _git.checkout(fsPath, SHADOW_BRANCH_PREFIX + branch);
+            }
+        });
+    };
+
+    service._createShadowBranch = function(branchesInfo) {
+        var self = this,
+            next;
+
+        if (branchesInfo) {
+            next = Q();
+        } else {
+            next = this._listBranches(true)
+            .then(function(result) {
+                branchesInfo = result;
+            });
+        }
+        return next
+        .then(function() {
+            var currentBranch = branchesInfo.current,
+                local = branchesInfo.branches[LOCAL_REPOSITORY_NAME][currentBranch],
+                remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME][currentBranch],
+                next,
+                remoteModified = false;
+
+            if (!local || !remote) {
+                throw new Error("Missing local or remote " + currentBranch + " branch");
+            }
+
+            if (local.shadow) {
+                if (!remote.shadow) {
+                    // Remote shadow branch missing, let's push it
+                    next = self._getRepositoryUrl()
+                    .then(function(repoUrl) {
+                        remoteModified = true;
+                        return _git.push(fsPath, repoUrl, SHADOW_BRANCH_PREFIX + currentBranch, ["-u"]);
+                    });
+                } else {
+                    next = Q();
+                }
+            } else if (remote.shadow) {
+                // Create a local branch that track the remote shadow branch
+                next = _git.branch(fsPath, ["--track", SHADOW_BRANCH_PREFIX + currentBranch, remote.shadow.name]);
+            } else {
+                // Create a shadow branch both locally and remotely
+                next = _git.branch(fsPath, ["--no-track", SHADOW_BRANCH_PREFIX + currentBranch, remote.name])
+                .then(function() {
+                    remoteModified = true;
+                    return self._getRepositoryUrl()
+                    .then(function(repoUrl) {
+                        return _git.push(fsPath, repoUrl, SHADOW_BRANCH_PREFIX + currentBranch, ["-u"]);
+                    });
+                });
+            }
+
+            return next
+            .then(function() {
+                return remoteModified;
+            });
+        });
+    };
     Object.defineProperties(service, {
         LOCAL_REPOSITORY_NAME: {
             get: function() {
