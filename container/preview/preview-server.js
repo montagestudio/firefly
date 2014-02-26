@@ -5,7 +5,6 @@ var FS = require("q-io/fs");
 var URL = require("url");
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
-// FIXME docker
 var WebSocket = require("faye-websocket");
 var preview = require("../services/preview-service");
 
@@ -111,8 +110,6 @@ function startWsServer(config) {
         var pathname = URL.parse(request.url).pathname;
         var remoteAddress = socket.remoteAddress;
 
-        // = config.githubUser + "/" + config.owner + "/" + config.repo;
-        // FIXME docker move this up out into the project chain/server
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
         preview.registerConnection(ws);

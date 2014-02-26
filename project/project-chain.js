@@ -3,9 +3,6 @@ var Q = require("q");
 var joey = require("joey");
 var HTTP = require("q-io/http");
 var APPS = require("q-io/http-apps");
-// FIXME docker
-// var PreviewServer = require("./preview/preview-server");
-// var checkPreviewAccess = require("./preview/check-preview-access");
 var environment = require("../environment");
 
 var LogStackTraces = require("../log-stack-traces");
@@ -93,7 +90,7 @@ function server(options) {
                         });
                     } else {
                         setupProjectContainer(
-                            details.owner, // FIXME
+                            details.owner, // FIXME docker
                             details.owner,
                             details.repo
                         )

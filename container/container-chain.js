@@ -97,7 +97,6 @@ function server(options) {
                 return;
             }
 
-            // FIXME docker preview server
             if (request.headers['sec-websocket-protocol'] === "firefly-preview") {
                 return preview.wsServer(request, socket, head);
             } else {
