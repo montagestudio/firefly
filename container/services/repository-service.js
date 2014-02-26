@@ -29,6 +29,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
     var _git = new Git(fs, session.githubAccessToken);
+    service.listBranches = exclusive(function() {
+        return this._listBranches(true);
+    });
 
     service._branchLineParser = function(line, result) {
         /*
@@ -59,10 +62,12 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                 if (lastPos !== -1) {
                     branchName = fullPath.substring(lastPos + 1);
                     repoName = fullPath.substring(firstPos + 1, lastPos);
+                    fullPath = fullPath.substring(firstPos + 1);
                 } else {
                     branchName = fullPath;
                     repoName = LOCAL_REPOSITORY_NAME;
                 }
+
                 // Checking for a shadow branch
                 if (branchName.indexOf(SHADOW_BRANCH_PREFIX) === 0) {
                     shadowBranch = true;
@@ -99,8 +104,17 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         }
     };
 
-    service.listBranches = function() {
-        return _git.fetch(fsPath).then(function() {
+    service._listBranches = function(fetch) {
+        var next;
+
+        if (fetch === false) {
+            next = Q();
+        } else {
+            next = _git.fetch(fsPath, this.REMOTE_REPOSITORY_NAME, ["--prune"]);
+        }
+
+        return next
+        .then(function() {
             return _git.branch(fsPath, ["-a", "-v", "--no-abbrev"]).then(function(output) {
                 var result = {
                     current:null,

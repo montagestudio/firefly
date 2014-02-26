@@ -65,7 +65,7 @@ describe("repository-service", function () {
                         expect(typeof master).toBe("object");
                         expect(typeof master.sha).toBe("string");
                         expect(typeof master.shadow).toBe("object");
-                        expect(master.shadow.name).toBe("remotes/" + service.REMOTE_REPOSITORY_NAME + "/" + service.SHADOW_BRANCH_PREFIX + "master");
+                        expect(master.shadow.name).toBe(service.REMOTE_REPOSITORY_NAME + "/" + service.SHADOW_BRANCH_PREFIX + "master");
                         expect(typeof master.shadow.sha).toBe("string");
                     })
                     .then(done, done);
@@ -124,7 +124,7 @@ describe("repository-service", function () {
                     expect(typeof result.branches.fork).toBe("object");
 
                     var branch = result.branches.fork["markdown-editor"];
-                    expect(branch.name).toBe("remotes/fork/markdown-editor");
+                    expect(branch.name).toBe("fork/markdown-editor");
                     expect(typeof branch.sha).toBe("string");
                     expect(branch.shadow).toBeNull();
                     done();
