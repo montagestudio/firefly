@@ -2,7 +2,7 @@ var log = require("logging").from(__filename);
 var crypto = require("./crypto")();
 var GithubApi = require("./inject/adaptor/client/core/github-api");
 
-var RouteProject = require("./route-project");
+var routeProject = require("./route-project");
 
 var packedSession =  {
     _GithubApi: GithubApi
@@ -14,7 +14,7 @@ packedSession.pack = function(session) {
     if (!session.githubAccessToken || !session.username) {
         return "";
     }
-    var podNumber = (session.podNumber ? session.podNumber : RouteProject.podForUsername(session.username));
+    var podNumber = (session.podNumber ? session.podNumber : routeProject.podForUsername(session.username));
     return crypto.encryptData(session.githubAccessToken + "/" + session.username + "/" + podNumber);
 };
 
@@ -34,7 +34,7 @@ packedSession.unpack = function(sessionID, session) {
             session.sessionId = sessionID;
             session.username = username;
             session.githubAccessToken = githubAccessToken;
-            session.podNumber = (podNumber ? podNumber : RouteProject.podForUsername(username));
+            session.podNumber = (podNumber ? podNumber : routeProject.podForUsername(username));
 
             var github = new this._GithubApi(githubAccessToken);
             session.githubUser = github.getUser()

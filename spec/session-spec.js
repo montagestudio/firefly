@@ -1,6 +1,6 @@
 var packedSession = require("../packed-session");
 var MockGithubApi = require("./mocks/github-api");
-var RouteProject = require("../route-project");
+var routeProject = require("../route-project");
 
 describe("packedSession", function () {
     var token, username, packed;
@@ -46,13 +46,12 @@ describe("routeProject", function () {
     ];
 
     //jshint -W083
-    for (var i = 0; i < users.length; i++) {
-        var user = users[i];
+    users.forEach(function (user) {
         it("calculated the pod for " + user.name + " to be " + user.pod, function () {
-            var pod = RouteProject.podForUsername(user.name);
+            var pod = routeProject.podForUsername(user.name);
             expect(pod).toBe(user.pod);
         });
-    }
+    });
     //jshint +W083
 
 });

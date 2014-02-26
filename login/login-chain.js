@@ -7,7 +7,7 @@ var serveFile = require("../serve-file");
 var parseCookies = require("../parse-cookies");
 var GithubAuth = require("../auth/github");
 var checkSession = require("../check-session");
-var RouteProject = require("../route-project");
+var routeProject = require("../route-project");
 var LogStackTraces = require("../log-stack-traces");
 
 module.exports = server;
@@ -52,7 +52,7 @@ function server(options) {
         return function (request) {
             return Q.when(next(request))
             .then(function (response) {
-                return RouteProject.addRouteProjectCookie(request, response);
+                return routeProject.addrouteProjectCookie(request, response);
             });
         };
     })

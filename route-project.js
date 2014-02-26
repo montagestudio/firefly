@@ -4,13 +4,13 @@
  */
 var Env = require("./environment");
 
-exports = module.exports = RouteProject;
-
-function RouteProject() {
+var routeProject = {
     // Empty
-}
+};
 
-RouteProject.addRouteProjectCookie = function (request, response) {
+exports = module.exports = routeProject;
+
+routeProject.addrouteProjectCookie = function (request, response) {
     var setCookies = response.headers["set-cookie"];
     if (!setCookies) {
         setCookies = [];
@@ -18,7 +18,7 @@ RouteProject.addRouteProjectCookie = function (request, response) {
         setCookies = [setCookies];
     }
     if (!request.session.podNumber) {
-        request.session.podNumber = RouteProject.podForUsername(request.session.username);
+        request.session.podNumber = routeProject.podForUsername(request.session.username);
     }
     var cookie = "project=P" + request.session.podNumber + "; Path=/;";
     setCookies.push(cookie);
@@ -26,11 +26,11 @@ RouteProject.addRouteProjectCookie = function (request, response) {
     return response;
 };
 
-RouteProject.podForUsername = function (username) {
-    return RouteProject.checksum(username) % Env.projectServers + 1;
+routeProject.podForUsername = function (username) {
+    return routeProject.checksum(username) % Env.projectServers + 1;
 };
 
-RouteProject.checksum = function (s) {
+routeProject.checksum = function (s) {
     var hash = 0,
         strlen = (s ? s.length : 0),
         i,
