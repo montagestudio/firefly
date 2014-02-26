@@ -652,7 +652,6 @@ exports.EnvironmentBridge = Montage.specialize({
 
     checkoutShadowBranch: {
         value: function (branch) {
-            console.log("checkoutShadowBranch", this.backend.get("repository-service"))
             return this.backend.get("repository-service").invoke("checkoutShadowBranch", branch);
         }
     },
@@ -660,6 +659,12 @@ exports.EnvironmentBridge = Montage.specialize({
     commitFiles: {
         value: function (files, message, conflictResolution) {
             return this.backend.get("repository-service").invoke("commitFiles", files, message, conflictResolution);
+        }
+    },
+
+    updateRepositoryReferences: {
+        value: function () {
+            return this.backend.get("repository-service").invoke("updateRefs");
         }
     }
 });

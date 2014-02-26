@@ -62,7 +62,7 @@ Git.prototype.branch = function(repoPath, option) {
 
 Git.prototype.status = function(repoPath, options) {
     log("status " + options);
-    return this.command(repoPath, "status", options, true)
+    return this.command(repoPath, "status", options, true);
 };
 
 Git.prototype.add = function(repoPath, paths) {
@@ -159,7 +159,7 @@ Git.prototype._addAccessToken = function (url) {
 Git.prototype.command = function(repoPath, command, options, shouldReturnOutput) {
     var args = [command];
     if (options !== undefined) {
-        args = args.concat(options)
+        args = args.concat(options);
     }
     return exec("git", args, repoPath, shouldReturnOutput)
     .fail(function() {
