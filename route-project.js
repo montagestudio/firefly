@@ -17,7 +17,10 @@ RouteProject.addRouteProjectCookie = function (request, response) {
     } else if (!Array.isArray(setCookies)) {
         setCookies = [setCookies];
     }
-    var cookie = "project=P" + RouteProject.podForUsername(request.session.username) + "; Path=/;";
+    if (!request.session.podNumber) {
+        request.session.podNumber = RouteProject.podForUsername(request.session.username);
+    }
+    var cookie = "project=P" + request.session.podNumber + "; Path=/;";
     setCookies.push(cookie);
     response.headers["set-cookie"] = setCookies;
     return response;
