@@ -1,3 +1,5 @@
+var Q = require("q");
+var Queue = require("q/queue");
 var Git = require("../git");
 
 module.exports = exports = RepositoryService;
@@ -6,6 +8,22 @@ var LOCAL_REPOSITORY_NAME = "__local__";
 var REMOTE_REPOSITORY_NAME = "origin";
 var SHADOW_BRANCH_PREFIX = "__mb__";
 
+
+var semaphore = new Queue();
+semaphore.put(); // once for one job at a time
+
+// Wrap any function with exclusive to make sure it want execute before all pending exclusive methods are done
+function exclusive(method) {
+    return function wrapped() {
+        var self = this, args = Array.prototype.slice.call(arguments);
+        return semaphore.get()
+        .then(function () {
+            return method.apply(self, args);
+        }).finally(function() {
+            semaphore.put();
+        });
+    };
+}
 
 function RepositoryService(session, fs, environment, pathname, fsPath) {
     // Returned service
