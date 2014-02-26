@@ -54,13 +54,14 @@ function main(options) {
     }
 
     var fs = options.fs || FS;
+    var minitPath = fs.join(__dirname, "..", "node_modules", "minit", "minit");
 
     var containerChain = containerChainFactory({
         fs: fs,
         config: config,
         client: options.filament,
         clientServices: options.clientServices,
-        setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, null)
+        setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, minitPath)
     });
     return containerChain.listen(options.port)
     .then(function (server) {
