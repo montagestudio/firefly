@@ -374,9 +374,15 @@ Contributing
   a VM to run the tests. If you get the error `VM must be running to open SSH
   connection` then run `npm start` and try again.
 
-  Note: there is a dummy spec called `_disable-logging-spec.js` (the `_` prefix
+  Note: there is a dummy spec called `_config-spec.js` (the `_` prefix
   causes it to be run first), that hides the logging while running the tests.
-  If you need to see the logs then comment out the lines in it.
+  If you need to see the logs then comment out the lines in it. It also adds
+  the `SlowSpecReporter`...
+
+- If a spec takes more than 100ms then it is a "slow" spec and a message
+  telling you this will be logged. Make it faster, or wrap the `it` in an
+  `if (process.env.runSlowSpecs)` block. Run `npm run slow-tests` to run the
+  slow tests.
 
 - Make sure all commit messages follow the 50 character subject/72 character
 body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
