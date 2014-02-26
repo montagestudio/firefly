@@ -15,7 +15,7 @@ module.exports = function (config) {
                 log("init handleEndpoint");
                 initializingPromise = request.projectWorkspace.initializeWorkspace();
                 initializingPromise.catch(function (error) {
-                    log("*Error initializing*", error);
+                    log("*Error initializing*", error, error.stack);
                 });
             }, function() {
                 return {message: "initializing"};
