@@ -54,7 +54,7 @@ function server(options) {
                     .then(function(session) {
                         if (session) {
                             request.session = session;
-                            return routeProject.addrouteProjectCookie(request, APPS.ok());
+                            return routeProject.addRouteProjectCookie(request, APPS.ok());
                         } else {
                             return APPS.badRequest();
                         }

@@ -52,7 +52,7 @@ function server(options) {
         return function (request) {
             return Q.when(next(request))
             .then(function (response) {
-                return routeProject.addrouteProjectCookie(request, response);
+                return routeProject.addRouteProjectCookie(request, response);
             });
         };
     })

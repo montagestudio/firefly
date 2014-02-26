@@ -10,7 +10,7 @@ var routeProject = {
 
 exports = module.exports = routeProject;
 
-routeProject.addrouteProjectCookie = function (request, response) {
+routeProject.addRouteProjectCookie = function (request, response) {
     var setCookies = response.headers["set-cookie"];
     if (!setCookies) {
         setCookies = [];
