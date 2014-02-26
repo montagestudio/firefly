@@ -40,6 +40,136 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         return this._checkoutShadowBranch(branch);
     });
 
+    service.commitFiles = exclusive(function(files, message, conflictResolution) {
+        var self = this,
+            branchesInfo = null,
+            current,
+            repositoryUrl;
+
+        // Validate arguments
+        if (typeof files === "string" && files.length !== 0) {
+            files = [files];
+        }
+        if (!Array.isArray(files)) {
+            return Q.fail("Invalid saveFiles argument.");
+        }
+
+        return self._listBranches(true)     // Will cause to do a git fetch
+        .then(function(result) {
+            branchesInfo = result;
+            current = branchesInfo.current;
+            if (branchesInfo.currentIsShadow) {
+                current = SHADOW_BRANCH_PREFIX + current;
+            }
+        })
+        .then(function() {
+            // stage the files
+            return _git.add(fsPath, files);
+        })
+        .then(function() {
+            // make sure we have staged files before committing
+            return self._hasUncommittedChanges()
+            .then(function(hasUncommittedChanges) {
+                if (hasUncommittedChanges) {
+                    return _git.commit(fsPath, message || "Update component");
+                }
+            });
+        })
+        .then(function() {
+            // push the commits if we have some
+            return self._branchStatus(current, REMOTE_REPOSITORY_NAME + "/" + current)
+            .then(function(branchtatus) {
+                if (branchtatus.ahead > 0 ) {
+                    return self._getRepositoryUrl()
+                    .then(function(repoUrl) {
+                        repositoryUrl = repoUrl;        // Cache the repository url for later use now that we have it
+                        return _git.push(fsPath, repositoryUrl, current).then(function() {
+                            return true;
+                        }, function(error) {
+                            log("push failed", error.message);
+                            return false;
+                        });
+                    });
+                } else {
+                    return true;
+                }
+            });
+        })
+        .then(function(pushSuccessfulOrNothingDone) {
+            if (pushSuccessfulOrNothingDone) {
+                return {
+                    success: true
+                };
+            } else {
+                if (conflictResolution === "discard") {
+                    /*
+                        Resolve conflict by discarding local changes
+                     */
+                    var branch = branchesInfo.branches[REMOTE_REPOSITORY_NAME][branchesInfo.current],
+                        sha;
+
+                    if (branch) {
+                        if (branchesInfo.currentIsShadow) {
+                            if (branch.shadow) {
+                                sha = branch.shadow.sha;
+                            }
+                        } else {
+                            sha = branch.sha;
+                        }
+                    }
+                    if (!sha) {
+                        throw new Error("Cannot discard local changes, invalid SHA");
+                    }
+                    return _git.command(fsPath, "reset", ["--hard", sha])
+                    .then(function() {
+                        return {
+                            success: true
+                        };
+                    });
+                } else if (conflictResolution === "force") {
+                    /*
+                        Resolve conflict by forcing the local changes
+                     */
+                    return _git.push(fsPath, repositoryUrl, current, "--force").then(function() {
+                        return {
+                            success: true
+                        };
+                    }, function(error) {
+                        log("Forced push failed:", error.message);
+                        throw new Error("Forced push failed: " + error.message);
+                    });
+                } else {
+                    // By default, let's try to rebase it
+                    return _git.command(fsPath, "rebase", [REMOTE_REPOSITORY_NAME + "/" + current, current]).then(function() {
+                        // Rebase was successfull, let push it again
+                        return _git.push(fsPath, repositoryUrl, current).then(function() {
+                            return {
+                                success: true
+                            };
+                        }, function(error) {
+                            log("Push after rebase failed:", error.message);
+                            throw new Error("Push after rebase failed: " + error.message);
+                        });
+                    }, function() {
+                        // Rebase failed
+                        return _git.command(fsPath, "rebase", ["--abort"])
+                        .then(function() {
+                            return self._branchStatus(current, REMOTE_REPOSITORY_NAME + "/" + current);
+                        })
+                        .then(function(status) {
+                            return {
+                                success: false,
+                                ahead: status.ahead,
+                                behind: status.behind,
+                                conflictResolution: ["discard", "force"]
+                            };
+                        });
+                    });
+                }
+            }
+        });
+    });
+
 
     service._getRepositoryUrl = function() {
         var self = this;
@@ -222,6 +352,53 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
             if (!(branchesInfo.current === branch && branchesInfo.currentIsShadow)) {
                 return _git.checkout(fsPath, SHADOW_BRANCH_PREFIX + branch);
             }
+        });
+    };
+
+    service._branchStatus = function(localBranch, remoteBranch) {
+        return Q.spread([
+            _git.command(fsPath, "rev-list", [localBranch + ".." + remoteBranch, "--count"], true),
+            _git.command(fsPath, "rev-list", [remoteBranch + ".." + localBranch, "--count"], true)
+        ], function(behind, ahead) {
+            return {
+                behind: parseInt(behind, 10),
+                ahead: parseInt(ahead, 10)
+            };
+        });
+    };
+
+    service._status = function() {
+        return _git.status(fsPath, ["--porcelain"])
+        .then(function(output) {
+            var result = [];
+
+            output.split(/\r?\n/).forEach(function(line){
+                if (line.length) {
+                    var parsedLine = line.match(/([ MADRCU?!])([ MADRCU?!]) (.*)/);
+                    if (parsedLine.length === 4 && parsedLine[0] === line) {
+                        result.push({
+                            path: parsedLine[3],
+                            src: parsedLine[1] === " " ? "" : parsedLine[1],
+                            dest: parsedLine[2] === " " ? "" : parsedLine[2]
+                        });
+                    }
+                }
+            });
+            return result;
+        });
+    };
+
+    service._hasUncommittedChanges = function() {
+        return this._status()
+        .then(function(result) {
+            var uncommittedChanges = false;
+            result.some(function(item) {
+                if (item.dest !== "?" && item.dest !== "!") {
+                    uncommittedChanges = true;
+                    return true;
+                }
+            });
+            return uncommittedChanges;
         });
     };
 
