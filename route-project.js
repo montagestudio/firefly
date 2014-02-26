@@ -42,5 +42,5 @@ RouteProject.checksum = function (s) {
         hash = hash & hash; // Convert to 32bit integer
     }
     //jshint +W016
-    return hash;
+    return (hash > 0 ? hash : -hash);
 };
