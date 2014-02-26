@@ -71,7 +71,7 @@ function PreviewService() {
         sendToPreviewClients("setObjectProperties:" + JSON.stringify(params));
     };
 
-    service.setObjectProperty = function(url, ownerModuleId, label, propertyName, propertyValue, propertyType) {
+    service.setObjectProperty = function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
         var params = {
             ownerModuleId: ownerModuleId,
             label: label,
@@ -82,7 +82,7 @@ function PreviewService() {
         sendToPreviewClients("setObjectProperty:" + JSON.stringify(params));
     };
 
-    service.setObjectBinding = function(url, ownerModuleId, label, binding) {
+    service.setObjectBinding = function(ownerModuleId, label, binding) {
         var params = {
             ownerModuleId: ownerModuleId,
             label: label,
@@ -91,7 +91,7 @@ function PreviewService() {
         sendToPreviewClients("setObjectBinding:" + JSON.stringify(params));
     };
 
-    service.deleteObjectBinding = function(url, ownerModuleId, label, path) {
+    service.deleteObjectBinding = function(ownerModuleId, label, path) {
         var params = {
             ownerModuleId: ownerModuleId,
             label: label,
@@ -100,7 +100,7 @@ function PreviewService() {
         sendToPreviewClients("deleteObjectBinding:" + JSON.stringify(params));
     };
 
-    service.addTemplateFragment = function(url, moduleId, label, argumentName, cssSelector, how, templateFragment) {
+    service.addTemplateFragment = function(moduleId, label, argumentName, cssSelector, how, templateFragment) {
         var params = {
             moduleId: moduleId,
             label: label,
@@ -112,7 +112,7 @@ function PreviewService() {
         sendToPreviewClients("addTemplateFragment:" + JSON.stringify(params));
     };
 
-    service.addTemplateFragmentObjects = function(url, moduleId, templateFragment) {
+    service.addTemplateFragmentObjects = function(moduleId, templateFragment) {
         var params = {
             moduleId: moduleId,
             templateFragment: templateFragment
@@ -120,7 +120,7 @@ function PreviewService() {
         sendToPreviewClients("addTemplateFragmentObjects:" + JSON.stringify(params));
     };
 
-    service.setElementAttribute = function(url, moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+    service.setElementAttribute = function(moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
         var params = {
             moduleId: moduleId,
             label: label,
@@ -132,7 +132,7 @@ function PreviewService() {
         sendToPreviewClients("setElementAttribute:" + JSON.stringify(params));
     };
 
-    service.setObjectTemplate = function(url, moduleId, templateFragment) {
+    service.setObjectTemplate = function(moduleId, templateFragment) {
         var params = {
             moduleId: moduleId,
             templateFragment: templateFragment
@@ -140,7 +140,7 @@ function PreviewService() {
         sendToPreviewClients("setObjectTemplate:" + JSON.stringify(params));
     };
 
-    service.addObjectEventListener = function(url, moduleId, label, type, listenerLabel, useCapture) {
+    service.addObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
         var params = {
             moduleId: moduleId,
             label: label,
@@ -151,7 +151,7 @@ function PreviewService() {
         sendToPreviewClients("addObjectEventListener:" + JSON.stringify(params));
     };
 
-    service.removeObjectEventListener = function(url, moduleId, label, type, listenerLabel, useCapture) {
+    service.removeObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
         var params = {
             moduleId: moduleId,
             label: label,
