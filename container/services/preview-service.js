@@ -71,6 +71,97 @@ function PreviewService() {
         sendToPreviewClients("setObjectProperties:" + JSON.stringify(params));
     };
 
+    service.setObjectProperty = function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
+        var params = {
+            ownerModuleId: ownerModuleId,
+            label: label,
+            propertyName: propertyName,
+            propertyValue: propertyValue,
+            propertyType: propertyType
+        };
+        sendToPreviewClients("setObjectProperty:" + JSON.stringify(params));
+    };
+
+    service.setObjectBinding = function(ownerModuleId, label, binding) {
+        var params = {
+            ownerModuleId: ownerModuleId,
+            label: label,
+            binding: binding
+        };
+        sendToPreviewClients("setObjectBinding:" + JSON.stringify(params));
+    };
+
+    service.deleteObjectBinding = function(ownerModuleId, label, path) {
+        var params = {
+            ownerModuleId: ownerModuleId,
+            label: label,
+            path: path
+        };
+        sendToPreviewClients("deleteObjectBinding:" + JSON.stringify(params));
+    };
+
+    service.addTemplateFragment = function(moduleId, label, argumentName, cssSelector, how, templateFragment) {
+        var params = {
+            moduleId: moduleId,
+            label: label,
+            argumentName: argumentName,
+            cssSelector: cssSelector,
+            how: how,
+            templateFragment: templateFragment
+        };
+        sendToPreviewClients("addTemplateFragment:" + JSON.stringify(params));
+    };
+
+    service.addTemplateFragmentObjects = function(moduleId, templateFragment) {
+        var params = {
+            moduleId: moduleId,
+            templateFragment: templateFragment
+        };
+        sendToPreviewClients("addTemplateFragmentObjects:" + JSON.stringify(params));
+    };
+
+    service.setElementAttribute = function(moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+        var params = {
+            moduleId: moduleId,
+            label: label,
+            argumentName: argumentName,
+            cssSelector: cssSelector,
+            attributeName: attributeName,
+            attributeValue: attributeValue
+        };
+        sendToPreviewClients("setElementAttribute:" + JSON.stringify(params));
+    };
+
+    service.setObjectTemplate = function(moduleId, templateFragment) {
+        var params = {
+            moduleId: moduleId,
+            templateFragment: templateFragment
+        };
+        sendToPreviewClients("setObjectTemplate:" + JSON.stringify(params));
+    };
+
+    service.addObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
+        var params = {
+            moduleId: moduleId,
+            label: label,
+            type: type,
+            listenerLabel: listenerLabel,
+            useCapture: useCapture
+        };
+        sendToPreviewClients("addObjectEventListener:" + JSON.stringify(params));
+    };
+
+    service.removeObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
+        var params = {
+            moduleId: moduleId,
+            label: label,
+            type: type,
+            listenerLabel: listenerLabel,
+            useCapture: useCapture
+        };
+        sendToPreviewClients("removeObjectEventListener:" + JSON.stringify(params));
+    };
+
     service.close = function(request) {
         this.unregister();
     };

@@ -311,6 +311,60 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    setPreviewObjectProperty: {
+        value: function(previewId, ownerModuleId, label, propertyName, propertyValue, propertyType) {
+            return this.backend.get("preview-service").invoke("setObjectProperty", ownerModuleId, label, propertyName, propertyValue, propertyType);
+        }
+    },
+
+    setPreviewObjectBinding: {
+        value: function(previewId, ownerModuleId, label, binding) {
+            return this.backend.get("preview-service").invoke("setObjectBinding", ownerModuleId, label, binding);
+        }
+    },
+
+    deletePreviewObjectBinding: {
+        value: function(previewId, ownerModuleId, label, path) {
+            return this.backend.get("preview-service").invoke("deleteObjectBinding", ownerModuleId, label, path);
+        }
+    },
+
+    addTemplateFragment: {
+        value: function(previewId, moduleId, label, argumentName, cssSelector, how, templateFragment) {
+            return this.backend.get("preview-service").invoke("addTemplateFragment", moduleId, label, argumentName,cssSelector, how, templateFragment);
+        }
+    },
+
+    addTemplateFragmentObjects: {
+        value: function(previewId, moduleId, templateFragment) {
+            return this.backend.get("preview-service").invoke("addTemplateFragmentObjects", moduleId, templateFragment);
+        }
+    },
+
+    setPreviewElementAttribute: {
+        value: function(previewId, moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+            return this.backend.get("preview-service").invoke("setElementAttribute", moduleId, label, argumentName,cssSelector, attributeName, attributeValue);
+        }
+    },
+
+    setPreviewObjectTemplate: {
+        value: function(previewId, moduleId, templateFragment) {
+            return this.backend.get("preview-service").invoke("setObjectTemplate", moduleId, templateFragment);
+        }
+    },
+
+    addPreviewObjectEventListener: {
+        value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
+            return this.backend.get("preview-service").invoke("addObjectEventListener", moduleId, label, type, listenerLabel, useCapture);
+        }
+    },
+
+    removePreviewObjectEventListener: {
+        value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
+            return this.backend.get("preview-service").invoke("removeObjectEventListener", moduleId, label, type, listenerLabel, useCapture);
+        }
+    },
+
     setDocumentDirtyState: {
         value: function () {
         }
