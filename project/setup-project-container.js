@@ -100,20 +100,21 @@ function SetupProjectContainer(docker, containers, _request) {
 
         return container.inspect()
         .then(function (containerInfo) {
-            if (!containerInfo.State.Running) {
+            if (containerInfo.State.Running) {
+                return containerInfo;
+            } else if (!info.started) {
                 log("Starting container", container.id);
                 var options = {};
                 options.PortBindings = {};
                 // only bind to the local IP
                 options.PortBindings[IMAGE_PORT_TCP] = [{HostIp: "127.0.0.1"}];
 
-                return container.start(options)
+                info.started = container.start(options)
                 .then(function () {
                     return container.inspect();
                 });
-            } else {
-                return containerInfo;
             }
+            return info.started;
         })
         .then(getExposedPort);
     }
