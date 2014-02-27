@@ -56,7 +56,7 @@ function server(options) {
                             request.session = session;
                             return routeProject.addRouteProjectCookie(request, APPS.ok());
                         } else {
-                            return APPS.badRequest();
+                            return APPS.badRequest(request);
                         }
                     });
                 });
