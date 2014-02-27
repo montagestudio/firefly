@@ -25,6 +25,8 @@ function Env(options) {
 
     log("project", JSON.stringify(env.project));
 
+    env.projectServers = process.env.FIREFLY_PROJECT_SERVER_COUNT || 4;
+
     env.configure = function (fs, clonePath) {
         this.fs = fs;
         this.clonePath = fs.absolute(clonePath);
