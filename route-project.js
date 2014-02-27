@@ -27,7 +27,7 @@ routeProject.addRouteProjectCookie = function (request, response) {
 };
 
 routeProject.podForUsername = function (username) {
-    return routeProject.checksum(username) % Env.projectServers + 1;
+    return routeProject.checksum(username.toLowerCase()) % Env.projectServers + 1;
 };
 
 routeProject.checksum = function (s) {
