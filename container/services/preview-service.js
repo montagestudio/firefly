@@ -19,10 +19,6 @@ exports.unregisterConnection = function(ws) {
     }
 };
 
-exports.getPreviewAccessCode = function () {
-    return preview.accessCode;
-};
-
 // For testing
 exports._getPreview = function () {
     return preview;
@@ -41,10 +37,7 @@ function PreviewService() {
 
     service.register = function() {
         log("register new preview");
-        preview = {
-            accessCode: generateAccessCode()
-        };
-        log("access code: ", preview.accessCode);
+        preview = {};
     };
 
     service.unregister = function() {
@@ -173,25 +166,6 @@ function PreviewService() {
                 preview.connections[i].send(content);
             }
         }
-    }
-
-    var accessCodeTable = [];
-    //jshint -W004
-    for (var i = 0; i < 26; i++) {
-        accessCodeTable.push(String.fromCharCode(97+i));
-    }
-    //jshint +W004
-
-    function generateAccessCode() {
-        // FIXME: This is easy to defeat.
-        var code = [];
-
-        for (var i = 0; i < 8; i++) {
-            var ix = Math.floor(Math.random() * accessCodeTable.length);
-            code.push(accessCodeTable[ix]);
-        }
-
-        return code.join("");
     }
 
     return service;

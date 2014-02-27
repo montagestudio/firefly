@@ -4,28 +4,30 @@ var WebSocket = require("faye-websocket");
 module.exports = ProxyWebsocket;
 function ProxyWebsocket(setupProjectContainer, sessions, protocol) {
     return function (request, socket, body, details) {
-        return sessions.getSession(request, function (session) {
-            request.session = session;
-
-            request.params = request.params || {};
-            request.params.owner = details.owner;
-            request.params.repo = details.repo;
-
-            return setupProjectContainer(function (request) {
-                // create server
-                var wsServer = new WebSocket(request, socket, body);
-                // create client
-                log("create wsClient", "ws://127.0.0.1:" + request.projectWorkspacePort + request.url);
-                var wsClient = new WebSocket.Client("ws://127.0.0.1:" + request.projectWorkspacePort + request.url, [protocol]);
-                wsClient.on("close", function (event) {
-                    wsServer.close(event.code, event.reason);
-                });
-                wsServer.on("close", function (event) {
-                    wsClient.close(event.code, event.reason);
-                });
-                // pipe
-                wsServer.pipe(wsClient).pipe(wsServer);
-            })(request);
+        return setupProjectContainer(
+            details.owner, // FIXME
+            details.owner,
+            details.repo
+        )
+        .then(function (projectWorkspacePort) {
+            if (!projectWorkspacePort) {
+                socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+                socket.destroy();
+                return;
+            }
+            // create server
+            var wsServer = new WebSocket(request, socket, body);
+            // create client
+            log("create wsClient", "ws://127.0.0.1:" + projectWorkspacePort + request.url);
+            var wsClient = new WebSocket.Client("ws://127.0.0.1:" + projectWorkspacePort + request.url, [protocol]);
+            wsClient.on("close", function (event) {
+                wsServer.close(event.code, event.reason);
+            });
+            wsServer.on("close", function (event) {
+                wsClient.close(event.code, event.reason);
+            });
+            // pipe
+            wsServer.pipe(wsClient).pipe(wsServer);
         });
     };
 }

@@ -1,3 +1,5 @@
+var Q = require("q");
+
 exports = module.exports = Session;
 function Session(sessions) {
     var result = function (app) {
@@ -12,7 +14,7 @@ function Session(sessions) {
     };
 
     result.get = function (id) {
-        return sessions[id];
+        return Q(sessions[id]);
     };
 
     result.getKey = function() {

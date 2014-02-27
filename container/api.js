@@ -140,10 +140,10 @@ function handleEndpoint(config, request, endpointCallback, successCallback) {
 
         return JsonApps.json(createMessage(successMessage));
     })
-    .fail(function(reason) {
-        log("*handleEndpoint fail*", reason);
+    .fail(function(error) {
+        log("*handleEndpoint fail*", error.stack);
         return JsonApps.json(createMessage({
-            error: reason.message
+            error: error.message
         }));
     });
 }

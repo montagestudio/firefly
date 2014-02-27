@@ -13,18 +13,6 @@ describe("preview-service", function () {
     }
 
     describe("service", function() {
-        it("should create an access code when registering a new preview", function() {
-            service.register();
-
-            expect(PreviewService._getPreview().accessCode).toBeDefined();
-        });
-
-        it("should unregister a preview", function () {
-            service.register();
-
-            service.unregister();
-            expect(PreviewService._getPreview().accessCode).not.toBeDefined();
-        });
 
         it("should unregister a preview and close all its connections", function () {
             var url = environment.project.hostname;
@@ -101,14 +89,5 @@ describe("preview-service", function () {
 
             expect(PreviewService._getPreview().connections.length).toBe(0);
         });
-    });
-
-    it("should get the preview access code", function() {
-        var accessCode;
-
-        PreviewService._getPreview().accessCode = "leCode";
-        accessCode = PreviewService.getPreviewAccessCode();
-
-        expect(accessCode).toBe("leCode");
     });
 });

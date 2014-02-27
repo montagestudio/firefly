@@ -13,32 +13,28 @@ function SetupProjectContainer(docker, containers, _request) {
     // TODO configure
     var IMAGE_NAME = "firefly_project";
     var IMAGE_PORT = "2441";
+    // Needed by the Docker configuration
     var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
 
-    return function (next) {
-        return function (request, response) {
-            var session = request.session;
-            var user = session.username.toLowerCase();
-            var owner = request.params.owner.toLowerCase();
-            var repo = request.params.repo.toLowerCase();
-            var githubAccessToken = session.githubAccessToken;
+    return function (user, owner, repo, githubAccessToken, githubUser) {
+        user = user.toLowerCase();
+        owner = owner.toLowerCase();
+        repo = repo.toLowerCase();
 
-            var containerKey = {user: user, owner: owner, repo: repo};
+        var containerKey = {user: user, owner: owner, repo: repo};
 
-            return session.githubUser.then(function (githubUser) {
-                return getOrCreateContainer(containerKey, user, owner, repo, githubAccessToken, githubUser);
-            })
-            .then(startContainer)
-            .then(waitForServer)
-            .then(function (port) {
-                request.projectWorkspacePort = port;
-                return next(request, response);
-            })
-            .catch(function (error) {
-                containers.delete(containerKey);
-                throw error;
-            });
-        };
+        var info = containers.get(containerKey);
+        if (!info && (!githubAccessToken || !githubUser)) {
+            return Q(false);
+        }
+
+        return getOrCreateContainer(containerKey, user, owner, repo, githubAccessToken, githubUser)
+        .then(startContainer)
+        .then(waitForServer)
+        .catch(function (error) {
+            containers.delete(containerKey);
+            throw error;
+        });
     };
 
     /**
