@@ -45,13 +45,11 @@ describe("routeProject", function () {
         {name: "Chloé", pod: 2}
     ];
 
-    //jshint -W083
     users.forEach(function (user) {
         it("calculated the pod for " + user.name + " to be " + user.pod, function () {
             var pod = routeProject.podForUsername(user.name);
             expect(pod).toBe(user.pod);
         });
     });
-    //jshint +W083
 
 });
