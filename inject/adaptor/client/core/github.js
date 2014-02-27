@@ -28,7 +28,7 @@ exports.githubApi = function() {
 
 function AuthToken() {
     var pendingTimeout;
-    var timeout = 500;
+    var timeout = 5000;
     var response = Promise.defer();
     var request = new XMLHttpRequest();
     request.open("GET", "/auth/github/token", true);
