@@ -32,9 +32,6 @@ var commandOptions = {
 module.exports = main;
 function main(options) {
     var sessions = Session("session", SESSION_SECRET, null, new GithubSessionStore());
-    var fs = options.fs || FS;
-
-    Env.configure(fs);
 
     var docker  = new Docker({socketPath: "/var/run/docker.sock"});
     if (!Env.production) {

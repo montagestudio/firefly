@@ -27,11 +27,6 @@ function Env(options) {
 
     env.projectServers = process.env.FIREFLY_PROJECT_SERVER_COUNT || 4;
 
-    env.configure = function (fs, clonePath) {
-        this.fs = fs;
-        this.clonePath = fs.absolute(clonePath);
-    };
-
     env.getAppHost = function() {
         return getHost(this.app.hostname, this.app.port);
     };
@@ -89,36 +84,6 @@ function Env(options) {
         var urlObj = Object.create(this.project);
         urlObj.hostname = details.owner + "-" + details.repo + "." + urlObj.hostname;
         return URL.format(urlObj);
-    };
-    env.getProjectPathFromSessionAndAppUrl = function (session, url) {
-        if (!this.fs || !this.clonePath) {
-            throw new Error("Environment must be configured before using this function");
-        }
-        var details = this.getDetailsFromAppUrl(url);
-
-        return this.fs.join(this.clonePath, session.username, details.owner, details.repo);
-    };
-    env.getProjectPathFromSessionAndProjectUrl = function (session, url) {
-        if (!this.fs || !this.clonePath) {
-            throw new Error("Environment must be configured before using this function");
-        }
-        var details = this.getDetailsfromProjectUrl(url);
-
-        return this.fs.join(this.clonePath, session.username, details.owner, details.repo);
-    };
-
-    /**
-     * Assumes that the username is the same as the owner.
-     * This is temporary while we build support for accessing repos that are not
-     * forked to the user github.
-     */
-    env.getProjectPathFromProjectUrl = function (url) {
-        if (!this.fs || !this.clonePath) {
-            throw new Error("Environment must be configured before using this function");
-        }
-        var details = this.getDetailsfromProjectUrl(url);
-
-        return this.fs.join(this.clonePath, details.owner, details.owner, details.repo);
     };
 
     env.getProjectHost = function() {
