@@ -20,6 +20,7 @@ describe("container chain", function () {
                 request.projectWorkspace = projectWorkspace;
             },
             config: config,
+            workspacePath: "/workspace",
             fs: MockFs({
                 "bad.html": "fail",
                 "client": {},

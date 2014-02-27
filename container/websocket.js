@@ -13,7 +13,7 @@ var Frontend = require("./frontend");
 var websocketConnections = 0;
 
 module.exports = websocket;
-function websocket(config, services, clientPath) {
+function websocket(config, workspacePath, services, clientPath) {
     log("Websocket given services", Object.keys(services));
 
     return function (request, socket, body) {
@@ -27,15 +27,12 @@ function websocket(config, services, clientPath) {
 
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
-        // FIXME docker use passed in config
-        var path = "/workspace";
-
         frontendId = uuid.v4();
 
-        log("Limiting", remoteAddress, pathname, "to", path);
-        var connectionServices = FS.reroot(path)
+        log("Limiting", remoteAddress, pathname, "to", workspacePath);
+        var connectionServices = FS.reroot(workspacePath)
         .then(function (fs) {
-            return makeServices(services, config, fs, Env, pathname, path, clientPath);
+            return makeServices(services, config, fs, Env, pathname, workspacePath, clientPath);
         });
 
         // Throw errors if they happen in establishing services

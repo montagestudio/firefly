@@ -22,6 +22,8 @@ function server(options) {
     var setupProjectWorkspace = options.setupProjectWorkspace;
     if (!options.config) throw new Error("options.config required");
     var config = options.config;
+    if (!options.workspacePath) throw new Error("options.workspacePath required");
+    var workspacePath = options.workspacePath;
     if (!options.fs) throw new Error("options.fs required");
     var fs = options.fs;
     if (!options.client) throw new Error("options.client required");
@@ -46,7 +48,7 @@ function server(options) {
             // Aboslute the path so that ".." components are removed, then
             // strip leading slash on pathInfo so that the `join` works
             var path = fs.absolute(request.pathInfo).replace(/^\//, "");
-            path = fs.join("/workspace", path);
+            path = fs.join(workspacePath, path);
 
             return fs.isFile(path).then(function(isFile) {
                 if (isFile) {
@@ -89,7 +91,7 @@ function server(options) {
     services["package-manager-service"] = require("./services/package-manager-service");
     services["repository-service"] = require("./services/repository-service");
 
-    var websocketServer = websocket(config, services, clientPath);
+    var websocketServer = websocket(config, workspacePath, services, clientPath);
 
     chain.upgrade = function (request, socket, head) {
         Q.try(function () {

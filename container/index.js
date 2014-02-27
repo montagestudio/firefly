@@ -59,6 +59,7 @@ function main(options) {
     var containerChain = containerChainFactory({
         fs: fs,
         config: config,
+        workspacePath: options.directory,
         client: options.filament,
         clientServices: options.clientServices,
         setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, minitPath)
