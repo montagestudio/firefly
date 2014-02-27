@@ -15,11 +15,6 @@ var containerIndex = require("./project/make-container-index")("/srv/container-i
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
 var commandOptions = {
-    "directory": {
-        alias: "d",
-        describe: "The directory to clone and serve projects from",
-        default: "../clone"
-    },
     "port": {
         alias: "p",
         describe: "The port to run the app server on",
@@ -39,11 +34,11 @@ function main(options) {
     var sessions = Session("session", SESSION_SECRET, null, new GithubSessionStore());
     var fs = options.fs || FS;
 
-    Env.configure(fs, fs.absolute(options.directory));
+    Env.configure(fs);
 
     var docker  = new Docker({socketPath: "/var/run/docker.sock"});
     if (!Env.production) {
-        docker = mountVolume(docker, options["mount-workspaces"]);
+        docker = mountVolume(docker, options["mount-workspaces"], "/home/montage/workspace");
     }
 
     var projectChain = projectChainFactory({
@@ -89,14 +84,14 @@ function main(options) {
  * @param  {Docker} docker
  * @return {Docker}        The patched docker object
  */
-function mountVolume(docker, shouldMountWorkspaces) {
+function mountVolume(docker, shouldMountWorkspaces, workspacePath) {
     var originalCreateContainer = docker.createContainer;
     docker.createContainer = function (options) {
         // Create the volume on the container base image
         options.Volumes = {"/srv/firefly": {}, "/srv/filament": {}};
         if (shouldMountWorkspaces) {
             log("Mounting container workspace");
-            options.Volumes["/workspace"] = {};
+            options.Volumes[workspacePath] = {};
         }
         return originalCreateContainer.call(this, options);
     };
@@ -113,7 +108,7 @@ function mountVolume(docker, shouldMountWorkspaces) {
 
         if (shouldMountWorkspaces) {
             var hostPath = FS.join("/srv/workspaces", this.id);
-            options.Binds.push(hostPath + ":/workspace:rw");
+            options.Binds.push(hostPath + ":" + workspacePath + ":rw");
             var self = this;
             return FS.makeTree(hostPath)
             .then(function () {
