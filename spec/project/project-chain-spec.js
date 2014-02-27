@@ -11,7 +11,7 @@ describe("project chain", function () {
     beforeEach(function () {
         token = "0000000000000000";
         username = "jasmine";
-        packed = "e2840fe3c165a547fe3bf4bb18d5dd12b2bd7bcb47cdcc35d54e6422dbc40473d43e307a";
+        packed = "7975a23812090216eb5ded40c6c9031cc8c4ebc78291c128a0bcbf614a9e807aa6331aa0";
 
         sessions = {};
 
@@ -38,7 +38,7 @@ describe("project chain", function () {
             }).end();
         });
 
-        it("echos cookie", function (done) {
+        it("echos session cookie", function (done) {
             request({
                 method: "POST",
                 url: "http://127.0.0.1:2440/session",
@@ -48,7 +48,7 @@ describe("project chain", function () {
                 body: ['{"sessionId":"' + packed + '"}']
             })
             .then(function (response) {
-                var setCookie = response.headers["set-cookie"][0];
+                var setCookie = response.headers["set-cookie"][1];
                 expect(setCookie).toContain(packed);
                 expect(response.status).toEqual(200);
             }).then(done, done);
