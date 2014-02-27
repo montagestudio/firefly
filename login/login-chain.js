@@ -24,6 +24,8 @@ function server(options) {
     var sessions = options.sessions;
     //jshint +W116
 
+    var safeOrigin = " http://*." + env.project.hostname + ":* https://*." + env.project.hostname + ":*";
+
     return joey
     .error()
     // Put here to avoid printing logs when HAProxy pings the server for
@@ -37,7 +39,26 @@ function server(options) {
     .parseQuery()
     .tap(parseCookies)
     .use(sessions)
-    .route(function (route) {
+    .headers({
+        "Content-Security-Policy": [
+            "default-src 'self'" + safeOrigin,
+            "script-src 'self' 'unsafe-eval'" + safeOrigin,
+            "connect-src 'self' https://api.github.com ws://" + env.app.hostname + ":* wss://" + env.app.hostname + ":*" + safeOrigin,
+            "img-src 'self' data: https://*.githubusercontent.com" + safeOrigin,
+            "style-src 'self' 'unsafe-inline'" + safeOrigin,
+            "report-uri /csp_report"
+            // These are covered by the default-src
+            // "font-src 'self'" + safeOrigin,
+            // "frame-src 'self'" + safeOrigin,
+            // "object-src 'self'" + safeOrigin,
+        ].join(";"),
+        "X-Frame-Options": "DENY",
+        // Disabled for the moment, because I don't want to accidentally lock
+        // us in to HTTPS in development, or until we've put HTTPS in
+        // production through its paces a bit more.
+        // "Strict-Transport-Security": "max-age=2592000" // 30*24*60*60 second = 30 days
+    })
+    .route(function (route, GET, PUT, POST) {
         // Public routes only
 
         var serveLogin = serveFile(fs.join(client, "login", "index.html"), "text/html", fs)();
@@ -49,6 +70,14 @@ function server(options) {
 
         route("auth/...").route(function (route) {
             route("github/...").route(GithubAuth);
+        });
+
+        POST("csp_report").app(function (request) {
+            request.body.read()
+            .then(function (body) {
+                log("*CSP report*", body.toString("utf8"));
+            });
+            return {status: 200, body: []};
         });
     })
     //////////////////////////////////////////////////////////////////////
