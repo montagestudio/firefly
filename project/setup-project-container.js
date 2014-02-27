@@ -32,6 +32,7 @@ function SetupProjectContainer(docker, containers, _request) {
         .then(startContainer)
         .then(waitForServer)
         .catch(function (error) {
+            log("Removing container for", JSON.stringify(containerKey), "because", error.message);
             containers.delete(containerKey);
             throw error;
         });
@@ -79,7 +80,6 @@ function SetupProjectContainer(docker, containers, _request) {
         } else if (info.created && info.created.then) {
             return info.created;
         } else {
-            log("Existing container for", user, owner, repo, "is", info.id);
             return Q(info);
         }
     }
@@ -106,7 +106,6 @@ function SetupProjectContainer(docker, containers, _request) {
                     return container.inspect();
                 });
             } else {
-                log("Already running", container.id);
                 return containerInfo;
             }
         })

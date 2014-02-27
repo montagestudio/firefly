@@ -154,7 +154,7 @@ function server(options) {
                     return preview.hasAccess(request.headers.host, session);
                 }).then(function (hasAccess) {
                     if (hasAccess) {
-                        log("preview websocket");
+                        log("preview websocket", request.headers.host);
                         details = environment.getDetailsfromProjectUrl(request.headers.host);
                         return proxyPreviewWebsocket(request, socket, body, details);
                     } else {
