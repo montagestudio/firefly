@@ -1,5 +1,6 @@
 var log = require("logging").from(__filename);
 var URL = require("url");
+var routeProject; // Circular dependency, and so required once just before it's needed
 
 function Env(options) {
     var env = options || {  production: process.env.NODE_ENV === "production" };
@@ -70,7 +71,7 @@ function Env(options) {
         }
         var hostname = URL.parse(url).hostname;
 
-        var match = hostname.match(/([0-9a-z]+)-([0-9a-z\-]+)\./i);
+        var match = hostname.match(/[0-9]-([0-9a-z]+)-([0-9a-z\-]+)\./i);
         var owner = match[1];
         var repo = match[2];
 
@@ -80,9 +81,17 @@ function Env(options) {
         };
     };
     env.getProjectUrlFromAppUrl = function (url) {
+        // see note at top of file
+        if (!routeProject) {
+            routeProject = require("./route-project");
+        }
+
         var details = this.getDetailsFromAppUrl(url);
+        var pod = routeProject.podForUsername(details.owner);
+
         var urlObj = Object.create(this.project);
-        urlObj.hostname = details.owner + "-" + details.repo + "." + urlObj.hostname;
+        urlObj.hostname = pod + "-" + details.owner + "-" + details.repo + "." + urlObj.hostname;
+
         return URL.format(urlObj);
     };
 
