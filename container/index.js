@@ -1,10 +1,3 @@
-// Make sure permissions on the workspace dir are correct before dropping
-// uid and gid
-// Magic number 1000 is the `montage` user's UID, because I couldn't find a
-// way to easily look up a user's UID from a username in Node (even though
-// process.setuid does it below!)
-require("fs").chownSync("/workspace", 1000, 1000);
-
 // If root drop to unprivileged user
 if (process.getgid() === 0) {
     process.setgid("montage");
@@ -31,7 +24,7 @@ var commandOptions = {
     "directory": {
         alias: "d",
         describe: "The directory to clone and serve projects from",
-        default: "/workspace"
+        default: "/home/montage/workspace"
     },
     "port": {
         alias: "p",
@@ -54,13 +47,15 @@ function main(options) {
     }
 
     var fs = options.fs || FS;
+    var minitPath = fs.join(__dirname, "..", "node_modules", "minit", "minit");
 
     var containerChain = containerChainFactory({
         fs: fs,
         config: config,
+        workspacePath: options.directory,
         client: options.filament,
         clientServices: options.clientServices,
-        setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, null)
+        setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, minitPath)
     });
     return containerChain.listen(options.port)
     .then(function (server) {

@@ -26,9 +26,6 @@ RUN apt-get install -y nodejs
 RUN adduser --disabled-password --gecos "" montage
 ENV HOME /home/montage
 
-RUN mkdir /workspace
-RUN chown -R montage:montage /workspace
-
 # If you change this then you also need to update `mountVolume` in
 # /srv/firefly/project.js for development
 ADD firefly /srv/firefly
