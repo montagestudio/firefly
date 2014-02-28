@@ -657,14 +657,14 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     commitFiles: {
-        value: function (files, message, conflictResolution) {
-            return this.backend.get("repository-service").invoke("commitFiles", files, message, conflictResolution);
+        value: function (files, message, action) {
+            return this.backend.get("repository-service").invoke("commitFiles", files, message, action);
         }
     },
 
     updateRepositoryReferences: {
-        value: function () {
-            return this.backend.get("repository-service").invoke("updateRefs");
+        value: function (action) {
+            return this.backend.get("repository-service").invoke("updateRefs", action);
         }
     }
 });
