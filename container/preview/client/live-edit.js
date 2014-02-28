@@ -291,12 +291,12 @@ Object.defineProperties(window.Declarativ, {
             lastElement: element.lastElementChild
         };
 
-        owner = anchor.owner;
-        // The new elements will be part of the same DocumentPart as the anchor
-        // element.
-        documentPart = anchor.documentPart;
-
         if (this.serializationString) {
+            owner = anchor.owner;
+            // The new elements will be part of the same DocumentPart as the anchor
+            // element.
+            documentPart = anchor.documentPart;
+
             return this.instantiate(owner, element, documentPart)
                 .then(function(objects) {
                     result.objects = objects;
@@ -311,6 +311,7 @@ Object.defineProperties(window.Declarativ, {
                     return result;
                 });
         } else {
+            this._removeElementWrapper(element);
             return Declarativ.Promise.resolve(result);
         }
     };
