@@ -35,7 +35,7 @@ function server(options) {
     // Put here to avoid printing logs when HAProxy pings the server for
     // a health check
     .route(function () {
-        this.OPTIONS("").content("");
+        this.OPTIONS("*").content("");
     })
     .log(log, function (message) { return message; })
     .use(LogStackTraces(log))

@@ -26,6 +26,19 @@ describe("project chain", function () {
         };
     });
 
+    describe("OPTIONS", function () {
+        it("does not return any content", function (done) {
+            request({
+                method: "OPTIONS",
+                url: "http://127.0.0.1:2440/index.html"
+            })
+            .then(function (response) {
+                expect(response.body.join("")).toEqual("");
+            })
+            .done(done, done);
+        });
+    });
+
     describe("POST session", function () {
         beforeEach(function () {
             var store = new GithubSessionStore();
