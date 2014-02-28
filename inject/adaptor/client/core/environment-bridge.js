@@ -67,9 +67,42 @@ exports.EnvironmentBridge = Montage.specialize({
 
                 self._backend = Connection(connection, this._frontendService);
                 self._backend.done();
+
+                // every 20 seconds
+                this._startPing(20000);
             }
 
             return self._backend;
+        }
+    },
+
+    _pingStarted: {
+        value: false
+    },
+    _startPing: {
+        value: function (delay) {
+            var self = this;
+            var ping = function () {
+                if ((document.webkitVisibilityState || document.visibilityState) === "visible") {
+                    // Note 1: using .backend and not ._backend will cause a
+                    // reconnection when the page becomes visible again
+                    // (through the "visibilitychange" event)
+                    // Note 2: Using .get because it's more efficient than .invoke
+                    self.backend.get("ping")
+                    .then(function () {
+                        setTimeout(ping, delay);
+                    })
+                    .done();
+                }
+            };
+
+            // If pinging has already been setup, then don't kick it off again
+            if (!this._pingStarted) {
+                this._pingStarted = true;
+                var visibilitychange = document.webkitVisibilityState ? "webkitvisibilitychange" : "visibilitychange";
+                document.addEventListener(visibilitychange, ping, false);
+                ping();
+            }
         }
     },
 
