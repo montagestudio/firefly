@@ -39,7 +39,7 @@ describe("routeProject", function () {
         {name: "François", pod: 2},
         {name: "Patrick", pod: 3},
         {name: "Kathleen", pod: 1},
-        {name: "Edward", pod: 4},
+        {name: "Edward", pod: 2},
         {name: "Sheena", pod: 1},
         {name: "Robert", pod: 3},
         {name: "Chloé", pod: 2}

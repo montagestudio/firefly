@@ -1,5 +1,6 @@
 var log = require("logging").from(__filename);
 var URL = require("url");
+var routeProject; // Circular dependency, and so required once just before it's needed
 
 function Env(options) {
     var env = options || {  production: process.env.NODE_ENV === "production" };
@@ -26,11 +27,6 @@ function Env(options) {
     log("project", JSON.stringify(env.project));
 
     env.projectServers = process.env.FIREFLY_PROJECT_SERVER_COUNT || 4;
-
-    env.configure = function (fs, clonePath) {
-        this.fs = fs;
-        this.clonePath = fs.absolute(clonePath);
-    };
 
     env.getAppHost = function() {
         return getHost(this.app.hostname, this.app.port);
@@ -75,7 +71,7 @@ function Env(options) {
         }
         var hostname = URL.parse(url).hostname;
 
-        var match = hostname.match(/([0-9a-z]+)-([0-9a-z\-]+)\./i);
+        var match = hostname.match(/[0-9]-([0-9a-z]+)-([0-9a-z\-]+)\./i);
         var owner = match[1];
         var repo = match[2];
 
@@ -85,40 +81,18 @@ function Env(options) {
         };
     };
     env.getProjectUrlFromAppUrl = function (url) {
+        // see note at top of file
+        if (!routeProject) {
+            routeProject = require("./route-project");
+        }
+
         var details = this.getDetailsFromAppUrl(url);
+        var pod = routeProject.podForUsername(details.owner);
+
         var urlObj = Object.create(this.project);
-        urlObj.hostname = details.owner + "-" + details.repo + "." + urlObj.hostname;
+        urlObj.hostname = pod + "-" + details.owner + "-" + details.repo + "." + urlObj.hostname;
+
         return URL.format(urlObj);
-    };
-    env.getProjectPathFromSessionAndAppUrl = function (session, url) {
-        if (!this.fs || !this.clonePath) {
-            throw new Error("Environment must be configured before using this function");
-        }
-        var details = this.getDetailsFromAppUrl(url);
-
-        return this.fs.join(this.clonePath, session.username, details.owner, details.repo);
-    };
-    env.getProjectPathFromSessionAndProjectUrl = function (session, url) {
-        if (!this.fs || !this.clonePath) {
-            throw new Error("Environment must be configured before using this function");
-        }
-        var details = this.getDetailsfromProjectUrl(url);
-
-        return this.fs.join(this.clonePath, session.username, details.owner, details.repo);
-    };
-
-    /**
-     * Assumes that the username is the same as the owner.
-     * This is temporary while we build support for accessing repos that are not
-     * forked to the user github.
-     */
-    env.getProjectPathFromProjectUrl = function (url) {
-        if (!this.fs || !this.clonePath) {
-            throw new Error("Environment must be configured before using this function");
-        }
-        var details = this.getDetailsfromProjectUrl(url);
-
-        return this.fs.join(this.clonePath, details.owner, details.owner, details.repo);
     };
 
     env.getProjectHost = function() {

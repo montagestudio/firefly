@@ -11,7 +11,7 @@ describe("preview-server", function () {
     it("should inject the preview scripts into the html file", function(done) {
         var request = {
             scheme: "http",
-            host: "owner-repo.local-project.montagestudio.com:2440"
+            host: "1-owner-repo.local-project.montagestudio.com:2440"
         };
         var response = {
             body: Q.resolve({

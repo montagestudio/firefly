@@ -5,7 +5,7 @@ describe("preview", function () {
     describe("hasAccess", function () {
         var url, githubUser, session;
         beforeEach(function () {
-            url = "http://owner-repo.local-project.montagestudio.com:2440";
+            url = "http://1-owner-repo.local-project.montagestudio.com:2440";
             githubUser = {login: "owner"};
             session = {
                 githubUser: Q(githubUser),
@@ -69,7 +69,7 @@ describe("preview", function () {
     });
 
     describe("processAccessRequest", function() {
-        var host = "owner-repo.local-project.montagestudio.com:2440";
+        var host = "1-owner-repo.local-project.montagestudio.com:2440";
         var url = "http://" + host;
         var code, session, request;
 
