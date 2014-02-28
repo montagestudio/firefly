@@ -129,6 +129,7 @@
         var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
+            console.log("Connected to the tool.");
         };
 
         ws.onmessage = function(message) {
@@ -137,6 +138,7 @@
 
         ws.onclose = function() {
             ws = null;
+            console.log("Disconnected from the tool.");
             showReconnectionMessage(websocketRefresh);
         };
     }
