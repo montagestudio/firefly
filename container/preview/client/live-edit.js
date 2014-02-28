@@ -191,9 +191,9 @@ Object.defineProperties(window.Declarativ, {
         },
 
         addTemplateFragment: {
-            value: function(ownerModuleId, label, argumentName, cssSelector, how, templateFragment) {
+            value: function(ownerModuleId, elementLocation, how, templateFragment) {
                 var montageElements = MontageElement.findAll(ownerModuleId,
-                    label, argumentName, cssSelector);
+                    elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
                 var template = new Template(templateFragment.serialization,
                     templateFragment.html);
                 var promises = [];
@@ -227,9 +227,9 @@ Object.defineProperties(window.Declarativ, {
         },
 
         setElementAttribute: {
-            value: function(ownerModuleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+            value: function(ownerModuleId, elementLocation, attributeName, attributeValue) {
                 var montageElements = MontageElement.findAll(ownerModuleId,
-                    label, argumentName, cssSelector);
+                    elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     montageElement.value.setAttribute(attributeName,

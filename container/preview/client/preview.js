@@ -80,7 +80,7 @@
 
             if (command === "addTemplateFragment") {
                 args = JSON.parse(param);
-                return LiveEdit.addTemplateFragment(args.moduleId, args.label, args.argumentName, args.cssSelector, args.how, args.templateFragment);
+                return LiveEdit.addTemplateFragment(args.moduleId, args.elementLocation, args.how, args.templateFragment);
             }
 
             if (command === "addTemplateFragmentObjects") {
@@ -90,8 +90,8 @@
 
             if (command === "setElementAttribute") {
                 args = JSON.parse(param);
-                return LiveEdit.setElementAttribute(args.moduleId, args.label,
-                    args.argumentName, args.cssSelector, args.attributeName, args.attributeValue);
+                return LiveEdit.setElementAttribute(args.moduleId,
+                    args.elementLocation,args.attributeName, args.attributeValue);
             }
 
             if (command === "setObjectTemplate") {
