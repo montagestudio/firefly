@@ -13,7 +13,7 @@ var SHADOW_BRANCH_PREFIX = "__mb__";
 var semaphore = new Queue();
 semaphore.put(); // once for one job at a time
 
-// Wrap any function with exclusive to make sure it want execute before all pending exclusive methods are done
+// Wrap any function with exclusive to make sure it wont execute before all pending exclusive methods are done
 function exclusive(method) {
     return function wrapped() {
         var self = this, args = Array.prototype.slice.call(arguments);
@@ -32,18 +32,117 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         _git = new Git(fs, session.githubAccessToken),
         _repositoryUrl = null;
 
+    /**
+     * Return an object describing all branches (local and remotes) as well the current
+     * branch (checked out). If a showow branch is checked out, current will represent
+     * the name of the parent branch and the property currentIsShadow is set to true.
+     *
+     * Shadow branches are represented as an attribute of their parent branch and are
+     * not listed on their own
+     *
+     * argument: none
+     *
+     * return: promise for an branches object
+     *
+     * branches object format:
+     * {
+     *      current: <branch name>,
+     *      currentIsShadow: <boolean>,
+     *      branches: {
+     *          <LOCAL_REPOSITORY_NAME>: [
+     *              <branch name>: {
+     *                  branchName: <branch name>,
+     *                  sha: <sha>,
+     *                  shadow: {
+     *                      branchName: <branch name>,
+     *                      sha: <sha>
+     *                  }
+     *              },
+     *              ...
+     *          ],
+     *          <REMOTE_REPOSITORY_NAME>: [
+     *              ...
+     *          ],
+     *          ...
+     *      }
+     * }
+     */
     service.listBranches = exclusive(function() {
         return this._listBranches(true);
     });
 
+    /**
+     * Checkout the shadowbranch for the branch branch.
+     *
+     * If the shadow branch does not exist locally and / or remotely
+     * the shadow branches are created.
+     *
+     * The parent branch does not have to exist localy but must be remotely.
+     *
+     * Call this method before using commitFiles or updateRefs.
+     *
+     * argument:
+     *      branch: branch name to checkout (without shadow branch prefix)
+     *
+     * return: promise
+     */
     service.checkoutShadowBranch = exclusive(function(branch) {
         return this._checkoutShadowBranch(branch);
     });
 
+    /**
+     * Commit files to the current branch and push the commit to the
+     * remote repository. Make sure to call checkoutShadowBranch before.
+     *
+     * if a conflict occurs during the push of the commit, the returned object
+     * will have a list of action possible to resolve the conflict. Call commitFiles
+     * again with an action to resolve the conflict.
+     *
+     * Note: commitFiles will automatically rebase the local shadow branch if possible.
+     *
+     * Possible actions are:
+     *  - "discard": Discard the local commit and update the local repository
+     *               with the remote changes
+     *  - "revert":  Revert the remote commits and push the local changes
+     *  - "force":   Force the local commit, the remote repository will lose
+     *               any history of the remote changes.
+     *
+     * argument:
+     *      files:   Array of file paths relative to the project, can pass ["."] to
+     *               commit all files
+     *      message: [optional] text to use for the commit's message
+     *      action:  [optional] action to perform to resolve conflict
+     *
+     * return: promise
+     */
     service.commitFiles = exclusive(function(files, message, action) {
         return this._commitFiles(files, message, action);
     });
 
+    /**
+     * Update References. Will keep in syncs the current branch as well its shadow branch.
+     * If a conflict occurs, a resolution action can be provided.
+     *
+     * Make sure to call checkoutShadowBranch before and make sure there is not uncommitted
+     * changes.
+     *
+     * updateRefs returns notifications and possible actions in case of a conflict or if the
+     * local branch need to be updated.
+     *
+     * Possible actions are:
+     *  - "rebase":  Update the local repository by rebasing (could failed, check returned
+     *               action for alternatives.
+     *  - "discard": Discard the local commit and update the local repository
+     *               with the remote changes
+     *  - "revert":  Revert the remote commits and push the local changes
+     *  - "force":   Force the local commit, the remote repository will lose
+     *               any history of the remote changes.
+     *
+     * argument:
+     *      action:  [optional] action to perform to resolve conflict
+     *
+     * return: promise for an notifications object
+     */
     service.updateRefs = exclusive(function(action) {
         return this._updateRefs(action);
     });
