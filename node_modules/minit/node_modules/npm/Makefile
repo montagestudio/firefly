@@ -192,9 +192,6 @@ doc-publish: doc
     html/doc/* \
     node@npmjs.org:/home/node/npm-www/doc
 	rsync -vazu --stats --no-implied-dirs --delete \
-    html/static/webfonts/ \
-    node@npmjs.org:/home/node/npm-www/static/webfonts
-	rsync -vazu --stats --no-implied-dirs --delete \
     html/static/style.css \
     node@npmjs.org:/home/node/npm-www/static/
 	#cleanup
@@ -214,6 +211,6 @@ release:
 	@bash scripts/release.sh
 
 sandwich:
-	@[ $$(whoami) = "root" ] && (echo "ok"; echo "ham" > sandwich) || echo "make it yourself" && exit 13
+	@[ $$(whoami) = "root" ] && (echo "ok"; echo "ham" > sandwich) || (echo "make it yourself" && exit 13)
 
 .PHONY: all latest install dev link doc clean uninstall test man doc-publish doc-clean docclean docpublish release zip-publish

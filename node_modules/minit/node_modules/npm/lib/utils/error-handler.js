@@ -149,6 +149,9 @@ function errorHandler (er) {
     if (er.pkgid && er.pkgid !== "-") {
       var msg = ["'"+er.pkgid+"' is not in the npm registry."
                 ,"You should bug the author to publish it"]
+      if (er.parent) {
+        msg.push("It was specified as a dependency of '"+er.parent+"'")
+      }
       if (er.pkgid.match(/^node[\.\-]|[\.\-]js$/)) {
         var s = er.pkgid.replace(/^node[\.\-]|[\.\-]js$/g, "")
         if (s !== er.pkgid) {
@@ -265,10 +268,9 @@ function errorHandler (er) {
 
   default:
     log.error("", er.stack || er.message || er)
-    log.error("", ["If you need help, you may report this log at:"
+    log.error("", ["If you need help, you may report this *entire* log,"
+                  ,"including the npm and node versions, at:"
                   ,"    <http://github.com/isaacs/npm/issues>"
-                  ,"or email it to:"
-                  ,"    <npm-@googlegroups.com>"
                   ].join("\n"))
     printStack = false
     break
