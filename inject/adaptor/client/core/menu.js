@@ -133,26 +133,6 @@ Montage.defineProperty(exports, "defaultMenu", {
                     viewMenu,
                     helpMenu;
 
-                // File
-                fileMenu = newMenuItem("File", "", "", [
-                    newMenuItem("New", "new", "command+n"),
-                    newMenuItem("Save", "save", "command+s")
-                ]);
-                _defaultMenu.insertItem(fileMenu);
-
-                // Edit
-                editMenu = newMenuItem("Edit", "", "", [
-                    newMenuItem("Undo", "undo", "control+z"),
-                    newMenuItem("Redo", "redo", "control+shift+z")
-                ]);
-                _defaultMenu.insertItem(editMenu);
-
-                // View
-                viewMenu = newMenuItem("View", "", "", [
-                    newMenuItem("Undo", "undo", "control+z")
-                ]);
-                _defaultMenu.insertItem(viewMenu);
-
                 // Help
                 helpMenu = newMenuItem("Help", "", "", [
                     newMenuItem("Documentation", "documentation", ""),
@@ -162,6 +142,27 @@ Montage.defineProperty(exports, "defaultMenu", {
                     newMenuItem("Framework", "framework", "")
                 ]);
                 _defaultMenu.insertItem(helpMenu);
+
+                // View
+                viewMenu = newMenuItem("View", "", "", [
+                    newMenuItem("Undo", "undo", "control+z")
+                ]);
+                _defaultMenu.insertItem(viewMenu);
+
+                // Edit
+                editMenu = newMenuItem("Edit", "", "", [
+                    newMenuItem("Undo", "undo", "control+z"),
+                    newMenuItem("Redo", "redo", "control+shift+z")
+                ]);
+                _defaultMenu.insertItem(editMenu);
+
+                // File
+                fileMenu = newMenuItem("File", "", "", [
+                    newMenuItem("New", "new", "command+n"),
+                    newMenuItem("Save", "save", "command+s")
+                ]);
+                _defaultMenu.insertItem(fileMenu);
+
             });
         }
         return _defaultMenu;
