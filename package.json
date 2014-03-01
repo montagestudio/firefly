@@ -47,10 +47,10 @@
     "semver": "2.2.1",
     "mmmagic": "0.3.5",
     "watchr": "2.3.3",
-
     "collections": "~0.2.2",
     "dockerode": "~1.2.7",
-    "faye-websocket": "~0.7.2"
+    "faye-websocket": "~0.7.2",
+    "rollbar": "~0.3.1"
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",
