@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var joey = require("joey");
 var JsonApps = require("q-io/http-apps/json");
 
@@ -142,6 +143,7 @@ function handleEndpoint(config, request, endpointCallback, successCallback) {
     })
     .fail(function(error) {
         log("*handleEndpoint fail*", error.stack);
+        track.error(error, request);
         return JsonApps.json(createMessage({
             error: error.message
         }));

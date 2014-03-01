@@ -174,6 +174,7 @@ function server(options) {
             log("*Error setting up websocket*", error.stack);
             socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
             socket.destroy();
+            track.error(error, request);
         });
     };
 
