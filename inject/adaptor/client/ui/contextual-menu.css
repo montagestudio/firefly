@@ -1,0 +1,55 @@
+.ContextualMenu-menu {
+    border-radius: 6px;
+    border-top: 1px solid hsla(0, 100%, 100%, 0.12);
+    border-bottom: 1px solid hsl(0, 0%, 28%);
+    background: linear-gradient( hsl(0, 0%, 40%), hsl(0, 0%, 36%));
+    cursor: pointer;
+    font-size: 13px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.3);
+}
+
+/* list ------------------------- */
+.ContextualMenu-list {
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ContextualMenu-list-item {
+    padding: 0;
+    margin: 0;
+}
+
+/* button ----------------------- */
+.ContextualMenu-list button {
+    -webkit-appearance: none;
+    text-align: left;
+    height: auto;
+    min-height: 23px;
+    line-height: 20px;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    color: hsl(0, 0%, 70%);
+    background: none;
+}
+
+.ContextualMenu-list button:hover {
+    color: hsl(0, 0%, 81%);
+    background-color: hsl(0, 0%, 36%);
+}
+
+.ContextualMenu-list .matte-Button.active {
+    border-color:  hsl(0, 0%, 22%);
+    background-color: hsl(0, 0%, 24%);
+}
+.ContextualMenu-list button:focus {
+    border-color: hsl(0, 0%, 22%);
+}

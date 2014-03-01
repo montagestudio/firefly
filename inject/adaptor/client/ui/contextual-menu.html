@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="contextual-menu.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "contextualMenu"},
+                "menu": {"#": "menu"}
+            }
+        },  
+
+        "contextualMenuOverlay": {
+            "prototype": "montage/ui/overlay.reel",
+                "properties": {
+                    "element": {"#": "contextualMenuOverlay"},
+                    "delegate": {"@": "owner"}
+                }
+        },
+
+        "deleteButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "deleteButton"}
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        },
+
+        "createFolderButton":{
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "createFolderButton"}
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        },
+
+        "deleteCondition": {
+            "prototype": "montage/ui/condition.reel",
+            "properties": {
+                "element": {"#": "deleteCondition"},
+                "removalStrategy": "hide"
+            },
+            "bindings": {
+                "condition": {"<-": "@owner.fileInfo"}
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="contextualMenu" class="ContextualMenu">
+        <div data-montage-id="contextualMenuOverlay">
+            <div data-montage-id="menu" class="ContextualMenu-menu">
+                <ul class="ContextualMenu-list">
+                    <li class="ContextualMenu-list-item">
+                        <button data-montage-id="createFolderButton">New folder&hellip;</button>
+                    </li>
+                    <li data-montage-id="deleteCondition" class="ContextualMenu-list-item">
+                        <button data-montage-id="deleteButton">Delete</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
