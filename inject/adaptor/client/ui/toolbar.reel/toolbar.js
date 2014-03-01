@@ -26,9 +26,13 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
                         }).done();
 
                     bridge.repositoryController.getRepositoryUrl()
-                        .then(function(url) {
-                            self.sourceUrl = url;
-                        }).done();
+                    .then(function(url) {
+                        self.sourceUrl = url;
+                    }).done();
+
+                    self.mainMenu.then(function (menu) {
+                        self._menu = menu;
+                    });
                 }
             });
         }
