@@ -29,6 +29,10 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
                     .then(function(url) {
                         self.sourceUrl = url;
                     }).done();
+
+                    self.mainMenu.then(function (menu) {
+                        self._menu = menu;
+                    });
                 }
             });
         }

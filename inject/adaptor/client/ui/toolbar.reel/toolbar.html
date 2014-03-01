@@ -29,6 +29,26 @@
             "bindings": {
                 "value": {"<-": "@owner.user.name"}
             }
+        },
+
+        "menuLevelZero": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "mainMenu"}
+            },
+            "bindings": {
+                "content": {"<-": "@owner._menu.items"}
+            }
+        },
+
+        "menu": {
+            "prototype": "../menu.reel",
+            "properties": {
+                "element": {"#": "menu"}
+            },
+            "bindings": {
+                "menuItem": {"<-": "@menuLevelZero:iteration.object"}
+            }
         }
     }
     </script>
@@ -38,10 +58,10 @@
 
         <div class="Toolbar-group">
             <img src="../../../../assets/img/logo-toolbar.png" class="Toolbar-logo">
-        </div>
-
-        <div class="Toolbar-group">
-            <div data-param="*"></div>
+            <span class="Toolbar-name">Builder</span>
+            <div data-montage-id="mainMenu">
+                <div data-montage-id="menu"></div>
+            </div>
         </div>
 
         <div class="Toolbar-group">

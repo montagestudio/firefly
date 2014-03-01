@@ -9,13 +9,23 @@
             "properties": {
                 "element": {"#": "menu"}
             }
+        },
+
+        "title": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "title"}
+            },
+            "bindings": {
+                "value": {"<-": "@owner.menuItem.title"}
+            }
         }
     }
     </script>
 </head>
 <body>
     <div data-montage-id="menu" class="Menu">
-        Menu
+        <span data-montage-id="title"></span>
     </div>
 </body>
 </html>

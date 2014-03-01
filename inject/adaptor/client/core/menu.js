@@ -106,8 +106,21 @@ var Menu = exports.Menu = Montage.specialize({
     }
 
 });
-
 var _defaultMenu = null;
+
+function newMenuItem (title, identifier, keyEquivalent, items) {
+    var menuItem = new MenuItemModule.MenuItem();
+
+    menuItem.title = title;
+    menuItem.identifier = identifier;
+    menuItem.keyEquivalent = keyEquivalent;
+    if (items) {
+        menuItem.items = items;
+    }
+
+    return menuItem;
+}
+
 Montage.defineProperty(exports, "defaultMenu", {
     get: function() {
         if (!_defaultMenu) {
@@ -115,29 +128,40 @@ Montage.defineProperty(exports, "defaultMenu", {
 
             //TODO clean up this whole initialization
             Promise.nextTick(function () {
-                var undoMenuItem = new MenuItemModule.MenuItem(),
-                    redoMenuItem = new MenuItemModule.MenuItem(),
-                    deleteMenuItem = new MenuItemModule.MenuItem(),
-                    saveMenuItem = new MenuItemModule.MenuItem();
+                var fileMenu = new MenuItemModule.MenuItem(),
+                    editMenu = new MenuItemModule.MenuItem(),
+                    viewMenu = new MenuItemModule.MenuItem(),
+                    helpMenu = new MenuItemModule.MenuItem(),
 
-                undoMenuItem.title = "Undo";
-                undoMenuItem.identifier = "undo";
+                // File
+                fileMenu = newMenuItem("File", "", "", [
+                    newMenuItem("New", "new", "command+n"),
+                    newMenuItem("Save", "save", "command+s")
+                ]);
+                _defaultMenu.insertItem(fileMenu);
 
-                redoMenuItem.title = "Redo";
-                redoMenuItem.identifier = "redo";
+                // Edit
+                editMenu = newMenuItem("Edit", "", "", [
+                    newMenuItem("Undo", "undo", "control+z"),
+                    newMenuItem("Redo", "redo", "control+shift+z")
+                ]);
+                _defaultMenu.insertItem(editMenu);
 
-                deleteMenuItem.title = "Delete";
-                deleteMenuItem.identifier = "delete";
-                deleteMenuItem.keyEquivalent = "command+backspace";
+                // View
+                viewMenu = newMenuItem("View", "", "", [
+                    newMenuItem("Undo", "undo", "control+z")
+                ]);
+                _defaultMenu.insertItem(viewMenu);
 
-                saveMenuItem.title = "Save";
-                saveMenuItem.identifier = "save";
-                saveMenuItem.keyEquivalent = "command+s";
-
-                _defaultMenu.insertItem(saveMenuItem).done();
-                _defaultMenu.insertItem(undoMenuItem).done();
-                _defaultMenu.insertItem(deleteMenuItem).done();
-                _defaultMenu.insertItem(redoMenuItem).done();
+                // Help
+                helpMenu = newMenuItem("Help", "", "", [
+                    newMenuItem("Documentation", "documentation", ""),
+                    newMenuItem("Forum", "forum", ""),
+                    newMenuItem("Report a Bug", "report", ""),
+                    newMenuItem("API", "api", ""),
+                    newMenuItem("Framework", "framework", "")
+                ]);
+                _defaultMenu.insertItem(helpMenu);
             });
         }
         return _defaultMenu;
