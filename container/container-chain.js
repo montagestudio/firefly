@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var Q = require("q");
 var joey = require("joey");
 
@@ -41,6 +42,7 @@ function server(options) {
     .route(function () {
         this.OPTIONS("").content("");
     })
+    .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .tap(setupProjectWorkspace)
     .route(function (route, _, __, POST) {

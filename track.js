@@ -9,6 +9,7 @@ if (typeof jasmine !== "undefined") {
     return;
 }
 
+var Q = require("q");
 var environment = require("./environment");
 var rollbar = require("rollbar");
 
@@ -35,6 +36,15 @@ exports.error = function(error, request) {
 };
 exports.message = function (message, request, level) {
     rollbar.reportMessage(message, level || "info", request);
+};
+
+exports.joeyErrors = function (next) {
+    return function (request, response) {
+        return Q.when(next(request, response), null, function (error) {
+            exports.error(error, request);
+            throw error;
+        });
+    };
 };
 
 exports.shutdown = function () {

@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var Q = require("q");
 var joey = require("joey");
 var HTTP = require("q-io/http");
@@ -38,6 +39,7 @@ function server(options) {
         this.OPTIONS("*").content("");
     })
     .log(log, function (message) { return message; })
+    .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .tap(parseCookies)
     .use(sessions)

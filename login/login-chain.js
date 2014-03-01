@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var joey = require("joey");
 var env = require("../environment");
 var Q = require("q");
@@ -31,6 +32,7 @@ function server(options) {
         this.OPTIONS("").content("");
     })
     .log(log, function (message) { return message; })
+    .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .parseQuery()
     .tap(parseCookies)
