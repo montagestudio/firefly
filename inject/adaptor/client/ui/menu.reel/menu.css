@@ -1,34 +1,5 @@
 .Menu {
     display: -webkit-flex;
-    margin: 0 7px;
+    margin: 0 0;
     line-height: 0;
 }
-
-/* c&p from toolbar.css */
-.Menu-Title-Button.matte-Button {
-    display: inline-block;
-    height: 33px;
-    margin: 0;
-    font-family: inherit;
-    font-size: 11px;
-    color: hsl(0, 0%, 50%);
-    text-shadow: none;
-    box-shadow: none;
-    border-radius: 0;
-    border: none;
-    border-left: 1px solid hsla(0, 0%, 0%, 0.2);
-    background: hsla(0,0%,0%,0);
-}
-
-.Menu-Title-Button.matte-Button:hover {
-    background: hsl(0, 0%, 28%);
-}
-
-.Menu-Title-Button.matte-Button.active {
-    background: hsl(0, 0%, 20%);
-}
-
-.Menu-Title-Button.matte-Button:focus {
-    border-color: hsla(0, 0%, 0%, 0.3);
-}
-

@@ -12,12 +12,12 @@
         },
 
         "title": {
-            "prototype": "matte/ui/button.reel",
+            "prototype": "../menu-item.reel",
             "properties": {
-                "element": {"#": "title"}
+                "element": {"#": "menuItem"}
             },
             "bindings": {
-                "label": {"<-": "@owner.menuItem.title"}
+                "menuItemModel": {"<-": "@owner.menuItem"}
             }
         }
     }
@@ -25,7 +25,7 @@
 </head>
 <body>
     <div data-montage-id="menu" class="Menu">
-        <button data-montage-id="title" class="Menu-Title-Button"></button>
+        <div data-montage-id="menuItem"></div>
     </div>
 </body>
 </html>
