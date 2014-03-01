@@ -55,6 +55,13 @@
     line-height: 0;
 }
 
+.Toolbar .mainMenu {
+    display: -webkit-flex;
+    margin: 0 7px;
+    line-height: 0;
+}
+
+
 /* Toolbar Button */
 
 .Toolbar-button.matte-Button {
