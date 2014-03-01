@@ -128,10 +128,10 @@ Montage.defineProperty(exports, "defaultMenu", {
 
             //TODO clean up this whole initialization
             Promise.nextTick(function () {
-                var fileMenu = new MenuItemModule.MenuItem(),
-                    editMenu = new MenuItemModule.MenuItem(),
-                    viewMenu = new MenuItemModule.MenuItem(),
-                    helpMenu = new MenuItemModule.MenuItem(),
+                var fileMenu,
+                    editMenu,
+                    viewMenu,
+                    helpMenu;
 
                 // File
                 fileMenu = newMenuItem("File", "", "", [
