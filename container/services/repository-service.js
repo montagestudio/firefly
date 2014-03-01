@@ -95,12 +95,12 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      * remote repository. Make sure to call checkoutShadowBranch before.
      *
      * if a conflict occurs during the push of the commit, the returned object
-     * will have a list of action possible to resolve the conflict. Call commitFiles
-     * again with an action to resolve the conflict.
+     * will have a list of resolution strategies to resolve the conflict.
+     * Call commitFiles again with an resolution strategy to resolve the conflict.
      *
      * Note: commitFiles will automatically rebase the local shadow branch if possible.
      *
-     * Possible actions are:
+     * Possible resolutionStrategy are:
      *  - "discard": Discard the local commit and update the local repository
      *               with the remote changes
      *  - "revert":  Revert the remote commits and push the local changes
@@ -108,30 +108,30 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *               any history of the remote changes.
      *
      * argument:
-     *      files:   Array of file paths relative to the project, can pass ["."] to
-     *               commit all files
-     *      message: [optional] text to use for the commit's message
-     *      action:  [optional] action to perform to resolve conflict
+     *                   files: Array of file paths relative to the project, can pass ["."] to
+     *                          commit all files
+     *                 message: [optional] text to use for the commit's message
+     *      resolutionStrategy: [optional] resolution strategy to use to resolve conflicts
      *
      * return: promise
      */
-    service.commitFiles = exclusive(function(files, message, action) {
-        return this._commitFiles(files, message, action);
+    service.commitFiles = exclusive(function(files, message, resolutionStrategy) {
+        return this._commitFiles(files, message, resolutionStrategy);
     });
 
     /**
      * Update References. Will keep in syncs the current branch as well its shadow branch.
-     * If a conflict occurs, a resolution action can be provided.
+     * If a conflict occurs, a resolution strategy can be provided.
      *
      * Make sure to call checkoutShadowBranch before and make sure there is not uncommitted
      * changes.
      *
-     * updateRefs returns notifications and possible actions in case of a conflict or if the
-     * local branch need to be updated.
+     * updateRefs returns notifications and possible resolution strategies in case of a conflict
+     * or if the local branch need to be updated.
      *
-     * Possible actions are:
+     * Possible resolution strategy are:
      *  - "rebase":  Update the local repository by rebasing (could failed, check returned
-     *               action for alternatives.
+     *               resolution strategies for alternatives.
      *  - "discard": Discard the local commit and update the local repository
      *               with the remote changes
      *  - "revert":  Revert the remote commits and push the local changes
@@ -139,12 +139,12 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *               any history of the remote changes.
      *
      * argument:
-     *      action:  [optional] action to perform to resolve conflict
+     *      resolutionStrategy:  [optional] resolution strategy to use to resolve conflict
      *
      * return: promise for an notifications object
      */
-    service.updateRefs = exclusive(function(action) {
-        return this._updateRefs(action);
+    service.updateRefs = exclusive(function(resolutionStrategy) {
+        return this._updateRefs(resolutionStrategy);
     });
 
     service._getRepositoryUrl = function() {
@@ -282,7 +282,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         // Validate arguments
         branch = branch || "master";
         if (typeof branch !== "string") {
-            return Q.fail("Invalid checkoutWorkingBranch argument.");
+            return Q.reject(new Error("Invalid checkoutWorkingBranch argument."));
         }
 
         return self._listBranches(true)
@@ -331,7 +331,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         });
     };
 
-    service._commitFiles = function(files, message, action) {
+    service._commitFiles = function(files, message, resolutionStrategy) {
         var self = this,
             branchesInfo = null,
             current;
@@ -341,7 +341,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
             files = [files];
         }
         if (!Array.isArray(files)) {
-            return Q.fail("Invalid saveFiles argument.");
+            return Q.reject(new Error("Invalid saveFiles argument."));
         }
 
         return self._listBranches(true)     // Will cause to do a git fetch
@@ -368,13 +368,13 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         .then(function() {
             // push the commits if we have some
             return self._branchStatus(current, REMOTE_REPOSITORY_NAME + "/" + current)
-            .then(function(branchtatus) {
-                if (branchtatus.ahead > 0 ) {
+            .then(function(branchStatus) {
+                if (branchStatus.ahead > 0 ) {
                     return self._push(current)
                     .then(function() {
                         return true;
                     }, function(error) {
-                        log("push failed", error.message);
+                        log("push failed", error.stack);
                         return false;
                     });
                 } else {
@@ -388,7 +388,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                     success: true
                 };
             } else {
-                if (action === "discard") {
+                if (resolutionStrategy === "discard") {
                     /*
                         Resolve conflict by discarding local changes
                      */
@@ -413,7 +413,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                             success: true
                         };
                     });
-                } else if (action === "force") {
+                } else if (resolutionStrategy === "force") {
                     /*
                         Resolve conflict by forcing the local changes
                      */
@@ -422,10 +422,10 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                             success: true
                         };
                     }, function(error) {
-                        log("Forced push failed:", error.message);
+                        log("Forced push failed:", error.stack);
                         throw new Error("Forced push failed: " + error.message);
                     });
-                } else if (action === "revert") {
+                } else if (resolutionStrategy === "revert") {
                     /*
                         Resolve conflict by reverting remote changes
                      */
@@ -434,7 +434,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                             success: true
                         };
                     }, function(error) {
-                        log("Revert remote changes failed:", error.message);
+                        log("Revert remote changes failed:", error.stack);
                         throw new Error("Revert remote changes failed: " + error.message);
                     });
                 } else {
@@ -447,7 +447,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                     success: true
                                 };
                             }, function(error) {
-                                log("Push after rebase failed:", error.message);
+                                log("Push after rebase failed:", error.stack);
                                 throw new Error("Push after rebase failed: " + error.message);
                             });
                         } else {
@@ -458,7 +458,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                     success: false,
                                     ahead: status.ahead,
                                     behind: status.behind,
-                                    action: ["discard", "revert", "force"]
+                                    resolutionStrategy: ["discard", "revert", "force"]
                                 };
                             });
                         }
@@ -468,7 +468,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         });
     };
 
-    service._updateRefs = function(action) {
+    service._updateRefs = function(resolutionStrategy) {
         var self = this,
             next,
             returnValue = {
@@ -538,7 +538,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                         if (local.shadow.sha !== remote.shadow.sha) {
                             return self._branchStatus(local.shadow.name, remote.shadow.name)
                             .then(function(status) {
-                                if (action === "rebase") {
+                                if (resolutionStrategy === "rebase") {
                                     /*
                                         Rebase the local branch with the remote branch
                                      */
@@ -549,7 +549,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                         } else {
                                             // We cannot rebase, let's propose other solutions
                                             returnValue.success = false;
-                                            returnValue.actions = ["discard", "revert", "force"];
+                                            returnValue.resolutionStrategy = ["discard", "revert", "force"];
                                             returnValue.notifications.push({
                                                 type: "shadowsOutOfSync",
                                                 branch: current,
@@ -558,7 +558,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                             });
                                         }
                                     });
-                                } else if (action === "discard") {
+                                } else if (resolutionStrategy === "discard") {
                                     /*
                                         Discard local changes
                                     */
@@ -566,7 +566,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                     .then(function() {
                                         return { success: true };
                                     });
-                                } else if (action === "revert") {
+                                } else if (resolutionStrategy === "revert") {
                                     /*
                                         Revert remote changes
                                      */
@@ -574,10 +574,10 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                     .then(function() {
                                         return { success: true };
                                     }, function(error) {
-                                        log("Revert remote changes failed:", error.message);
+                                        log("Revert remote changes failed:", error.stack);
                                         throw new Error("Revert remote changes failed: " + error.message);
                                     });
-                                } else if (action === "force") {
+                                } else if (resolutionStrategy === "force") {
                                     /*
                                        Force local changes into remote
                                     */
@@ -586,7 +586,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                             success: true
                                         };
                                     }, function(error) {
-                                        log("Forced push failed:", error.message);
+                                        log("Forced push failed:", error.stack);
                                         throw new Error("Forced push failed: " + error.message);
                                     });
                                 } else {
@@ -604,15 +604,15 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                         });
                                         if (status.ahead === 0) {
                                             // We can safely rebase
-                                            returnValue.actions = ["rebase"];
+                                            returnValue.resolutionStrategy = ["rebase"];
                                         } else {
                                             // We can try to rebase, discard local changes, revert remote changes or force local changes
                                             // Let's do a dry rebase to check if we can safely rebase
-                                            returnValue.actions = [];
+                                            returnValue.resolutionStrategy = [];
                                             return self._rebase(local.shadow.name, remote.shadow.name, local.shadow.Sha).then(function(success) {
-                                                returnValue.actions = ["discard", "revert", "force"];
+                                                returnValue.resolutionStrategy = ["discard", "revert", "force"];
                                                 if (success) {
-                                                    returnValue.actions.unshift(["rebase"]);
+                                                    returnValue.resolutionStrategy.unshift(["rebase"]);
                                                 }
                                             });
                                         }
@@ -627,7 +627,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                 return self._branchStatus(local.shadow.name, remote.name)
                                 .then(function(status) {
                                     if (status.behind > 0) {
-                                        if (action === "rebase") {
+                                        if (resolutionStrategy === "rebase") {
                                             return self._rebase(local.shadow.name, remote.name)
                                             .then(function(success) {
                                                 if (success) {
@@ -645,7 +645,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                                                 ahead: status.ahead,
                                                 behind: status.behind
                                             });
-                                            returnValue.actions = ["rebase"];
+                                            returnValue.resolutionStrategy = ["rebase"];
                                             returnValue.success = false;
                                         }
                                     }
