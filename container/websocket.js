@@ -1,5 +1,6 @@
 var Env = require("../environment");
 var log = require("logging").from(__filename);
+var track = require("../track");
 
 var Q = require("q");
 var URL = require("url");
@@ -40,6 +41,7 @@ function websocket(config, workspacePath, services, clientPath) {
         // as we'd then be using done to set the connectionServices to undefined
         connectionServices.catch(function (error) {
             log("*" + error.stack + "*");
+            track.errorForUsername(error, config.username);
         });
 
         frontend = Connection(wsQueue, connectionServices);

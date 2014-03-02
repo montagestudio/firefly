@@ -76,6 +76,7 @@ function server(options) {
                 Frontend.showNotification(message)
                 .catch(function (error) {
                     log("*Error notifying", error.stack);
+                    track.error(error, request);
                 });
                 return {status: 200, body: []};
             });

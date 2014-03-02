@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var request = require("q-io/http").request;
 var Q = require("q");
 var environment = require("../environment");
@@ -34,6 +35,9 @@ function SetupProjectContainer(docker, containers, _request) {
         .catch(function (error) {
             log("Removing container for", JSON.stringify(containerKey), "because", error.message);
             containers.delete(containerKey);
+
+            track.errorForUsername(error, user, {containerKey: containerKey});
+
             throw error;
         });
     };

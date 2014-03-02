@@ -17,6 +17,7 @@ module.exports = function (config) {
                 initializingPromise = request.projectWorkspace.initializeWorkspace();
                 initializingPromise.catch(function (error) {
                     log("*Error initializing*", error, error.stack);
+                    track.error(error, request);
                 });
             }, function() {
                 return {message: "initializing"};

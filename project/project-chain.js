@@ -110,7 +110,8 @@ function server(options) {
                             });
                         })
                         .catch(function (error) {
-                            log("*Error with access code", error.stack);
+                            log("*Error with access code*", error.stack);
+                            track.error(error, request);
                         });
 
                         // Serve the access form regardless, so that people
