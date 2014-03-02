@@ -68,6 +68,11 @@
                 return LiveEdit.setObjectProperty(args.ownerModuleId, args.label, args.propertyName, args.propertyValue, args.propertyType);
             }
 
+            if (command === "setObjectLabel") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectLabel(args.ownerModuleId, args.label, args.newLabel);
+            }
+
             if (command === "setObjectBinding") {
                 args = JSON.parse(param);
                 return LiveEdit.setObjectBinding(args.ownerModuleId, args.label, args.binding);
@@ -80,7 +85,7 @@
 
             if (command === "addTemplateFragment") {
                 args = JSON.parse(param);
-                return LiveEdit.addTemplateFragment(args.moduleId, args.label, args.argumentName, args.cssSelector, args.how, args.templateFragment);
+                return LiveEdit.addTemplateFragment(args.moduleId, args.elementLocation, args.how, args.templateFragment);
             }
 
             if (command === "addTemplateFragmentObjects") {
@@ -90,8 +95,8 @@
 
             if (command === "setElementAttribute") {
                 args = JSON.parse(param);
-                return LiveEdit.setElementAttribute(args.moduleId, args.label,
-                    args.argumentName, args.cssSelector, args.attributeName, args.attributeValue);
+                return LiveEdit.setElementAttribute(args.moduleId,
+                    args.elementLocation,args.attributeName, args.attributeValue);
             }
 
             if (command === "setObjectTemplate") {
@@ -129,6 +134,7 @@
         var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
+            console.log("Connected to the tool.");
         };
 
         ws.onmessage = function(message) {
@@ -137,6 +143,7 @@
 
         ws.onclose = function() {
             ws = null;
+            console.log("Disconnected from the tool.");
             showReconnectionMessage(websocketRefresh);
         };
     }
