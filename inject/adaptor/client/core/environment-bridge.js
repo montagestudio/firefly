@@ -648,5 +648,23 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function () {
             return this.backend.get("repository-service").invoke("listBranches");
         }
+    },
+
+    checkoutShadowBranch: {
+        value: function (branch) {
+            return this.backend.get("repository-service").invoke("checkoutShadowBranch", branch);
+        }
+    },
+
+    commitFiles: {
+        value: function (files, message, resolutionStrategy) {
+            return this.backend.get("repository-service").invoke("commitFiles", files, message, resolutionStrategy);
+        }
+    },
+
+    updateRepositoryReferences: {
+        value: function (resolutionStrategy) {
+            return this.backend.get("repository-service").invoke("updateRefs", resolutionStrategy);
+        }
     }
 });
