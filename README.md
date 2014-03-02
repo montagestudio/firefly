@@ -357,6 +357,7 @@ sudo sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg;\
+sudo sed -i.bak 's/use-server .*//' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server project1 [0-9\.]*/server project1 10.0.0.5/' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server project2 .*//' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg;\
