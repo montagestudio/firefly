@@ -69,11 +69,13 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     //TODO handle menuValidate event
 
     handleMenuButtonAction: {
-        value: function () {
+        value: function (evt) {
             if (this.menuItemModel) {
                 this.menuItemModel.dispatchMenuEvent("menuAction");
             }
-            this.templateObjects.contextualMenu.show();
+            var menuPositions = evt.target.element.getBoundingClientRect(),
+                contextualMenuPosition = {top: menuPositions.bottom, left: menuPositions.left};
+            this.templateObjects.contextualMenu.show(contextualMenuPosition);
         }
     },
 
