@@ -1071,7 +1071,6 @@ Object.defineProperties(window.Declarativ, {
         var iteration = this.iteration;
         var documentPart = this.documentPart;
         var objects = documentPart.objects;
-        var template = documentPart.template;
         var label = objectLabel;
         var repetition = iteration.repetition;
         var element = object.element;
@@ -1081,7 +1080,6 @@ Object.defineProperties(window.Declarativ, {
         }
 
         objects[label] = object;
-        template.setObjectMetadata(label, null, objectLabel, owner);
         if (element && repetition.element === element.parentNode) {
             var firstDraw = function() {
                 object.removeEventListener("firstDraw", firstDraw, false);
