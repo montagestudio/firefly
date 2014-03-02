@@ -68,6 +68,11 @@
                 return LiveEdit.setObjectProperty(args.ownerModuleId, args.label, args.propertyName, args.propertyValue, args.propertyType);
             }
 
+            if (command === "setObjectLabel") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectLabel(args.ownerModuleId, args.label, args.newLabel);
+            }
+
             if (command === "setObjectBinding") {
                 args = JSON.parse(param);
                 return LiveEdit.setObjectBinding(args.ownerModuleId, args.label, args.binding);

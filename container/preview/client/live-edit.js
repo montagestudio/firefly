@@ -169,6 +169,17 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
+        setObjectLabel: {
+            value: function(ownerModuleId, label, newLabel) {
+                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObject;
+
+                for (var i = 0; (montageObject = montageObjects[i]); i++) {
+                    montageObject.setLabel(newLabel);
+                }
+            }
+        },
+
         setObjectBinding: {
             value: function(ownerModuleId, label, binding) {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
@@ -412,6 +423,11 @@ Object.defineProperties(window.Declarativ, {
         this.documentPart = documentPart;
     }
 
+    MontageObject.prototype.setLabel = function(label) {
+        Declarativ.Montage.getInfoForObject(this.value).label = label;
+        this.label = label;
+    };
+
     MontageObject.prototype.defineBinding = function(path, bindingDescriptor) {
         var object = this.value;
         var owner = this.owner;
@@ -576,6 +592,16 @@ Object.defineProperties(window.Declarativ, {
         }
     };
 
+    MontageComponent.prototype.setLabel = function(label) {
+        var originalLabel = this.label;
+
+        MontageObject.prototype.setLabel.call(this, label);
+        if (this.value.identifier === originalLabel) {
+            this.value.identifier = label;
+        }
+        this._updateLiveEditAttributes(originalLabel);
+    };
+
     MontageComponent.prototype.setTemplate = function(templateFragment) {
         var template = this.value._template;
 
@@ -621,6 +647,65 @@ Object.defineProperties(window.Declarativ, {
         while (component = /* assignment */ component.parentComponent) {
             if (component.clonesChildComponents) {
                 return component._findIterationContainingElement(component.element);
+            }
+        }
+    };
+
+    MontageComponent.prototype._updateLiveEditAttributes = function(label) {
+        var names = this.value.getDomArgumentNames();
+
+        if (names.length > 0) {
+            for (var i = 0, name; name = names[i]; i++) {
+                this._updateLiveEditNamedArgumentAttribute(label, name);
+            }
+        } else {
+            this._updateLiveEditStarArgumentAttribute(label);
+        }
+    };
+
+    MontageComponent.prototype._updateLiveEditStarArgumentAttribute = function(label) {
+        var ownerModuleId = this.owner._montage_metadata.moduleId;
+        var value = ownerModuleId + "," + label;
+        var newValue = ownerModuleId + "," + this.label;
+
+        this._updateLiveEditArgumentAttribute(ATTR_LE_ARG_BEGIN, value, newValue);
+        this._updateLiveEditArgumentAttribute(ATTR_LE_ARG_END, value, newValue);
+    };
+
+    MontageComponent.prototype._updateLiveEditNamedArgumentAttribute = function(name, label) {
+        var ownerModuleId = this.owner._montage_metadata.moduleId;
+        var value = ownerModuleId + "," + label + "," + name;
+        var newValue = ownerModuleId + "," + this.label + "," + name;
+
+        this._updateLiveEditArgumentAttribute(ATTR_LE_ARG, value, newValue);
+    };
+
+    MontageComponent.prototype._updateLiveEditArgumentAttribute = function(attribute, value, newValue) {
+        var ownerModuleId = this.owner._montage_metadata.moduleId;
+        var cssSelector;
+        var elements;
+        var montageElement;
+        var element;
+        var values;
+        var ix;
+
+        cssSelector = "*[" + attribute + "~='" + value + "']";
+        elements = this.value.element.querySelectorAll(cssSelector);
+
+        // It's possible that this component has more instances of its type
+        // down its component tree (e.g.: nested list.reel). When this happens
+        // we will also find the arguments for those inner components.
+        // Since we want to make sure the elements we update belong to this
+        // specific component we need to check the owner of each element found.
+        for (var i = 0; element = elements[i]; i++) {
+            montageElement = new MontageElement(element, ownerModuleId,
+                this.label);
+
+            if (montageElement.owner === this.owner) {
+                values = element.getAttribute(attribute).split(/\s+/);
+                ix = values.indexOf(value);
+                values.splice(ix, 1, newValue);
+                element.setAttribute(attribute, values.join(" "));
             }
         }
     };
