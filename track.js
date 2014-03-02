@@ -1,14 +1,14 @@
 // Don't track anything when running tests
 if (typeof jasmine !== "undefined") {
-    var noop = function (){};
     module.exports = {
-        error: noop,
-        message: noop,
-        shutdown: noop
+        error: NOOP,
+        message: NOOP,
+        shutdown: NOOP
     };
     return;
 }
 
+var log = require("logging").from(__filename);
 var Q = require("q");
 var environment = require("./environment");
 var rollbar = require("rollbar");
@@ -31,11 +31,28 @@ setCodeVersion(config);
 rollbar.init("afa2e8f334974bc58b0415fd06a02b40", config);
 rollbar.handleUncaughtExceptions();
 
-exports.error = function(error, request) {
-    rollbar.handleError(error, request);
+exports.error = function(error, request, data) {
+    request.payloadData = data;
+    rollbar.handleError(error, request, logErrorCallback);
 };
-exports.message = function (message, request, level) {
-    rollbar.reportMessage(message, level || "info", request);
+
+exports.errorForUsername = function(error, username, data) {
+    var request = {
+        session: {username: username},
+        payloadData: data
+    };
+    rollbar.handleError(error, request, logErrorCallback);
+};
+
+exports.message = function (message, request, data, level) {
+    data = data || {};
+    data.level = level || "info";
+    rollbar.reportMessageWithPayloadData(message, data, request, logErrorCallback);
+};
+
+exports.messageForUsername = function (message, username, data, level) {
+    var request = {session: {username: username}};
+    exports.message(message, request, data, level);
 };
 
 exports.joeyErrors = function (next) {
@@ -51,6 +68,13 @@ exports.shutdown = function () {
     rollbar.shutdown();
 };
 
+function NOOP() {}
+function logErrorCallback(e) {
+    if (e) {
+        log(e);
+    }
+}
+
 // Adapted from the Rollbar library for Joey
 function addRequestData(data, joeyRequest) {
     if (!joeyRequest) {
@@ -64,7 +88,7 @@ function addRequestData(data, joeyRequest) {
         method: joeyRequest.method,
         url: joeyRequest.url,
         headers: scrubbedHeaders,
-        user_ip: joeyRequest.headers['x-forwarded-for'] || joeyRequest.remoteHost,
+        user_ip: scrubbedHeaders['x-forwarded-for'] || joeyRequest.remoteHost,
         GET: joeyRequest.query,
         // POST: use body if promise is resolved?
     };
@@ -77,6 +101,17 @@ function addRequestData(data, joeyRequest) {
             username: joeyRequest.session.username
         };
     }
+
+    // This is a workaround for the Rollbar API not allowing payload data to
+    // be added when reporting an error...
+    //jshint -W089
+    var payloadData = joeyRequest.payloadData;
+    if (payloadData) {
+        for (var p in payloadData) {
+            data[p] = payloadData[p];
+        }
+    }
+    //jshint +W089
 }
 
 function scrubHeaders(givenHeaders) {
