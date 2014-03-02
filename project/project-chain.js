@@ -1,16 +1,17 @@
 var log = require("logging").from(__filename);
 var Q = require("q");
 var joey = require("joey");
+var HTTP = require("q-io/http");
 var APPS = require("q-io/http-apps");
-// FIXME docker
-// var PreviewServer = require("./preview/preview-server");
-// var checkPreviewAccess = require("./preview/check-preview-access");
 var environment = require("../environment");
 
 var LogStackTraces = require("../log-stack-traces");
 var parseCookies = require("../parse-cookies");
+var routeProject = require("../route-project");
 
-var ProxyContainer = require("./proxy-container");
+var preview = require("./preview");
+
+var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
 
@@ -34,7 +35,7 @@ function server(options) {
     // Put here to avoid printing logs when HAProxy pings the server for
     // a health check
     .route(function () {
-        this.OPTIONS("").content("");
+        this.OPTIONS("*").content("");
     })
     .log(log, function (message) { return message; })
     .use(LogStackTraces(log))
@@ -53,9 +54,9 @@ function server(options) {
                     .then(function(session) {
                         if (session) {
                             request.session = session;
-                            return APPS.ok();
+                            return routeProject.addRouteProjectCookie(request, APPS.ok());
                         } else {
-                            return APPS.badRequest();
+                            return APPS.badRequest(request);
                         }
                     });
                 });
@@ -69,21 +70,52 @@ function server(options) {
             }
         });
 
-        // POST("access").app(PreviewServer.processAccessRequest);
+        POST("access").app(preview.processAccessRequest);
     })
     .use(function (next) {
-        // TODO checkPreviewAccess
-        var servePreview = ProxyContainer(setupProjectContainer, "static");
-
         return function (request, response) {
-            if (endsWith(request.headers.host, environment.getProjectHost())) {
-                // FIXME docker check session/do preview code stuff here
-                var details = environment.getDetailsfromProjectUrl(request.url);
-                request.params = request.params || {};
-                request.params.owner = details.owner;
-                request.params.repo = details.repo;
+            if (preview.isPreview(request)) {
+                return preview.hasAccess(request.headers.host, request.session)
+                .then(function (hasAccess) {
+                    var details = environment.getDetailsfromProjectUrl(request.url);
+                    if (hasAccess) {
+                        return setupProjectContainer(
+                            details.owner, // FIXME docker
+                            details.owner,
+                            details.repo
+                        ).then(function (projectWorkspacePort) {
+                            if (!projectWorkspacePort) {
+                                return preview.serveNoPreviewPage(request);
+                            }
+                            return proxyContainer(request, projectWorkspacePort, "static");
+                        });
+                    } else {
+                        setupProjectContainer(
+                            details.owner, // FIXME docker
+                            details.owner,
+                            details.repo
+                        )
+                        .then(function (projectWorkspacePort) {
+                            if (!projectWorkspacePort) {
+                                return;
+                            }
+                            var code = preview.getAccessCode(request.headers.host);
+                            return HTTP.request({
+                                method: "POST",
+                                url: "http://127.0.0.1:" + projectWorkspacePort + "/notice",
+                                headers: {"content-type": "application/json; charset=utf8"},
+                                body: [JSON.stringify("Access code: " + code)]
+                            });
+                        })
+                        .catch(function (error) {
+                            log("*Error with access code", error.stack);
+                        });
 
-                return servePreview(request, response);
+                        // Serve the access form regardless, so that people
+                        // can't work out if a project exists or not.
+                        return preview.serveAccessForm(request);
+                    }
+                });
             } else {
                 // route /:user/:app/:action
                 return next(request, response);
@@ -92,7 +124,21 @@ function server(options) {
     })
     .use(checkSession)
     .route(function (route) {
-        route("api/:owner/:repo/...").app(ProxyContainer(setupProjectContainer, "api"));
+        route("api/:owner/:repo/...").app(function (request) {
+            var session = request.session;
+            return session.githubUser.then(function (githubUser) {
+                return setupProjectContainer(
+                    session.username,
+                    request.params.owner,
+                    request.params.repo,
+                    session.githubAccessToken,
+                    githubUser
+                );
+            })
+            .then(function (projectWorkspacePort) {
+                return proxyContainer(request, projectWorkspacePort, "api");
+            });
+        });
     });
 
     var proxyAppWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-app");
@@ -103,11 +149,19 @@ function server(options) {
                 return;
             }
             var details;
-            if (endsWith(request.headers.host, environment.getProjectHost())) {
-                log("preview websocket");
-                // FIXME docker check session/do preview code stuff here
-                details = environment.getDetailsfromProjectUrl(request.headers.host);
-                return proxyPreviewWebsocket(request, socket, body, details);
+            if (preview.isPreview(request)) {
+                return sessions.getSession(request, function (session) {
+                    return preview.hasAccess(request.headers.host, session);
+                }).then(function (hasAccess) {
+                    if (hasAccess) {
+                        log("preview websocket", request.headers.host);
+                        details = environment.getDetailsfromProjectUrl(request.headers.host);
+                        return proxyPreviewWebsocket(request, socket, body, details);
+                    } else {
+                        socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+                        socket.destroy();
+                    }
+                });
             } else {
                 log("filament websocket");
                 details = environment.getDetailsFromAppUrl(request.url);
@@ -122,8 +176,4 @@ function server(options) {
     };
 
     return chain;
-}
-
-function endsWith(str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }

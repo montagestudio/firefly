@@ -56,7 +56,8 @@ describe("login chain", function () {
             var headers;
             beforeEach(function () {
                 sessions["abc-123"] = {
-                    githubUser: Q("test")
+                    username: "test",
+                    githubUser: Q({})
                 };
                 headers = {
                     "cookie": "session=abc-123"

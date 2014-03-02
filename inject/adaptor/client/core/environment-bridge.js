@@ -68,9 +68,42 @@ exports.EnvironmentBridge = Montage.specialize({
 
                 self._backend = Connection(connection, this._frontendService);
                 self._backend.done();
+
+                // every 20 seconds
+                this._startPing(20000);
             }
 
             return self._backend;
+        }
+    },
+
+    _pingStarted: {
+        value: false
+    },
+    _startPing: {
+        value: function (delay) {
+            var self = this;
+            var ping = function () {
+                if ((document.webkitVisibilityState || document.visibilityState) === "visible") {
+                    // Note 1: using .backend and not ._backend will cause a
+                    // reconnection when the page becomes visible again
+                    // (through the "visibilitychange" event)
+                    // Note 2: Using .get because it's more efficient than .invoke
+                    self.backend.get("ping")
+                    .then(function () {
+                        setTimeout(ping, delay);
+                    })
+                    .done();
+                }
+            };
+
+            // If pinging has already been setup, then don't kick it off again
+            if (!this._pingStarted) {
+                this._pingStarted = true;
+                var visibilitychange = document.webkitVisibilityState ? "webkitvisibilitychange" : "visibilitychange";
+                document.addEventListener(visibilitychange, ping, false);
+                ping();
+            }
         }
     },
 
@@ -309,6 +342,60 @@ exports.EnvironmentBridge = Montage.specialize({
     setPreviewObjectProperties: {
         value: function(previewId, label, ownerModuleId, properties) {
             return this.backend.get("preview-service").invoke("setObjectProperties", label, ownerModuleId, properties);
+        }
+    },
+
+    setPreviewObjectProperty: {
+        value: function(previewId, ownerModuleId, label, propertyName, propertyValue, propertyType) {
+            return this.backend.get("preview-service").invoke("setObjectProperty", ownerModuleId, label, propertyName, propertyValue, propertyType);
+        }
+    },
+
+    setPreviewObjectBinding: {
+        value: function(previewId, ownerModuleId, label, binding) {
+            return this.backend.get("preview-service").invoke("setObjectBinding", ownerModuleId, label, binding);
+        }
+    },
+
+    deletePreviewObjectBinding: {
+        value: function(previewId, ownerModuleId, label, path) {
+            return this.backend.get("preview-service").invoke("deleteObjectBinding", ownerModuleId, label, path);
+        }
+    },
+
+    addTemplateFragment: {
+        value: function(previewId, moduleId, label, argumentName, cssSelector, how, templateFragment) {
+            return this.backend.get("preview-service").invoke("addTemplateFragment", moduleId, label, argumentName,cssSelector, how, templateFragment);
+        }
+    },
+
+    addTemplateFragmentObjects: {
+        value: function(previewId, moduleId, templateFragment) {
+            return this.backend.get("preview-service").invoke("addTemplateFragmentObjects", moduleId, templateFragment);
+        }
+    },
+
+    setPreviewElementAttribute: {
+        value: function(previewId, moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+            return this.backend.get("preview-service").invoke("setElementAttribute", moduleId, label, argumentName,cssSelector, attributeName, attributeValue);
+        }
+    },
+
+    setPreviewObjectTemplate: {
+        value: function(previewId, moduleId, templateFragment) {
+            return this.backend.get("preview-service").invoke("setObjectTemplate", moduleId, templateFragment);
+        }
+    },
+
+    addPreviewObjectEventListener: {
+        value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
+            return this.backend.get("preview-service").invoke("addObjectEventListener", moduleId, label, type, listenerLabel, useCapture);
+        }
+    },
+
+    removePreviewObjectEventListener: {
+        value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
+            return this.backend.get("preview-service").invoke("removeObjectEventListener", moduleId, label, type, listenerLabel, useCapture);
         }
     },
 

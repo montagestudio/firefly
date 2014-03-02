@@ -189,63 +189,65 @@ describe("ProjectWorkspace", function () {
         });
     });
 
-    describe("montage operations", function() {
-        it("should create a component on disk", function(done) {
-            // Avoid flushing the workspace for this test.
-            spyOn(projectWorkspace, "flushWorkspace");
+    if (process.env.runSlowSpecs) {
+        describe("montage operations", function() {
+            it("should create a component on disk", function(done) {
+                // Avoid flushing the workspace for this test.
+                spyOn(projectWorkspace, "flushWorkspace");
 
-            return createWorkspace(tmpPath, owner, repo)
-            .then(function() {
-                return projectWorkspace.createComponent("my-component");
-            })
-            .then(function() {
-                return fs.isDirectory(fs.join(projectWorkspace._workspacePath, "ui", "my-component.reel"));
-            })
-            .then(function(isDirectory) {
-                expect(isDirectory).toBe(true);
-            }).then(done, done);
+                return createWorkspace(tmpPath, owner, repo)
+                .then(function() {
+                    return projectWorkspace.createComponent("my-component");
+                })
+                .then(function() {
+                    return fs.isDirectory(fs.join(projectWorkspace._workspacePath, "ui", "my-component.reel"));
+                })
+                .then(function(isDirectory) {
+                    expect(isDirectory).toBe(true);
+                }).then(done, done);
+            });
+
+            it("should flush the created component to remote git", function(done) {
+                var spy = spyOn(projectWorkspace, "flushWorkspace");
+
+                return createWorkspace(tmpPath, owner, repo)
+                .then(function() {
+                    return projectWorkspace.createComponent("my-component");
+                })
+                .then(function(data) {
+                    expect(spy).toHaveBeenCalled();
+                }).then(done, done);
+            });
+
+            it("should create a module on disk", function(done) {
+                // Avoid flushing the workspace for this test.
+                spyOn(projectWorkspace, "flushWorkspace");
+
+                return createWorkspace(tmpPath, owner, repo)
+                .then(function() {
+                    return projectWorkspace.createModule("my-module");
+                })
+                .then(function() {
+                    return fs.isFile(fs.join(projectWorkspace._workspacePath, "my-module.js"));
+                })
+                .then(function(isFile) {
+                    expect(isFile).toBe(true);
+                }).then(done, done);
+            });
+
+            it("should flush the created module to remote git", function(done) {
+                var spy = spyOn(projectWorkspace, "flushWorkspace");
+
+                return createWorkspace(tmpPath, owner, repo)
+                .then(function() {
+                    return projectWorkspace.createModule("my-module");
+                })
+                .then(function(data) {
+                    expect(spy).toHaveBeenCalled();
+                }).then(done, done);
+            });
         });
-
-        it("should flush the created component to remote git", function(done) {
-            var spy = spyOn(projectWorkspace, "flushWorkspace");
-
-            return createWorkspace(tmpPath, owner, repo)
-            .then(function() {
-                return projectWorkspace.createComponent("my-component");
-            })
-            .then(function(data) {
-                expect(spy).toHaveBeenCalled();
-            }).then(done, done);
-        });
-
-        it("should create a module on disk", function(done) {
-            // Avoid flushing the workspace for this test.
-            spyOn(projectWorkspace, "flushWorkspace");
-
-            return createWorkspace(tmpPath, owner, repo)
-            .then(function() {
-                return projectWorkspace.createModule("my-module");
-            })
-            .then(function() {
-                return fs.isFile(fs.join(projectWorkspace._workspacePath, "my-module.js"));
-            })
-            .then(function(isFile) {
-                expect(isFile).toBe(true);
-            }).then(done, done);
-        });
-
-        it("should flush the created component to remote git", function(done) {
-            var spy = spyOn(projectWorkspace, "flushWorkspace");
-
-            return createWorkspace(tmpPath, owner, repo)
-            .then(function() {
-                return projectWorkspace.createModule("my-component");
-            })
-            .then(function(data) {
-                expect(spy).toHaveBeenCalled();
-            }).then(done, done);
-        });
-    });
+    }
 
     describe("git operations", function() {
         it("should flush the workspace", function(done) {

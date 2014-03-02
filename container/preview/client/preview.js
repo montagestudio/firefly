@@ -1,14 +1,19 @@
 /*jshint browser:true */
-/*global Declarativ */
+/*global Declarativ, console */
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
 
 (function() {
+    var DEBUG_OPSS = false;
+    var DEBUG_SPEED = true;
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
-        LiveEdit = Declarativ.LiveEdit;
+        LiveEdit = Declarativ.LiveEdit,
+        dataProcessingPromise,
+        previousTime = window.performance.now(),
+        operations = 0;
 
     function dispatchEvent(type, detail) {
         var event;
@@ -23,26 +28,106 @@
     function processIncomingData(data) {
         var command = data.substring(0, data.indexOf(":"));
         var param = data.substring(data.indexOf(":") + 1);
+        var args;
+        var startTime;
 
-        // REFRESH
+        if (!dataProcessingPromise) {
+            dataProcessingPromise = Declarativ.Promise.resolve();
+        }
+
         if (command === "refresh") {
             var event = dispatchEvent("lumieresRefresh");
             if (!event.defaultPrevented) {
                 document.location.reload();
             }
+            return;
         }
 
-        // SET OBJECT PROPERTIES
-        if (command === "setObjectProperties") {
-            var args = JSON.parse(param);
-            LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
+        //jshint -W074
+        dataProcessingPromise = dataProcessingPromise.then(function() {
+            if (DEBUG_SPEED) {
+                startTime = window.performance.now();
+            }
+            if (DEBUG_OPSS) {
+                var time = window.performance.now();
+                if (time - previousTime >= 1000) {
+                    console.log("ops/s: ", operations);
+                    previousTime = time;
+                    operations = 0;
+                }
+                operations++;
+            }
+
+            if (command === "setObjectProperties") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
+            }
+
+            if (command === "setObjectProperty") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectProperty(args.ownerModuleId, args.label, args.propertyName, args.propertyValue, args.propertyType);
+            }
+
+            if (command === "setObjectBinding") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectBinding(args.ownerModuleId, args.label, args.binding);
+            }
+
+            if (command === "deleteObjectBinding") {
+                args = JSON.parse(param);
+                return LiveEdit.deleteObjectBinding(args.ownerModuleId, args.label, args.path);
+            }
+
+            if (command === "addTemplateFragment") {
+                args = JSON.parse(param);
+                return LiveEdit.addTemplateFragment(args.moduleId, args.label, args.argumentName, args.cssSelector, args.how, args.templateFragment);
+            }
+
+            if (command === "addTemplateFragmentObjects") {
+                args = JSON.parse(param);
+                return LiveEdit.addTemplateFragmentObjects(args.moduleId, args.templateFragment);
+            }
+
+            if (command === "setElementAttribute") {
+                args = JSON.parse(param);
+                return LiveEdit.setElementAttribute(args.moduleId, args.label,
+                    args.argumentName, args.cssSelector, args.attributeName, args.attributeValue);
+            }
+
+            if (command === "setObjectTemplate") {
+                args = JSON.parse(param);
+                return LiveEdit.setObjectTemplate(args.moduleId, args.templateFragment);
+            }
+
+            if (command === "addObjectEventListener") {
+                args = JSON.parse(param);
+                return LiveEdit.addObjectEventListener(args.moduleId, args.label, args.type, args.listenerLabel, args.useCapture);
+            }
+
+            if (command === "removeObjectEventListener") {
+                args = JSON.parse(param);
+                return LiveEdit.removeObjectEventListener(args.moduleId, args.label, args.type, args.listenerLabel, args.useCapture);
+            }
+        }).fail(function(reason) {
+            console.log("fail: ", reason);
+        });
+        //jshint +W074
+
+        if (DEBUG_SPEED) {
+            dataProcessingPromise = dataProcessingPromise.then(function() {
+                console.log(command + ": ", window.performance.now() - startTime);
+            });
         }
     }
 
+    var ws;
     function websocketRefresh() {
+        if (ws) {
+            // TODO find out why sometimes we make two connections at once.
+            return;
+        }
         var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        var ws = new WebSocket(protocol + "//" + document.location.host);
-
+        ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
         };
 
@@ -51,6 +136,7 @@
         };
 
         ws.onclose = function() {
+            ws = null;
             showReconnectionMessage(websocketRefresh);
         };
     }

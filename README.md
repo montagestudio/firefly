@@ -357,6 +357,7 @@ sudo sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg;\
+sudo sed -i.bak 's/use-server .*//' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server project1 [0-9\.]*/server project1 10.0.0.5/' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server project2 .*//' /etc/haproxy/haproxy.cfg;\
 sudo sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg;\
@@ -374,9 +375,15 @@ Contributing
   a VM to run the tests. If you get the error `VM must be running to open SSH
   connection` then run `npm start` and try again.
 
-  Note: there is a dummy spec called `_disable-logging-spec.js` (the `_` prefix
+  Note: there is a dummy spec called `_config-spec.js` (the `_` prefix
   causes it to be run first), that hides the logging while running the tests.
-  If you need to see the logs then comment out the lines in it.
+  If you need to see the logs then comment out the lines in it. It also adds
+  the `SlowSpecReporter`...
+
+- If a spec takes more than 100ms then it is a "slow" spec and a message
+  telling you this will be logged. Make it faster, or wrap the `it` in an
+  `if (process.env.runSlowSpecs)` block. Run `npm run slow-tests` to run the
+  slow tests.
 
 - Make sure all commit messages follow the 50 character subject/72 character
 body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)

@@ -47,24 +47,26 @@ describe("Git", function () {
     });
 
     describe("fetch and branch", function () {
-        it("fetches the branches from the remote", function (done) {
-            git.init(tmpPath)
-            .then(function () {
-                return git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
-            })
-            .then(function () {
-                return git.fetch(tmpPath);
+        if (process.env.runSlowSpecs) {
+            it("fetches the branches from the remote", function (done) {
+                git.init(tmpPath)
+                .then(function () {
+                    return git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
+                })
+                .then(function () {
+                    return git.fetch(tmpPath);
 
-            })
-            .then(function () {
-                return git.branch(tmpPath, "-a");
+                })
+                .then(function () {
+                    return git.branch(tmpPath, "-a");
 
-            })
-            .then(function(branches) {
-                expect(branches.indexOf("remotes/origin/master")).not.toBe(-1);
-            })
-            .then(done, done);
-        }, 20000);
+                })
+                .then(function(branches) {
+                    expect(branches.indexOf("remotes/origin/master")).not.toBe(-1);
+                })
+                .then(done, done);
+            }, 20000);
+        }
     });
 
     describe("add", function () {

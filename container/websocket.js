@@ -3,17 +3,17 @@ var log = require("logging").from(__filename);
 
 var Q = require("q");
 var URL = require("url");
+var uuid = require("uuid");
 var FS = require("q-io/fs");
 var WebSocket = require("faye-websocket");
 var adaptWebsocket = require("./adapt-websocket");
 var Connection = require("q-connection");
-// FIXME docker
-// var Frontend = require("./frontend");
+var Frontend = require("./frontend");
 
 var websocketConnections = 0;
 
 module.exports = websocket;
-function websocket(config, services, clientPath) {
+function websocket(config, workspacePath, services, clientPath) {
     log("Websocket given services", Object.keys(services));
 
     return function (request, socket, body) {
@@ -27,15 +27,12 @@ function websocket(config, services, clientPath) {
 
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
-        // FIXME docker use passed in config
-        var path = "/workspace";
+        frontendId = uuid.v4();
 
-        frontendId = config.githubUser + "/" + config.owner + "/" + config.repo;
-
-        log("Limiting", remoteAddress, pathname, "to", path);
-        var connectionServices = FS.reroot(path)
+        log("Limiting", remoteAddress, pathname, "to", workspacePath);
+        var connectionServices = FS.reroot(workspacePath)
         .then(function (fs) {
-            return makeServices(services, config, fs, Env, pathname, path, clientPath);
+            return makeServices(services, config, fs, Env, pathname, workspacePath, clientPath);
         });
 
         // Throw errors if they happen in establishing services
@@ -47,8 +44,7 @@ function websocket(config, services, clientPath) {
 
         frontend = Connection(wsQueue, connectionServices);
         connectionServices.then(function() {
-            // FIXME docker
-            // return Frontend.addFrontend(frontendId, frontend);
+            return Frontend.addFrontend(frontendId, frontend);
         })
         .done();
 
@@ -58,8 +54,7 @@ function websocket(config, services, clientPath) {
                     services[key].close(request);
                 }
             });
-            // FIXME docker
-            // Frontend.deleteFrontend(frontendId).done();
+            Frontend.deleteFrontend(frontendId).done();
             log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
     };

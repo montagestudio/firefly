@@ -11,6 +11,7 @@ var api = require("./api");
 var Preview = require("./preview/preview-server").Preview;
 var WebSocket = require("faye-websocket");
 var websocket = require("./websocket");
+var Frontend = require("./frontend");
 
 module.exports = server;
 function server(options) {
@@ -21,6 +22,8 @@ function server(options) {
     var setupProjectWorkspace = options.setupProjectWorkspace;
     if (!options.config) throw new Error("options.config required");
     var config = options.config;
+    if (!options.workspacePath) throw new Error("options.workspacePath required");
+    var workspacePath = options.workspacePath;
     if (!options.fs) throw new Error("options.fs required");
     var fs = options.fs;
     if (!options.client) throw new Error("options.client required");
@@ -40,12 +43,12 @@ function server(options) {
     })
     .use(LogStackTraces(log))
     .tap(setupProjectWorkspace)
-    .route(function (route) {
-        var fs = require("q-io/fs");
-
+    .route(function (route, _, __, POST) {
         var serveProject = preview(function (request) {
-            // Strip leading slash on pathInfo so that the `join` works
-            var path = fs.join("/workspace", request.pathInfo.replace(/^\//, ""));
+            // Aboslute the path so that ".." components are removed, then
+            // strip leading slash on pathInfo so that the `join` works
+            var path = fs.absolute(request.pathInfo).replace(/^\//, "");
+            path = fs.join(workspacePath, path);
 
             return fs.isFile(path).then(function(isFile) {
                 if (isFile) {
@@ -62,6 +65,19 @@ function server(options) {
 
         route("static/...")
         .app(serveProject);
+
+        POST("notice")
+        .app(function (request) {
+            return request.body.read()
+            .then(function (body) {
+                var message = JSON.parse(body.toString());
+                Frontend.showNotification(message)
+                .catch(function (error) {
+                    log("*Error notifying", error.stack);
+                });
+                return {status: 200, body: []};
+            });
+        });
     });
 
     var services = {};
@@ -75,7 +91,7 @@ function server(options) {
     services["package-manager-service"] = require("./services/package-manager-service");
     services["repository-service"] = require("./services/repository-service");
 
-    var websocketServer = websocket(config, services, clientPath);
+    var websocketServer = websocket(config, workspacePath, services, clientPath);
 
     chain.upgrade = function (request, socket, head) {
         Q.try(function () {
@@ -83,7 +99,6 @@ function server(options) {
                 return;
             }
 
-            // FIXME docker preview server
             if (request.headers['sec-websocket-protocol'] === "firefly-preview") {
                 return preview.wsServer(request, socket, head);
             } else {

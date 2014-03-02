@@ -121,10 +121,9 @@ ProjectWorkspace.prototype.initializeWorkspace = function() {
  */
 ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
     var self = this;
-    var parentPath = PATH.normalize(this._fs.join(this._workspacePath, ".."));
     var minit = new Minit(this._minitPath);
 
-    return minit.createApp(parentPath, self._repo)
+    return minit.createApp(this._workspacePath, self._repo)
     .then(function() {
         return self._git.init(self._workspacePath);
     }).then(function() {

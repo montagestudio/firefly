@@ -58,23 +58,30 @@ test('test', function (t) {
     env: env
   })
   child.stdout.setEncoding('utf8')
-  child.stderr.on('data', function(chunk) {
-    throw new Error('got stderr data: ' + JSON.stringify('' + chunk))
-  })
+  child.stderr.on('data', onerr)
   child.stdout.on('data', ondata)
   child.on('close', onend)
   var c = ''
+    , e = ''
   function ondata (chunk) {
     c += chunk
   }
+  function onerr (chunk) {
+    e += chunk
+  }
   function onend () {
+    if (e) {
+      throw new Error('got stderr data: ' + JSON.stringify('' + e))
+    }
     c = c.trim()
-    t.equal( c
-           , '> npm-test-prepublish@1.2.5 prepublish .' + os.EOL
-           + '> echo ok' + os.EOL
-           + os.EOL
-           + 'ok' + os.EOL
-           + 'npm-test-prepublish-1.2.5.tgz')
+    var regex = new RegExp("" +
+      "> npm-test-prepublish@1.2.5 prepublish [^\\r\\n]+\\r?\\n" +
+      "> echo ok\\r?\\n" +
+      "\\r?\\n" +
+      "ok\\r?\\n" +
+      "npm-test-prepublish-1.2.5.tgz", "ig")
+
+    t.ok(c.match(regex))
     t.end()
   }
 })

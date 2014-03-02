@@ -31,7 +31,7 @@ function lifecycle (pkg, stage, wd, unsafe, failOk, cb) {
   if (!pkg) return cb(new Error("Invalid package data"))
 
   log.info(stage, pkg._id)
-  if (!pkg.scripts) pkg.scripts = {}
+  if (!pkg.scripts || npm.config.get('ignore-scripts')) pkg.scripts = {}
 
   validWd(wd || path.resolve(npm.dir, pkg.name), function (er, wd) {
     if (er) return cb(er)
@@ -185,14 +185,6 @@ function runCmd_ (cmd, pkg, env, wd, stage, unsafe, uid, gid, cb_) {
     process.nextTick(dequeue)
   }
 
-  var sh = "sh"
-  var shFlag = "-c"
-
-  if (process.platform === "win32") {
-    sh = "cmd"
-    shFlag = "/c"
-  }
-
   var conf = { cwd: wd
              , env: env
              , stdio: [ 0, 1, 2 ]
@@ -203,9 +195,20 @@ function runCmd_ (cmd, pkg, env, wd, stage, unsafe, uid, gid, cb_) {
     conf.gid = gid ^ 0
   }
 
+  var sh = "sh"
+  var shFlag = "-c"
+
+  if (process.platform === "win32") {
+    sh = "cmd"
+    shFlag = "/c"
+    conf.windowsVerbatimArguments = true
+  }
+
   var proc = spawn(sh, [shFlag, cmd], conf)
-  proc.on("close", function (code) {
-    if (code) {
+  proc.on("close", function (code, signal) {
+    if (signal) {
+      process.kill(process.pid, signal);
+    } else if (code) {
       var er = new Error("Exit status " + code)
     }
     if (er && !npm.ROLLBACK) {

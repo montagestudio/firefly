@@ -15,7 +15,7 @@ module.exports = function (config) {
                 log("init handleEndpoint");
                 initializingPromise = request.projectWorkspace.initializeWorkspace();
                 initializingPromise.catch(function (error) {
-                    log("*Error initializing*", error);
+                    log("*Error initializing*", error, error.stack);
                 });
             }, function() {
                 return {message: "initializing"};
@@ -140,10 +140,10 @@ function handleEndpoint(config, request, endpointCallback, successCallback) {
 
         return JsonApps.json(createMessage(successMessage));
     })
-    .fail(function(reason) {
-        log("*handleEndpoint fail*", reason);
+    .fail(function(error) {
+        log("*handleEndpoint fail*", error.stack);
         return JsonApps.json(createMessage({
-            error: reason.message
+            error: error.message
         }));
     });
 }

@@ -21,6 +21,12 @@ module.exports = {
     deleteFrontend: function(frontendId) {
         delete frontends[frontendId];
         return Q.resolve();
+    },
+
+    showNotification: function (message) {
+        return Q.all(Object.keys(frontends).map(function (id) {
+            return frontends[id].showNotification(message);
+        })).thenResolve();
     }
 };
 
