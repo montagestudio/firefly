@@ -639,12 +639,10 @@ Object.defineProperties(window.Declarativ, {
 
     /// MONTAGE ELEMENT
 
-    function MontageElement(value, ownerModuleId, label, argumentName, cssSelector) {
+    function MontageElement(value, ownerModuleId, label) {
         this.value = value;
         this.ownerModuleId = ownerModuleId;
         this.label = label;
-        this.argumentName = argumentName;
-        this.cssSelector = cssSelector;
     }
 
     MontageElement.findAll = function(ownerModuleId, label, argumentName, cssSelector) {
@@ -665,8 +663,7 @@ Object.defineProperties(window.Declarativ, {
 
         for (var i = 0, element; element = elements[i]; i++) {
             montageElements.push(
-                new MontageElement(element, ownerModuleId, label, argumentName,
-                    cssSelector)
+                new MontageElement(element, ownerModuleId, label)
             );
         }
 
