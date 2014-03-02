@@ -54,6 +54,7 @@ function SetupProjectContainer(docker, containers, _request) {
 
         if (!info) {
             log("Creating container for", user, owner, repo, "...");
+            track.messageForUsername("creating container", user, {containerKey: containerKey});
 
             var config = {
                 username: user,
