@@ -91,6 +91,10 @@
     border-color: hsla(0, 0%, 0%, 0.3);
 }
 
+.MenuItem.flash .Toolbar-button.matte-Button {
+    background: hsl(0, 0%, 20%);
+}
+
 
 
 /* Icons */
