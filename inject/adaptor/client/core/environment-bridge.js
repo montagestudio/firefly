@@ -351,6 +351,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    setPreviewObjectLabel: {
+        value: function(previewId, ownerModuleId, label, newLabel) {
+            return this.backend.get("preview-service").invoke("setObjectLabel", ownerModuleId, label, newLabel);
+        }
+    },
+
     setPreviewObjectBinding: {
         value: function(previewId, ownerModuleId, label, binding) {
             return this.backend.get("preview-service").invoke("setObjectBinding", ownerModuleId, label, binding);
@@ -364,8 +370,8 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     addTemplateFragment: {
-        value: function(previewId, moduleId, label, argumentName, cssSelector, how, templateFragment) {
-            return this.backend.get("preview-service").invoke("addTemplateFragment", moduleId, label, argumentName,cssSelector, how, templateFragment);
+        value: function(previewId, moduleId, elementLocation, how, templateFragment) {
+            return this.backend.get("preview-service").invoke("addTemplateFragment", moduleId, elementLocation, how, templateFragment);
         }
     },
 
@@ -376,8 +382,8 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     setPreviewElementAttribute: {
-        value: function(previewId, moduleId, label, argumentName, cssSelector, attributeName, attributeValue) {
-            return this.backend.get("preview-service").invoke("setElementAttribute", moduleId, label, argumentName,cssSelector, attributeName, attributeValue);
+        value: function(previewId, moduleId, elementLocation, attributeName, attributeValue) {
+            return this.backend.get("preview-service").invoke("setElementAttribute", moduleId, elementLocation, attributeName, attributeValue);
         }
     },
 
@@ -662,6 +668,24 @@ exports.EnvironmentBridge = Montage.specialize({
     listRepositoryBranches: {
         value: function () {
             return this.backend.get("repository-service").invoke("listBranches");
+        }
+    },
+
+    checkoutShadowBranch: {
+        value: function (branch) {
+            return this.backend.get("repository-service").invoke("checkoutShadowBranch", branch);
+        }
+    },
+
+    commitFiles: {
+        value: function (files, message, resolutionStrategy) {
+            return this.backend.get("repository-service").invoke("commitFiles", files, message, resolutionStrategy);
+        }
+    },
+
+    updateRepositoryReferences: {
+        value: function (resolutionStrategy) {
+            return this.backend.get("repository-service").invoke("updateRefs", resolutionStrategy);
         }
     }
 });

@@ -169,6 +169,17 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
+        setObjectLabel: {
+            value: function(ownerModuleId, label, newLabel) {
+                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObject;
+
+                for (var i = 0; (montageObject = montageObjects[i]); i++) {
+                    montageObject.setLabel(newLabel);
+                }
+            }
+        },
+
         setObjectBinding: {
             value: function(ownerModuleId, label, binding) {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
@@ -191,9 +202,9 @@ Object.defineProperties(window.Declarativ, {
         },
 
         addTemplateFragment: {
-            value: function(ownerModuleId, label, argumentName, cssSelector, how, templateFragment) {
+            value: function(ownerModuleId, elementLocation, how, templateFragment) {
                 var montageElements = MontageElement.findAll(ownerModuleId,
-                    label, argumentName, cssSelector);
+                    elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
                 var template = new Template(templateFragment.serialization,
                     templateFragment.html);
                 var promises = [];
@@ -227,9 +238,9 @@ Object.defineProperties(window.Declarativ, {
         },
 
         setElementAttribute: {
-            value: function(ownerModuleId, label, argumentName, cssSelector, attributeName, attributeValue) {
+            value: function(ownerModuleId, elementLocation, attributeName, attributeValue) {
                 var montageElements = MontageElement.findAll(ownerModuleId,
-                    label, argumentName, cssSelector);
+                    elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     montageElement.value.setAttribute(attributeName,
@@ -291,12 +302,12 @@ Object.defineProperties(window.Declarativ, {
             lastElement: element.lastElementChild
         };
 
-        owner = anchor.owner;
-        // The new elements will be part of the same DocumentPart as the anchor
-        // element.
-        documentPart = anchor.documentPart;
-
         if (this.serializationString) {
+            owner = anchor.owner;
+            // The new elements will be part of the same DocumentPart as the anchor
+            // element.
+            documentPart = anchor.documentPart;
+
             return this.instantiate(owner, element, documentPart)
                 .then(function(objects) {
                     result.objects = objects;
@@ -311,6 +322,7 @@ Object.defineProperties(window.Declarativ, {
                     return result;
                 });
         } else {
+            this._removeElementWrapper(element);
             return Declarativ.Promise.resolve(result);
         }
     };
@@ -410,6 +422,11 @@ Object.defineProperties(window.Declarativ, {
         this.owner = owner;
         this.documentPart = documentPart;
     }
+
+    MontageObject.prototype.setLabel = function(label) {
+        Declarativ.Montage.getInfoForObject(this.value).label = label;
+        this.label = label;
+    };
 
     MontageObject.prototype.defineBinding = function(path, bindingDescriptor) {
         var object = this.value;
@@ -575,6 +592,16 @@ Object.defineProperties(window.Declarativ, {
         }
     };
 
+    MontageComponent.prototype.setLabel = function(label) {
+        var originalLabel = this.label;
+
+        MontageObject.prototype.setLabel.call(this, label);
+        if (this.value.identifier === originalLabel) {
+            this.value.identifier = label;
+        }
+        this._updateLiveEditAttributes(originalLabel);
+    };
+
     MontageComponent.prototype.setTemplate = function(templateFragment) {
         var template = this.value._template;
 
@@ -624,6 +651,65 @@ Object.defineProperties(window.Declarativ, {
         }
     };
 
+    MontageComponent.prototype._updateLiveEditAttributes = function(label) {
+        var names = this.value.getDomArgumentNames();
+
+        if (names.length > 0) {
+            for (var i = 0, name; name = names[i]; i++) {
+                this._updateLiveEditNamedArgumentAttribute(label, name);
+            }
+        } else {
+            this._updateLiveEditStarArgumentAttribute(label);
+        }
+    };
+
+    MontageComponent.prototype._updateLiveEditStarArgumentAttribute = function(label) {
+        var ownerModuleId = this.owner._montage_metadata.moduleId;
+        var value = ownerModuleId + "," + label;
+        var newValue = ownerModuleId + "," + this.label;
+
+        this._updateLiveEditArgumentAttribute(ATTR_LE_ARG_BEGIN, value, newValue);
+        this._updateLiveEditArgumentAttribute(ATTR_LE_ARG_END, value, newValue);
+    };
+
+    MontageComponent.prototype._updateLiveEditNamedArgumentAttribute = function(name, label) {
+        var ownerModuleId = this.owner._montage_metadata.moduleId;
+        var value = ownerModuleId + "," + label + "," + name;
+        var newValue = ownerModuleId + "," + this.label + "," + name;
+
+        this._updateLiveEditArgumentAttribute(ATTR_LE_ARG, value, newValue);
+    };
+
+    MontageComponent.prototype._updateLiveEditArgumentAttribute = function(attribute, value, newValue) {
+        var ownerModuleId = this.owner._montage_metadata.moduleId;
+        var cssSelector;
+        var elements;
+        var montageElement;
+        var element;
+        var values;
+        var ix;
+
+        cssSelector = "*[" + attribute + "~='" + value + "']";
+        elements = this.value.element.querySelectorAll(cssSelector);
+
+        // It's possible that this component has more instances of its type
+        // down its component tree (e.g.: nested list.reel). When this happens
+        // we will also find the arguments for those inner components.
+        // Since we want to make sure the elements we update belong to this
+        // specific component we need to check the owner of each element found.
+        for (var i = 0; element = elements[i]; i++) {
+            montageElement = new MontageElement(element, ownerModuleId,
+                this.label);
+
+            if (montageElement.owner === this.owner) {
+                values = element.getAttribute(attribute).split(/\s+/);
+                ix = values.indexOf(value);
+                values.splice(ix, 1, newValue);
+                element.setAttribute(attribute, values.join(" "));
+            }
+        }
+    };
+
     Object.defineProperties(MontageComponent, {
         _rootComponent: {value: null, writable: true},
         rootComponent: {
@@ -638,12 +724,10 @@ Object.defineProperties(window.Declarativ, {
 
     /// MONTAGE ELEMENT
 
-    function MontageElement(value, ownerModuleId, label, argumentName, cssSelector) {
+    function MontageElement(value, ownerModuleId, label) {
         this.value = value;
         this.ownerModuleId = ownerModuleId;
         this.label = label;
-        this.argumentName = argumentName;
-        this.cssSelector = cssSelector;
     }
 
     MontageElement.findAll = function(ownerModuleId, label, argumentName, cssSelector) {
@@ -664,8 +748,7 @@ Object.defineProperties(window.Declarativ, {
 
         for (var i = 0, element; element = elements[i]; i++) {
             montageElements.push(
-                new MontageElement(element, ownerModuleId, label, argumentName,
-                    cssSelector)
+                new MontageElement(element, ownerModuleId, label)
             );
         }
 
@@ -691,6 +774,11 @@ Object.defineProperties(window.Declarativ, {
             });
     };
 
+    // We assume that between the element and its owner there is no component
+    // with the same module id of the owner.
+    // This creates a potential problem for components that include themselves
+    // in their template.
+    // We'll solve it when we get there.
     Object.defineProperties(MontageElement.prototype, {
         _owner: {value: false, writable: true},
         owner: {
@@ -722,6 +810,11 @@ Object.defineProperties(window.Declarativ, {
         }
     });
 
+    // We assume that between the element and its owner there is no component
+    // with the same module id of the owner.
+    // This creates a potential problem for components that include themselves
+    // in their template.
+    // We'll solve it when we get there.
     Object.defineProperties(MontageElement.prototype, {
         _documentPart: {value: false, writable: true},
         documentPart: {
@@ -766,8 +859,8 @@ Object.defineProperties(window.Declarativ, {
                     var element = this.value;
 
                     this._parentComponent = null;
-                    if (this.label === "owner" && element.component) {
-                        this._parentComponent = element.component;
+                    if (this.label === "owner") {
+                        this._parentComponent = this.owner;
                     } else {
                         while (element = /*assignment*/ element.parentNode) {
                             if (element.component) {
@@ -871,6 +964,7 @@ Object.defineProperties(window.Declarativ, {
     };
 
     /// MONTAGE SCOPE
+
     function MontageScope(documentPart) {
         if (!documentPart) {
             throw new Error("DocumentPart is needed");
@@ -1062,7 +1156,6 @@ Object.defineProperties(window.Declarativ, {
         var iteration = this.iteration;
         var documentPart = this.documentPart;
         var objects = documentPart.objects;
-        var template = documentPart.template;
         var label = objectLabel;
         var repetition = iteration.repetition;
         var element = object.element;
@@ -1072,7 +1165,6 @@ Object.defineProperties(window.Declarativ, {
         }
 
         objects[label] = object;
-        template.setObjectMetadata(label, null, objectLabel, owner);
         if (element && repetition.element === element.parentNode) {
             var firstDraw = function() {
                 object.removeEventListener("firstDraw", firstDraw, false);

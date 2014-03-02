@@ -36,9 +36,13 @@ Git.prototype.addRemote = function (repoPath, url) {
     });
 };
 
-Git.prototype.fetch = function(repoPath, remoteRepoNames) {
+Git.prototype.fetch = function(repoPath, remoteRepoNames, options) {
     log("fetch " + remoteRepoNames);
-    var args = ["fetch"].concat(remoteRepoNames || "--all");
+    var args = ["fetch"];
+    if (options !== undefined) {
+        args = args.concat(options);
+    }
+    args.push(remoteRepoNames || "--all");
     return exec("git", args, repoPath)
     .fail(function() {
         throw new Error("git fetch failed.");
@@ -56,12 +60,43 @@ Git.prototype.branch = function(repoPath, option) {
     });
 };
 
+Git.prototype.status = function(repoPath, options) {
+    log("status " + options);
+    return this.command(repoPath, "status", options, true);
+};
+
 Git.prototype.add = function(repoPath, paths) {
     log("add " + paths);
     var args = ["add"].concat(paths);
     return exec("git", args, repoPath)
     .fail(function() {
         throw new Error("git add failed.");
+    });
+};
+
+Git.prototype.checkout = function (repoPath, branch, create, merge) {
+    log("checkout " + branch);
+    var args = ["checkout", branch];
+
+    if (merge === true) {
+        args.splice(1, 0, ["-m"]);
+    }
+    if (create === true) {
+        args.splice(1, 0, ["-b"]);
+    }
+
+    return exec("git", args, repoPath)
+    .fail(function() {
+        throw new Error("git checkout failed.");
+    });
+};
+
+Git.prototype.merge = function (repoPath, branch) {
+    var args = ["merge", "-q", branch];
+    log("merge ", branch);
+    return exec("git", args, repoPath)
+    .fail(function() {
+        throw new Error("git merge failed.");
     });
 };
 
@@ -74,13 +109,16 @@ Git.prototype.commit = function (repoPath, message) {
     });
 };
 
-Git.prototype.push = function(repoPath, repositoryUrl, branch) {
+Git.prototype.push = function(repoPath, repositoryUrl, branch, options) {
     if (!/^https:\/\//.test(repositoryUrl)) {
         return Q.reject(new Error("Push url must be https://, not " + repositoryUrl));
     }
     log("push " + repositoryUrl + (branch ? " " + branch : ""));
     repositoryUrl = this._addAccessToken(repositoryUrl);
     var args = ["push", repositoryUrl];
+    if (options !== undefined) {
+        args = args.concat(options);
+    }
     if (typeof branch === "string") {
         args.push(branch);
     }
@@ -116,4 +154,15 @@ Git.prototype._addAccessToken = function (url) {
     var parsed = URL.parse(url);
     parsed.auth = this._accessToken + ":" + "x-oauth-basic";
     return URL.format(parsed);
+};
+
+Git.prototype.command = function(repoPath, command, options, shouldReturnOutput) {
+    var args = [command];
+    if (options !== undefined) {
+        args = args.concat(options);
+    }
+    return exec("git", args, repoPath, shouldReturnOutput)
+    .fail(function() {
+        throw new Error("git " + command + " failed.");
+    });
 };
