@@ -145,7 +145,7 @@ Montage.defineProperty(exports, "defaultMenu", {
 
                 // View
                 viewMenu = newMenuItem("View", "", "", [
-                    newMenuItem("Undo", "undo", "control+z")
+                    newMenuItem("Reload", "reload", "control+shift+r")
                 ]);
                 _defaultMenu.insertItem(viewMenu);
 
