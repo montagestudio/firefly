@@ -15,10 +15,6 @@ exports.ContextualMenu = Component.specialize(/** @lends ContextualMenu# */ {
         }
     },
 
-    fileInfo: {
-        value: null
-    },
-
     position: {
         value: null
     },
@@ -32,8 +28,7 @@ exports.ContextualMenu = Component.specialize(/** @lends ContextualMenu# */ {
     },
 
     show: {
-        value: function (fileInfo, position) {
-            this.fileInfo = fileInfo;
+        value: function (position) {
             this.position = position;
             this.templateObjects.contextualMenuOverlay.show();
         }
@@ -41,7 +36,6 @@ exports.ContextualMenu = Component.specialize(/** @lends ContextualMenu# */ {
 
     hide: {
         value: function () {
-            this.fileInfo = null;
             this.templateObjects.contextualMenuOverlay.hide();
         }
     },
@@ -69,46 +63,7 @@ exports.ContextualMenu = Component.specialize(/** @lends ContextualMenu# */ {
 
     shouldDismissOverlay: {
         value: function (overlay, target, evt) {
-            this.fileInfo = null;
             return true;
-        }
-    },
-
-    _getParentPath: {
-        value: function (fullPath, filename) {
-            return fullPath.slice(0, fullPath.lastIndexOf(filename));
-        }
-    },
-
-    handleCreateFolderButtonAction: {
-        value: function (evt) {
-            var file = this.fileInfo,
-                value = window.prompt("Folder name:"), // FIXME: replace prompt with overlay
-                filename,
-                fullPath,
-                url = this.projectController.packageUrl,
-                projectDocument = this.projectController.projectDocument;
-
-            if (file) {
-                filename = file.name;
-                fullPath = file.fileUrl;
-                url = (file.isDirectory)? fullPath : this._getParentPath(fullPath, filename);
-            }
-
-            if (value) {
-                projectDocument.makeTree(url + value).done();
-            }
-            this.hide();
-        }
-    },
-
-    handleDeleteButtonAction: {
-        value: function (evt) {
-            var projectController = this.projectController,
-                projectDocument = projectController.projectDocument;
-
-            projectDocument.removeTree(this.fileInfo.fileUrl).done();
-            this.hide();
         }
     },
 
