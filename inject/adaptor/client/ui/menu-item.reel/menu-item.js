@@ -61,6 +61,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     handleKeyPress: {
         value: function(event) {
             if (event.identifier === "menuAction" && this.menuItemModel) {
+                //TODO ADD a flashing effect here to give feedback
                 this.menuItemModel.dispatchMenuEvent("menuAction");
             }
         }
@@ -68,14 +69,27 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
     //TODO handle menuValidate event
 
+    _buttonAction: {
+        value: function (element) {
+            var menuPositions = element.getBoundingClientRect(),
+                contextualMenuPosition = {top: menuPositions.bottom, left: menuPositions.left};
+
+            if (!this.menuItemModel) {
+                return;
+            }
+            this.menuItemModel.dispatchMenuEvent("menuAction");
+
+            if (this.menuItemModel.items && this.menuItemModel.items.length) {
+                this.templateObjects.contextualMenu.show(contextualMenuPosition);
+            } else {
+                this.templateObjects.contextualMenu.hide();
+            }
+        }
+    },
+
     handleMenuButtonAction: {
         value: function (evt) {
-            if (this.menuItemModel) {
-                this.menuItemModel.dispatchMenuEvent("menuAction");
-            }
-            var menuPositions = evt.target.element.getBoundingClientRect(),
-                contextualMenuPosition = {top: menuPositions.bottom, left: menuPositions.left};
-            this.templateObjects.contextualMenu.show(contextualMenuPosition);
+            this._buttonAction(evt.target.element);
         }
     },
 
@@ -86,7 +100,8 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     acceptsActiveTarget: {
         get: function () {
             this.nextTarget = this.eventManager.activeTarget;
-            return false;
+            this._buttonAction(this.element);
+            return true;
         }
     }
 
