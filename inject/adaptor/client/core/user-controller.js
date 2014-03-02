@@ -1,7 +1,7 @@
 var Montage = require("montage").Montage;
 var github = require("./github");
 
-var UserController = Montage.specialize({
+exports.UserController = Montage.specialize({
     constructor: {
         value: function UserController() {
             this.super();
@@ -28,5 +28,3 @@ var UserController = Montage.specialize({
         }
     }
 });
-
-exports.userController = new UserController().init();
