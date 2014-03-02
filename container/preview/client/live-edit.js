@@ -689,6 +689,11 @@ Object.defineProperties(window.Declarativ, {
             });
     };
 
+    // We assume that between the element and its owner there is no component
+    // with the same module id of the owner.
+    // This creates a potential problem for components that include themselves
+    // in their template.
+    // We'll solve it when we get there.
     Object.defineProperties(MontageElement.prototype, {
         _owner: {value: false, writable: true},
         owner: {
@@ -720,6 +725,11 @@ Object.defineProperties(window.Declarativ, {
         }
     });
 
+    // We assume that between the element and its owner there is no component
+    // with the same module id of the owner.
+    // This creates a potential problem for components that include themselves
+    // in their template.
+    // We'll solve it when we get there.
     Object.defineProperties(MontageElement.prototype, {
         _documentPart: {value: false, writable: true},
         documentPart: {
@@ -764,8 +774,8 @@ Object.defineProperties(window.Declarativ, {
                     var element = this.value;
 
                     this._parentComponent = null;
-                    if (this.label === "owner" && element.component) {
-                        this._parentComponent = element.component;
+                    if (this.label === "owner") {
+                        this._parentComponent = this.owner;
                     } else {
                         while (element = /*assignment*/ element.parentNode) {
                             if (element.component) {
@@ -869,6 +879,7 @@ Object.defineProperties(window.Declarativ, {
     };
 
     /// MONTAGE SCOPE
+
     function MontageScope(documentPart) {
         if (!documentPart) {
             throw new Error("DocumentPart is needed");
