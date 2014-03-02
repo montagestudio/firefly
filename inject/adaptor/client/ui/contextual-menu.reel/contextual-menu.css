@@ -1,8 +1,10 @@
-.ContextualMenu-menu {
+.ToolBarContextualMenu-menu {
     border-radius: 6px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     border-top: 1px solid hsla(0, 100%, 100%, 0.12);
     border-bottom: 1px solid hsl(0, 0%, 28%);
-    background: linear-gradient( hsl(0, 0%, 40%), hsl(0, 0%, 36%));
+    background: hsl(0, 0%, 25%);
     cursor: pointer;
     font-size: 13px;
     overflow: hidden;
@@ -10,7 +12,7 @@
 }
 
 /* list ------------------------- */
-.ContextualMenu-list {
+.ToolBarContextualMenu-list {
     display: -webkit-flex;
     -webkit-flex-direction: column;
     list-style-type: none;
@@ -18,13 +20,13 @@
     padding: 0;
 }
 
-.ContextualMenu-list-item {
+.ToolBarContextualMenu-list > li {
     padding: 0;
     margin: 0;
 }
 
 /* button ----------------------- */
-.ContextualMenu-list button {
+.ToolBarContextualMenu-list button {
     -webkit-appearance: none;
     text-align: left;
     height: auto;
@@ -41,15 +43,15 @@
     background: none;
 }
 
-.ContextualMenu-list button:hover {
+.ToolBarContextualMenu-list button:hover {
     color: hsl(0, 0%, 81%);
     background-color: hsl(0, 0%, 36%);
 }
 
-.ContextualMenu-list .matte-Button.active {
+.ToolBarContextualMenu-list .matte-Button.active {
     border-color:  hsl(0, 0%, 22%);
     background-color: hsl(0, 0%, 24%);
 }
-.ContextualMenu-list button:focus {
+.ToolBarContextualMenu-list button:focus {
     border-color: hsl(0, 0%, 22%);
 }
