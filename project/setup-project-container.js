@@ -52,6 +52,7 @@ function SetupProjectContainer(docker, containers, _request) {
             log("Creating container for", user, owner, repo, "...");
 
             var config = {
+                username: user,
                 owner: owner,
                 repo: repo,
                 githubAccessToken: githubAccessToken,
