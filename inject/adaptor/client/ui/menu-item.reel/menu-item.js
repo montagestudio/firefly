@@ -73,6 +73,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             if (this.menuItemModel) {
                 this.menuItemModel.dispatchMenuEvent("menuAction");
             }
+            this.templateObjects.contextualMenu.show();
         }
     },
 

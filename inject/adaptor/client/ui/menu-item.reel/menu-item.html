@@ -25,6 +25,44 @@
                     "listener": {"@": "owner"}
                 }
             ]
+        },
+
+        "contextualMenu": {
+            "prototype": "../contextual-menu.reel",
+            "properties": {
+                "element": {"#": "contextualMenu"}
+            }
+        },
+
+        "contextualMenuRepetition": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "contextualMenuRepetition"}
+            },
+            "bindings": {
+                "content": {"<-": "@owner.menuItemModel.items"}
+            }
+        },
+
+        "contextualMenuCondition": {
+            "prototype": "montage/ui/condition.reel",
+            "properties": {
+                "element": {"#": "contextualMenuCondition"},
+                "removalStrategy": "hide"
+            },
+            "bindings": {
+                "condition": {"<-": "@owner.menuItemModel.items"}
+            }
+        },
+
+        "contextualMenuItem": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "contextualMenuItem"}
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@contextualMenuRepetition:iteration.object"}
+            }
         }
     }
     </script>
@@ -32,6 +70,13 @@
 <body>
     <div data-montage-id="menuItem" class="MenuItem">
         <button data-montage-id="menuButton" class="MenuItem-button Toolbar-button"></button>
+        <div data-montage-id="contextualMenuCondition">
+            <div data-montage-id="contextualMenu">
+                <ul data-montage-id="contextualMenuRepetition" class="ToolBarContextualMenu-list">
+                    <li data-montage-id="contextualMenuItem"></li>
+                </ul>
+            </div>
+        </div>
     </div>
 </body>
 </html>
