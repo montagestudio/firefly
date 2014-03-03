@@ -4,7 +4,7 @@
  * @requires montage/ui/component
  */
 var Component = require("montage/ui/component").Component;
-var userController = require("adaptor/client/core/user-controller").userController;
+var UserController = require("adaptor/client/core/user-controller").UserController;
 /**
  * @class Toolbar
  * @extends Component
@@ -17,9 +17,7 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
             this.super();
 
             this.addPathChangeListener("mainMenu", this, "handleMainMenuChange");
-            userController.then(function(userController) {
-                self.userController = userController;
-            });
+            self.userController = new UserController().init();
             this.addPathChangeListener("environmentBridge", function(value) {
                 if (value) {
                     value.repositoryController.getRepositoryUrl()
