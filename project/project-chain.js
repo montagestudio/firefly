@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var Q = require("q");
 var joey = require("joey");
 var HTTP = require("q-io/http");
@@ -38,6 +39,7 @@ function server(options) {
         this.OPTIONS("*").content("");
     })
     .log(log, function (message) { return message; })
+    .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .tap(parseCookies)
     .use(sessions)
@@ -108,7 +110,8 @@ function server(options) {
                             });
                         })
                         .catch(function (error) {
-                            log("*Error with access code", error.stack);
+                            log("*Error with access code*", error.stack);
+                            track.error(error, request);
                         });
 
                         // Serve the access form regardless, so that people
@@ -172,6 +175,7 @@ function server(options) {
             log("*Error setting up websocket*", error.stack);
             socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
             socket.destroy();
+            track.error(error, request);
         });
     };
 

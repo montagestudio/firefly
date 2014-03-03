@@ -184,6 +184,38 @@ when you need to log an error:
 log("*some error*", error.stack)
 ```
 
+### Tracking errors and events
+
+```javascript
+var track = require("./track");
+```
+
+To aid debugging in production we track errors and some major events. Errors
+on the Joey chains are automatically tracked, however whenever you write a
+`.catch` (or, in old parlance, `.fail`) then you should add some code to track
+the error.
+
+If you have a `request` variable in scope then use the following code which
+will pull the user's session data and other information from the request:
+
+```javascript
+track.error(error, request, /*optional object*/ data);
+```
+
+If you don't have `request` then you hopefully have the `username`:
+
+```
+track.errorForUsername(error, /*string*/ username, /*optional object*/ data);
+```
+
+Events can be tracked with the following code, using the same "rules" as above
+for using `request`:
+
+```javascript
+track.message(/*string*/ message, request, /*optional object*/ data, /*optional string*/ level);
+track.messageForUsername(/*string*/ message, /*string*/ username, /*optional object*/ data, /*optional string*/ level);
+```
+
 Accessing logs
 --------------
 

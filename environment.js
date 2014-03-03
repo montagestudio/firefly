@@ -52,6 +52,9 @@ function Env(options) {
         var pathname = URL.parse(url).pathname;
 
         var match = pathname.match(/\/?([^\/]+)\/([^\/]+)/);
+        if (!match) {
+            throw new Error("Could not parse details from " + url);
+        }
         var owner = match[1];
         var repo = match[2];
 
@@ -72,6 +75,9 @@ function Env(options) {
         var hostname = URL.parse(url).hostname;
 
         var match = hostname.match(/[0-9]-([0-9a-z]+)-([0-9a-z\-]+)\./i);
+        if (!match) {
+            throw new Error("Could not parse details from " + url);
+        }
         var owner = match[1];
         var repo = match[2];
 
