@@ -70,6 +70,8 @@ Object.defineProperties(window.Declarativ, {
 
 //jshint -W030
 (function(ns) {
+    var ATTR_ARG = "data-arg";
+
     var ATTR_LE_COMPONENT = "data-montage-le-component";
     var ATTR_LE_ARG = "data-montage-le-arg";
     var ATTR_LE_ARG_BEGIN = "data-montage-le-arg-begin";
@@ -203,11 +205,22 @@ Object.defineProperties(window.Declarativ, {
 
         addTemplateFragment: {
             value: function(ownerModuleId, elementLocation, how, templateFragment) {
-                var montageElements = MontageElement.findAll(ownerModuleId,
-                    elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
-                var template = new Template(templateFragment.serialization,
-                    templateFragment.html);
                 var promises = [];
+                var montageElements;
+                var template;
+                var montageTemplate;
+
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.addTemplateFragment(templateFragment,
+                    elementLocation, how);
+
+                // Update the live application
+                montageElements = MontageElement.findAll(ownerModuleId,
+                    elementLocation.label, elementLocation.argumentName,
+                    elementLocation.cssSelector);
+                template = new Template(templateFragment.serialization,
+                    templateFragment.html);
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     promises.push(
@@ -221,11 +234,18 @@ Object.defineProperties(window.Declarativ, {
 
         addTemplateFragmentObjects: {
             value: function(ownerModuleId, templateFragment) {
-                var montageComponents = MontageComponent.findAll(ownerModuleId);
-
-                var template = new Template(templateFragment.serialization);
+                var montageComponents;
+                var template;
+                var montageTemplate;
                 var promises = [];
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.addTemplateFragmentObjects(templateFragment);
+
+                // Update the live application
+                montageComponents = MontageComponent.findAll(ownerModuleId);
+                template = new Template(templateFragment.serialization);
                 template.removeComponentElementReferences();
                 for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
                     promises.push(
@@ -245,16 +265,6 @@ Object.defineProperties(window.Declarativ, {
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     montageElement.value.setAttribute(attributeName,
                         attributeValue);
-                }
-            }
-        },
-
-        setObjectTemplate: {
-            value: function(ownerModuleId, templateFragment) {
-                var montageComponents = MontageComponent.findAll(ownerModuleId);
-
-                for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
-                    montageComponent.setTemplate(templateFragment);
                 }
             }
         },
@@ -600,14 +610,6 @@ Object.defineProperties(window.Declarativ, {
             this.value.identifier = label;
         }
         this._updateLiveEditAttributes(originalLabel);
-    };
-
-    MontageComponent.prototype.setTemplate = function(templateFragment) {
-        var template = this.value._template;
-
-        template.objectsString = templateFragment.serialization;
-        template.document = template.createHtmlDocumentWithHtml(
-            templateFragment.html);
     };
 
     Object.defineProperties(MontageComponent.prototype, {
@@ -1202,6 +1204,172 @@ Object.defineProperties(window.Declarativ, {
             repetition._iterationForElement.set(element, iteration);
         });
     };
+
+    /// MONTAGE TEMPLATE
+
+    function MontageTemplate(template) {
+        this.value = template;
+    }
+
+    MontageTemplate.find = function(moduleId) {
+        var cssSelector = "*[" + ATTR_LE_COMPONENT + "='" + moduleId + "']";
+        var element;
+
+        element = document.querySelector(cssSelector);
+
+        if (element) {
+            return new MontageTemplate(element.component._template);
+        }
+    };
+
+    MontageTemplate.prototype.addTemplateFragment = function(templateFragment, anchorLocation, how) {
+        var container = document.createElement("div");
+        var range = MontageTemplate._range;
+
+        container.innerHTML = templateFragment.html;
+        range.selectNodeContents(container);
+        this._insertElement(range.extractContents(), anchorLocation, how);
+        this._insertSerialization(JSON.parse(templateFragment.serialization));
+    };
+
+    MontageTemplate.prototype.addTemplateFragmentObjects = function(templateFragment) {
+        this._insertSerialization(JSON.parse(templateFragment.serialization));
+    };
+
+    MontageTemplate.prototype._insertSerialization = function(serialization) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+
+        for (var label in serialization) {
+            if (serialization.hasOwnProperty(label)) {
+                serializationObject[label] = serialization[label];
+            }
+        }
+
+        template.objectsString = JSON.stringify(serializationObject);
+    };
+
+    MontageTemplate.prototype._insertElement = function(element, anchorLocation, how) {
+        var template = this.value;
+        var anchor;
+        var label = anchorLocation.label;
+        var argumentName = anchorLocation.argumentName;
+        var cssSelector;
+        var scopeSelector;
+        var node;
+
+        var elementId = this.getComponentElementId(label);
+
+        if (label === "owner") {
+            scopeSelector = "*[data-montage-id='" + elementId + "']";
+        } else {
+            if (argumentName) {
+                node = this.getComponentArgumentElement(label,
+                    argumentName);
+                scopeSelector = this._generateCSSSelectorFromComponent(label, node);
+            } else {
+                node = this.getComponentElement(label);
+                // When dealing with star arguments the :scope will refer to the
+                // first element of the argument range, if the component doesn't
+                // have children this is a problem in the template (in the live
+                // version we create a marker element for this purpose).
+                // We need to detect this situation and change the how method to
+                // "append" and use the component element as the scope element.
+                if (node.children.length === 0) {
+                    how = "append";
+                    scopeSelector = "*[data-montage-id='" + elementId + "']";
+                } else {
+                    scopeSelector = "*[data-montage-id='" + elementId + "'] > *:nth-child(1)";
+                }
+            }
+        }
+
+        cssSelector = anchorLocation.cssSelector.replace(":scope", scopeSelector);
+
+        anchor = template.document.querySelector(cssSelector);
+        if (how === "before") {
+            anchor.parentNode.insertBefore(element, anchor);
+        } else if (how === "after") {
+            anchor.parentNode.insertBefore(element, anchor.nextSibling);
+        } else {
+            anchor.appendChild(element);
+        }
+    };
+
+    MontageTemplate.prototype._generateCSSSelectorFromComponent = function(label, element) {
+        var componentElementId = this.getComponentElementId(label);
+        var template = this.value;
+        var cssSelector = "";
+        var elementId;
+        var index;
+
+        do {
+            index = element.parentNode.children.indexOf(element);
+            cssSelector = cssSelector + " > *:nth-child(" + (index+1) + ")";
+            element = element.parentNode;
+            elementId = template.getElementId(element);
+        } while (elementId !== componentElementId);
+
+        cssSelector = "*[data-montage-id='" + componentElementId + "']" + cssSelector;
+
+        return cssSelector;
+    };
+
+    // TODO: We need to move the logic from Component._getTemplateDomArgument
+    // to Template in Montage so we can reuse it here.
+    MontageTemplate.prototype.getComponentArgumentElement = function(label, argumentName) {
+        var componentElementId = this.getComponentElementId(label);
+        var template = this.value;
+        var cssSelector = "*[" + ATTR_ARG + "='" + argumentName + "']";
+        var elements = template.document.querySelectorAll(cssSelector);
+        var element;
+        var node;
+        var elementId;
+
+        if (elements.length > 1) {
+            // It's possible that there are other arguments with the same name
+            // in inner components of the "label" component. We need to check
+            // each one to find out the one directly under the "label"
+            // component.
+            elementsLoop:
+            for (var i = 0; element =/*assign*/ elements[i]; i++) {
+                node = element;
+                while (node = node.parentNode) {
+                    elementId = template.getElementId(node);
+                    if (elementId) {
+                        if (elementId === componentElementId) {
+                            // Our work here is done, we found the one we're
+                            // looking for so we exit the search immediately.
+                            break elementsLoop;
+                        } else {
+                            // This argument belongs to a different component,
+                            // no need to continue up the DOM tree, we go for
+                            // the next element.
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return element;
+        } else {
+            return elements[0];
+        }
+    };
+
+    MontageTemplate.prototype.getComponentElementId = function(label) {
+        var serialization = this.value.getSerialization().getSerializationObject();
+
+        return serialization[label].properties.element["#"];
+    };
+
+    MontageTemplate.prototype.getComponentElement = function(label) {
+        var elementId = this.getComponentElementId(label);
+
+        return this.value.getElementById(elementId);
+    };
+
+    MontageTemplate._range = document.createRange();
 })(window.Declarativ);
 //jshint +W030
 //jshint +W106
