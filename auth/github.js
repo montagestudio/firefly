@@ -18,22 +18,27 @@ if (Env.production) {
     CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
 }
 
-var OAUTH_STATE = uuid.v4();
-
 module.exports = function ($) {
-    $("").redirect("https://github.com/login/oauth/authorize?" +
-        querystring.stringify({
-            "client_id": CLIENT_ID,
-            "scope": ["user:email", "repo"].join(","),
-            "state": OAUTH_STATE
-        })
-    );
+    $("").app(function (request) {
+        var oauthState = uuid.v4();
+        request.session.oauthState = oauthState;
+
+        return HttpApps.redirect(request, "https://github.com/login/oauth/authorize?" +
+            querystring.stringify({
+                "client_id": CLIENT_ID,
+                "scope": ["user:email", "repo"].join(","),
+                "state": oauthState
+            }
+        ));
+    });
 
     $("callback").app(function (request) {
-        if (request.query.state !== OAUTH_STATE) {
+        if (request.query.state !== request.session.oauthState) {
             // It's a forgery!
             return HttpApps.redirect(request, "/");
         }
+        // Don't need this any more
+        delete request.session.oauthState;
 
         if (request.query.error) {
             return HttpApps.ok("Github error. Please try again", "text/plain", 400);
