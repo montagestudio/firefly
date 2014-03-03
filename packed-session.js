@@ -10,13 +10,16 @@ var packedSession =  {
 };
 module.exports = packedSession;
 
-
-packedSession.pack = function(session) {
+packedSession.key = function (session) {
     if (!session.githubAccessToken || !session.username) {
         return "";
     }
     var podNumber = (session.podNumber ? session.podNumber : routeProject.podForUsername(session.username));
-    return crypto.encryptData(session.githubAccessToken + "/" + session.username + "/" + podNumber);
+    return session.githubAccessToken + "/" + session.username + "/" + podNumber;
+};
+
+packedSession.pack = function(session) {
+    return crypto.encryptData(this.key(session));
 };
 
 

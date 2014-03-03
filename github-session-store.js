@@ -12,20 +12,30 @@ function GithubSessionStore() {
 GithubSessionStore.prototype.get = function get(id) {
     var self = this;
     return Q.fcall(function () {
-        // If this session is cached, just return it...
-        var cachedSession = self.sessions[id];
-        if (cachedSession) {
-            return cachedSession;
+        var session = self.sessions[id];
+        if (!session) {
+            // If there's no cached session try and unpack it
+            session = {};
+            var valid = packedSession.unpack(id, session);
+            if (valid) {
+                self.sessions[id] = session;
+            } else {
+                // otherwise if it's not valid
+                session = void 0;
+            }
         }
 
-        // ...otherwise try and unpack it
-        var session = {};
-        var valid = packedSession.unpack(id, session);
-        if (valid) {
-            self.sessions[id] = session;
-            return session;
+        if (session && typeof previousKey === "undefined") {
+            // Used for dirty checking in `set`
+            Object.defineProperty(session, "__previousKey", {
+                configurable: true,
+                enumerable: false,
+                writable: false,
+                value: packedSession.key(session)
+            });
         }
-        // otherwise if it's not valid so return nothing
+
+        return session;
     });
 };
 
@@ -33,16 +43,21 @@ GithubSessionStore.prototype.set = function set(_, session) {
     var self = this;
     return Q.fcall(function () {
         // Don't do anything if there is no data in the session, or if the
-        // session hasn't changed from the previous one at all
+        // session id fields haven't changed.
+        var previousKey = session && session.__previousKey;
         if (
             Object.keys(session).length === 0 ||
             (
                 session.sessionId &&
-                JSON.stringify(self.sessions[session.sessionId]) === JSON.stringify(session)
+                typeof previousKey !== "undefined" &&
+                previousKey === packedSession.key(session)
             )
         ) {
             return;
         }
+
+        // Remove the previousKey as it has now changed
+        delete session.__previousKey;
 
         var newId;
         if (session.githubAccessToken && session.username) {
