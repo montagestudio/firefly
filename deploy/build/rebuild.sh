@@ -5,17 +5,21 @@ source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 COMMAND_PATH="$0"
 usage() {
     echo ""
-    echo "${COMMAND_PATH} [-p] ";
+    echo "${COMMAND_PATH} [-p] [-n <build number>] ";
     echo "     -p production"
+    echo "     -n build number"
     echo ""
     exit 1;
 }
 
 export PRODUCTION="FALSE"
-while getopts ":p" opt; do
+while getopts ":p:n" opt; do
     case $opt in
         p)
             export PRODUCTION="TRUE"
+            ;;
+        n)
+            export BUILD_NUMBER="$OPTARG"
             ;;
         \?)
             usage;
@@ -28,25 +32,49 @@ while getopts ":p" opt; do
     esac
 done
 
-if [[ $PRODUCTION == "TRUE" ]]; then
-    tugboat rebuild LoadBalancer loadbalancerimage-$BUILD_NUMBER -c
-    tugboat rebuild WebServer webserverimage-$BUILD_NUMBER -c
-    tugboat rebuild Login1 loginimage-$BUILD_NUMBER -c
-    tugboat rebuild Login2 loginimage-$BUILD_NUMBER -c
-    tugboat rebuild Project1 projectimage-$BUILD_NUMBER -c
-    tugboat rebuild Project2 projectimage-$BUILD_NUMBER -c
-    tugboat rebuild Project3 projectimage-$BUILD_NUMBER -c
-    tugboat rebuild Project4 projectimage-$BUILD_NUMBER -c
+staging ()
+{
+    # We need to wait for the droplets to come back alive after rebuild
+    declare DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
+    if [[ "$DROPLET_STATUS" != "[32mactive[0m" ]]; then
+        echo -n "$1 not active [$DROPLET_STATUS] waiting."
+        while [[ "$DROPLET_STATUS" != "[32mactive[0m" ]]; do
+            echo -n "."
+            sleep 5
+            DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
+        done
+        echo ""
+    fi
+    # Execute the staging script on the droplet
+    tugboat ssh -n $1 -c 'bash -s' < ${HOME}/deploy/build/staging.sh
+}
 
+if [[ $PRODUCTION == "TRUE" ]]; then
+    tugboat rebuild -n LoadBalancer -m loadbalancerimage-$BUILD_NUMBER -c
+    tugboat rebuild -n WebServer -m webserverimage-$BUILD_NUMBER -c
+    tugboat rebuild -n Login1 -m loginimage-$BUILD_NUMBER -c
+    tugboat rebuild -n Login2 -m loginimage-$BUILD_NUMBER -c
+    tugboat rebuild -n Project1 -m projectimage-$BUILD_NUMBER -c
+    tugboat rebuild -n Project2 -m projectimage-$BUILD_NUMBER -c
+    tugboat rebuild -n Project3 -m projectimage-$BUILD_NUMBER -c
+    tugboat rebuild -n Project4 -m projectimage-$BUILD_NUMBER -c
+    
     ROLLBAR_ENVIRONMENT=production
 else
-    tugboat rebuild StagingLoadBalancer loadbalancerimage-$BUILD_NUMBER -c
-    tugboat rebuild StagingWebServer webserverimage-$BUILD_NUMBER -c
-    tugboat rebuild StagingLogin1 loginimage-$BUILD_NUMBER -c
-    tugboat rebuild StagingLogin2 loginimage-$BUILD_NUMBER -c
-    tugboat rebuild StagingProject1 projectimage-$BUILD_NUMBER -c
-    tugboat rebuild StagingProject2 projectimage-$BUILD_NUMBER -c
-
+    tugboat rebuild -n StagingLoadBalancer -m loadbalancerimage-$BUILD_NUMBER -c
+    tugboat rebuild -n StagingWebServer -m webserverimage-$BUILD_NUMBER -c
+    tugboat rebuild -n StagingLogin1 -m loginimage-$BUILD_NUMBER -c
+    tugboat rebuild -n StagingLogin2 -m loginimage-$BUILD_NUMBER -c
+    tugboat rebuild -n StagingProject1 -m projectimage-$BUILD_NUMBER -c
+    tugboat rebuild -n StagingProject2 -m projectimage-$BUILD_NUMBER -c
+    
+    staging StagingLoadBalancer
+    staging StagingWebServer
+    staging StagingLogin1
+    staging StagingLogin2
+    staging StagingProject1
+    staging StagingProject2
+    
     ROLLBAR_ENVIRONMENT=staging
 fi
 

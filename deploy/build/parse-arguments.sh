@@ -9,20 +9,28 @@ COMMAND_PATH="$0"
 
 usage() {
     echo ""
-    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] ";
+    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] [-n <build number>] [-s]";
     echo "     -b filament branch"
     echo "     -c firefly branch"
+    echo "     -n build number"
+    echo "     -s (skip base image build)"
     echo ""
     exit 1;
 }
 
-while getopts ":b:c:" opt; do
+while getopts ":b:c:n:s" opt; do
     case $opt in
         b)
             export FILAMENT_COMMIT="$OPTARG"
             ;;
         c)
             export FIREFLY_COMMIT="$OPTARG"
+            ;;
+        n)
+            export BUILD_NUMBER="$OPTARG"
+            ;;
+        s)
+            export SKIP_BASE_IMAGE="TRUE"
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2

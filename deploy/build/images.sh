@@ -8,8 +8,10 @@ ${HOME}/deploy/build/setup.sh
 # Parse the arguments list and setup the environment
 source ${HOME}/deploy/build/parse-arguments.sh "$@"
 
-# Build the base image
-time ${HOME}/deploy/build/base-image.sh
+if [[ $SKIP_BASE_IMAGE != "TRUE" ]]; then
+    # Build the base image
+    time ${HOME}/deploy/build/base-image.sh
+fi
 
 # Build the Load Balancer Image
 time ${HOME}/deploy/build/load-balancer-image.sh
