@@ -94,31 +94,3 @@
 .MenuItem.flash .Toolbar-button.matte-Button {
     background: hsl(0, 0%, 20%);
 }
-
-
-
-/* Icons */
-
-/* TODO: Refactor. Better to use only buttons */
-
-.Toolbar-button[data-icon],
-.MenuItem[data-icon] {
-    position: relative;
-}
-
-.Toolbar-button[data-icon],
-.MenuItem[data-icon] .Toolbar-button {
-    padding-left: 30px;
-}
-
-.Toolbar-button[data-icon]:before,
-.MenuItem[data-icon]:before {
-    right: auto;
-    left: 12px;
-    width: 12px;
-    font-size: 26px;
-    line-height: 33px;
-    text-align: center;
-    color: hsl(0, 0%, 80%);
-    pointer-events: none;
-}
