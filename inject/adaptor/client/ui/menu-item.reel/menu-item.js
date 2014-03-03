@@ -25,6 +25,10 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         value: null
     },
 
+    overlayPosition: {
+        value: "down"
+    },
+
     menuItemModel: {
         get: function () {
             return this._menuItemModel;
@@ -72,7 +76,13 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     _buttonAction: {
         value: function (element) {
             var menuPositions = element.getBoundingClientRect(),
+                contextualMenuPosition;
+
+            if (this.overlayPosition === "down") {
                 contextualMenuPosition = {top: menuPositions.bottom, left: menuPositions.left};
+            } else {
+                contextualMenuPosition = {top: menuPositions.top, left: menuPositions.right};
+            }
 
             if (!this.menuItemModel) {
                 return;
