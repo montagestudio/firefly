@@ -120,6 +120,10 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             if (this.menuItemModel && this.menuItemModel.keyEquivalent && this.menuItemModel.keyEquivalent.length) {
                 this.templateObjects.menuButton.element.dataset.shortcut = this.menuItemModel.keyEquivalent;
             }
+
+            if (this.menuItemModel && this.menuItemModel.items && this.menuItemModel.items.length && this.overlayPosition === "right") {
+                this.templateObjects.menuButton.element.classList.add("subMenu");
+            }
         }
     }
 

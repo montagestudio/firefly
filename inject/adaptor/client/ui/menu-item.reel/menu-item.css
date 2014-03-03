@@ -7,9 +7,6 @@
 }
 
 /* display the key shortcut */
-.MenuItem-button[data-shortcut] {
-
-}
 .MenuItem-button[data-shortcut]:after {
     content: attr(data-shortcut);
     padding: 0 2px;
@@ -19,4 +16,10 @@
     color: hsl(0, 0%, 80%);
     border-radius: 4px;
     font-size: 10px;
+}
+
+.MenuItem-button.subMenu:after {
+    content: "\25B6";
+    margin-left: 8px;
+    float: right;
 }
