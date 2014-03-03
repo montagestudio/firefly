@@ -113,6 +113,14 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             this._buttonAction(this.element);
             return true;
         }
+    }, 
+
+    draw: {
+        value: function () {
+            if (this.menuItemModel && this.menuItemModel.keyEquivalent && this.menuItemModel.keyEquivalent.length) {
+                this.templateObjects.menuButton.element.dataset.shortcut = this.menuItemModel.keyEquivalent;
+            }
+        }
     }
 
 });
