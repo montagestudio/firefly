@@ -12,19 +12,24 @@ exports.UserController = Montage.specialize({
         value: function() {
             var self = this;
 
-            return github.githubApi()
-            .then(function(githubApi) {
-                return githubApi.getUser();
-            })
-            .then(function(user) {
-                self.name = user.name || user.login;
-                self.login = user.login;
-                //jshint -W106
-                self.avatarUrl = user.avatar_url;
-                self.url = user.html_url;
-                //jshint +W106
-                return self;
-            });
+            // TODO Eventually this should populate a user object
+            // represented by this controller
+            github.githubApi()
+                .then(function(githubApi) {
+                    return githubApi.getUser();
+                })
+                .then(function(user) {
+                    self.name = user.name || user.login;
+                    self.login = user.login;
+                    //jshint -W106
+                    self.avatarUrl = user.avatar_url;
+                    self.url = user.html_url;
+                    //jshint +W106
+                    console.log("USER", self);
+                })
+                .done();
+
+            return this;
         }
     }
 });
