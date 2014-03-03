@@ -25,7 +25,6 @@ exports.UserController = Montage.specialize({
                     self.avatarUrl = user.avatar_url;
                     self.url = user.html_url;
                     //jshint +W106
-                    console.log("USER", self);
                 })
                 .done();
 
