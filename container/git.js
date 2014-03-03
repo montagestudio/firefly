@@ -138,7 +138,7 @@ Git.prototype.clone = function(cloneUrl, repoPath) {
     if (!/^https:\/\//.test(cloneUrl)) {
         return Q.reject(new Error("Clone url must be https://, not " + cloneUrl));
     }
-    return exec("git", ["clone", cloneUrl, repoPath], "/")
+    return exec("git", ["clone", this._addAccessToken(cloneUrl), repoPath], "/")
     .fail(function() {
         throw new Error("git clone failed.");
     });
