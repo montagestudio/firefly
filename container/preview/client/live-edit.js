@@ -71,6 +71,7 @@ Object.defineProperties(window.Declarativ, {
 //jshint -W030
 (function(ns) {
     var ATTR_ARG = "data-arg";
+    var ATTR_MONTAGE_ID = "data-montage-id";
 
     var ATTR_LE_COMPONENT = "data-montage-le-component";
     var ATTR_LE_ARG = "data-montage-le-arg";
@@ -1261,7 +1262,7 @@ Object.defineProperties(window.Declarativ, {
         var elementId = this.getComponentElementId(label);
 
         if (label === "owner") {
-            scopeSelector = "*[data-montage-id='" + elementId + "']";
+            scopeSelector = "*[" + ATTR_MONTAGE_ID + "='" + elementId + "']";
         } else {
             if (argumentName) {
                 node = this.getComponentArgumentElement(label,
@@ -1277,9 +1278,9 @@ Object.defineProperties(window.Declarativ, {
                 // "append" and use the component element as the scope element.
                 if (node.children.length === 0) {
                     how = "append";
-                    scopeSelector = "*[data-montage-id='" + elementId + "']";
+                    scopeSelector = "*[" + ATTR_MONTAGE_ID + "='" + elementId + "']";
                 } else {
-                    scopeSelector = "*[data-montage-id='" + elementId + "'] > *:nth-child(1)";
+                    scopeSelector = "*[" + ATTR_MONTAGE_ID + "='" + elementId + "'] > *:nth-child(1)";
                 }
             }
         }
@@ -1310,7 +1311,7 @@ Object.defineProperties(window.Declarativ, {
             elementId = template.getElementId(element);
         } while (elementId !== componentElementId);
 
-        cssSelector = "*[data-montage-id='" + componentElementId + "']" + cssSelector;
+        cssSelector = "*[" + ATTR_MONTAGE_ID + "='" + componentElementId + "']" + cssSelector;
 
         return cssSelector;
     };
