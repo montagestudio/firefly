@@ -1,8 +1,17 @@
 // Don't track anything when running tests
 if (typeof jasmine !== "undefined") {
+    var NOOP = function () {};
+
     module.exports = {
         error: NOOP,
+        errorForUsername: NOOP,
         message: NOOP,
+        messageForUsername: NOOP,
+        joeyErrors: function (next) {
+            return function (request, response) {
+                return next(request, response);
+            };
+        },
         shutdown: NOOP
     };
     return;
@@ -68,7 +77,6 @@ exports.shutdown = function () {
     rollbar.shutdown();
 };
 
-function NOOP() {}
 function logErrorCallback(e) {
     if (e) {
         log(e);
