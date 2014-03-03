@@ -46,13 +46,13 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
 
     handleNewButtonAction: {
         value: function (event) {
-            this.environmentBridge.openHttpUrl(window.location.origin + "/projects#new");
+            this.environmentBridge.openHttpUrl(window.location.origin + "#new");
         }
     },
 
     handleOpenButtonAction: {
         value: function (event) {
-            this.environmentBridge.openHttpUrl(window.location.origin + "/projects");
+            this.environmentBridge.openHttpUrl(window.location.origin);
         }
     },
 

@@ -78,7 +78,7 @@ module.exports = function ($) {
                 return githubUser.then(function (user) {
                     request.session.username = user.login.toLowerCase();
 
-                    return HttpApps.redirect(request, "/projects");
+                    return HttpApps.redirect(request, "/");
                 });
             });
         });
