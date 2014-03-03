@@ -31,11 +31,15 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
                     }).done();
 
                     self.mainMenu.then(function (menu) {
-                        self._menu = menu;
+                        self.menu = menu;
                     });
                 }
             });
         }
+    },
+
+    menu: {
+        value: null
     },
 
     mainMenu: {
