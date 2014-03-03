@@ -38,7 +38,11 @@ function server(options) {
     .route(function (route) {
         // Public routes only
 
-        route("").terminate(serveFile(fs.join(client, "login", "index.html"), "text/html", fs));
+        var serveLogin = serveFile(fs.join(client, "login", "index.html"), "text/html", fs)();
+        var serveProjects = serveFile(fs.join(client, "project-list", "index.html"), "text/html", fs)();
+        var root = checkSession(serveProjects, serveLogin);
+        route("").app(root);
+
         route("favicon.ico").terminate(serveFile(fs.join(client, "favicon.ico"), "image/x-icon", fs));
 
         route("auth/...").route(function (route) {
@@ -65,7 +69,9 @@ function server(options) {
         })
         .redirect(env.getAppUrl());
 
-        route("projects").terminate(serveFile(fs.join(client, "project-list", "index.html"), "text/html", fs));
+        // TODO Remove this:
+        // Redirect the old /projects URL for the moment
+        route("projects").redirect(env.getAppUrl(), 301);
 
         var index = fs.join(client, "firefly-index.html");
         var serveApp = serveFile(index, "text/html", fs);
