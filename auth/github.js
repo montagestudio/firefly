@@ -1,7 +1,7 @@
 var log = require("logging").from(__filename);
 var track = require("../track");
 var querystring = require("querystring");
-var Env = require("../environment");
+var environment = require("../environment");
 
 var uuid = require("uuid");
 var Http = require("q-io/http");
@@ -10,7 +10,7 @@ var HttpApps = require("q-io/http-apps");
 var GithubApi = require("../inject/adaptor/client/core/github-api");
 
 var CLIENT_ID,CLIENT_SECRET;
-if (Env.production) {
+if (environment.production) {
     CLIENT_ID = process.env.GITHUB_CLIENT_ID;
     CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 } else {
