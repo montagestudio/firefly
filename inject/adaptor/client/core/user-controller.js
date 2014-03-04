@@ -30,28 +30,31 @@ exports.UserController = Montage.specialize({
 
     getUser: {
         value: function () {
+            if (!this._getUserPromise) {
+                var self = this;
 
-            var self = this;
+                this._getUserPromise = github.githubApi()
+                    .then(function(githubApi) {
+                        return githubApi.getUser();
+                    })
+                    .then(function(record) {
+                        var user = Object.create(null);
+                        user.name = record.name || record.login;
+                        user.login = record.login;
+                        //jshint -W106
+                        user.avatarUrl = record.avatar_url;
+                        user.url = record.html_url;
+                        //jshint +W106
 
-            return github.githubApi()
-                .then(function(githubApi) {
-                    return githubApi.getUser();
-                })
-                .then(function(record) {
-                    var user = Object.create(null);
-                    user.name = record.name || record.login;
-                    user.login = record.login;
-                    //jshint -W106
-                    user.avatarUrl = record.avatar_url;
-                    user.url = record.html_url;
-                    //jshint +W106
+                        self.dispatchBeforeOwnPropertyChange("user", self._user);
+                        self._user = user;
+                        self.dispatchOwnPropertyChange("user", self._user);
 
-                    self.dispatchBeforeOwnPropertyChange("user", self._user);
-                    self._user = user;
-                    self.dispatchOwnPropertyChange("user", self._user);
+                        return user;
+                    });
+            }
 
-                    return user;
-                });
+            return this._getUserPromise;
         }
     }
 });
