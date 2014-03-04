@@ -613,10 +613,7 @@ exports.EnvironmentBridge = Montage.specialize({
             var self = this;
             var name = URL.parse(editingDocument.url).pathname;
 
-            return editingDocument.save(location, this.saveFile.bind(this))
-            .then(function() {
-                return self.flushProject("Update component " + name);
-            });
+            return editingDocument.save(location, this.saveFile.bind(this));
         }
     },
 
