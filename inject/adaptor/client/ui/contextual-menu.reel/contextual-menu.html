@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="contextual-menu.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "contextualMenu"},
+                "menu": {"#": "menu"}
+            }
+        },
+
+        "contextualMenuOverlay": {
+            "prototype": "montage/ui/overlay.reel",
+                "properties": {
+                    "element": {"#": "contextualMenuOverlay"},
+                    "delegate": {"@": "owner"},
+                    "isModal": false
+                }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="contextualMenu" class="ToolBarContextualMenu">
+        <div data-montage-id="contextualMenuOverlay">
+            <div data-montage-id="menu" class="ToolBarContextualMenu-menu">
+                <div data-param="*"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

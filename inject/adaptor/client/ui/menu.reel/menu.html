@@ -9,13 +9,24 @@
             "properties": {
                 "element": {"#": "menu"}
             }
+        },
+
+        "title": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "menuItem"},
+                "overlayPosition": "down"
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@owner.menuItem"}
+            }
         }
     }
     </script>
 </head>
 <body>
     <div data-montage-id="menu" class="Menu">
-        Menu
+        <div data-montage-id="menuItem"></div>
     </div>
 </body>
 </html>
