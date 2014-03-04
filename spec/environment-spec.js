@@ -14,6 +14,12 @@ describe("environment", function () {
             });
         });
 
+        describe("getProjectUrl", function () {
+            it("returns a url", function () {
+                expect(environment.getProjectUrl("pass")).toEqual("http://pass.local-project.montagestudio.com:2440");
+            });
+        });
+
         describe("getProjectUrlFromAppUrl", function () {
             it("returns a url", function () {
                 expect(environment.getProjectUrlFromAppUrl("owner/repo")).toEqual("http://4-owner-repo.local-project.montagestudio.com:2440");

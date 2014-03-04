@@ -95,8 +95,14 @@ function Env(options) {
         var details = this.getDetailsFromAppUrl(url);
         var pod = routeProject.podForUsername(details.owner);
 
+        var subdomain = pod + "-" + details.owner + "-" + details.repo;
+
+        return this.getProjectUrl(subdomain);
+    };
+
+    env.getProjectUrl = function (subdomain) {
         var urlObj = Object.create(this.project);
-        urlObj.hostname = pod + "-" + details.owner + "-" + details.repo + "." + urlObj.hostname;
+        urlObj.hostname = subdomain + "." + urlObj.hostname;
 
         return URL.format(urlObj);
     };
