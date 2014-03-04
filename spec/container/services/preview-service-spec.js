@@ -12,6 +12,16 @@ describe("preview-service", function () {
         };
     }
 
+    beforeEach(function() {
+        var preview = PreviewService._getPreview();
+
+        for (var key in preview) {
+            if (preview.hasOwnProperty(key)) {
+                delete preview[key];
+            }
+        }
+    });
+
     describe("service", function() {
 
         it("should unregister a preview and close all its connections", function () {
@@ -24,6 +34,17 @@ describe("preview-service", function () {
 
             service.unregister();
             expect(connection.close).toHaveBeenCalled();
+        });
+
+        it("should refresh all preview clients when the preview is registered", function () {
+            var url = environment.project.hostname;
+            var connection = createConnection(url);
+            PreviewService.registerConnection(connection);
+
+            spyOn(connection, "send");
+
+            service.register();
+            expect(connection.send).toHaveBeenCalledWith("refresh:");
         });
 
         describe("client instrumentation", function() {
