@@ -85,12 +85,12 @@ module.exports = function ($) {
                     request.session.username = user.login.toLowerCase();
 
                     track.message("user logged in", request);
-                    return HttpApps.redirect(request, "/");
+
+                    return HttpApps.redirect(request, "/auth/next");
                 });
             });
         });
     });
-
 
     $("token").contentApp(function (request) {
         if(!request.session.githubAccessToken) {

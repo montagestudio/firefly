@@ -39,7 +39,7 @@ describe("project chain", function () {
         });
     });
 
-    describe("POST session", function () {
+    describe("GET session", function () {
         beforeEach(function () {
             var store = new GithubSessionStore();
             store.sessions = sessions;
@@ -53,31 +53,41 @@ describe("project chain", function () {
 
         it("echos session cookie", function (done) {
             request({
-                method: "POST",
-                url: "http://127.0.0.1:2440/session",
+                method: "GET",
+                url: "http://127.0.0.1:2440/session?id=" + packed,
                 headers: {
-                    origin: "http://local-firefly.declarativ.net:2440",
-                },
-                body: ['{"sessionId":"' + packed + '"}']
+                    referer: "http://local-firefly.declarativ.net:2440",
+                }
             })
             .then(function (response) {
+                expect(response.status).toEqual(307);
                 var setCookie = response.headers["set-cookie"][1];
                 expect(setCookie).toContain(packed);
-                expect(response.status).toEqual(200);
             }).then(done, done);
         });
 
         it("returns 400 bad request when the sessionId is invalid", function (done) {
             request({
-                method: "POST",
-                url: "http://127.0.0.1:2440/session",
+                method: "GET",
+                url: "http://127.0.0.1:2440/session?id=xxx",
                 headers: {
-                    origin: "http://local-firefly.declarativ.net:2440",
-                },
-                body: ['{"sessionId":"xxx"}']
+                    referer: "http://local-firefly.declarativ.net:2440",
+                }
             })
             .then(function (response) {
                 expect(response.status).toEqual(400);
+            }).then(done, done);
+        });
+
+        it("returns 403 when the referer is invalid", function (done) {
+            request({
+                method: "GET",
+                url: "http://127.0.0.1:2440/session?id=xxx",
+                headers: {
+                }
+            })
+            .then(function (response) {
+                expect(response.status).toEqual(403);
             }).then(done, done);
         });
     });

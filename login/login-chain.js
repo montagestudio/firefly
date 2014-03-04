@@ -4,6 +4,7 @@ var joey = require("joey");
 var env = require("../environment");
 var Q = require("q");
 
+var HttpApps = require("q-io/http-apps");
 var serveFile = require("../serve-file");
 var parseCookies = require("../parse-cookies");
 var GithubAuth = require("../auth/github");
@@ -49,6 +50,13 @@ function server(options) {
 
         route("auth/...").route(function (route) {
             route("github/...").route(GithubAuth);
+
+            // This passes the sessionId onto the project/preview domain
+            // It is also used in /logout to remove the session cookie from the
+            // project/preview domain
+            route("next").app(function (request) {
+                return HttpApps.redirect(request, env.getProjectUrl("session") + "/session?id=" + (request.session.sessionId || ""));
+            });
         });
     })
     //////////////////////////////////////////////////////////////////////
@@ -69,7 +77,7 @@ function server(options) {
         .tap(function (request) {
             return sessions.destroy(request.session);
         })
-        .redirect(env.getAppUrl());
+        .redirect("/auth/next");
 
         // TODO Remove this:
         // Redirect the old /projects URL for the moment
