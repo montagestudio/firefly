@@ -49,7 +49,7 @@ exports.MenuItem = Montage.specialize({
 
     insertItem: {
         value: function(item, index) {
-            index = (index !== undefined) ? index : this.items.length;
+            index = (typeof index === "undefined") ? this.items.length: index;
             this.items.splice(index, 0, item);
 
             return Promise.resolve(item);
