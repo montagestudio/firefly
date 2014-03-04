@@ -6,8 +6,7 @@
 
 var Montage = require("montage/core/core").Montage,
     Promise = require("montage/core/promise").Promise,
-    defaultEventManager = require("montage/core/event/event-manager").defaultEventManager,
-    MenuModule = require("./menu");
+    defaultEventManager = require("montage/core/event/event-manager").defaultEventManager;
 
 var kListenerError = "'menuAction' listener must be installed on a component or the Application object";
 
@@ -49,22 +48,23 @@ exports.MenuItem = Montage.specialize({
 
     insertItem: {
         value: function(item, index) {
-            if (!this.menu) {
-                this._menu = new MenuModule.Menu();
-            }
+            index = (index !== undefined) ? index : this.items.length;
+            this.items.splice(index, 0, item);
 
-            return this._menu.insertItem(item, index);
+            return Promise.resolve(item);
         }
     },
 
     removeItem: {
         value: function(item) {
-            var deferredRemove = Promise.defer();
+            var deferredRemove = Promise.defer(),
+                index = this.items.indexOf(item);
 
-            if (!this.menu) {
-                deferredRemove.reject(new Error("Cannot remove item from empty menu"));
+            if (index > -1) {
+                index.splice(index, 1);
+                deferredRemove.resolve(item);
             } else {
-                deferredRemove = this._menu.removeItem(item);
+                deferredRemove.reject(new Error("Cannot remove item that is not in this menu"));
             }
 
             return deferredRemove.promise;

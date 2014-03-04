@@ -1,5 +1,5 @@
-var Montage = require("montage").Montage;
-var github = require("./github");
+var Montage = require("montage").Montage,
+    github = require("./github");
 
 exports.UserController = Montage.specialize({
     constructor: {
@@ -9,26 +9,49 @@ exports.UserController = Montage.specialize({
     },
 
     init: {
-        value: function() {
+        value: function () {
+            return this;
+        }
+    },
+
+    _user: {
+        value: null
+    },
+
+    user: {
+        get: function () {
+            if (!this._user) {
+                this.getUser().done();
+            }
+
+            return this._user;
+        }
+    },
+
+    getUser: {
+        value: function () {
+
             var self = this;
 
-            // TODO Eventually this should populate a user object
-            // represented by this controller
-            github.githubApi()
+            return github.githubApi()
                 .then(function(githubApi) {
                     return githubApi.getUser();
                 })
-                .then(function(user) {
-                    self.name = user.name || user.login;
-                    self.login = user.login;
+                .then(function(record) {
+                    var user = Object.create(null);
+                    user.name = record.name || record.login;
+                    user.login = record.login;
                     //jshint -W106
-                    self.avatarUrl = user.avatar_url;
-                    self.url = user.html_url;
+                    user.avatarUrl = record.avatar_url;
+                    user.url = record.html_url;
                     //jshint +W106
-                })
-                .done();
 
-            return this;
+                    self.dispatchBeforeOwnPropertyChange("user", self._user);
+                    self._user = user;
+                    self.dispatchOwnPropertyChange("user", self._user);
+
+                    return user;
+                });
         }
     }
 });

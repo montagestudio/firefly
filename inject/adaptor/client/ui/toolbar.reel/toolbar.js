@@ -4,7 +4,7 @@
  * @requires montage/ui/component
  */
 var Component = require("montage/ui/component").Component;
-var UserController = require("adaptor/client/core/user-controller").UserController;
+
 /**
  * @class Toolbar
  * @extends Component
@@ -13,47 +13,41 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
     constructor: {
         value: function Toolbar() {
             var self = this;
-
             this.super();
 
-            this.addPathChangeListener("mainMenu", this, "handleMainMenuChange");
-            self.userController = new UserController().init();
-            this.addPathChangeListener("environmentBridge", function(value) {
-                if (value) {
-                    value.repositoryController.getRepositoryUrl()
+            this.addPathChangeListener("environmentBridge", function(bridge) {
+                if (bridge) {
+
+                    self.mainMenu = bridge.mainMenu;
+
+                    bridge.userController.getUser()
+                        .then(function (user) {
+                            self.user = user;
+                        }).done();
+
+                    bridge.repositoryController.getRepositoryUrl()
                     .then(function(url) {
                         self.sourceUrl = url;
                     }).done();
+
+                    self.mainMenu.then(function (menu) {
+                        self.menu = menu;
+                    });
                 }
             });
         }
+    },
+
+    menu: {
+        value: null
     },
 
     mainMenu: {
         value: null
     },
 
-    handleMainMenuChange: {
-        value: function (menuModel) {
-            if (menuModel) {
-                this.undoMenuItemModel = menuModel.menuItemForIdentifier("undo");
-                this.redoMenuItemModel = menuModel.menuItemForIdentifier("redo");
-                this.saveMenuItemModel = menuModel.menuItemForIdentifier("save");
-                this.deleteMenuItemModel = menuModel.menuItemForIdentifier("delete");
-            }
-        }
-    },
-
-    handleNewButtonAction: {
-        value: function (event) {
-            this.environmentBridge.openHttpUrl(window.location.origin + "#new");
-        }
-    },
-
-    handleOpenButtonAction: {
-        value: function (event) {
-            this.environmentBridge.openHttpUrl(window.location.origin);
-        }
+    user: {
+        value: null
     },
 
     handleSourceButtonAction: {
@@ -70,21 +64,6 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
 
     sourceUrl: {
         value: null
-    },
-
-    undoMenuItemModel: {
-        value: null
-    },
-
-    redoMenuItemModel: {
-        value: null
-    },
-
-    deleteMenuItemModel: {
-        value: null
-    },
-
-    userController: {
-        value: null
     }
+
 });

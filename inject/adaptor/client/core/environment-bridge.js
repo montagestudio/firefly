@@ -7,6 +7,7 @@ var Montage = require("montage").Montage,
     FileDescriptor = require("./file-descriptor").FileDescriptor,
     mainMenu = require("adaptor/client/core/menu").defaultMenu,
     RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
+    UserController = require("adaptor/client/core/user-controller").UserController,
     URL = require("core/url");
 
 // TODO we should only inject the base prototype of generic services this environment provides
@@ -508,6 +509,20 @@ exports.EnvironmentBridge = Montage.specialize({
             }
 
             return this._repositoryController;
+        }
+    },
+
+    _userController: {
+        value: null
+    },
+
+    userController: {
+        get: function() {
+            if (!this._userController) {
+                this._userController = new UserController().init();
+            }
+
+            return this._userController;
         }
     },
 

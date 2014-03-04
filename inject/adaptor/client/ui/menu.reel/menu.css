@@ -1,3 +1,5 @@
 .Menu {
-
+    display: -webkit-flex;
+    margin: 0 0;
+    line-height: 0;
 }
