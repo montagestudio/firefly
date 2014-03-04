@@ -1,6 +1,7 @@
 var Q = require("q");
 var Queue = require("q/queue");
 var Git = require("../git");
+var https = require('https');
 var log = require("logging").from(__filename);
 
 module.exports = exports = RepositoryService;
@@ -17,11 +18,31 @@ semaphore.put(); // once for one job at a time
 function exclusive(method) {
     return function wrapped() {
         var self = this, args = Array.prototype.slice.call(arguments);
+
         return semaphore.get()
         .then(function () {
             return method.apply(self, args);
         }).finally(function() {
             semaphore.put();
+        });
+    };
+}
+
+function gitHubError(method) {
+    return function wrapped(error) {
+        var self = this, args = Array.prototype.slice.call(arguments);
+
+        return method.apply(self, args).fail(function(error) {
+            return self._gitHubCheck().then(function(success) {
+                if (success) {
+                    // Nothing wrong with github, let return the original error
+                    return Q.reject(error);
+                } else {
+                    return Q.reject(new Error("Unauthorized access"));
+                }
+            }, function(error) {
+                return Q.reject(new Error("Network error"));
+            });
         });
     };
 }
@@ -67,9 +88,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *      }
      * }
      */
-    service.listBranches = exclusive(function() {
+    service.listBranches = gitHubError(exclusive(function() {
         return this._listBranches(true);
-    });
+    }));
 
     /**
      * Checkout the shadowbranch for the branch branch.
@@ -86,9 +107,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise
      */
-    service.checkoutShadowBranch = exclusive(function(branch) {
+    service.checkoutShadowBranch = gitHubError(exclusive(function(branch) {
         return this._checkoutShadowBranch(branch);
-    });
+    }));
 
     /**
      * Commit files to the current branch and push the commit to the
@@ -115,9 +136,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise
      */
-    service.commitFiles = exclusive(function(files, message, resolutionStrategy) {
+    service.commitFiles = gitHubError(exclusive(function(files, message, resolutionStrategy) {
         return this._commitFiles(files, message, resolutionStrategy);
-    });
+    }));
 
     /**
      * Update References. Will keep in syncs the current branch as well its shadow branch.
@@ -143,9 +164,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise for an notifications object
      */
-    service.updateRefs = exclusive(function(resolutionStrategy) {
+    service.updateRefs = gitHubError(exclusive(function(resolutionStrategy) {
         return this._updateRefs(resolutionStrategy);
-    });
+    }));
 
     service._getRepositoryUrl = function() {
         var self = this;
@@ -873,6 +894,46 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
                 return false;
             });
         });
+    };
+
+    service._gitHubCheck = function() {
+        var deferred = Q.defer(),
+            options = {
+                hostname: "api.github.com",
+                path: "/user",
+                headers: {
+                    "user-agent": "montage-studio",
+                    "authorization": "token " + session.githubAccessToken
+                }
+            };
+
+        var req = https.request(options, function(response) {
+            var data = "";
+
+            response.on('data', function(chunk) {
+                data += chunk;
+            });
+            response.on('end', function() {
+                try {
+                    data = JSON.parse(data);
+                } catch (ex) {
+                    data = {message: data};
+                }
+
+                if (data.login === session.owner) {
+                    deferred.resolve(true);
+                } else {
+                    deferred.resolve(false);
+                }
+            });
+        });
+        req.end();
+
+        req.on('error', function(error) {
+            deferred.reject(error);
+        });
+
+        return deferred.promise;
     };
 
     Object.defineProperties(service, {
