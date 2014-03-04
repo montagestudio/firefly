@@ -1212,8 +1212,9 @@ Object.defineProperties(window.Declarativ, {
 
     /// MONTAGE TEMPLATE
 
-    function MontageTemplate(template) {
+    function MontageTemplate(template, moduleId) {
         this.value = template;
+        this.moduleId = moduleId;
     }
 
     MontageTemplate.find = function(moduleId) {
@@ -1223,7 +1224,7 @@ Object.defineProperties(window.Declarativ, {
         element = document.querySelector(cssSelector);
 
         if (element) {
-            return new MontageTemplate(element.component._template);
+            return new MontageTemplate(element.component._template, moduleId);
         }
     };
 
