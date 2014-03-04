@@ -21,6 +21,11 @@
     border-right: none;
 }
 
+.Toolbar-link {
+    text-decoration: none;
+    cursor: pointer;
+}
+
 .Toolbar-logo {
     margin: 0 4px 0 8px;
     width: 40px;
