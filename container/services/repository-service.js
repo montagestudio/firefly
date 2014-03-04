@@ -33,7 +33,7 @@ function checkGithubError(method) {
         var self = this, args = Array.prototype.slice.call(arguments);
 
         return method.apply(self, args).catch(function(error) {
-            return self._gitHubCheck().then(function(success) {
+            return self._githubCheck().then(function(success) {
                 if (success) {
                     // Nothing wrong with github, let returns the original error
                     throw error;
@@ -896,7 +896,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         });
     };
 
-    service._gitHubCheck = function() {
+    service._githubCheck = function() {
         return Http.request({
             url: "https://api.github.com/user",
             headers: {
