@@ -27,7 +27,7 @@
                 "element": {"#": "shadowCount"}
             },
             "bindings": {
-                "value": {"<-": "@owner.projectDocument.aheadCount"}
+                "value": {"<-": "@owner.projectDocument.currentBranch ? @owner.projectDocument.aheadCount : ''"}
             }
         },
 
@@ -39,6 +39,16 @@
             },
             "bindings": {
                 "switchValue": {"<-": "@owner.panelKey"}
+            }
+        },
+
+        "dirtyDocumentCount": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "dirtyDocumentCount"}
+            },
+            "bindings": {
+                "value": {"<-": "@owner.projectDocument.dirtyDocuments.length"}
             }
         },
 
@@ -106,25 +116,29 @@
 </head>
 <body>
     <div data-montage-id="owner" class="Workflow">
-        <span data-montage-id="currentBranchName"></span>
-        <span data-montage-id="shadowCount"></span>
+        <h2 data-montage-id="currentBranchName" class="Workflow-branchName Workflow-segment"></h2>
+        <div class="Workflow-shadowDelta Workflow-segment">
+            <span data-montage-id="shadowCount"></span>
+        </div>
 
-        <div data-montage-id="panelSubstitution">
-            <section data-arg="busy" data-montage-id="busyWorkspacePanel">Busy…</section>
+        <div data-montage-id="panelSubstitution" class="Workflow-segment">
             <section data-arg="pristine" data-montage-id="pristineWorkspacePanel"></section>
-            <section data-arg="ahead" data-montage-id="aheadWorkspacePanel">
-                <h1>Ready to publish</h1>
+            <section data-arg="busy" data-montage-id="busyWorkspacePanel" class="Workflow-panel">
+                <p class="Workflow-status">Loading repository information…</p>
+            </section>
+            <section data-arg="ahead" data-montage-id="aheadWorkspacePanel" class="Workflow-panel">
+                <p class="Workflow-status">Ready to publish</p>
                 <button data-montage-id="mergeButton"></button>
                 <button data-montage-id="resetButton"></button>
             </section>
-            <section data-arg="behind" data-montage-id="behindWorkspacePanel">
-                Behind
+            <section data-arg="behind" data-montage-id="behindWorkspacePanel" class="Workflow-panel">
+                <p class="Workflow-status">Behind</p>
             </section>
-            <section data-arg="diverged" data-montage-id="divergedWorkspacePanel">
-                Diverged
+            <section data-arg="diverged" data-montage-id="divergedWorkspacePanel" class="Workflow-panel">
+                <p class="Workflow-status">Diverged</p>
             </section>
-            <section data-arg="dirty" data-montage-id="dirtyWorkspacePanel">
-                <h1>Unsaved changes</h1>
+            <section data-arg="dirty" data-montage-id="dirtyWorkspacePanel" class="Workflow-panel">
+                <p class="Workflow-status">Unsaved changes in <span data-montage-id="dirtyDocumentCount"></span> documents</p>
                 <button data-montage-id="acceptButton"></button>
                 <button data-montage-id="discardButton"></button>
             </section>
