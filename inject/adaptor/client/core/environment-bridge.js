@@ -677,6 +677,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    shadowBranchStatus: {
+        value: function (branch) {
+            return this.backend.get("repository-service").invoke("shadowBranchStatus", branch);
+        }
+    },
+
     commitFiles: {
         value: function (files, message, resolutionStrategy) {
             return this.backend.get("repository-service").invoke("commitFiles", files, message, resolutionStrategy);

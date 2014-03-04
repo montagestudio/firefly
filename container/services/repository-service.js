@@ -33,7 +33,7 @@ function checkGithubError(method) {
         var self = this, args = Array.prototype.slice.call(arguments);
 
         return method.apply(self, args).catch(function(error) {
-            return self._gitHubCheck().then(function(success) {
+            return self._githubCheck().then(function(success) {
                 if (success) {
                     // Nothing wrong with github, let returns the original error
                     throw error;
@@ -109,6 +109,35 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      */
     service.checkoutShadowBranch = checkGithubError(exclusive(function(branch) {
         return this._checkoutShadowBranch(branch);
+    }));
+
+    /**
+     * Return the status of the local shadow branch compared to the local
+     * parent branch and the remote parent branch.
+     * 
+     * argument:
+     *      branch: branch name to checkout (without shadow branch prefix)
+     *
+     * return: promise for an status object
+     *
+     * status object format:
+     * {
+     *      localParent: {
+     *          behind: <number>,
+     *          ahead: <number>
+     *      },
+     *      remoteParent: {
+     *          behind: <number>,
+     *          ahead: <number>
+     *      },
+     *      remoteShadow: {
+     *          behind: <number>,
+     *          ahead: <number>
+     *      }
+     * }
+    */
+    service.shadowBranchStatus = checkGithubError(exclusive(function(branch) {
+        return this._shadowBranchStatus(branch);
     }));
 
     /**
@@ -349,6 +378,49 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
             if (!(branchesInfo.current === branch && branchesInfo.currentIsShadow)) {
                 return _git.checkout(fsPath, SHADOW_BRANCH_PREFIX + branch);
             }
+        });
+    };
+
+    service._shadowBranchStatus = function(branch) {
+        var self = this,
+            shadowBranch,
+            result = {
+                localParent: {
+                    behind: undefined,
+                    ahead: undefined
+                },
+
+                remoteParent: {
+                    behind: undefined,
+                    ahead: undefined
+                },
+
+                remoteShadow: {
+                    behind: undefined,
+                    ahead: undefined
+                }
+            };
+
+        // Validate arguments
+        branch = branch || "master";
+        if (typeof branch !== "string") {
+            return Q.reject(new Error("Invalid shadowBranchStatus argument."));
+        }
+
+        shadowBranch = SHADOW_BRANCH_PREFIX + branch;
+
+        return self._branchStatus(shadowBranch, branch)
+        .then(function(status) {
+            result.localParent = status;
+            return self._branchStatus(shadowBranch, REMOTE_REPOSITORY_NAME + "/" + branch);
+        })
+        .then(function(status) {
+            result.remoteParent = status;
+            return self._branchStatus(shadowBranch, REMOTE_REPOSITORY_NAME + "/" + shadowBranch);
+        })
+        .then(function(status) {
+            result.remoteShadow = status;
+            return result;
         });
     };
 
@@ -896,7 +968,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         });
     };
 
-    service._gitHubCheck = function() {
+    service._githubCheck = function() {
         return Http.request({
             url: "https://api.github.com/user",
             headers: {
