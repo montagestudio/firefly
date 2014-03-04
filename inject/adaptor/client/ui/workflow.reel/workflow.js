@@ -47,18 +47,14 @@ exports.Workflow = Component.specialize(/** @lends Menu# */ {
                 key = "pristine";
 
             if (doc) {
-                if (doc.isBusy) {
-                    key = "busy";
-                } else {
-                    if (doc.isProjectDirty) {
-                        key = "dirty";
-                    } else if (doc.aheadCount !== 0 && doc.behindCount !== 0) {
-                        key= "diverged";
-                    } else if (doc.aheadCount !== 0) {
-                        key = "ahead";
-                    } else if (doc.behindCount !== 0) {
-                        key = "behind";
-                    }
+                if (doc.isProjectDirty) {
+                    key = "dirty";
+                } else if (doc.aheadCount !== 0 && doc.behindCount !== 0) {
+                    key= "diverged";
+                } else if (doc.aheadCount !== 0) {
+                    key = "ahead";
+                } else if (doc.behindCount !== 0) {
+                    key = "behind";
                 }
             }
 

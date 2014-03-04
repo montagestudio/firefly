@@ -50,66 +50,6 @@
             "bindings": {
                 "value": {"<-": "@owner.projectDocument.dirtyDocuments.length"}
             }
-        },
-
-        "acceptButton": {
-            "prototype": "matte/ui/button.reel",
-            "properties": {
-                "element": {"#": "acceptButton"},
-                "label": "Accept",
-                "title": "Save all edited documents"
-            },
-            "listeners": [
-                {
-                    "type": "action",
-                    "listener": {"@": "owner"}
-                }
-            ]
-        },
-
-        "discardButton": {
-            "prototype": "matte/ui/button.reel",
-            "properties": {
-                "element": {"#": "discardButton"},
-                "label": "Discard…",
-                "title": "Discard all unsaved edits made to documents"
-            },
-            "listeners": [
-                {
-                    "type": "action",
-                    "listener": {"@": "owner"}
-                }
-            ]
-        },
-
-        "mergeButton": {
-            "prototype": "matte/ui/button.reel",
-            "properties": {
-                "element": {"#": "mergeButton"},
-                "label": "Merge…",
-                "title": "Merge all draft commits into the polished branch"
-            },
-            "listeners": [
-                {
-                    "type": "action",
-                    "listener": {"@": "owner"}
-                }
-            ]
-        },
-
-        "resetButton": {
-            "prototype": "matte/ui/button.reel",
-            "properties": {
-                "element": {"#": "resetButton"},
-                "label": "Reset…",
-                "title": "Reset back to the last published commit, discarding all draft commits"
-            },
-            "listeners": [
-                {
-                    "type": "action",
-                    "listener": {"@": "owner"}
-                }
-            ]
         }
     }
     </script>
@@ -123,13 +63,8 @@
 
         <div data-montage-id="panelSubstitution" class="Workflow-segment">
             <section data-arg="pristine" data-montage-id="pristineWorkspacePanel"></section>
-            <section data-arg="busy" data-montage-id="busyWorkspacePanel" class="Workflow-panel">
-                <p class="Workflow-status">Loading repository information…</p>
-            </section>
             <section data-arg="ahead" data-montage-id="aheadWorkspacePanel" class="Workflow-panel">
                 <p class="Workflow-status">Ready to publish</p>
-                <button data-montage-id="mergeButton"></button>
-                <button data-montage-id="resetButton"></button>
             </section>
             <section data-arg="behind" data-montage-id="behindWorkspacePanel" class="Workflow-panel">
                 <p class="Workflow-status">Behind</p>
@@ -139,8 +74,6 @@
             </section>
             <section data-arg="dirty" data-montage-id="dirtyWorkspacePanel" class="Workflow-panel">
                 <p class="Workflow-status">Unsaved changes in <span data-montage-id="dirtyDocumentCount"></span> documents</p>
-                <button data-montage-id="acceptButton"></button>
-                <button data-montage-id="discardButton"></button>
             </section>
         </div>
     </div>
