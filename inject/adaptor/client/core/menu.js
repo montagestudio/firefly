@@ -108,7 +108,7 @@ var Menu = exports.Menu = Montage.specialize({
 });
 var _defaultMenu = null;
 
-function newMenuItem (title, identifier, keyEquivalent, items) {
+function makeMenuItem (title, identifier, keyEquivalent, items) {
     var menuItem = new MenuItemModule.MenuItem();
 
     menuItem.title = title;
@@ -131,36 +131,42 @@ Montage.defineProperty(exports, "defaultMenu", {
                 var fileMenu,
                     editMenu,
                     viewMenu,
-                    helpMenu;
+                    helpMenu,
+                    newSubMenu;
 
                 // Help
-                helpMenu = newMenuItem("Help", "", "", [
-                    newMenuItem("Documentation", "documentation", ""),
-                    newMenuItem("Forum", "forum", ""),
-                    newMenuItem("Report a Bug", "report", ""),
-                    newMenuItem("API", "api", ""),
-                    newMenuItem("Framework", "framework", "")
+                helpMenu = makeMenuItem("Help", "", "", [
+                    makeMenuItem("Documentation", "documentation", ""),
+                    makeMenuItem("Forum", "forum", ""),
+                    makeMenuItem("Report a Bug", "report", ""),
+                    makeMenuItem("API", "api", ""),
+                    makeMenuItem("Framework", "framework", "")
                 ]);
                 _defaultMenu.insertItem(helpMenu);
 
                 // View
-                viewMenu = newMenuItem("View", "", "", [
-                    newMenuItem("Launch Preview", "launchPreview", "control+r")
+                viewMenu = makeMenuItem("View", "", "", [
+                    makeMenuItem("Launch Preview", "launchPreview", "control+r")
                 ]);
                 _defaultMenu.insertItem(viewMenu);
 
                 // Edit
-                editMenu = newMenuItem("Edit", "", "", [
-                    newMenuItem("Undo", "undo", "control+z"),
-                    newMenuItem("Redo", "redo", "control+shift+z"),
-                    newMenuItem("Delete", "delete", "command+backspace"),
+                editMenu = makeMenuItem("Edit", "", "", [
+                    makeMenuItem("Undo", "undo", "control+z"),
+                    makeMenuItem("Redo", "redo", "control+shift+z"),
+                    makeMenuItem("Delete", "delete", "command+backspace")
                 ]);
                 _defaultMenu.insertItem(editMenu);
 
                 // File
-                fileMenu = newMenuItem("File", "", "", [
-                    newMenuItem("New", "new", "command+n"),
-                    newMenuItem("Save", "save", "command+s")
+                newSubMenu = makeMenuItem("New", "new", "", [
+                    makeMenuItem("Application", "newApplication", "control+n"),
+                    makeMenuItem("Component", "newComponent", "shift+control+n"),
+                    makeMenuItem("Module", "newModule", "")
+                ]);
+                fileMenu = makeMenuItem("File", "", "", [
+                    newSubMenu,
+                    makeMenuItem("Save", "save", "command+s")
                 ]);
                 _defaultMenu.insertItem(fileMenu);
 
