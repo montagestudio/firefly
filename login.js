@@ -27,7 +27,7 @@ var commandOptions = {
 
 module.exports = main;
 function main(options) {
-    var sessions = Session("session", SESSION_SECRET, {domain: Env.getAppHost()}, new GithubSessionStore());
+    var sessions = Session("session", SESSION_SECRET, null, new GithubSessionStore());
 
     var fs = options.fs || FS;
 
