@@ -1,7 +1,7 @@
 var log = require("logging").from(__filename);
 var track = require("../track");
 var querystring = require("querystring");
-var Env = require("../environment");
+var environment = require("../environment");
 
 var uuid = require("uuid");
 var Http = require("q-io/http");
@@ -10,7 +10,7 @@ var HttpApps = require("q-io/http-apps");
 var GithubApi = require("../inject/adaptor/client/core/github-api");
 
 var CLIENT_ID,CLIENT_SECRET;
-if (Env.production) {
+if (environment.production) {
     CLIENT_ID = process.env.GITHUB_CLIENT_ID;
     CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 } else {
@@ -18,22 +18,27 @@ if (Env.production) {
     CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
 }
 
-var OAUTH_STATE = uuid.v4();
-
 module.exports = function ($) {
-    $("").redirect("https://github.com/login/oauth/authorize?" +
-        querystring.stringify({
-            "client_id": CLIENT_ID,
-            "scope": ["user:email", "repo"].join(","),
-            "state": OAUTH_STATE
-        })
-    );
+    $("").app(function (request) {
+        var oauthState = uuid.v4();
+        request.session.oauthState = oauthState;
+
+        return HttpApps.redirect(request, "https://github.com/login/oauth/authorize?" +
+            querystring.stringify({
+                "client_id": CLIENT_ID,
+                "scope": ["user:email", "repo"].join(","),
+                "state": oauthState
+            }
+        ));
+    });
 
     $("callback").app(function (request) {
-        if (request.query.state !== OAUTH_STATE) {
+        if (request.query.state !== request.session.oauthState) {
             // It's a forgery!
             return HttpApps.redirect(request, "/");
         }
+        // Don't need this any more
+        delete request.session.oauthState;
 
         if (request.query.error) {
             return HttpApps.ok("Github error. Please try again", "text/plain", 400);
@@ -80,12 +85,12 @@ module.exports = function ($) {
                     request.session.username = user.login.toLowerCase();
 
                     track.message("user logged in", request);
-                    return HttpApps.redirect(request, "/");
+
+                    return HttpApps.redirect(request, "/auth/next");
                 });
             });
         });
     });
-
 
     $("token").contentApp(function (request) {
         if(!request.session.githubAccessToken) {

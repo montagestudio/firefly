@@ -1,6 +1,7 @@
 var log = require("logging").from(__filename);
 var track = require("../track");
 var Q = require("q");
+var URL = require("url");
 var joey = require("joey");
 var HTTP = require("q-io/http");
 var APPS = require("q-io/http-apps");
@@ -43,31 +44,39 @@ function server(options) {
     .use(LogStackTraces(log))
     .tap(parseCookies)
     .use(sessions)
-    .route(function (_, __, ___, POST) {
+    .route(function (_, GET, PUT, POST) {
         // This endpoint recieves a POST request with a session ID as the
         // payload. It then "echos" this back as a set-cookie, so that
         // the project domain now has the session cookie from the app domain
-        POST("session").app(function (request, response) {
-            if (request.headers.origin === environment.getAppUrl()) {
-                return request.body.read()
-                .then(function (body) {
-                    var data = JSON.parse(body.toString("utf8"));
-                    return sessions.get(data.sessionId)
-                    .then(function(session) {
+        GET("session")
+        .parseQuery()
+        .app(function (request, response) {
+            var next = APPS.redirect(request, environment.getAppUrl());
+            var referrer = request.headers.referer && URL.parse(request.headers.referer).host;
+            if (
+                referrer === environment.getAppHost()
+            ) {
+                if (request.query.id) {
+                    return sessions.get(request.query.id)
+                    .then(function (session) {
                         if (session) {
                             request.session = session;
-                            return routeProject.addRouteProjectCookie(request, APPS.ok());
+                            return routeProject.addRouteProjectCookie(request, next);
                         } else {
+                            track.message("can't decode session", request, null, "error");
                             return APPS.badRequest(request);
                         }
                     });
-                });
+                } else {
+                    return sessions.destroy(request.session).thenResolve(next);
+                }
             } else {
-                log("Invalid request to /session from origin", request.headers.origin);
+                log("Invalid request to /session from referer", request.headers.referer);
+                track.message("bad session toss referer", request, null, "warning");
                 return {
                     status: 403,
                     headers: {},
-                    body: ["Bad origin"]
+                    body: [""]
                 };
             }
         });

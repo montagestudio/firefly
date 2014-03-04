@@ -7,13 +7,16 @@ var COOKIE_TIMEOUT_DAYS = 30;
 var COOKIE_TIMEOUT_MS = COOKIE_TIMEOUT_DAYS * (1000 * 60 * 60 * 24);
 
 exports = module.exports = Session;
-function Session(key, secret, cookie, store) {
+function Session(key, secret, cookieOptions, store) {
     if (!key || ! secret) {
         throw new Error("key and secret must be given");
     }
-    cookie = cookie || {};
-    cookie.path = cookie.path || "/";
-    // cookie.httpOnly = typeof cookie.httpOnly !== "undefined" ? !!cookie.httpOnly : true;
+    cookieOptions = cookieOptions || {};
+    cookieOptions.path = cookieOptions.path || "/";
+    // Defaults to true
+    cookieOptions.httpOnly = typeof cookieOptions.httpOnly !== "undefined" ? !!cookieOptions.httpOnly : true;
+    // Hack to remove port number, as cookies don't allow the port
+    cookieOptions.domain = cookieOptions.domain && cookieOptions.domain.replace(/:[0-9]+$/, "");
 
     store = store || new exports.Memory();
 
@@ -25,12 +28,19 @@ function Session(key, secret, cookie, store) {
         // Broken because q-io encodes the path, when it shouldn't
         // setCookies.push(Cookie.stringify(key, session.sessionId, cookie));
 
-        var cookie = key + "=" + id + "; Path=/;";
+        var cookieParts = [key + "=" + id];
+        cookieParts.push("Path=" + cookieOptions.path);
+        if (cookieOptions.httpOnly) {
+            cookieParts.push("HttpOnly");
+        }
+        if (cookieOptions.domain) {
+            cookieParts.push("Domain=" + cookieOptions.domain);
+        }
         if (expiresDate) {
-            cookie += " Expires=" + expiresDate;
+            cookieParts.push("Expires=" + expiresDate);
         }
 
-        setCookies.push(cookie);
+        setCookies.push(cookieParts.join("; "));
         response.headers["set-cookie"] = setCookies;
 
         return response;

@@ -131,17 +131,9 @@ exports.EnvironmentBridge = Montage.specialize({
                 .then(function (url) {
                     // The PreviewController depends on this changing
                     self.dispatchOwnPropertyChange("previewUrl", self.previewUrl);
-
                     self._patchXhr(url);
 
-                    return self.repositoryController._request({
-                        method: "POST",
-                        url: url + "/session",
-                        withCredentials: true,
-                        data: {
-                            sessionId: document.cookie.match(/session=([^;]+)/)[1]
-                        }
-                    }).thenResolve(url);
+                    return url;
                 });
             }
             return this._packageUrl;

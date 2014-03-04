@@ -77,6 +77,36 @@ describe("GithubSessionStore", function () {
             })
             .done(done, done);
         });
+
+        it("changes the sessionId when username changes", function (done) {
+            var id = "test";
+            store.sessions[id] = {sessionId: id};
+            return store.get(id)
+            .then(function (session) {
+                session.username = "test";
+                session.githubAccessToken = "xxx";
+                return store.set(null, session)
+                .then(function () {
+                    expect(session.sessionId).not.toEqual(id);
+                    expect(session.sessionId.length).toBeGreaterThan(39);
+                });
+            })
+            .done(done, done);
+        });
+
+        it("does not change the sessionId when non-key fields change", function (done) {
+            var id = "test";
+            store.sessions[id] = {sessionId: id, __previousKey: ""};
+            return store.get(id)
+            .then(function (session) {
+                session.other = "test";
+                return store.set(null, session)
+                .then(function () {
+                    expect(session.sessionId).toEqual(id);
+                });
+            })
+            .done(done, done);
+        });
     });
 
     describe("create", function () {
