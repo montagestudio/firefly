@@ -1,6 +1,7 @@
 var Q = require("q");
 var Queue = require("q/queue");
 var Git = require("../git");
+var Http = require("q-io/http");
 var log = require("logging").from(__filename);
 
 module.exports = exports = RepositoryService;
@@ -17,11 +18,31 @@ semaphore.put(); // once for one job at a time
 function exclusive(method) {
     return function wrapped() {
         var self = this, args = Array.prototype.slice.call(arguments);
+
         return semaphore.get()
         .then(function () {
             return method.apply(self, args);
         }).finally(function() {
             semaphore.put();
+        });
+    };
+}
+
+function checkGithubError(method) {
+    return function wrapped(error) {
+        var self = this, args = Array.prototype.slice.call(arguments);
+
+        return method.apply(self, args).catch(function(error) {
+            return self._gitHubCheck().then(function(success) {
+                if (success) {
+                    // Nothing wrong with github, let returns the original error
+                    throw error;
+                } else {
+                    throw new Error("Unauthorized access");
+                }
+            }, function(error) {
+                throw new Error("Network error");
+            });
         });
     };
 }
@@ -67,9 +88,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *      }
      * }
      */
-    service.listBranches = exclusive(function() {
+    service.listBranches = checkGithubError(exclusive(function() {
         return this._listBranches(true);
-    });
+    }));
 
     /**
      * Checkout the shadowbranch for the branch branch.
@@ -86,9 +107,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise
      */
-    service.checkoutShadowBranch = exclusive(function(branch) {
+    service.checkoutShadowBranch = checkGithubError(exclusive(function(branch) {
         return this._checkoutShadowBranch(branch);
-    });
+    }));
 
     /**
      * Commit files to the current branch and push the commit to the
@@ -115,9 +136,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise
      */
-    service.commitFiles = exclusive(function(files, message, resolutionStrategy) {
+    service.commitFiles = checkGithubError(exclusive(function(files, message, resolutionStrategy) {
         return this._commitFiles(files, message, resolutionStrategy);
-    });
+    }));
 
     /**
      * Update References. Will keep in syncs the current branch as well its shadow branch.
@@ -143,9 +164,9 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise for an notifications object
      */
-    service.updateRefs = exclusive(function(resolutionStrategy) {
+    service.updateRefs = checkGithubError(exclusive(function(resolutionStrategy) {
         return this._updateRefs(resolutionStrategy);
-    });
+    }));
 
     service._getRepositoryUrl = function() {
         var self = this;
@@ -864,13 +885,33 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
             }
             return true;
         })
-        .fail(function() {
+        .catch(function() {
             return _git.command(fsPath, "rebase", "--abort")
             .then(function() {
                 return false;
             },
             function() {
                 return false;
+            });
+        });
+    };
+
+    service._gitHubCheck = function() {
+        return Http.request({
+            url: "https://api.github.com/user",
+            headers: {
+                "Accept": "application/json",
+                "User-agent": "montage-studio",
+                "Authorization": "token 1" + session.githubAccessToken
+            }
+        }).then(function (response) {
+            return response.body.read().then(function (data) {
+                try {
+                    data = JSON.parse(data.toString("utf-8"));
+                } catch (e) {
+                    data = {message: data};
+                }
+                return data.login === session.owner;
             });
         });
     };
