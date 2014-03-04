@@ -1211,10 +1211,20 @@ Object.defineProperties(window.Declarativ, {
         range.selectNodeContents(container);
         this._insertElement(range.extractContents(), anchorLocation, how);
         this._insertSerialization(JSON.parse(templateFragment.serialization));
+
+        this._clearCaches();
     };
 
     MontageTemplate.prototype.addTemplateFragmentObjects = function(templateFragment) {
         this._insertSerialization(JSON.parse(templateFragment.serialization));
+    };
+
+    MontageTemplate.prototype._clearCaches = function() {
+        // This is the simplest way to clear the cache, a more advanced way
+        // would be to only clear the elements that were modified.
+        // To do this we need to receive an element id and clear all element
+        // ids we find while going up the DOM tree to the owner.
+        this.value.clearTemplateFromElementContentsCache();
     };
 
     MontageTemplate.prototype._insertSerialization = function(serialization) {
