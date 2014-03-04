@@ -248,6 +248,7 @@ GithubApi.prototype.repositoryExists = function(username, repository) {
  */
 GithubApi.prototype._request = function(request) {
     var xhr = new XMLHttpRequest(),
+        self = this,
         deferred = Q.defer(),
         param = request.param ? "." + request.param : "",
         queryString = "";
@@ -270,7 +271,24 @@ GithubApi.prototype._request = function(request) {
             }
             deferred.resolve(message);
         } else {
-            var error = new Error("Cannot " + request.method + " " + JSON.stringify(this.API_URL + request.url + queryString));
+            var error;
+            // Try and give a friendly error from Github
+            if (xhr.responseText) {
+                var errors;
+                try {
+                    errors = JSON.parse(xhr.responseText).errors;
+                } catch (e) {
+                    // ignore
+                }
+                if (errors && errors[0] && errors[0].message) {
+                    error = new Error(errors[0].message);
+                }
+            }
+
+            if (!error) {
+                error = new Error("Cannot " + request.method + " " + JSON.stringify(self.API_URL + request.url + queryString));
+            }
+
             error.xhr = xhr;
             deferred.reject(error);
         }
