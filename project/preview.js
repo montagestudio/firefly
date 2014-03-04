@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var environment = require("../environment");
 
 var FS = require("q-io/fs");
@@ -29,7 +30,13 @@ exports.hasAccess = function (url, session) {
     return Q.try(function () {
         if (session && session.githubUser) {
             return session.githubUser.then(function (githubUser) {
-                var details = environment.getDetailsfromProjectUrl(url);
+                var details;
+                try {
+                    details = environment.getDetailsfromProjectUrl(url);
+                } catch (error) {
+                    track.messageForUsername("invalid project url", session.username, {url: url}, "warning");
+                    return false;
+                }
                 // The user doesn't need to have explicit access to its own previews.
                 var access = githubUser && githubUser.login.toLowerCase() === details.owner;
 
