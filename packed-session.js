@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("./track");
 var crypto = require("./crypto")();
 var GithubApi = require("./inject/adaptor/client/core/github-api");
 
@@ -40,6 +41,7 @@ packedSession.unpack = function(sessionID, session) {
             session.githubUser = github.getUser()
             .catch(function (error) {
                 log("*Invalid session token for*", username);
+                track.errorForUsername(error, session.username);
                 throw error;
             });
 

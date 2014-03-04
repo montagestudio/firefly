@@ -57,7 +57,7 @@ Content-Type: text/html
 <div class="box">
     <h1>Error ;-(</h1>
     <h3>Something went wrong.</h3>
-    <p>Please inform us at <a href="mailto:support@montagestudio.com">support@montagestudio.com</a> with the code 408.</p>
+    <p>Please inform us at <a href="mailto:support@montagestudio.com?subject=Something went wrong [408]">support@montagestudio.com</a>.</p>
 </div>
 </body>
 </html>

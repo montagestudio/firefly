@@ -4,6 +4,7 @@
  * @requires montage/ui/component
  */
 var Component = require("montage/ui/component").Component;
+
 /**
  * @class Toolbar
  * @extends Component
@@ -25,9 +26,9 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
                         }).done();
 
                     bridge.repositoryController.getRepositoryUrl()
-                    .then(function(url) {
-                        self.sourceUrl = url;
-                    }).done();
+                        .then(function(url) {
+                            self.sourceUrl = url;
+                        }).done();
                 }
             });
         }

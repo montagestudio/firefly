@@ -2,18 +2,19 @@ var env = require("./environment");
 
 exports = module.exports = CheckSession;
 
-function CheckSession(next) {
-    return function (request, response) {
+function CheckSession(ok, notOk) {
+    notOk = notOk || redirect;
+    return function (request) {
         if (request.session.githubUser) {
             return request.session.githubUser.then(function (user) {
                 if (user) {
-                    return next(request, response);
+                    return ok(request);
                 } else {
-                    return redirect();
+                    return notOk(request);
                 }
             });
         } else {
-            return redirect();
+            return notOk(request);
         }
     };
 }

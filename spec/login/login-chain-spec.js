@@ -10,10 +10,10 @@ describe("login chain", function () {
         var fs = MockFs({
             "firefly-index.html": "pass",
             "login": {
-                "index.html": "pass"
+                "index.html": "login"
             },
             "project-list": {
-                "index.html": "pass"
+                "index.html": "projects"
             }
         });
         sessions = {};
@@ -39,6 +39,9 @@ describe("login chain", function () {
                 request("http://127.0.0.1:2440/")
                 .then(function (response) {
                     expect(response.status).toEqual(200);
+                    return response.body.invoke("read");
+                }).then(function (body) {
+                    expect(body.toString("utf8")).toEqual("login");
                 }).then(done, done);
             });
 
@@ -64,15 +67,16 @@ describe("login chain", function () {
                 };
             });
 
-            it("redirects / to /projects");
-
-            it("serves project-list app at /projects", function (done) {
+            it("serves project-list app at /", function (done) {
                 request({
-                    url: "http://127.0.0.1:2440/projects",
+                    url: "http://127.0.0.1:2440/",
                     headers: headers
                 })
                 .then(function (response) {
                     expect(response.status).toEqual(200);
+                    return response.body.invoke("read");
+                }).then(function (body) {
+                    expect(body.toString("utf8")).toEqual("projects");
                 }).then(done, done);
             });
         });

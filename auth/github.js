@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var querystring = require("querystring");
 var Env = require("../environment");
 
@@ -78,7 +79,8 @@ module.exports = function ($) {
                 return githubUser.then(function (user) {
                     request.session.username = user.login.toLowerCase();
 
-                    return HttpApps.redirect(request, "/projects");
+                    track.message("user logged in", request);
+                    return HttpApps.redirect(request, "/");
                 });
             });
         });

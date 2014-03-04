@@ -1,3 +1,12 @@
+// If the workspace dir exists correct the permisions before dropping uid and
+// gid. This is only used when in development mode.
+// Magic number 1000 is the `montage` user's UID, because I couldn't find a
+// way to easily look up a user's UID from a username in Node (even though
+// process.setuid does it below!)
+var fs = require("fs");
+if (fs.existsSync("/home/montage/workspace")) {
+    fs.chownSync("/home/montage/workspace", 1000, 1000);
+}
 // If root drop to unprivileged user
 if (process.getgid() === 0) {
     process.setgid("montage");
@@ -42,8 +51,8 @@ function main(options) {
         throw new Error("Config must be an object, not " + options.config);
     }
     var config = options.config;
-    if (!config.githubAccessToken || !config.githubUser || !config.owner || !config.repo) {
-        throw new Error("Config must contain properties: githubAccessToken, githubUser, owner, repo, given " + JSON.stringify(config));
+    if (!config.githubAccessToken || !config.githubUser || !config.username || !config.owner || !config.repo) {
+        throw new Error("Config must contain properties: githubAccessToken, githubUser, username, owner, repo, given " + JSON.stringify(Object.keys(config)));
     }
 
     var fs = options.fs || FS;
