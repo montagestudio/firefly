@@ -29,6 +29,13 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         value: "down"
     },
 
+    enterDocument: {
+        value: function (firstTime) {
+            if (!firstTime) { return; }
+            this.element.addEventListener("mouseover", this, false);
+        }
+    },
+
     menuItemModel: {
         get: function () {
             return this._menuItemModel;
@@ -73,7 +80,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
     //TODO handle menuValidate event
 
-    _buttonAction: {
+    _showContextualMenu: {
         value: function (element) {
             var menuPositions = element.getBoundingClientRect(),
                 contextualMenuPosition;
@@ -84,11 +91,6 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 contextualMenuPosition = {top: menuPositions.top, left: menuPositions.right};
             }
 
-            if (!this.menuItemModel) {
-                return;
-            }
-            this.menuItemModel.dispatchMenuEvent("menuAction");
-
             if (this.menuItemModel.items && this.menuItemModel.items.length) {
                 this.templateObjects.contextualMenu.show(contextualMenuPosition);
             } else {
@@ -97,9 +99,33 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         }
     },
 
+    _buttonAction: {
+        value: function (element) {
+            if (!this.menuItemModel) {
+                return;
+            }
+            this.menuItemModel.dispatchMenuEvent("menuAction");
+            this._showContextualMenu(element);
+        }
+    },
+
     handleMenuButtonAction: {
         value: function (evt) {
-            this._buttonAction(evt.target.element);
+            this._buttonAction(this.templateObjects.menuButton.element);
+        }
+    },
+
+    isSubMenu: {
+        value: function () {
+            return (this.menuItemModel && this.menuItemModel.items && this.menuItemModel.items.length && this.overlayPosition === "right");
+        }
+    },
+
+    handleMouseover: {
+        value: function (evt) {
+            if (this.isSubMenu()) {
+                this._showContextualMenu(this.templateObjects.menuButton.element);
+            }
         }
     },
 
@@ -110,10 +136,10 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     acceptsActiveTarget: {
         get: function () {
             this.nextTarget = this.eventManager.activeTarget;
-            this._buttonAction(this.element);
+            this._buttonAction(this.templateObjects.menuButton.element);
             return true;
         }
-    }, 
+    },
 
     draw: {
         value: function () {
@@ -121,7 +147,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 this.templateObjects.menuButton.element.dataset.shortcut = this.menuItemModel.keyEquivalent;
             }
 
-            if (this.menuItemModel && this.menuItemModel.items && this.menuItemModel.items.length && this.overlayPosition === "right") {
+            if (this.isSubMenu()) {
                 this.templateObjects.menuButton.element.classList.add("subMenu");
             }
         }
