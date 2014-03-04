@@ -260,7 +260,15 @@ Object.defineProperties(window.Declarativ, {
 
         setElementAttribute: {
             value: function(ownerModuleId, elementLocation, attributeName, attributeValue) {
-                var montageElements = MontageElement.findAll(ownerModuleId,
+                var montageElements,
+                    montageTemplate;
+
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.setElementAttribute(elementLocation, attributeName, attributeValue);
+
+                // Update the live application
+                montageElements = MontageElement.findAll(ownerModuleId,
                     elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
@@ -1443,6 +1451,15 @@ Object.defineProperties(window.Declarativ, {
         var elementId = this.getComponentElementId(label);
 
         return this.value.getElementById(elementId);
+    };
+
+    MontageTemplate.prototype.setElementAttribute = function(elementLocation, attributeName, attributeValue) {
+        var element;
+
+        element = this._findElement(elementLocation);
+        element.setAttribute(attributeName, attributeValue);
+
+        this._clearCaches();
     };
 
     MontageTemplate._range = document.createRange();
