@@ -1306,11 +1306,10 @@ Object.defineProperties(window.Declarativ, {
         template.objectsString = JSON.stringify(serializationObject);
     };
 
-    MontageTemplate.prototype._insertElement = function(element, anchorLocation, how) {
+    MontageTemplate.prototype._findElement = function(elementLocation) {
         var template = this.value;
-        var anchor;
-        var label = anchorLocation.label;
-        var argumentName = anchorLocation.argumentName;
+        var label = elementLocation.label;
+        var argumentName = elementLocation.argumentName;
         var cssSelector;
         var scopeSelector;
         var node;
@@ -1330,10 +1329,9 @@ Object.defineProperties(window.Declarativ, {
                 // first element of the argument range, if the component doesn't
                 // have children this is a problem in the template (in the live
                 // version we create a marker element for this purpose).
-                // We need to detect this situation and change the how method to
-                // "append" and use the component element as the scope element.
+                // We need to detect this situation and use the component
+                // element as the scope element.
                 if (node.children.length === 0) {
-                    how = "append";
                     scopeSelector = "*[" + ATTR_MONTAGE_ID + "='" + elementId + "']";
                 } else {
                     scopeSelector = "*[" + ATTR_MONTAGE_ID + "='" + elementId + "'] > *:nth-child(1)";
@@ -1341,9 +1339,30 @@ Object.defineProperties(window.Declarativ, {
             }
         }
 
-        cssSelector = anchorLocation.cssSelector.replace(":scope", scopeSelector);
+        cssSelector = elementLocation.cssSelector.replace(":scope", scopeSelector);
 
-        anchor = template.document.querySelector(cssSelector);
+        return template.document.querySelector(cssSelector);
+    };
+
+    MontageTemplate.prototype._insertElement = function(element, anchorLocation, how) {
+        var anchor;
+        var node;
+        var label = anchorLocation.label;
+
+        // When dealing with star arguments the :scope will refer to the
+        // first element of the argument range, if the component doesn't
+        // have children this is a problem in the template (in the live
+        // version we create a marker element for this purpose).
+        // We need to detect this situation and change the how method to
+        // "append" and use the component element as the scope element.
+        if (label !== "owner" && !anchorLocation.argumentName) {
+            node = this.getComponentElement(label);
+            if (node.children.length === 0) {
+                how = "append";
+            }
+        }
+
+        anchor = this._findElement(anchorLocation);
         if (how === "before") {
             anchor.parentNode.insertBefore(element, anchor);
         } else if (how === "after") {
