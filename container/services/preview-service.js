@@ -130,14 +130,6 @@ function PreviewService() {
         sendToPreviewClients("setElementAttribute:" + JSON.stringify(params));
     };
 
-    service.setObjectTemplate = function(moduleId, templateFragment) {
-        var params = {
-            moduleId: moduleId,
-            templateFragment: templateFragment
-        };
-        sendToPreviewClients("setObjectTemplate:" + JSON.stringify(params));
-    };
-
     service.addObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
         var params = {
             moduleId: moduleId,

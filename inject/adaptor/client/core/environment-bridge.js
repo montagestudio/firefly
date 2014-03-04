@@ -387,12 +387,6 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
-    setPreviewObjectTemplate: {
-        value: function(previewId, moduleId, templateFragment) {
-            return this.backend.get("preview-service").invoke("setObjectTemplate", moduleId, templateFragment);
-        }
-    },
-
     addPreviewObjectEventListener: {
         value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
             return this.backend.get("preview-service").invoke("addObjectEventListener", moduleId, label, type, listenerLabel, useCapture);

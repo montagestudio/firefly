@@ -99,11 +99,6 @@
                     args.elementLocation,args.attributeName, args.attributeValue);
             }
 
-            if (command === "setObjectTemplate") {
-                args = JSON.parse(param);
-                return LiveEdit.setObjectTemplate(args.moduleId, args.templateFragment);
-            }
-
             if (command === "addObjectEventListener") {
                 args = JSON.parse(param);
                 return LiveEdit.addObjectEventListener(args.moduleId, args.label, args.type, args.listenerLabel, args.useCapture);
