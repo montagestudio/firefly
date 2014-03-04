@@ -6,8 +6,7 @@
 
 var Montage = require("montage/core/core").Montage,
     Promise = require("montage/core/promise").Promise,
-    defaultEventManager = require("montage/core/event/event-manager").defaultEventManager,
-    MenuModule = require("./menu");
+    defaultEventManager = require("montage/core/event/event-manager").defaultEventManager;
 
 var kListenerError = "'menuAction' listener must be installed on a component or the Application object";
 
