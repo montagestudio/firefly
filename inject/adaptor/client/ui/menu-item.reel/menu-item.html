@@ -63,7 +63,13 @@
             },
             "bindings": {
                 "menuItemModel": {"<-": "@contextualMenuRepetition:iteration.object"}
-            }
+            },
+            "listeners": [
+                {
+                    "type": "dismissContextualMenu",
+                    "listener": {"@": "owner"}
+                }
+            ]
         }
     }
     </script>
