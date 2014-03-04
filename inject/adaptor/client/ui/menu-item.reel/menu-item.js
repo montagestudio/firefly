@@ -142,7 +142,6 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     acceptsActiveTarget: {
         get: function () {
             this.nextTarget = this.eventManager.activeTarget;
-            this._buttonAction(this.templateObjects.menuButton.element);
             return true;
         }
     },
