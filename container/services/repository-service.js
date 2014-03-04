@@ -988,6 +988,29 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
         });
     };
 
+    service._reset = function (ref) {
+        var self = this,
+            currentBranchName;
+
+        return self._listBranches(true)     // Will cause to do a git fetch
+            .then(function(result) {
+                currentBranchName = result.current;
+                return result;
+            })
+            .then(function () {
+                _git.command(fsPath, "reset", ["--hard", ref]);
+            })
+            .then(function () {
+                return self._push(currentBranchName);
+            })
+            .then(function() {
+                return true;
+            }, function(error) {
+                log("push failed", error.stack);
+                return false;
+            });
+    };
+
     Object.defineProperties(service, {
         LOCAL_REPOSITORY_NAME: {
             get: function() {

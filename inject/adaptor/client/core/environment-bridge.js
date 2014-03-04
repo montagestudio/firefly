@@ -687,5 +687,12 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function (resolutionStrategy) {
             return this.backend.get("repository-service").invoke("updateRefs", resolutionStrategy);
         }
+    },
+
+    resetShadowBranch: {
+        value: function (branch) {
+            //TODO only do this for shadow branches?
+            return this.backend.get("repository-service").invoke("_reset", branch);
+        }
     }
 });
