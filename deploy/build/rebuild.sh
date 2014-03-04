@@ -12,6 +12,19 @@ usage() {
     exit 1;
 }
 
+ROLLBAR_ACCESS_TOKEN=afa2e8f334974bc58b0415fd06a02b40
+ROLLBAR_LOCAL_USERNAME=`whoami`
+rollbar() {
+    ROLLBAR_ENVIRONMENT=$1
+    ROLLBAR_REVISION=`tugboat ssh -n $2 -c "cat /srv/firefly/GIT_HASH" | tail -n 1`
+
+    echo curl https://api.rollbar.com/api/1/deploy/ \
+      -F access_token=$ROLLBAR_ACCESS_TOKEN \
+      -F environment=$ROLLBAR_ENVIRONMENT \
+      -F revision=$ROLLBAR_REVISION \
+      -F local_username=$ROLLBAR_LOCAL_USERNAME
+}
+
 export PRODUCTION="FALSE"
 while getopts ":p:n" opt; do
     case $opt in
@@ -59,7 +72,7 @@ if [[ $PRODUCTION == "TRUE" ]]; then
     tugboat rebuild -n Project3 -m projectimage-$BUILD_NUMBER -c
     tugboat rebuild -n Project4 -m projectimage-$BUILD_NUMBER -c
     
-    ROLLBAR_ENVIRONMENT=production
+    rollbar "production" "Login1"
 else
     tugboat rebuild -n StagingLoadBalancer -m loadbalancerimage-$BUILD_NUMBER -c
     tugboat rebuild -n StagingWebServer -m webserverimage-$BUILD_NUMBER -c
@@ -75,15 +88,5 @@ else
     staging StagingProject1
     staging StagingProject2
     
-    ROLLBAR_ENVIRONMENT=staging
+    rollbar "staging" "StagingLogin1"
 fi
-
-ROLLBAR_ACCESS_TOKEN=afa2e8f334974bc58b0415fd06a02b40
-ROLLBAR_LOCAL_USERNAME=`whoami`
-ROLLBAR_REVISION=`git rev-parse HEAD`
-
-curl https://api.rollbar.com/api/1/deploy/ \
-  -F access_token=$ROLLBAR_ACCESS_TOKEN \
-  -F environment=$ROLLBAR_ENVIRONMENT \
-  -F revision=$ROLLBAR_REVISION \
-  -F local_username=$ROLLBAR_LOCAL_USERNAME
