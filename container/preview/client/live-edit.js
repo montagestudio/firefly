@@ -559,6 +559,25 @@ Object.defineProperties(window.Declarativ, {
         return montageComponents;
     };
 
+    MontageComponent.prototype.findCloners = function() {
+        var montageComponents = [];
+        var findObjects = function(component) {
+            var childComponents = component.childComponents;
+            var childComponent;
+
+            for (var i = 0; (childComponent = childComponents[i]); i++) {
+                if (childComponent.clonesChildComponents) {
+                    montageComponents.push(
+                        new MontageComponent(childComponent, childComponent._montage_metadata.label));
+                }
+                findObjects(childComponent);
+            }
+        };
+
+        findObjects(this.value);
+        return montageComponents;
+    };
+
     /**
      * Instantiates the template and adds all objects to the component's
      * template
@@ -1250,6 +1269,27 @@ Object.defineProperties(window.Declarativ, {
         // To do this we need to receive an element id and clear all element
         // ids we find while going up the DOM tree to the owner.
         this.value.clearTemplateFromElementContentsCache();
+
+        // Invalidate repetition templates if they have 0 iterations.
+        // This is a problem I don't know how to solve, which is finding the
+        // repetitions affected by a change in MontageTemplate when they don't
+        // have iterations. We're not able to find them in the DOM, and
+        // it's not possible to know where the contents of the repetition are
+        // going to end up in the DOM. They can be passed around deep
+        // down the DOM tree with data parameters.
+        // To get around this we find all repetitions with 0 iterations
+        // (down this template) and invalidate them.
+        var components = MontageComponent.findAll(this.moduleId);
+        var cloners;
+        for (var i = 0, component; component = /*assign*/components[i]; i++) {
+            cloners = component.findCloners();
+            for (var j = 0, cloner; cloner = /*assign*/cloners[j]; j++) {
+                if (cloner.value.iterations.length === 0) {
+                    cloner.value._iterationTemplate.isDirty = true;
+                    cloner.scope.invalidateTemplates(component.value);
+                }
+            }
+        }
     };
 
     MontageTemplate.prototype._insertSerialization = function(serialization) {
