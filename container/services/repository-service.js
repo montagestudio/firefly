@@ -1,7 +1,7 @@
 var Q = require("q");
 var Queue = require("q/queue");
 var Git = require("../git");
-var https = require('https');
+var Http = require("q-io/http");
 var log = require("logging").from(__filename);
 
 module.exports = exports = RepositoryService;
@@ -28,20 +28,20 @@ function exclusive(method) {
     };
 }
 
-function gitHubError(method) {
+function checkGithubError(method) {
     return function wrapped(error) {
         var self = this, args = Array.prototype.slice.call(arguments);
 
-        return method.apply(self, args).fail(function(error) {
+        return method.apply(self, args).catch(function(error) {
             return self._gitHubCheck().then(function(success) {
                 if (success) {
-                    // Nothing wrong with github, let return the original error
-                    return Q.reject(error);
+                    // Nothing wrong with github, let returns the original error
+                    throw error;
                 } else {
-                    return Q.reject(new Error("Unauthorized access"));
+                    throw new Error("Unauthorized access");
                 }
             }, function(error) {
-                return Q.reject(new Error("Network error"));
+                throw new Error("Network error");
             });
         });
     };
@@ -88,7 +88,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *      }
      * }
      */
-    service.listBranches = gitHubError(exclusive(function() {
+    service.listBranches = checkGithubError(exclusive(function() {
         return this._listBranches(true);
     }));
 
@@ -107,7 +107,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise
      */
-    service.checkoutShadowBranch = gitHubError(exclusive(function(branch) {
+    service.checkoutShadowBranch = checkGithubError(exclusive(function(branch) {
         return this._checkoutShadowBranch(branch);
     }));
 
@@ -136,7 +136,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise
      */
-    service.commitFiles = gitHubError(exclusive(function(files, message, resolutionStrategy) {
+    service.commitFiles = checkGithubError(exclusive(function(files, message, resolutionStrategy) {
         return this._commitFiles(files, message, resolutionStrategy);
     }));
 
@@ -164,7 +164,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
      *
      * return: promise for an notifications object
      */
-    service.updateRefs = gitHubError(exclusive(function(resolutionStrategy) {
+    service.updateRefs = checkGithubError(exclusive(function(resolutionStrategy) {
         return this._updateRefs(resolutionStrategy);
     }));
 
@@ -885,7 +885,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
             }
             return true;
         })
-        .fail(function() {
+        .catch(function() {
             return _git.command(fsPath, "rebase", "--abort")
             .then(function() {
                 return false;
@@ -897,43 +897,23 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
     };
 
     service._gitHubCheck = function() {
-        var deferred = Q.defer(),
-            options = {
-                hostname: "api.github.com",
-                path: "/user",
-                headers: {
-                    "user-agent": "montage-studio",
-                    "authorization": "token " + session.githubAccessToken
-                }
-            };
-
-        var req = https.request(options, function(response) {
-            var data = "";
-
-            response.on('data', function(chunk) {
-                data += chunk;
-            });
-            response.on('end', function() {
+        return Http.request({
+            url: "https://api.github.com/user",
+            headers: {
+                "Accept": "application/json",
+                "User-agent": "montage-studio",
+                "Authorization": "token 1" + session.githubAccessToken
+            }
+        }).then(function (response) {
+            return response.body.read().then(function (data) {
                 try {
-                    data = JSON.parse(data);
-                } catch (ex) {
+                    data = JSON.parse(data.toString("utf-8"));
+                } catch (e) {
                     data = {message: data};
                 }
-
-                if (data.login === session.owner) {
-                    deferred.resolve(true);
-                } else {
-                    deferred.resolve(false);
-                }
+                return data.login === session.owner;
             });
         });
-        req.end();
-
-        req.on('error', function(error) {
-            deferred.reject(error);
-        });
-
-        return deferred.promise;
     };
 
     Object.defineProperties(service, {
