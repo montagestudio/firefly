@@ -70,6 +70,9 @@ Object.defineProperties(window.Declarativ, {
 
 //jshint -W030
 (function(ns) {
+    var ATTR_ARG = "data-arg";
+    var ATTR_MONTAGE_ID = "data-montage-id";
+
     var ATTR_LE_COMPONENT = "data-montage-le-component";
     var ATTR_LE_ARG = "data-montage-le-arg";
     var ATTR_LE_ARG_BEGIN = "data-montage-le-arg-begin";
@@ -203,11 +206,22 @@ Object.defineProperties(window.Declarativ, {
 
         addTemplateFragment: {
             value: function(ownerModuleId, elementLocation, how, templateFragment) {
-                var montageElements = MontageElement.findAll(ownerModuleId,
-                    elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
-                var template = new Template(templateFragment.serialization,
-                    templateFragment.html);
                 var promises = [];
+                var montageElements;
+                var template;
+                var montageTemplate;
+
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.addTemplateFragment(templateFragment,
+                    elementLocation, how);
+
+                // Update the live application
+                montageElements = MontageElement.findAll(ownerModuleId,
+                    elementLocation.label, elementLocation.argumentName,
+                    elementLocation.cssSelector);
+                template = new Template(templateFragment.serialization,
+                    templateFragment.html);
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     promises.push(
@@ -221,11 +235,18 @@ Object.defineProperties(window.Declarativ, {
 
         addTemplateFragmentObjects: {
             value: function(ownerModuleId, templateFragment) {
-                var montageComponents = MontageComponent.findAll(ownerModuleId);
-
-                var template = new Template(templateFragment.serialization);
+                var montageComponents;
+                var template;
+                var montageTemplate;
                 var promises = [];
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.addTemplateFragmentObjects(templateFragment);
+
+                // Update the live application
+                montageComponents = MontageComponent.findAll(ownerModuleId);
+                template = new Template(templateFragment.serialization);
                 template.removeComponentElementReferences();
                 for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
                     promises.push(
@@ -239,22 +260,20 @@ Object.defineProperties(window.Declarativ, {
 
         setElementAttribute: {
             value: function(ownerModuleId, elementLocation, attributeName, attributeValue) {
-                var montageElements = MontageElement.findAll(ownerModuleId,
+                var montageElements,
+                    montageTemplate;
+
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.setElementAttribute(elementLocation, attributeName, attributeValue);
+
+                // Update the live application
+                montageElements = MontageElement.findAll(ownerModuleId,
                     elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
 
                 for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
                     montageElement.value.setAttribute(attributeName,
                         attributeValue);
-                }
-            }
-        },
-
-        setObjectTemplate: {
-            value: function(ownerModuleId, templateFragment) {
-                var montageComponents = MontageComponent.findAll(ownerModuleId);
-
-                for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
-                    montageComponent.setTemplate(templateFragment);
                 }
             }
         },
@@ -548,6 +567,25 @@ Object.defineProperties(window.Declarativ, {
         return montageComponents;
     };
 
+    MontageComponent.prototype.findCloners = function() {
+        var montageComponents = [];
+        var findObjects = function(component) {
+            var childComponents = component.childComponents;
+            var childComponent;
+
+            for (var i = 0; (childComponent = childComponents[i]); i++) {
+                if (childComponent.clonesChildComponents) {
+                    montageComponents.push(
+                        new MontageComponent(childComponent, childComponent._montage_metadata.label));
+                }
+                findObjects(childComponent);
+            }
+        };
+
+        findObjects(this.value);
+        return montageComponents;
+    };
+
     /**
      * Instantiates the template and adds all objects to the component's
      * template
@@ -579,6 +617,7 @@ Object.defineProperties(window.Declarativ, {
         if (owner._templateDocumentPart === documentPart) {
             MontageComponent._setComponentElement(documentPart.objects[label], element);
         } else {
+            montageElement.scope.invalidateTemplates(owner);
             // This exact operation (creating the template) might happen
             // several times if the elements are in a repetition....
             // Should try to optimize this somehow.
@@ -600,14 +639,6 @@ Object.defineProperties(window.Declarativ, {
             this.value.identifier = label;
         }
         this._updateLiveEditAttributes(originalLabel);
-    };
-
-    MontageComponent.prototype.setTemplate = function(templateFragment) {
-        var template = this.value._template;
-
-        template.objectsString = templateFragment.serialization;
-        template.document = template.createHtmlDocumentWithHtml(
-            templateFragment.html);
     };
 
     Object.defineProperties(MontageComponent.prototype, {
@@ -764,6 +795,7 @@ Object.defineProperties(window.Declarativ, {
         var self = this;
         var owner = this.owner;
 
+        this.scope.invalidateTemplates(owner);
         return template.instantiateIntoDocument(this, how)
             .then(function(result) {
                 self.scope.addObjects(result.objects, owner);
@@ -1152,6 +1184,29 @@ Object.defineProperties(window.Declarativ, {
         owner._addTemplateObjects(objects);
     };
 
+    MontageScope.prototype.invalidateTemplates = function(owner) {
+        var scope = this;
+        var iteration;
+        var scopeOwner;
+
+        do {
+            iteration = scope.iteration;
+
+            if (iteration) {
+                iteration.repetition._iterationTemplate.isDirty = true;
+            } else {
+                // We're only interested in owners of components, not iterations.
+                // The owner of an iteration will be the same as the owner of
+                // the scope that contains the iteration.
+                // If we updated the scopeOwner in an iteration scope we would
+                // stop this cycle before hitting the scope of the actual owner.
+                scopeOwner = scope.documentPart.objects.owner;
+            }
+
+            scope = scope.parentScope;
+        } while (scopeOwner !== owner);
+    };
+
     MontageScope.prototype._addObjectToIteration = function(owner, object, objectLabel) {
         var iteration = this.iteration;
         var documentPart = this.documentPart;
@@ -1177,31 +1232,237 @@ Object.defineProperties(window.Declarativ, {
     MontageScope.prototype._updateIterationBoundaries = function() {
         var iteration = this.iteration;
         var repetition = iteration.repetition;
-        var index = iteration._drawnIndex;
 
-        // Check to see if new elements were added to the bottom
-        // boundary and move the text comment boundary if that's the
-        // case. This only happens to the bottom boundary because new
-        // elements at the start of the iteration are added with
-        // insertBefore.
-        var bottomBoundary = repetition._boundaries[index+1];
-        var nextBoundary = repetition._boundaries[index+2];
-
-        //jshint -W116
-        if (bottomBoundary.nextSibling != nextBoundary) {
-            var newBoundaryNextSibling = bottomBoundary;
-            do {
-                newBoundaryNextSibling = newBoundaryNextSibling.nextSibling;
-            } while (newBoundaryNextSibling != nextBoundary);
-            bottomBoundary.parentNode.insertBefore(bottomBoundary, newBoundaryNextSibling);
-        }
-        //jshint +W116
-
-        repetition._iterationForElement.clear();
         iteration.forEachElement(function (element) {
             repetition._iterationForElement.set(element, iteration);
         });
     };
+
+    /// MONTAGE TEMPLATE
+
+    function MontageTemplate(template, moduleId) {
+        this.value = template;
+        this.moduleId = moduleId;
+    }
+
+    MontageTemplate.find = function(moduleId) {
+        var cssSelector = "*[" + ATTR_LE_COMPONENT + "='" + moduleId + "']";
+        var element;
+
+        element = document.querySelector(cssSelector);
+
+        if (element) {
+            return new MontageTemplate(element.component._template, moduleId);
+        }
+    };
+
+    MontageTemplate.prototype.addTemplateFragment = function(templateFragment, anchorLocation, how) {
+        var container = document.createElement("div");
+        var range = MontageTemplate._range;
+
+        container.innerHTML = templateFragment.html;
+        range.selectNodeContents(container);
+        this._insertElement(range.extractContents(), anchorLocation, how);
+        this._insertSerialization(JSON.parse(templateFragment.serialization));
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.addTemplateFragmentObjects = function(templateFragment) {
+        this._insertSerialization(JSON.parse(templateFragment.serialization));
+    };
+
+    MontageTemplate.prototype._clearCaches = function() {
+        // This is the simplest way to clear the cache, a more advanced way
+        // would be to only clear the elements that were modified.
+        // To do this we need to receive an element id and clear all element
+        // ids we find while going up the DOM tree to the owner.
+        this.value.clearTemplateFromElementContentsCache();
+
+        // Invalidate repetition templates if they have 0 iterations.
+        // This is a problem I don't know how to solve, which is finding the
+        // repetitions affected by a change in MontageTemplate when they don't
+        // have iterations. We're not able to find them in the DOM, and
+        // it's not possible to know where the contents of the repetition are
+        // going to end up in the DOM. They can be passed around deep
+        // down the DOM tree with data parameters.
+        // To get around this we find all repetitions with 0 iterations
+        // (down this template) and invalidate them.
+        var components = MontageComponent.findAll(this.moduleId);
+        var cloners;
+        for (var i = 0, component; component = /*assign*/components[i]; i++) {
+            cloners = component.findCloners();
+            for (var j = 0, cloner; cloner = /*assign*/cloners[j]; j++) {
+                if (cloner.value.iterations.length === 0) {
+                    cloner.value._iterationTemplate.isDirty = true;
+                    cloner.scope.invalidateTemplates(component.value);
+                }
+            }
+        }
+    };
+
+    MontageTemplate.prototype._insertSerialization = function(serialization) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+
+        for (var label in serialization) {
+            if (serialization.hasOwnProperty(label)) {
+                serializationObject[label] = serialization[label];
+            }
+        }
+
+        template.objectsString = JSON.stringify(serializationObject);
+    };
+
+    MontageTemplate.prototype._findElement = function(elementLocation) {
+        var template = this.value;
+        var label = elementLocation.label;
+        var argumentName = elementLocation.argumentName;
+        var cssSelector;
+        var scopeSelector;
+        var node;
+
+        var elementId = this.getComponentElementId(label);
+
+        if (label === "owner") {
+            scopeSelector = "*[" + ATTR_MONTAGE_ID + "='" + elementId + "']";
+        } else {
+            if (argumentName) {
+                node = this.getComponentArgumentElement(label,
+                    argumentName);
+                scopeSelector = this._generateCSSSelectorFromComponent(label, node);
+            } else {
+                node = this.getComponentElement(label);
+                // When dealing with star arguments the :scope will refer to the
+                // first element of the argument range, if the component doesn't
+                // have children this is a problem in the template (in the live
+                // version we create a marker element for this purpose).
+                // We need to detect this situation and use the component
+                // element as the scope element.
+                if (node.children.length === 0) {
+                    scopeSelector = "*[" + ATTR_MONTAGE_ID + "='" + elementId + "']";
+                } else {
+                    scopeSelector = "*[" + ATTR_MONTAGE_ID + "='" + elementId + "'] > *:nth-child(1)";
+                }
+            }
+        }
+
+        cssSelector = elementLocation.cssSelector.replace(":scope", scopeSelector);
+
+        return template.document.querySelector(cssSelector);
+    };
+
+    MontageTemplate.prototype._insertElement = function(element, anchorLocation, how) {
+        var anchor;
+        var node;
+        var label = anchorLocation.label;
+
+        // When dealing with star arguments the :scope will refer to the
+        // first element of the argument range, if the component doesn't
+        // have children this is a problem in the template (in the live
+        // version we create a marker element for this purpose).
+        // We need to detect this situation and change the how method to
+        // "append" and use the component element as the scope element.
+        if (label !== "owner" && !anchorLocation.argumentName) {
+            node = this.getComponentElement(label);
+            if (node.children.length === 0) {
+                how = "append";
+            }
+        }
+
+        anchor = this._findElement(anchorLocation);
+        if (how === "before") {
+            anchor.parentNode.insertBefore(element, anchor);
+        } else if (how === "after") {
+            anchor.parentNode.insertBefore(element, anchor.nextSibling);
+        } else {
+            anchor.appendChild(element);
+        }
+    };
+
+    MontageTemplate.prototype._generateCSSSelectorFromComponent = function(label, element) {
+        var componentElementId = this.getComponentElementId(label);
+        var template = this.value;
+        var cssSelector = "";
+        var elementId;
+        var index;
+
+        do {
+            index = element.parentNode.children.indexOf(element);
+            cssSelector = cssSelector + " > *:nth-child(" + (index+1) + ")";
+            element = element.parentNode;
+            elementId = template.getElementId(element);
+        } while (elementId !== componentElementId);
+
+        cssSelector = "*[" + ATTR_MONTAGE_ID + "='" + componentElementId + "']" + cssSelector;
+
+        return cssSelector;
+    };
+
+    // TODO: We need to move the logic from Component._getTemplateDomArgument
+    // to Template in Montage so we can reuse it here.
+    MontageTemplate.prototype.getComponentArgumentElement = function(label, argumentName) {
+        var componentElementId = this.getComponentElementId(label);
+        var template = this.value;
+        var cssSelector = "*[" + ATTR_ARG + "='" + argumentName + "']";
+        var elements = template.document.querySelectorAll(cssSelector);
+        var element;
+        var node;
+        var elementId;
+
+        if (elements.length > 1) {
+            // It's possible that there are other arguments with the same name
+            // in inner components of the "label" component. We need to check
+            // each one to find out the one directly under the "label"
+            // component.
+            elementsLoop:
+            for (var i = 0; element =/*assign*/ elements[i]; i++) {
+                node = element;
+                while (node = node.parentNode) {
+                    elementId = template.getElementId(node);
+                    if (elementId) {
+                        if (elementId === componentElementId) {
+                            // Our work here is done, we found the one we're
+                            // looking for so we exit the search immediately.
+                            break elementsLoop;
+                        } else {
+                            // This argument belongs to a different component,
+                            // no need to continue up the DOM tree, we go for
+                            // the next element.
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return element;
+        } else {
+            return elements[0];
+        }
+    };
+
+    MontageTemplate.prototype.getComponentElementId = function(label) {
+        var serialization = this.value.getSerialization().getSerializationObject();
+
+        return serialization[label].properties.element["#"];
+    };
+
+    MontageTemplate.prototype.getComponentElement = function(label) {
+        var elementId = this.getComponentElementId(label);
+
+        return this.value.getElementById(elementId);
+    };
+
+    MontageTemplate.prototype.setElementAttribute = function(elementLocation, attributeName, attributeValue) {
+        var element;
+
+        element = this._findElement(elementLocation);
+        element.setAttribute(attributeName, attributeValue);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate._range = document.createRange();
 })(window.Declarativ);
 //jshint +W030
 //jshint +W106
