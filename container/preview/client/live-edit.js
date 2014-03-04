@@ -609,6 +609,7 @@ Object.defineProperties(window.Declarativ, {
         if (owner._templateDocumentPart === documentPart) {
             MontageComponent._setComponentElement(documentPart.objects[label], element);
         } else {
+            montageElement.scope.invalidateTemplates(owner);
             // This exact operation (creating the template) might happen
             // several times if the elements are in a repetition....
             // Should try to optimize this somehow.
