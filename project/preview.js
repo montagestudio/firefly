@@ -49,7 +49,7 @@ exports.hasAccess = function (url, session) {
 };
 
 function has3rdPartyAccess(url, session) {
-    if (session.previewAccess) {
+    if (session && session.previewAccess) {
         var previewAccess = session.previewAccess;
         return previewAccess && previewAccess.indexOf(url) >= 0;
     } else {
