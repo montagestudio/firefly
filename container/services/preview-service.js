@@ -37,7 +37,7 @@ function PreviewService() {
 
     service.register = function() {
         log("register new preview");
-        preview = {};
+        this.refresh();
     };
 
     service.unregister = function() {
@@ -48,7 +48,6 @@ function PreviewService() {
                 preview.connections[i].close();
             }
         }
-        preview = {};
     };
 
     service.refresh = function() {
