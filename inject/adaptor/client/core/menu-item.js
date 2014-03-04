@@ -23,6 +23,7 @@ exports.MenuItem = Montage.specialize({
     constructor: {
         value: function MenuItem () {
             this.super();
+            this.items = [];
         }
     },
 
