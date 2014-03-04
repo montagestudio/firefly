@@ -10,13 +10,14 @@
                 "element": {"#": "contextualMenu"},
                 "menu": {"#": "menu"}
             }
-        },  
+        },
 
         "contextualMenuOverlay": {
             "prototype": "montage/ui/overlay.reel",
                 "properties": {
                     "element": {"#": "contextualMenuOverlay"},
-                    "delegate": {"@": "owner"}
+                    "delegate": {"@": "owner"},
+                    "isModal": false
                 }
         }
     }
