@@ -37,6 +37,8 @@ if [[ $PRODUCTION == "TRUE" ]]; then
     tugboat rebuild Project2 projectimage-$BUILD_NUMBER -c
     tugboat rebuild Project3 projectimage-$BUILD_NUMBER -c
     tugboat rebuild Project4 projectimage-$BUILD_NUMBER -c
+
+    ROLLBAR_ENVIRONMENT=production
 else
     tugboat rebuild StagingLoadBalancer loadbalancerimage-$BUILD_NUMBER -c
     tugboat rebuild StagingWebServer webserverimage-$BUILD_NUMBER -c
@@ -44,9 +46,16 @@ else
     tugboat rebuild StagingLogin2 loginimage-$BUILD_NUMBER -c
     tugboat rebuild StagingProject1 projectimage-$BUILD_NUMBER -c
     tugboat rebuild StagingProject2 projectimage-$BUILD_NUMBER -c
+
+    ROLLBAR_ENVIRONMENT=staging
 fi
 
+ROLLBAR_ACCESS_TOKEN=afa2e8f334974bc58b0415fd06a02b40
+ROLLBAR_LOCAL_USERNAME=`whoami`
+ROLLBAR_REVISION=`git rev-parse HEAD`
 
-
-
-
+curl https://api.rollbar.com/api/1/deploy/ \
+  -F access_token=$ROLLBAR_ACCESS_TOKEN \
+  -F environment=$ROLLBAR_ENVIRONMENT \
+  -F revision=$ROLLBAR_REVISION \
+  -F local_username=$ROLLBAR_LOCAL_USERNAME
