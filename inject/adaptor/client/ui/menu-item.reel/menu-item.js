@@ -94,7 +94,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             if (this.menuItemModel.items && this.menuItemModel.items.length) {
                 this.templateObjects.contextualMenu.show(contextualMenuPosition);
             } else {
-                this.templateObjects.contextualMenu.hide();
+                this.dispatchEventNamed("dismissContextualMenu");
             }
         }
     },
@@ -126,6 +126,12 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             if (this.isSubMenu()) {
                 this._showContextualMenu(this.templateObjects.menuButton.element);
             }
+        }
+    },
+
+    handleDismissContextualMenu: {
+        value: function (evt) {
+            this.templateObjects.contextualMenu.hide();
         }
     },
 
