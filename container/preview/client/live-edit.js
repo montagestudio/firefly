@@ -767,6 +767,7 @@ Object.defineProperties(window.Declarativ, {
         var self = this;
         var owner = this.owner;
 
+        this.scope.invalidateTemplates(owner);
         return template.instantiateIntoDocument(this, how)
             .then(function(result) {
                 self.scope.addObjects(result.objects, owner);
@@ -1153,6 +1154,29 @@ Object.defineProperties(window.Declarativ, {
         // TODO: Should we update the owner template objects if the
         // scope was an iteration? We do need to update the templateObjects.
         owner._addTemplateObjects(objects);
+    };
+
+    MontageScope.prototype.invalidateTemplates = function(owner) {
+        var scope = this;
+        var iteration;
+        var scopeOwner;
+
+        do {
+            iteration = scope.iteration;
+
+            if (iteration) {
+                iteration.repetition._iterationTemplate.isDirty = true;
+            } else {
+                // We're only interested in owners of components, not iterations.
+                // The owner of an iteration will be the same as the owner of
+                // the scope that contains the iteration.
+                // If we updated the scopeOwner in an iteration scope we would
+                // stop this cycle before hitting the scope of the actual owner.
+                scopeOwner = scope.documentPart.objects.owner;
+            }
+
+            scope = scope.parentScope;
+        } while (scopeOwner !== owner);
     };
 
     MontageScope.prototype._addObjectToIteration = function(owner, object, objectLabel) {
