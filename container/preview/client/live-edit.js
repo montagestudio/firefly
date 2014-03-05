@@ -296,8 +296,16 @@ Object.defineProperties(window.Declarativ, {
 
         addObjectEventListener: {
             value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects,
+                    montageTemplate;
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.addObjectEventListener(label, type, listenerLabel,
+                    useCapture);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.addEventListener(type, listenerLabel,
                         useCapture);
@@ -307,8 +315,16 @@ Object.defineProperties(window.Declarativ, {
 
         removeObjectEventListener: {
             value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects,
+                    montageTemplate;
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.removeObjectEventListener(label, type, listenerLabel,
+                    useCapture);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.removeEventListener(type, listenerLabel,
                         useCapture);
@@ -491,11 +507,13 @@ Object.defineProperties(window.Declarativ, {
     MontageObject.prototype.addEventListener = function(type, listenerLabel, useCapture) {
         var listener = this.scope.lookupObject(listenerLabel, this.owner);
         this.value.addEventListener(type, listener, useCapture);
+        this.scope.invalidateTemplates(this.owner);
     };
 
     MontageObject.prototype.removeEventListener = function(type, listenerLabel, useCapture) {
         var listener = this.scope.lookupObject(listenerLabel, this.owner);
         this.value.removeEventListener(type, listener, useCapture);
+        this.scope.invalidateTemplates(this.owner);
     };
 
     Object.defineProperties(MontageObject.prototype, {
@@ -1501,6 +1519,48 @@ Object.defineProperties(window.Declarativ, {
         var object = serializationObject[label];
 
         delete object.bindings[path];
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.addObjectEventListener = function(label, type, listenerLabel, useCapture) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var listeners = object.listeners;
+
+        if (!listeners) {
+            object.listeners = listeners = [];
+        }
+        listeners.push({
+            type: type,
+            listener: {"@": listenerLabel},
+            useCapture: useCapture
+        });
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.removeObjectEventListener = function(label, type, listenerLabel, useCapture) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var listeners = object.listeners;
+        var listener;
+
+        for (var i = 0; listener =/*assign*/ listeners[i]; i++) {
+            if (listener.type === type &&
+                listener.listener["@"] === listenerLabel &&
+                //jshint -W116
+                listener.useCapture == useCapture) {
+                //jshint +W116
+                break;
+            }
+        }
+
+        listeners.splice(i, 1);
         template.objectsString = JSON.stringify(serializationObject);
 
         this._clearCaches();
