@@ -563,7 +563,16 @@ exports.EnvironmentBridge = Montage.specialize({
 
     writeFile: {
         value: function(url, data) {
-            return this.backend.get("file-service").invoke("writeFile", url, data);
+            var self = this;
+
+            return this.backend.get("file-service").invoke("writeFile", url, data)
+                .then(function () {
+                    //TODO fix this, temporary
+                    return self.saveFile(data, url);
+                })
+                .then(function() {
+                    return self.flushProject("Add file " + URL.parse(url).pathname);
+                });
         }
     },
 
