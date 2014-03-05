@@ -33,12 +33,6 @@
     vertical-align: middle;
 }
 
-.Toolbar-name {
-    font-size: 13px;
-    vertical-align: middle;
-    color: hsl(0, 0%, 50%);
-}
-
 .Toolbar-avatar {
     margin-right: 8px;
     width: 24px;
