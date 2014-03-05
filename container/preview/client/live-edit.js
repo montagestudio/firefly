@@ -154,6 +154,10 @@ Object.defineProperties(window.Declarativ, {
                     // setting an object that already has an element and is
                     // inside a repetition.
                     object = montageElement.owner._templateDocumentPart.objects[label];
+                    if (!object) {
+                        continue;
+                    }
+
                     if (propertyName === "element" && object.childComponents) {
                         montageComponent = new MontageComponent(object, label);
                         promises.push(
@@ -165,12 +169,11 @@ Object.defineProperties(window.Declarativ, {
                         // Not an issue at the moment, could be in the future
                         // when we add support to put non-components into the
                         // repetition iteration template.
-                        if (object) {
-                            montageObject = new MontageObject(object, label,
-                                montageElement.owner,
-                                montageElement.owner._templateDocumentPart);
-                            montageObject.setProperty(propertyName, montageElement.value);
-                        }
+                        montageObject = new MontageObject(object, label,
+                            montageElement.owner,
+                            montageElement.owner._templateDocumentPart);
+                        montageObject.setProperty(propertyName,
+                            montageElement.value);
                     }
                 }
 
@@ -195,9 +198,16 @@ Object.defineProperties(window.Declarativ, {
 
         setObjectLabel: {
             value: function(ownerModuleId, label, newLabel) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects;
                 var montageObject;
+                var montageTemplate;
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.setObjectLabel(label, newLabel);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
                 for (var i = 0; (montageObject = montageObjects[i]); i++) {
                     montageObject.setLabel(newLabel);
                 }
@@ -498,6 +508,7 @@ Object.defineProperties(window.Declarativ, {
     MontageObject.prototype.setLabel = function(label) {
         Declarativ.Montage.getInfoForObject(this.value).label = label;
         this.label = label;
+        this.scope.invalidateTemplates(this.owner);
     };
 
     MontageObject.prototype.setProperty = function(propertyName, propertyValue) {
@@ -1634,6 +1645,18 @@ Object.defineProperties(window.Declarativ, {
             object.properties = properties = {};
         }
         properties[propertyName] = {"@": objectLabel};
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectLabel = function(label, newLabel) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+
+        serializationObject[newLabel] = serializationObject[label];
+        delete serializationObject[label];
+
         template.objectsString = JSON.stringify(serializationObject);
 
         this._clearCaches();
