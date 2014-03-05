@@ -14,10 +14,10 @@ get ()
     BRANCH="$2"
   fi
 
-  rm -rf ${BUILD}/$1
-  git clone git@$GITHUBDECLARATIV:declarativ/$1.git ${BUILD}/$1
-  if [[ -e ${BUILD}/$1 ]]; then
-    pushd ${BUILD}/$1
+  rm -rf "${BUILD}/$1"
+  git clone git@$GITHUBDECLARATIV:declarativ/$1.git "${BUILD}/$1"
+  if [[ -e "${BUILD}/$1" ]]; then
+    pushd "${BUILD}/$1"
         git config user.name "Declarativ Bot"
         git config user.email dev@declarativ.com
 
@@ -42,8 +42,8 @@ get ()
         rm -rf test
         rm -rf spec
     popd
-    pushd ${BUILD}
-        tar -czf $1.tgz $1
+    pushd "${BUILD}"
+        tar -czf "$1.tgz" "$1"
     popd
   else
       echo "Cannot clone git repository: "${BUILD}/$1
@@ -55,6 +55,8 @@ get-clean ()
 {
   # $1 is directory
 
-  rm -rf ${BUILD}/$1
-  rm -rf ${BUILD}/$1.tgz
+  pushd "${BUILD}"
+    rm -rf "$1"
+    rm -rf "$1.tgz"
+  popd
 }
