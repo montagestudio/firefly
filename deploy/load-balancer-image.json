@@ -17,8 +17,8 @@
         "region_id": "{{user `region_id`}}",
         "size_id": 66,
         "private_networking": false,
-        "ssh_timeout": "5m",
-		"state_timeout": "12m",
+        "ssh_timeout": "12m",
+        "state_timeout": "12m",
         "snapshot_name": "{{user `snapshot_name`}}",
         "droplet_name": "firefly-load-balancer-image"
     }],
@@ -43,8 +43,8 @@
         "script": "{{user `home`}}/deploy/provision/load-balancer.sh"
     }, {
         "type": "file",
-	    "source": "{{user `home`}}/deploy/files/haproxy.cfg",
-	    "destination": "/etc/haproxy/haproxy.cfg"
+        "source": "{{user `home`}}/deploy/files/haproxy.cfg",
+        "destination": "/etc/haproxy/haproxy.cfg"
     }, {
         "type": "file",
         "source": "{{user `home`}}/deploy/files/errors/",

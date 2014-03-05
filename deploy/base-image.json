@@ -17,8 +17,8 @@
         "region_id": "{{user `region_id`}}",
         "size_id": 66,
         "private_networking": false,
-		"state_timeout": "12m",
-        "ssh_timeout": "5m",
+        "ssh_timeout": "12m",
+        "state_timeout": "12m",
         "snapshot_name": "{{user `snapshot_name`}}",
         "droplet_name": "firefly-base-image"
     }],
