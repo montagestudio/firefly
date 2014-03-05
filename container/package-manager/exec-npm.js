@@ -55,7 +55,9 @@ var execNpm = function execNpm(command, args, npmfs) {
 
         procChild.on('exit', function (code) {
             if (code !== 0) {
-                deferred.reject(new Error("'npm " + command + " " + args.join(" ") + "' in " + npmfs + " exited with code " + code));
+                var argumentList = typeof args === "string" ? args.replace(/,/g, " ") : "";
+
+                deferred.reject(new Error("'npm " + command + " " + argumentList + "' in " + npmfs + " exited with code " + code));
             } else {
                 if (result) {
                     if (typeof result.error !== "undefined") {
