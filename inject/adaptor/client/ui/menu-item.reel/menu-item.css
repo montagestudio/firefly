@@ -27,3 +27,16 @@
     margin-left: 8px;
     float: right;
 }
+
+/* MenuItem disabled */
+.MenuItem-button.matte-Button.disabled {
+    color: hsl(0, 0%, 40%);
+    cursor: default;
+}
+.MenuItem-button.disabled:hover {
+    background: hsla(0,0%,0%,0) !important;
+}
+
+.MenuItem-button.disabled[data-shortcut]:after {
+    border-color: hsl(0, 0%, 40%) !important;
+}

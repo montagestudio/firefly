@@ -17,7 +17,8 @@
                 "element": {"#": "menuButton"}
             },
             "bindings": {
-                "label": {"<-": "@owner.menuItemModel.title"}
+                "label": {"<-": "@owner.menuItemModel.title"},
+                "disabled": {"<-": "@owner.menuItemModel.enabled != undefined && !@owner.menuItemModel.enabled"}
             },
             "listeners": [
                 {

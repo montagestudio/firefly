@@ -104,7 +104,13 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             if (!this.menuItemModel) {
                 return;
             }
-            this.menuItemModel.dispatchMenuEvent("menuAction");
+            if (this.menuItemModel.keyEquivalent) {
+                this.menuItemModel.dispatchMenuEvent("menuAction");
+            } else if (this.menuItemModel.items && this.menuItemModel.items.length) {
+                this.menuItemModel.items.forEach(function (item) {
+                    item.dispatchMenuEvent("menuValidate");
+                });
+            }
             this._showContextualMenu(element);
         }
     },
