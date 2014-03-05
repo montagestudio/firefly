@@ -12,21 +12,8 @@ usage() {
     exit 1;
 }
 
-ROLLBAR_ACCESS_TOKEN=afa2e8f334974bc58b0415fd06a02b40
-ROLLBAR_LOCAL_USERNAME=`whoami`
-rollbar() {
-    ROLLBAR_ENVIRONMENT=$1
-    ROLLBAR_REVISION=`tugboat ssh -n $2 -c "cat /srv/firefly/GIT_HASH" | tail -n 1`
-
-    echo curl https://api.rollbar.com/api/1/deploy/ \
-      -F access_token=$ROLLBAR_ACCESS_TOKEN \
-      -F environment=$ROLLBAR_ENVIRONMENT \
-      -F revision=$ROLLBAR_REVISION \
-      -F local_username=$ROLLBAR_LOCAL_USERNAME
-}
-
 export PRODUCTION="FALSE"
-while getopts ":p:n" opt; do
+while getopts ":pn:" opt; do
     case $opt in
         p)
             export PRODUCTION="TRUE"
@@ -45,7 +32,7 @@ while getopts ":p:n" opt; do
     esac
 done
 
-staging ()
+wait_for_droplet ()
 {
     # We need to wait for the droplets to come back alive after rebuild
     declare DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
@@ -58,6 +45,34 @@ staging ()
         done
         echo ""
     fi
+}
+
+ROLLBAR_ACCESS_TOKEN=afa2e8f334974bc58b0415fd06a02b40
+ROLLBAR_LOCAL_USERNAME=${BUILD_NUMBER}
+rollbar() {
+    # We need to wait for the droplets to come back alive after rebuild
+    wait_for_droplet $2
+    ROLLBAR_ENVIRONMENT=$1
+    ROLLBAR_REVISION=`tugboat ssh -n $2 -q -c "cat /srv/firefly/GIT_HASH" | tail -n 1`
+    if [[ -z $ROLLBAR_REVISION ]]; then
+        # Sometimes it does not work the first time so try again
+        ROLLBAR_REVISION=`tugboat ssh -n $2 -q -c "cat /srv/firefly/GIT_HASH" | tail -n 1`
+    fi
+    
+    if [[ -n $ROLLBAR_REVISION ]]; then
+         curl https://api.rollbar.com/api/1/deploy/ \
+          -F access_token=$ROLLBAR_ACCESS_TOKEN \
+          -F environment=$ROLLBAR_ENVIRONMENT \
+          -F revision=$ROLLBAR_REVISION \
+          -F local_username=$ROLLBAR_LOCAL_USERNAME
+    fi
+
+}
+
+staging ()
+{
+    # We need to wait for the droplets to come back alive after rebuild
+    wait_for_droplet $1
     # Execute the staging script on the droplet
     tugboat ssh -n $1 -c 'bash -s' < ${HOME}/deploy/build/staging.sh
 }
