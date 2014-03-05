@@ -4,6 +4,11 @@
  * Script getting injected during preview in order to instrument from the tool.
  */
 
+if (!window.performance) {
+    // yeah, I know..
+    window.performance = Date;
+}
+
 (function() {
     var DEBUG_OPSS = Declarativ.DEVELOPMENT && false;
     var DEBUG_SPEED = Declarativ.DEVELOPMENT && true;
