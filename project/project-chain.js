@@ -28,6 +28,8 @@ function server(options) {
     var checkSession = options.checkSession;
     if (!options.setupProjectContainer) throw new Error("options.setupProjectContainer required");
     var setupProjectContainer = options.setupProjectContainer;
+    if (!options.containerIndex) throw new Error("options.containerIndex required");
+    var containerIndex = options.containerIndex;
     //jshint +W116
 
     var chain = joey
@@ -136,6 +138,14 @@ function server(options) {
     })
     .use(checkSession)
     .route(function (route) {
+        route("api/workspaces").app(function (request) {
+            var username = request.session.username;
+
+            var workspaces = containerIndex.forUsername(username).keys();
+
+            return APPS.json(workspaces);
+        });
+
         route("api/:owner/:repo/...").app(function (request) {
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
