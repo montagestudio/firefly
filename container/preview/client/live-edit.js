@@ -185,7 +185,16 @@ Object.defineProperties(window.Declarativ, {
 
         setObjectBinding: {
             value: function(ownerModuleId, label, binding) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects,
+                    montageTemplate;
+
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.addObjectBinding(label, binding.propertyName,
+                    binding.propertyDescriptor);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
 
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.defineBinding(binding.propertyName,
@@ -196,8 +205,15 @@ Object.defineProperties(window.Declarativ, {
 
         deleteObjectBinding: {
             value: function(ownerModuleId, label, path) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects,
+                    montageTemplate;
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.cancelObjectBinding(label, path);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.cancelBinding(path);
                 }
@@ -462,11 +478,13 @@ Object.defineProperties(window.Declarativ, {
             }
         };
         object.defineBinding(path, bindingDescriptor);
+        this.scope.invalidateTemplates(owner);
     };
 
     MontageObject.prototype.cancelBinding = function(path) {
         if (this.value.getBinding(path)) {
             this.value.cancelBinding(path);
+            this.scope.invalidateTemplates(this.owner);
         }
     };
 
@@ -1458,6 +1476,32 @@ Object.defineProperties(window.Declarativ, {
 
         element = this._findElement(elementLocation);
         element.setAttribute(attributeName, attributeValue);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.addObjectBinding = function(label, path, descriptor) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var bindings = object.bindings;
+
+        if (!bindings) {
+            object.bindings = bindings = {};
+        }
+        bindings[path] = descriptor;
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.cancelObjectBinding = function(label, path) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+
+        delete object.bindings[path];
+        template.objectsString = JSON.stringify(serializationObject);
 
         this._clearCaches();
     };
