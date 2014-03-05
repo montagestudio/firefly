@@ -18,6 +18,9 @@
     font-size: 10px;
     line-height: 14px;
 }
+.MenuItem-button[data-shortcut]:hover:after {
+    border-color: hsl(0, 0%, 81%);
+}
 
 .MenuItem-button.subMenu:after {
     content: "\25B6";
