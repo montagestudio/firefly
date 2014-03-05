@@ -7,6 +7,7 @@ var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var WebSocket = require("faye-websocket");
 var preview = require("../services/preview-service");
+var Env = require("../../environment");
 
 var CLIENT_FILES = "{$PREVIEW}";
 
@@ -65,6 +66,18 @@ function injectScriptInHtml(src, html) {
     return html;
 }
 
+function injectScriptSource(source, html) {
+    var index = html.toLowerCase().indexOf("</head>");
+
+    if (index !== -1) {
+        html = html.substring(0, index) +
+            '<script type="text/javascript">' + source + '</script>\n' +
+            html.substring(index);
+    }
+
+    return html;
+}
+
 function injectPreviewScripts(request, response) {
     return response.body.then(function(body) {
         return body.read();
@@ -74,6 +87,9 @@ function injectPreviewScripts(request, response) {
         var liveEditSrc = "/" + CLIENT_FILES + "/live-edit.js";
         var previewSrc = "/" + CLIENT_FILES + "/preview.js";
 
+        if (!Env.production) {
+            html = injectScriptSource("var Declarativ = {DEVELOPMENT: true};", html);
+        }
         html = injectScriptInHtml(liveEditSrc, html);
         html = injectScriptInHtml(previewSrc, html);
         response.body = [html];
