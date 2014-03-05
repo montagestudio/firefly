@@ -74,7 +74,7 @@
     box-shadow: none;
     border-radius: 0;
     border: none;
-    border-left: 1px solid hsla(0, 0%, 0%, 0.2);
+    border-right: 1px solid hsla(0, 0%, 0%, 0.2);
     background: hsla(0,0%,0%,0);
 }
 
@@ -90,6 +90,9 @@
     border-color: hsla(0, 0%, 0%, 0.3);
 }
 
+.Menu:first-child .Toolbar-button.matte-Button {
+    border-left: 1px solid hsla(0, 0%, 0%, 0.2);
+}
 .MenuItem.flash .Toolbar-button.matte-Button {
     background: hsl(0, 0%, 20%);
 }
