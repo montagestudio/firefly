@@ -12,6 +12,7 @@ var Env = require("../../environment");
 var CLIENT_FILES = "{$PREVIEW}";
 
 var CLIENT_ROOT = __dirname + "/client/";
+var PREVIEW_SCRIPTS = ["live-edit.js", "preview.js"];
 
 var clientFs = FS.reroot(CLIENT_ROOT);
 
@@ -84,14 +85,15 @@ function injectPreviewScripts(request, response) {
     })
     .then(function(body) {
         var html = body.toString();
-        var liveEditSrc = "/" + CLIENT_FILES + "/live-edit.js";
-        var previewSrc = "/" + CLIENT_FILES + "/preview.js";
+        var scriptBaseSrc = "/" + CLIENT_FILES + "/";
 
         if (!Env.production) {
             html = injectScriptSource("var Declarativ = {DEVELOPMENT: true};", html);
         }
-        html = injectScriptInHtml(liveEditSrc, html);
-        html = injectScriptInHtml(previewSrc, html);
+        for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
+            html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
+        }
+
         response.body = [html];
         response.headers['content-length'] = html.length;
         return response;
