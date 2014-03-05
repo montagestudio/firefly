@@ -178,7 +178,7 @@ Vagrant.configure('2') do |config|
         project.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_SECRET=.*//' /etc/init/firefly-project.conf"
         project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_APP_URL=.*//' /etc/init/firefly-project.conf"
         project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_URL=.*//' /etc/init/firefly-project.conf"
-        project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_SERVER_COUNT=.*/export FIREFLY_PROJECT_SERVER_COUNT=1/' /etc/init/firefly-login.conf"
+        project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_SERVER_COUNT=.*/export FIREFLY_PROJECT_SERVER_COUNT=1/' /etc/init/firefly-project.conf"
 
         # Start
         project.vm.provision :shell, :inline => "service firefly-project start || service firefly-project reload"
