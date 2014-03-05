@@ -234,7 +234,8 @@ ProjectWorkspace.prototype._pushWorkspace = function(message) {
 
     return this.getInfo()
     .then(function(info) {
-        return self._git.push(self._workspacePath, info.gitUrl, info.gitBranch);
+            //TODO use repository service
+        return self._git.push(self._workspacePath, info.gitUrl);
     });
 };
 
