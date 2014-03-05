@@ -121,7 +121,7 @@
     }
 
     var ws;
-    function websocketRefresh() {
+    function websocketRefresh(callback) {
         if (ws) {
             // TODO find out why sometimes we make two connections at once.
             return;
@@ -130,6 +130,9 @@
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
             console.log("Connected to the tool.");
+            if (callback) {
+                callback();
+            }
         };
 
         ws.onmessage = function(message) {
@@ -174,44 +177,52 @@
         return div;
     }
 
-    var lastReconnectionTime = 0;
     var reconnectionTries = 0;
+    var reconnecting = false;
+
     function showReconnectionMessage(reconnectCallback) {
-        // If the last time a reconnect was attempted was less than 1s ago
-        // then assume that a reconnection was not possible.
-        if (Date.now() - lastReconnectionTime < 1000) {
-            reconnectionTries++;
-        } else {
-            reconnectionTries = 0;
-            lastReconnectionTime = Date.now();
-            reconnectCallback();
+        if (!reconnecting) {
+            reconnecting = true;
+            reconnectCallback(reconnected);
             return;
         }
-        // Increase exponentially the timeout to reconnect.
-        var reconnectTime = Math.pow(4, reconnectionTries + 1);
 
+        reconnectionTries++;
+
+        // Increase exponentially the timeout to reconnect.
+        var reconnectTime = Date.now() + Math.pow(4, reconnectionTries) * 1000;
         var secondsElement = disconnectionMessageElement.querySelector("span");
         var connectNowElement = disconnectionMessageElement.querySelector("a");
 
-        var timer;
-        var time = 0;
         var reconnect = function() {
-            reconnectCallback();
+            reconnectTime = 0;
             if (disconnectionMessageElement.parentNode === document.body) {
                 document.body.removeChild(disconnectionMessageElement);
             }
-            clearInterval(timer);
+            reconnectCallback(reconnected);
         };
-        connectNowElement.onclick = reconnect;
+        var reconnected = function() {
+            reconnectionTries = 0;
+            reconnecting = false;
+        };
         // Update the seconds to reconnect, in the message, at every second.
         // When the time is up try to reconnect.
-        timer = setInterval(function() {
-            if (++time === reconnectTime) {
-                lastReconnectionTime = Date.now();
+        var timer = function() {
+            var time = Date.now();
+
+            if (time > reconnectTime) {
                 reconnect();
+            } else {
+                secondsElement.textContent = Math.round((reconnectTime - time) / 1000);
+                setTimeout(timer, 1000);
             }
-            secondsElement.textContent = (reconnectTime - time);
-        }, 1000);
+        };
+        timer();
+
+        connectNowElement.onclick = function() {
+            reconnectionTries = 0;
+            reconnectTime = 0;
+        };
 
         disconnectionMessageElement.style.visibility = "hidden";
         document.body.appendChild(disconnectionMessageElement);
