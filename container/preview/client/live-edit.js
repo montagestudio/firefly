@@ -97,17 +97,34 @@ Object.defineProperties(window.Declarativ, {
 
         setObjectProperty: {
             value: function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
+                var montageObjects,
+                    montageTemplate;
+
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+
+                // TODO: use the same strategy to find nodes as
+                // _updateLiveEditArgumentAttribute
                 if (propertyType === "element") {
+                    // Add to the owner template
+                    montageTemplate.setObjectPropertyWithElement(label, propertyName, propertyValue.elementId);
+                    // Update the live application
                     return this._setObjectPropertyWithElement(ownerModuleId,
                         label, propertyName, propertyValue);
                 } else if (propertyType === "object") {
+                    // Add to the owner template
+                    montageTemplate.setObjectPropertyWithObject(label, propertyName, propertyValue.label);
+                    // Update the live application
                     return this._setObjectPropertyWithObject(ownerModuleId,
                         label, propertyName, propertyValue.label);
                 } else {
-                    var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                    // Add to the owner template
+                    montageTemplate.setObjectProperty(label, propertyName, propertyValue);
+
+                    // Update the live application
+                    montageObjects = MontageObject.findAll(ownerModuleId, label);
 
                     for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                        montageObject.value[propertyName] = propertyValue;
+                        montageObject.setProperty(propertyName, propertyValue);
                     }
                 }
             }
@@ -125,6 +142,7 @@ Object.defineProperties(window.Declarativ, {
                 var montageElements,
                     object,
                     montageComponent,
+                    montageObject,
                     promises = [];
 
                 montageElements = MontageElement.findAll(ownerModuleId,
@@ -148,7 +166,10 @@ Object.defineProperties(window.Declarativ, {
                         // when we add support to put non-components into the
                         // repetition iteration template.
                         if (object) {
-                            object[propertyName] = montageElement.value;
+                            montageObject = new MontageObject(object, label,
+                                montageElement.owner,
+                                montageElement.owner._templateDocumentPart);
+                            montageObject.setProperty(propertyName, montageElement.value);
                         }
                     }
                 }
@@ -167,7 +188,7 @@ Object.defineProperties(window.Declarativ, {
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     object = montageObject.scope.lookupObject(objectLabel,
                         montageObject.owner);
-                    montageObject.value[propertyName] = object;
+                    montageObject.setProperty(propertyName, object);
                 }
             }
         },
@@ -477,6 +498,11 @@ Object.defineProperties(window.Declarativ, {
     MontageObject.prototype.setLabel = function(label) {
         Declarativ.Montage.getInfoForObject(this.value).label = label;
         this.label = label;
+    };
+
+    MontageObject.prototype.setProperty = function(propertyName, propertyValue) {
+        this.value[propertyName] = propertyValue;
+        this.scope.invalidateTemplates(this.owner);
     };
 
     MontageObject.prototype.defineBinding = function(path, bindingDescriptor) {
@@ -1561,6 +1587,51 @@ Object.defineProperties(window.Declarativ, {
         }
 
         listeners.splice(i, 1);
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectProperty = function(label, propertyName, propertyValue) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var properties = object.properties;
+
+        if (!properties) {
+            object.properties = properties = {};
+        }
+        properties[propertyName] = propertyValue;
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectPropertyWithElement = function(label, propertyName, elementId) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var properties = object.properties;
+
+        if (!properties) {
+            object.properties = properties = {};
+        }
+        properties[propertyName] = {"#": elementId};
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectPropertyWithObject = function(label, propertyName, objectLabel) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var properties = object.properties;
+
+        if (!properties) {
+            object.properties = properties = {};
+        }
+        properties[propertyName] = {"@": objectLabel};
         template.objectsString = JSON.stringify(serializationObject);
 
         this._clearCaches();
