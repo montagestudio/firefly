@@ -4,9 +4,15 @@
  * Script getting injected during preview in order to instrument from the tool.
  */
 
+if (!window.performance) {
+    // yeah, I know..
+    window.performance = Date;
+}
+
 (function() {
-    var DEBUG_OPSS = false;
-    var DEBUG_SPEED = true;
+    var DEBUG_OPSS = Declarativ.DEVELOPMENT && false;
+    var DEBUG_SPEED = Declarativ.DEVELOPMENT && true;
+    var DEBUG_CONNECTION = Declarativ.DEVELOPMENT && true;
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
@@ -129,9 +135,13 @@
         var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
-            console.log("Connected to the tool.");
+
             if (callback) {
                 callback();
+            }
+
+            if (DEBUG_CONNECTION) {
+                console.log("Connected to the tool.");
             }
         };
 
@@ -141,7 +151,9 @@
 
         ws.onclose = function() {
             ws = null;
-            console.log("Disconnected from the tool.");
+            if (DEBUG_CONNECTION) {
+                console.log("Disconnected from the tool.");
+            }
             showReconnectionMessage(websocketRefresh);
         };
     }
