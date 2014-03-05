@@ -1,3 +1,4 @@
+/*global window */
 /**
  * @module ui/initialize-repository-panel.reel
  * @requires montage/ui/component
