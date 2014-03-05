@@ -9,7 +9,7 @@ add-apt-repository --yes ppa:chris-lea/node.js
 # For Redis
 add-apt-repository --yes ppa:rwky/redis
 # And be sure we are up to date
-apt-get update
+apt-get update --fix-missing
 
 # Node
 apt-get install --yes nodejs

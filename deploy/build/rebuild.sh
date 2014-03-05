@@ -65,6 +65,7 @@ rollbar() {
           -F environment=$ROLLBAR_ENVIRONMENT \
           -F revision=$ROLLBAR_REVISION \
           -F local_username=$ROLLBAR_LOCAL_USERNAME
+         echo ""
     fi
 
 }
