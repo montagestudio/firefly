@@ -60,3 +60,43 @@ get-clean ()
     rm -rf "$1.tgz"
   popd
 }
+
+tag ()
+{
+    # $1 is directory
+    # $2 is tag name
+    # $3 is branch name
+ 
+    TAG=
+    if [ "$2" ]; then
+      TAG="$2"
+    fi
+    BRANCH=
+    if [ "$3" ]; then
+      BRANCH="$3"
+    fi
+    
+    rm -rf "${BUILD}/$1"
+    git clone git@$GITHUBDECLARATIV:declarativ/$1.git "${BUILD}/$1"
+    if [[ -e "${BUILD}/$1" ]]; then
+      pushd "${BUILD}/$1"
+          git config user.name "Declarativ Bot"
+          git config user.email dev@declarativ.com
+
+          # if branch is set then check it out
+          if [ "${BRANCH}" ]; then
+              echo "checkout branch ${BRANCH} for ${1}"
+              git checkout "${BRANCH}"
+          fi
+
+          # Tag every deploy
+          git tag -a -m "Build Aurora Images" "$TAG"
+          git push --tags
+      popd
+      rm -rf "${BUILD}/$1"
+    else
+        echo "Cannot clone git repository: "${BUILD}/$1
+        exit -1
+    fi
+    
+}

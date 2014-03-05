@@ -9,16 +9,17 @@ COMMAND_PATH="$0"
 
 usage() {
     echo ""
-    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] [-n <build number>] [-s]";
+    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] [-n <build number>] [-s] [-t <tag name>]";
     echo "     -b filament branch"
     echo "     -c firefly branch"
     echo "     -n build number"
     echo "     -s (skip base image build)"
+    echo "     -t tag the repositories"
     echo ""
     exit 1;
 }
 
-while getopts ":b:c:n:s" opt; do
+while getopts ":b:c:n:t:s" opt; do
     case $opt in
         b)
             export FILAMENT_COMMIT="$OPTARG"
@@ -31,6 +32,9 @@ while getopts ":b:c:n:s" opt; do
             ;;
         s)
             export SKIP_BASE_IMAGE="TRUE"
+            ;;
+        t)
+            export TAG_NAME="$OPTARG"
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -47,4 +51,3 @@ done
 
 # This should be a parameter
 export REGION_ID=4
-
