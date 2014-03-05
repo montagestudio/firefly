@@ -1325,7 +1325,9 @@ Object.defineProperties(window.Declarativ, {
         container.innerHTML = templateFragment.html;
         range.selectNodeContents(container);
         this._insertElement(range.extractContents(), anchorLocation, how);
-        this._insertSerialization(JSON.parse(templateFragment.serialization));
+        if (templateFragment.serialization) {
+            this._insertSerialization(JSON.parse(templateFragment.serialization));
+        }
 
         this._clearCaches();
     };
