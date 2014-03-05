@@ -641,7 +641,7 @@ Object.defineProperties(window.Declarativ, {
             // Should try to optimize this somehow.
             template = Template.createTemplateWithObject(owner._template, label);
             template.removeComponentElementReferences();
-            return template.instantiate(owner, element)
+            return template.instantiate(owner, element, documentPart)
                 .then(function(objects) {
                     MontageComponent._setComponentElement(objects[label], element);
                     montageElement.scope.addObjects(objects, owner);
