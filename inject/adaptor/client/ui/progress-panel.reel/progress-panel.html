@@ -21,14 +21,10 @@
             }
         },
 
-        "progressBar": {
-            "prototype": "matte/ui/progress.reel",
+        "loaderWidget": {
+            "prototype": "ui/widgets/loader.reel",
             "properties": {
-                "element": {"#": "progressBar"}
-            },
-            "bindings": {
-                "max": {"<-": "@owner.progressMax"},
-                "value": {"<-": "@owner.progress"}
+                "element": {"#": "loaderWidget"}
             }
         }
     }
@@ -36,8 +32,8 @@
 </head>
 <body>
     <div data-montage-id="progressPanel" class="ProgressPanel">
+        <div data-montage-id="loaderWidget" style="position: static"></div>
         <p data-montage-id="messageLabel" class="modalOverlay-message"></p>
-        <div data-montage-id="progressBar" class="Progress"></div>
     </div>
 </body>
 </html>

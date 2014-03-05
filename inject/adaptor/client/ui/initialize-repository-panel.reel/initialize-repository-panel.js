@@ -15,6 +15,12 @@ exports.InitializeRepositoryPanel = Component.specialize(/** @lends InitializeRe
         }
     },
 
+    handleCancelButtonAction: {
+        value: function (evt) {
+            window.location = "/";
+        }
+    },
+
     handleInitializeButtonAction: {
         value: function (evt) {
             evt.stopPropagation();
