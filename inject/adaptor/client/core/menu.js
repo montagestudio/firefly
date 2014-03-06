@@ -183,8 +183,8 @@ Montage.defineProperty(exports, "userMenu", {
     get: function() {
         if (!_userMenu) {
             _userMenu = new Menu();
-            var userMenuItem = makeMenuItem("", "", "", [
-                    makeMenuItem("Logout", "logout", "")
+            var userMenuItem = makeMenuItem("", "", true, "", [
+                    makeMenuItem("Logout", "logout", true, "")
                 ]);
 
             _userMenu.insertItem(userMenuItem);
