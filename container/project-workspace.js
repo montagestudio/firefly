@@ -133,7 +133,13 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
     }).then(function() {
         return self._setupWorkspaceRepository();
     }).then(function() {
-        return self.flushWorkspace(INITIAL_COMMIT_MSG);
+        // Manually commit and push project initialization
+        // it isn't the same as a generic flushing
+        return self._commitWorkspace(INITIAL_COMMIT_MSG);
+    }).then(function () {
+        return self.getInfo();
+    }).then(function(info) {
+        return self._git.push(self._workspacePath, info.gitUrl, info.gitBranch);
     });
 };
 
