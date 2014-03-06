@@ -3,7 +3,8 @@
  * @module ui/toolbar.reel
  * @requires montage/ui/component
  */
-var Component = require("montage/ui/component").Component;
+var Component = require("montage/ui/component").Component,
+    application = require("montage/core/application").application;
 
 /**
  * @class Toolbar
@@ -38,6 +39,13 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
         }
     },
 
+    enterDocument: {
+        value: function (firstTime) {
+            if (!firstTime) { return; }
+            application.addEventListener("menuAction", this, false);
+        }
+    },
+
     menu: {
         value: null
     },
@@ -48,6 +56,16 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
 
     user: {
         value: null
+    },
+
+    handleMenuAction: {
+        value: function (evt) {
+            switch (evt.detail.identifier) {
+            case "source":
+                window.open(this.sourceUrl);
+                break;
+            }
+        }
     },
 
     handleSourceButtonAction: {
