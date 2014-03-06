@@ -169,7 +169,7 @@ Montage.defineProperty(exports, "defaultMenu", {
 
                 projectMenu = makeMenuItem("Project", "", true, "", [
                     newSubMenu,
-                    makeMenuItem("Save", "save", true, "command+s"),
+                    makeMenuItem("Save All", "save", true, "command+s"),
                     makeMenuItem("Source", "source", true, "")
                 ]);
                 _defaultMenu.insertItem(projectMenu);
