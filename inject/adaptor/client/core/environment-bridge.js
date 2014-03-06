@@ -6,6 +6,7 @@ var Montage = require("montage").Montage,
     adaptConnection = require("q-connection/adapt"),
     FileDescriptor = require("./file-descriptor").FileDescriptor,
     mainMenu = require("adaptor/client/core/menu").defaultMenu,
+    userMenu = require("adaptor/client/core/menu").userMenu,
     RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
     UserController = require("adaptor/client/core/user-controller").UserController,
     URL = require("core/url");
@@ -486,6 +487,12 @@ exports.EnvironmentBridge = Montage.specialize({
     mainMenu: {
         get: function () {
             return Promise.resolve(mainMenu);
+        }
+    },
+
+    userMenu: {
+        get: function () {
+            return userMenu;
         }
     },
 

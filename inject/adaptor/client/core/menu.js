@@ -107,6 +107,7 @@ var Menu = exports.Menu = Montage.specialize({
 
 });
 var _defaultMenu = null;
+var _userMenu = null;
 
 function makeMenuItem (title, identifier, enabled, keyEquivalent, items) {
     var menuItem = new MenuItemModule.MenuItem();
@@ -129,7 +130,7 @@ Montage.defineProperty(exports, "defaultMenu", {
 
             //TODO clean up this whole initialization
             Promise.nextTick(function () {
-                var fileMenu,
+                var projectMenu,
                     editMenu,
                     viewMenu,
                     helpMenu,
@@ -161,18 +162,33 @@ Montage.defineProperty(exports, "defaultMenu", {
 
                 // File
                 newSubMenu = makeMenuItem("New", "new", true, "", [
-                    makeMenuItem("Application", "newApplication", true, "control+n"),
+                    makeMenuItem("Application", "newApplication", false, "control+n"),
                     makeMenuItem("Component", "newComponent", true, "shift+control+n"),
                     makeMenuItem("Module", "newModule", true, "")
                 ]);
-                fileMenu = makeMenuItem("File", "", true, "", [
-                    newSubMenu,
-                    makeMenuItem("Save", "save", true, "command+s")
-                ]);
-                _defaultMenu.insertItem(fileMenu);
 
+                projectMenu = makeMenuItem("Project", "", true, "", [
+                    newSubMenu,
+                    makeMenuItem("Save", "save", true, "command+s"),
+                    makeMenuItem("Source", "source", true, "")
+                ]);
+                _defaultMenu.insertItem(projectMenu);
             });
         }
         return _defaultMenu;
+    }
+});
+
+Montage.defineProperty(exports, "userMenu", {
+    get: function() {
+        if (!_userMenu) {
+            _userMenu = new Menu();
+            var userMenuItem = makeMenuItem("", "", true, "", [
+                    makeMenuItem("Logout", "logout", true, "")
+                ]);
+
+            _userMenu.insertItem(userMenuItem);
+        }
+        return _userMenu;
     }
 });
