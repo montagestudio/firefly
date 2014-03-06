@@ -266,6 +266,10 @@ ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
         return self._git.config(self._workspacePath, "user.email", email);
     })
     .then(function() {
+        // Only push the branch we're currently working on, reduce rejected pushes
+        return self._git.config(self._workspacePath, "push.default", "tracking");
+    })
+    .then(function() {
         return self._npmInstall();
     });
 };
