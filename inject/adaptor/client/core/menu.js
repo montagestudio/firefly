@@ -129,7 +129,7 @@ Montage.defineProperty(exports, "defaultMenu", {
 
             //TODO clean up this whole initialization
             Promise.nextTick(function () {
-                var fileMenu,
+                var projectMenu,
                     editMenu,
                     viewMenu,
                     helpMenu,
@@ -165,11 +165,12 @@ Montage.defineProperty(exports, "defaultMenu", {
                     makeMenuItem("Component", "newComponent", true, "shift+control+n"),
                     makeMenuItem("Module", "newModule", true, "")
                 ]);
-                fileMenu = makeMenuItem("File", "", true, "", [
+
+                projectMenu = makeMenuItem("Project", "", true, "", [
                     newSubMenu,
                     makeMenuItem("Save", "save", true, "command+s")
                 ]);
-                _defaultMenu.insertItem(fileMenu);
+                _defaultMenu.insertItem(projectMenu);
 
             });
         }
