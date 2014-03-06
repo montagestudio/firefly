@@ -87,9 +87,12 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
             if (this.overlayPosition === "down") {
                 contextualMenuPosition = {top: menuPositions.bottom, left: menuPositions.left};
-            } else {
+            } else if (this.overlayPosition === "right") {
                 contextualMenuPosition = {top: menuPositions.top, left: menuPositions.right};
+            } else if (this.overlayPosition === "left") {
+                contextualMenuPosition = {top: menuPositions.top, right: menuPositions.left};
             }
+
 
             if (this.menuItemModel.items && this.menuItemModel.items.length) {
                 this.templateObjects.contextualMenu.show(contextualMenuPosition);

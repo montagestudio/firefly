@@ -107,6 +107,7 @@ var Menu = exports.Menu = Montage.specialize({
 
 });
 var _defaultMenu = null;
+var _userMenu = null;
 
 function makeMenuItem (title, identifier, enabled, keyEquivalent, items) {
     var menuItem = new MenuItemModule.MenuItem();
@@ -172,9 +173,22 @@ Montage.defineProperty(exports, "defaultMenu", {
                     makeMenuItem("Source", "source", true, "")
                 ]);
                 _defaultMenu.insertItem(projectMenu);
-
             });
         }
         return _defaultMenu;
+    }
+});
+
+Montage.defineProperty(exports, "userMenu", {
+    get: function() {
+        if (!_userMenu) {
+            _userMenu = new Menu();
+            var userMenuItem = makeMenuItem("", "", "", [
+                    makeMenuItem("Logout", "logout", "")
+                ]);
+
+            _userMenu.insertItem(userMenuItem);
+        }
+        return _userMenu;
     }
 });

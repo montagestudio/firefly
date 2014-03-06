@@ -20,6 +20,7 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
                 if (bridge) {
 
                     self.mainMenu = bridge.mainMenu;
+                    self.userMenu = bridge.userMenu;
 
                     bridge.userController.getUser()
                         .then(function (user) {
@@ -50,6 +51,10 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
         value: null
     },
 
+    userMenu: {
+        value: null
+    },
+
     mainMenu: {
         value: null
     },
@@ -64,19 +69,10 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
             case "source":
                 window.open(this.sourceUrl);
                 break;
+            case "logout":
+                window.location.href = this.environmentBridge.logoutUrl;
+                break;
             }
-        }
-    },
-
-    handleSourceButtonAction: {
-        value: function() {
-            window.open(this.sourceUrl);
-        }
-    },
-
-    handleLogoutButtonAction: {
-        value: function() {
-            window.location.href = this.environmentBridge.logoutUrl;
         }
     },
 

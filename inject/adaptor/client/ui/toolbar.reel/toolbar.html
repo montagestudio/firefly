@@ -49,6 +49,17 @@
             "bindings": {
                 "menuItem": {"<-": "@mainMenuRepetition:iteration.object"}
             }
+        },
+
+        "userMenuItem": {
+            "prototype": "../menu-item.reel",
+            "properties": {
+                "element": {"#": "userMenuItem"},
+                "overlayPosition": "down"
+            },
+            "bindings": {
+                "menuItemModel": {"<-": "@owner.userMenu.items.0"}
+            }
         }
     }
     </script>
@@ -67,10 +78,11 @@
         </div>
 
         <div class="Toolbar-group">
-            <span data-montage-id="username" class="Toolbar-username"></span>
-            <img data-montage-id="avatar" class="Toolbar-avatar" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+            <div data-montage-id="userMenuItem">
+                <span data-montage-id="username" class="Toolbar-username"></span>
+                <img data-montage-id="avatar" class="Toolbar-avatar" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+            </div>
         </div>
-
     </div>
 </body>
 </html>
