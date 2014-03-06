@@ -21,6 +21,24 @@ function makeContainerIndex(filename) {
         });
     }
 
+    containers.forUsername = function (username) {
+        username = username.toLowerCase();
+
+        // At the time of writing Map.prototype.filter is broken
+        // When collections is fixed, replace with:
+        // return this.filter(function (value, key) {
+        //     return key.user === username;
+        // });
+        var result = this.constructClone();
+        this.reduce(function (undefined, value, key) {
+            if (key.user === username) {
+                result.set(key, value);
+            }
+        }, undefined);
+
+        return result;
+    };
+
     return containers;
 }
 

@@ -28,6 +28,8 @@ function server(options) {
     var checkSession = options.checkSession;
     if (!options.setupProjectContainer) throw new Error("options.setupProjectContainer required");
     var setupProjectContainer = options.setupProjectContainer;
+    if (!options.containerIndex) throw new Error("options.containerIndex required");
+    var containerIndex = options.containerIndex;
     //jshint +W116
 
     var chain = joey
@@ -135,8 +137,36 @@ function server(options) {
         };
     })
     .use(checkSession)
-    .route(function (route) {
-        route("api/:owner/:repo/...").app(function (request) {
+    .route(function (any, GET, PUT, POST) {
+        GET("api/workspaces").app(function (request) {
+            var username = request.session.username;
+            var workspaceKeys = containerIndex.forUsername(username).keys();
+
+            return APPS.json(workspaceKeys);
+        });
+
+        this.DELETE("api/workspaces").app(function (request) {
+            var username = request.session.username;
+            var workspaceKeys = containerIndex.forUsername(username).keys();
+
+            return Q.all(workspaceKeys.map(function (value) {
+                // delete
+                return setupProjectContainer.delete(value.user, value.owner, value.repo)
+                .catch(function (error) {
+                    // catch error and log
+                    track.error(error, request);
+                })
+                .then(function () {
+                    // remove from containerIndex
+                    containerIndex.delete(value);
+                });
+            }))
+            .then(function () {
+                return APPS.json({deleted: true});
+            });
+        });
+
+        any("api/:owner/:repo/...").app(function (request) {
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
                 return setupProjectContainer(

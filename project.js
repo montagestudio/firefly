@@ -41,7 +41,8 @@ function main(options) {
     var projectChain = projectChainFactory({
         sessions: sessions,
         checkSession: CheckSession,
-        setupProjectContainer: SetupProjectContainer(docker, containerIndex)
+        setupProjectContainer: SetupProjectContainer(docker, containerIndex),
+        containerIndex: containerIndex
     });
     return projectChain.listen(options.port)
     .then(function (server) {

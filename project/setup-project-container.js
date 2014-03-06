@@ -17,7 +17,7 @@ function SetupProjectContainer(docker, containers, _request) {
     // Needed by the Docker configuration
     var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
 
-    return function (user, owner, repo, githubAccessToken, githubUser) {
+    var setupProjectContainer = function (user, owner, repo, githubAccessToken, githubUser) {
         user = user.toLowerCase();
         owner = owner.toLowerCase();
         repo = repo.toLowerCase();
@@ -41,6 +41,21 @@ function SetupProjectContainer(docker, containers, _request) {
             throw error;
         });
     };
+
+    // FIXME: Done for expediency. This file should be reorganised into a class
+    // or something.
+    setupProjectContainer.delete = function (user, owner, repo) {
+        var containerKey = {user: user, owner: owner, repo: repo};
+        var info = containers.get(containerKey);
+        var container = new docker.Container(docker.modem, info.id);
+
+        return container.stop()
+        .then(function () {
+            return container.remove();
+        });
+    };
+
+    return setupProjectContainer;
 
     /**
      * Gets or creates an container for the given user/owner/repo combo

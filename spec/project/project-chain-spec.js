@@ -5,6 +5,7 @@ var Session = require("../../session");
 var MockSession = require("../mocks/session");
 var mockRequest = require("../mocks/request");
 var GithubSessionStore = require("../../github-session-store");
+var makeContainerIndex = require("../../project/make-container-index");
 
 describe("project chain", function () {
     var token, username, packed, sessions, chain, request;
@@ -18,7 +19,8 @@ describe("project chain", function () {
         chain = projectChain({
             sessions: MockSession(sessions),
             checkSession: CheckSession,
-            setupProjectContainer: function () { return Q("1234"); }
+            setupProjectContainer: function () { return Q("1234"); },
+            containerIndex: makeContainerIndex()
         }).end();
 
         request = function (req) {
@@ -47,7 +49,8 @@ describe("project chain", function () {
             chain = projectChain({
                 sessions: Session("session", "x", null, store),
                 checkSession: CheckSession,
-                setupProjectContainer: function () { return Q("1234"); }
+                setupProjectContainer: function () { return Q("1234"); },
+                containerIndex: makeContainerIndex()
             }).end();
         });
 
