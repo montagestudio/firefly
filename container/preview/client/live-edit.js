@@ -97,17 +97,34 @@ Object.defineProperties(window.Declarativ, {
 
         setObjectProperty: {
             value: function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
+                var montageObjects,
+                    montageTemplate;
+
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+
+                // TODO: use the same strategy to find nodes as
+                // _updateLiveEditArgumentAttribute
                 if (propertyType === "element") {
+                    // Add to the owner template
+                    montageTemplate.setObjectPropertyWithElement(label, propertyName, propertyValue.elementId);
+                    // Update the live application
                     return this._setObjectPropertyWithElement(ownerModuleId,
                         label, propertyName, propertyValue);
                 } else if (propertyType === "object") {
+                    // Add to the owner template
+                    montageTemplate.setObjectPropertyWithObject(label, propertyName, propertyValue.label);
+                    // Update the live application
                     return this._setObjectPropertyWithObject(ownerModuleId,
                         label, propertyName, propertyValue.label);
                 } else {
-                    var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                    // Add to the owner template
+                    montageTemplate.setObjectProperty(label, propertyName, propertyValue);
+
+                    // Update the live application
+                    montageObjects = MontageObject.findAll(ownerModuleId, label);
 
                     for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                        montageObject.value[propertyName] = propertyValue;
+                        montageObject.setProperty(propertyName, propertyValue);
                     }
                 }
             }
@@ -125,6 +142,7 @@ Object.defineProperties(window.Declarativ, {
                 var montageElements,
                     object,
                     montageComponent,
+                    montageObject,
                     promises = [];
 
                 montageElements = MontageElement.findAll(ownerModuleId,
@@ -136,6 +154,10 @@ Object.defineProperties(window.Declarativ, {
                     // setting an object that already has an element and is
                     // inside a repetition.
                     object = montageElement.owner._templateDocumentPart.objects[label];
+                    if (!object) {
+                        continue;
+                    }
+
                     if (propertyName === "element" && object.childComponents) {
                         montageComponent = new MontageComponent(object, label);
                         promises.push(
@@ -147,9 +169,11 @@ Object.defineProperties(window.Declarativ, {
                         // Not an issue at the moment, could be in the future
                         // when we add support to put non-components into the
                         // repetition iteration template.
-                        if (object) {
-                            object[propertyName] = montageElement.value;
-                        }
+                        montageObject = new MontageObject(object, label,
+                            montageElement.owner,
+                            montageElement.owner._templateDocumentPart);
+                        montageObject.setProperty(propertyName,
+                            montageElement.value);
                     }
                 }
 
@@ -167,16 +191,23 @@ Object.defineProperties(window.Declarativ, {
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     object = montageObject.scope.lookupObject(objectLabel,
                         montageObject.owner);
-                    montageObject.value[propertyName] = object;
+                    montageObject.setProperty(propertyName, object);
                 }
             }
         },
 
         setObjectLabel: {
             value: function(ownerModuleId, label, newLabel) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects;
                 var montageObject;
+                var montageTemplate;
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.setObjectLabel(label, newLabel);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
                 for (var i = 0; (montageObject = montageObjects[i]); i++) {
                     montageObject.setLabel(newLabel);
                 }
@@ -185,7 +216,16 @@ Object.defineProperties(window.Declarativ, {
 
         setObjectBinding: {
             value: function(ownerModuleId, label, binding) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects,
+                    montageTemplate;
+
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.addObjectBinding(label, binding.propertyName,
+                    binding.propertyDescriptor);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
 
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.defineBinding(binding.propertyName,
@@ -196,8 +236,15 @@ Object.defineProperties(window.Declarativ, {
 
         deleteObjectBinding: {
             value: function(ownerModuleId, label, path) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects,
+                    montageTemplate;
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.cancelObjectBinding(label, path);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.cancelBinding(path);
                 }
@@ -280,8 +327,16 @@ Object.defineProperties(window.Declarativ, {
 
         addObjectEventListener: {
             value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects,
+                    montageTemplate;
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.addObjectEventListener(label, type, listenerLabel,
+                    useCapture);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.addEventListener(type, listenerLabel,
                         useCapture);
@@ -291,8 +346,16 @@ Object.defineProperties(window.Declarativ, {
 
         removeObjectEventListener: {
             value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
-                var montageObjects = MontageObject.findAll(ownerModuleId, label);
+                var montageObjects,
+                    montageTemplate;
 
+                // Add to the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.removeObjectEventListener(label, type, listenerLabel,
+                    useCapture);
+
+                // Update the live application
+                montageObjects = MontageObject.findAll(ownerModuleId, label);
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     montageObject.removeEventListener(type, listenerLabel,
                         useCapture);
@@ -445,6 +508,12 @@ Object.defineProperties(window.Declarativ, {
     MontageObject.prototype.setLabel = function(label) {
         Declarativ.Montage.getInfoForObject(this.value).label = label;
         this.label = label;
+        this.scope.invalidateTemplates(this.owner);
+    };
+
+    MontageObject.prototype.setProperty = function(propertyName, propertyValue) {
+        this.value[propertyName] = propertyValue;
+        this.scope.invalidateTemplates(this.owner);
     };
 
     MontageObject.prototype.defineBinding = function(path, bindingDescriptor) {
@@ -462,22 +531,26 @@ Object.defineProperties(window.Declarativ, {
             }
         };
         object.defineBinding(path, bindingDescriptor);
+        this.scope.invalidateTemplates(owner);
     };
 
     MontageObject.prototype.cancelBinding = function(path) {
         if (this.value.getBinding(path)) {
             this.value.cancelBinding(path);
+            this.scope.invalidateTemplates(this.owner);
         }
     };
 
     MontageObject.prototype.addEventListener = function(type, listenerLabel, useCapture) {
         var listener = this.scope.lookupObject(listenerLabel, this.owner);
         this.value.addEventListener(type, listener, useCapture);
+        this.scope.invalidateTemplates(this.owner);
     };
 
     MontageObject.prototype.removeEventListener = function(type, listenerLabel, useCapture) {
         var listener = this.scope.lookupObject(listenerLabel, this.owner);
         this.value.removeEventListener(type, listener, useCapture);
+        this.scope.invalidateTemplates(this.owner);
     };
 
     Object.defineProperties(MontageObject.prototype, {
@@ -623,7 +696,7 @@ Object.defineProperties(window.Declarativ, {
             // Should try to optimize this somehow.
             template = Template.createTemplateWithObject(owner._template, label);
             template.removeComponentElementReferences();
-            return template.instantiate(owner, element)
+            return template.instantiate(owner, element, documentPart)
                 .then(function(objects) {
                     MontageComponent._setComponentElement(objects[label], element);
                     montageElement.scope.addObjects(objects, owner);
@@ -1263,7 +1336,9 @@ Object.defineProperties(window.Declarativ, {
         container.innerHTML = templateFragment.html;
         range.selectNodeContents(container);
         this._insertElement(range.extractContents(), anchorLocation, how);
-        this._insertSerialization(JSON.parse(templateFragment.serialization));
+        if (templateFragment.serialization) {
+            this._insertSerialization(JSON.parse(templateFragment.serialization));
+        }
 
         this._clearCaches();
     };
@@ -1458,6 +1533,131 @@ Object.defineProperties(window.Declarativ, {
 
         element = this._findElement(elementLocation);
         element.setAttribute(attributeName, attributeValue);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.addObjectBinding = function(label, path, descriptor) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var bindings = object.bindings;
+
+        if (!bindings) {
+            object.bindings = bindings = {};
+        }
+        bindings[path] = descriptor;
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.cancelObjectBinding = function(label, path) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+
+        delete object.bindings[path];
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.addObjectEventListener = function(label, type, listenerLabel, useCapture) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var listeners = object.listeners;
+
+        if (!listeners) {
+            object.listeners = listeners = [];
+        }
+        listeners.push({
+            type: type,
+            listener: {"@": listenerLabel},
+            useCapture: useCapture
+        });
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.removeObjectEventListener = function(label, type, listenerLabel, useCapture) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var listeners = object.listeners;
+        var listener;
+
+        for (var i = 0; listener =/*assign*/ listeners[i]; i++) {
+            if (listener.type === type &&
+                listener.listener["@"] === listenerLabel &&
+                //jshint -W116
+                listener.useCapture == useCapture) {
+                //jshint +W116
+                break;
+            }
+        }
+
+        listeners.splice(i, 1);
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectProperty = function(label, propertyName, propertyValue) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var properties = object.properties;
+
+        if (!properties) {
+            object.properties = properties = {};
+        }
+        properties[propertyName] = propertyValue;
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectPropertyWithElement = function(label, propertyName, elementId) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var properties = object.properties;
+
+        if (!properties) {
+            object.properties = properties = {};
+        }
+        properties[propertyName] = {"#": elementId};
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectPropertyWithObject = function(label, propertyName, objectLabel) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var properties = object.properties;
+
+        if (!properties) {
+            object.properties = properties = {};
+        }
+        properties[propertyName] = {"@": objectLabel};
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectLabel = function(label, newLabel) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+
+        serializationObject[newLabel] = serializationObject[label];
+        delete serializationObject[label];
+
+        template.objectsString = JSON.stringify(serializationObject);
 
         this._clearCaches();
     };
