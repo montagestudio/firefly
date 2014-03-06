@@ -11,7 +11,15 @@ module.exports = PackageManagerService;
 
 function PackageManagerService (session, fs, environment, pathname, fsPath) {
     // Returned service
-    var service = {};
+    var service = {},
+
+        CONF = {
+            DEPENDENCY_CATEGORY_REQUIRED_PROJECT: {
+                regular: true,
+                dev: true,
+                optional: false
+            }
+        };
 
     var convertProjectUrlToPath = FileService.makeConvertProjectUrlToPath(pathname);
 
@@ -41,9 +49,27 @@ function PackageManagerService (session, fs, environment, pathname, fsPath) {
         return execNpm(execNpm.COMMANDS.OUTDATED, null, fsPath);
     };
 
+    function getDependenciesToInstall(dependencyList) {
+        var dependenciesToInstall = [];
+
+        if (dependencyList && typeof dependencyList === "object") {
+            var allowed = CONF.DEPENDENCY_CATEGORY_REQUIRED_PROJECT;
+
+            Object.keys(dependencyList).forEach(function (key) {
+                var dependencyCategory = dependencyList[key];
+
+                if (allowed[key] && Array.isArray(dependencyCategory)) {
+                    dependenciesToInstall = dependenciesToInstall.concat(dependencyCategory);
+                }
+            });
+        }
+
+        return dependenciesToInstall;
+    }
+
     service.installProjectPackages = function () {
         return listDependencies(fs, fs.ROOT, false).then(function (dependencyTree) {
-            var dependenciesToInstall = dependencyTree.children.regular,
+            var dependenciesToInstall = getDependenciesToInstall(dependencyTree.children),
                 requestedPackages = [];
 
             dependenciesToInstall.forEach(function (dependency) {
