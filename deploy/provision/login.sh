@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 pushd /srv
 
 if [[ -e "/srv/filament.tgz" ]]; then

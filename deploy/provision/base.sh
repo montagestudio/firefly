@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 apt-get update --fix-missing
 apt-get dist-upgrade -y
 

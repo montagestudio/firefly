@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+set -e
+
 add-apt-repository --yes ppa:vbernat/haproxy-1.5
-apt-get update
+apt-get update --fix-missing
 # Download HAProxy
 apt-get --yes install haproxy
 

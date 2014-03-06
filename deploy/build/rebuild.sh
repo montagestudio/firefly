@@ -2,6 +2,8 @@
 
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
+set -e
+
 COMMAND_PATH="$0"
 usage() {
     echo ""

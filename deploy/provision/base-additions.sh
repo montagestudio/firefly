@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
+set -e
+
+apt-get update --fix-missing
 # Git
-apt-get install -y git
+apt-get install --yes git
 
 # To save time lets load the new repositories first
 # For Node

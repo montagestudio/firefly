@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 if [[ -e /etc/haproxy/haproxy.cfg  ]]; then
     sudo sed -i.bak 's/server static1 [0-9\.]*/server static1 107.170.66.81/' /etc/haproxy/haproxy.cfg
     sudo sed -i.bak 's/server login1 [0-9\.]*/server login1 107.170.71.152/' /etc/haproxy/haproxy.cfg
