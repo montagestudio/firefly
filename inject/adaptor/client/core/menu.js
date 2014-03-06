@@ -140,7 +140,7 @@ Montage.defineProperty(exports, "defaultMenu", {
                 helpMenu = makeMenuItem("Help", "", true, "", [
                     makeMenuItem("Documentation", "documentation", true, ""),
                     makeMenuItem("Forum", "forum", true, ""),
-                    makeMenuItem("Report a Bug", true, "report", ""),
+                    makeMenuItem("Report a Bug", "report", true, ""),
                     makeMenuItem("API", "api", true, ""),
                     makeMenuItem("Framework", "framework", true, "")
                 ]);
