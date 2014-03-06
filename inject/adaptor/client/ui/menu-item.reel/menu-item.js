@@ -107,7 +107,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             if (!this.menuItemModel) {
                 return;
             }
-            if (this.menuItemModel.keyEquivalent) {
+            if (this.menuItemModel.identifier) {
                 this.menuItemModel.dispatchMenuEvent("menuAction");
             } else if (this.menuItemModel.items && this.menuItemModel.items.length) {
                 this.menuItemModel.items.forEach(function (item) {
