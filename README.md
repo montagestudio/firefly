@@ -216,6 +216,10 @@ track.message(/*string*/ message, request, /*optional object*/ data, /*optional 
 track.messageForUsername(/*string*/ message, /*string*/ username, /*optional object*/ data, /*optional string*/ level);
 ```
 
+Messages should be written in the present tense without "-ing", e.g.
+"create container", **not** "creating container" or "created container" (unless
+the action really was in the past).
+
 Accessing logs
 --------------
 
@@ -460,18 +464,18 @@ It is very useful to have Tugboat installed on your machine so run
 `gem install tugboat` This will give a nice command line tool to access
 Digital Ocean.
 
-Deploying is a three steps process. First you need to build the images, 
+Deploying is a three steps process. First you need to build the images,
 this is non destructive as it does not affect production. Then you will rebuild
 the staging environment (deploy/build/rebuild.sh) and do some QA. If you are satified
 with the result you deploy the same images by adding the production flag to the deploy
-script. 
+script.
 
 There 6 scripts you will be interested in:
 
  * `deploy/build/images.sh`
    It builds all 4 images including rebuilding the base image. It takes 40~60
    minutes to run. You can tag the repositories for deployement by passing and optional
-   tag argument [-t "aurora-deploy-25"]. It will frequently fail because of issues on the 
+   tag argument [-t "aurora-deploy-25"]. It will frequently fail because of issues on the
    Digital Ocean site.
  * `deploy/build/load-balancer-image.sh`
    It will build the load balancer image. It will not rebuild the base image if
