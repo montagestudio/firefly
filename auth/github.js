@@ -1,7 +1,6 @@
 var log = require("logging").from(__filename);
 var track = require("../track");
 var querystring = require("querystring");
-var environment = require("../environment");
 
 var uuid = require("uuid");
 var Http = require("q-io/http");
@@ -9,14 +8,8 @@ var HttpApps = require("q-io/http-apps");
 
 var GithubApi = require("../inject/adaptor/client/core/github-api");
 
-var CLIENT_ID,CLIENT_SECRET;
-if (environment.production) {
-    CLIENT_ID = process.env.GITHUB_CLIENT_ID;
-    CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
-} else {
-    CLIENT_ID = "e3a42c8d5e2631ed7707";
-    CLIENT_SECRET = "a4c0a8eb95388febf206493eddd26e679b6407ba";
-}
+var CLIENT_ID = process.env.GITHUB_CLIENT_ID || "e3a42c8d5e2631ed7707";
+var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "a4c0a8eb95388febf206493eddd26e679b6407ba";
 
 module.exports = function ($) {
     $("").app(function (request) {
