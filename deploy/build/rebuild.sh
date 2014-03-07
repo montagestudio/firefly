@@ -34,21 +34,6 @@ while getopts ":pn:" opt; do
     esac
 done
 
-wait_for_droplet ()
-{
-    # We need to wait for the droplets to come back alive after rebuild
-    declare DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
-    if [[ "$DROPLET_STATUS" != "[32mactive[0m" ]]; then
-        echo -n "$1 not active [$DROPLET_STATUS] waiting."
-        while [[ "$DROPLET_STATUS" != "[32mactive[0m" ]]; do
-            echo -n "."
-            sleep 5
-            DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
-        done
-        echo ""
-    fi
-}
-
 ROLLBAR_LOCAL_USERNAME=${BUILD_NUMBER}
 rollbar() {
     # $1 environment
@@ -57,7 +42,7 @@ rollbar() {
     # $4 rollbar access code
 
     # We need to wait for the droplets to come back alive after rebuild
-    wait_for_droplet $2
+    tugboat wait -n $2
     ROLLBAR_ENVIRONMENT=$1
     ROLLBAR_REVISION=`tugboat ssh -n $2 -q -c "cat /srv/$3/GIT_HASH" | tail -n 1`
     if [[ -z $ROLLBAR_REVISION ]]; then
@@ -73,13 +58,13 @@ rollbar() {
           -F local_username=$ROLLBAR_LOCAL_USERNAME
          echo ""
     fi
-
+    echo "Registered $3 $1 deploy $ROLLBAR_REVISION with Rollbar"
 }
 
 staging ()
 {
     # We need to wait for the droplets to come back alive after rebuild
-    wait_for_droplet $1
+    tugboat wait -n $1
     # Execute the staging script on the droplet
     tugboat ssh -n $1 -c 'bash -s' < ${HOME}/deploy/build/staging.sh
 }
