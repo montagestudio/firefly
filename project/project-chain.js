@@ -152,6 +152,8 @@ function server(options) {
             var username = request.session.username;
             var workspaceKeys = containerIndex.forUsername(username).keys();
 
+            track.message("delete containers", request, {number: workspaceKeys.length});
+
             return Q.all(workspaceKeys.map(function (value) {
                 // delete
                 return setupProjectContainer.delete(value.user, value.owner, value.repo)
