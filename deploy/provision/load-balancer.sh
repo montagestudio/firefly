@@ -5,7 +5,7 @@ set -e
 add-apt-repository --yes ppa:vbernat/haproxy-1.5
 apt-get update --fix-missing
 # Download HAProxy
-apt-get --yes install haproxy
+apt-get --yes install haproxy=1.5*
 
 # Make sure that HAProxy starts after Networking
 # PJYF [Jan 18 2014] Not sure this is required keep it there in case we have issue when restating
