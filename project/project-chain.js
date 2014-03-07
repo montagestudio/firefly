@@ -56,6 +56,9 @@ function server(options) {
             var next = APPS.redirect(request, environment.getAppUrl());
             var referrer = request.headers.referer && URL.parse(request.headers.referer).host;
             if (
+                // HACK, FIXME: remove referred check as when people log in to
+                // Github the referrer gets unset
+                true ||
                 referrer === environment.getAppHost()
             ) {
                 if (request.query.id) {
