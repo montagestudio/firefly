@@ -36,6 +36,33 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         }
     },
 
+    _isOpen: {
+        value: false
+    },
+
+    isOpen: {
+        get : function () {
+            return this._isOpen;
+        },
+        set: function (value) {
+            this._isOpen = value;
+        }
+    },
+
+    open: {
+        value: function (position) {
+            this.isOpen = true;
+            this.templateObjects.contextualMenu.show(position);
+        }
+    },
+
+    close: {
+        value: function () {
+            this.isOpen = false;
+            this.templateObjects.contextualMenu.hide();
+        }
+    },
+
     menuItemModel: {
         get: function () {
             return this._menuItemModel;
@@ -80,10 +107,14 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
     //TODO handle menuValidate event
 
-    _showContextualMenu: {
+    _toggleContextualMenu: {
         value: function (element) {
             var menuPositions = element.getBoundingClientRect(),
                 contextualMenuPosition;
+
+            if (!this.menuItemModel.items || !this.menuItemModel.items.length) {
+                return;
+            }
 
             if (this.overlayPosition === "down") {
                 contextualMenuPosition = {top: menuPositions.bottom, left: menuPositions.left};
@@ -93,11 +124,10 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 contextualMenuPosition = {top: menuPositions.top, right: menuPositions.left};
             }
 
-
-            if (this.menuItemModel.items && this.menuItemModel.items.length) {
-                this.templateObjects.contextualMenu.show(contextualMenuPosition);
+            if (!this.isOpen) {
+                this.open(contextualMenuPosition);
             } else {
-                this.dispatchEventNamed("dismissContextualMenu");
+                this.close();
             }
         }
     },
@@ -107,14 +137,21 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             if (!this.menuItemModel) {
                 return;
             }
+
             if (this.menuItemModel.identifier) {
+                // click on a simple menuItem
                 this.menuItemModel.dispatchMenuEvent("menuAction");
-            } else if (this.menuItemModel.items && this.menuItemModel.items.length) {
-                this.menuItemModel.items.forEach(function (item) {
-                    item.dispatchMenuEvent("menuValidate");
-                });
+                this.dispatchEventNamed("dismissContextualMenu", true, false);
+            } else {
+                // click to toggle a menuItem's submenu
+                this._toggleContextualMenu(element);
+
+                if (this.isOpen) {
+                    this.menuItemModel.items.forEach(function (item) {
+                        item.dispatchMenuEvent("menuValidate");
+                    });
+                }
             }
-            this._showContextualMenu(element);
         }
     },
 
@@ -132,15 +169,25 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
     handleMouseover: {
         value: function (evt) {
-            if (this.isSubMenu()) {
-                this._showContextualMenu(this.templateObjects.menuButton.element);
+            if (this.isSubMenu() && !this.templateObjects.contextualMenu.isOpen) {
+                this._toggleContextualMenu(this.templateObjects.menuButton.element);
             }
         }
     },
 
+    // Event fired from a sub-menu asking for it's closure
+    // Typical use is to dismiss a menu after firing a menu event
     handleDismissContextualMenu: {
         value: function (evt) {
-            this.templateObjects.contextualMenu.hide();
+            this.close();
+        }
+    },
+
+    // Event fired to informed that the contextMenu is being closed
+    // This happens for example, when the overlay loses active target
+    handleHideContextualMenu: {
+        value: function (evt) {
+            this.isOpen = false;
         }
     },
 

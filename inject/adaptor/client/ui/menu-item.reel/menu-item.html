@@ -32,7 +32,13 @@
             "prototype": "../contextual-menu.reel",
             "properties": {
                 "element": {"#": "contextualMenu"}
-            }
+            },
+            "listeners": [
+                {
+                    "type": "hideContextualMenu",
+                    "listener": {"@": "owner"}
+                }
+            ]
         },
 
         "contextualMenuRepetition": {

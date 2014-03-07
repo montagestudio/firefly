@@ -63,6 +63,7 @@ exports.ContextualMenu = Component.specialize(/** @lends ContextualMenu# */ {
 
     shouldDismissOverlay: {
         value: function (overlay, target, evt) {
+            this.dispatchEventNamed("hideContextualMenu", true, false);
             return true;
         }
     },
