@@ -8,8 +8,9 @@ var exec = require("./exec");
 // https://github.com/blog/1270-easier-builds-and-deployments-using-git-over-https-and-oauth
 
 module.exports = Git;
-function Git(fs, accessToken) {
+function Git(fs, accessToken, acceptOnlyHttpsRemote) {
     this._accessToken = accessToken;
+    this._acceptOnlyHttpsRemote = (acceptOnlyHttpsRemote !== false);
 }
 
 Git.prototype.init = function(repoPath) {
@@ -110,7 +111,7 @@ Git.prototype.commit = function (repoPath, message) {
 };
 
 Git.prototype.push = function(repoPath, repositoryUrl, branch, options) {
-    if (!/^https:\/\//.test(repositoryUrl)) {
+    if (this._acceptOnlyHttpsRemote && !/^https:\/\//.test(repositoryUrl)) {
         return Q.reject(new Error("Push url must be https://, not " + repositoryUrl));
     }
     log("push " + repositoryUrl + (branch ? " " + branch : ""));
@@ -135,7 +136,7 @@ Git.prototype.push = function(repoPath, repositoryUrl, branch, options) {
 // git init
 // git pull https://<token>@github.com/username/bar.git
 Git.prototype.clone = function(cloneUrl, repoPath) {
-    if (!/^https:\/\//.test(cloneUrl)) {
+    if (this._acceptOnlyHttpsRemote && !/^https:\/\//.test(cloneUrl)) {
         return Q.reject(new Error("Clone url must be https://, not " + cloneUrl));
     }
     return exec("git", ["clone", this._addAccessToken(cloneUrl), repoPath], "/")
