@@ -11,14 +11,25 @@
             }
         },
 
-        "title": {
+        "mainMenuRepetition": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "mainMenuRepetition"}
+            },
+            "bindings": {
+                "content": {"<-": "@owner.menuItems"}
+            }
+        },
+
+        "menuItem": {
             "prototype": "../menu-item.reel",
             "properties": {
                 "element": {"#": "menuItem"},
                 "overlayPosition": "down"
             },
             "bindings": {
-                "menuItemModel": {"<-": "@owner.menuItem"}
+                "menuItemModel": {"<-": "@mainMenuRepetition:iteration.object"},
+                "menu": {"<-": "@owner"}
             }
         }
     }
@@ -26,7 +37,9 @@
 </head>
 <body>
     <div data-montage-id="menu" class="Menu">
-        <div data-montage-id="menuItem"></div>
+        <div data-montage-id="mainMenuRepetition" class="Menu-repetition">
+            <div data-montage-id="menuItem" class="Menu-rootIem"></div>
+        </div>
     </div>
 </body>
 </html>

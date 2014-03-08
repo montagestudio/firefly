@@ -31,23 +31,13 @@
             }
         },
 
-        "mainMenuRepetition": {
-            "prototype": "montage/ui/repetition.reel",
-            "properties": {
-                "element": {"#": "mainMenuRepetition"}
-            },
-            "bindings": {
-                "content": {"<-": "@owner.menu.items"}
-            }
-        },
-
-        "menu": {
+        "mainMenu": {
             "prototype": "../menu.reel",
             "properties": {
-                "element": {"#": "menu"}
+                "element": {"#": "mainMenu"}
             },
             "bindings": {
-                "menuItem": {"<-": "@mainMenuRepetition:iteration.object"}
+                "menuItems": {"<-": "@owner.menu.items"}
             }
         },
 
@@ -71,8 +61,8 @@
             <a href="/" class="Toolbar-link">
                 <img src="../../../../assets/img/logo-toolbar.png" class="Toolbar-logo">
             </a>
-            <div data-montage-id="mainMenuRepetition" class="mainMenu">
-                <div data-montage-id="menu"></div>
+            <div class="mainMenu">
+                <div data-montage-id="mainMenu"></div>
             </div>
             <div data-param="*"></div>
         </div>

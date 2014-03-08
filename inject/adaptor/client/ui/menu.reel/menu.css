@@ -3,3 +3,11 @@
     margin: 0 0;
     line-height: 0;
 }
+
+.Menu-repetition {
+    display: flex;
+}
+
+.Menu-rootItem .matte-Button {
+    border-left: 1px solid hsla(0, 0%, 0%, 0.2);
+}
