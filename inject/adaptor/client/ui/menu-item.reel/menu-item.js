@@ -36,22 +36,14 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         }
     },
 
-    _isOpen: {
-        value: false
-    },
-
     isOpen: {
-        get : function () {
-            return this._isOpen;
-        },
-        set: function (value) {
-            this._isOpen = value;
-        }
+        value: false
     },
 
     open: {
         value: function (position) {
             this.isOpen = true;
+            this.menu.activeMenuItem = this;
             this.templateObjects.contextualMenu.show(position);
         }
     },
@@ -157,6 +149,11 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
     handleMenuButtonAction: {
         value: function (evt) {
+            if (this === this.menu.activeMenuItem) {
+                this.isOpen = false;
+                this.menu.activeMenuItem = null;
+                return;
+            }
             this._buttonAction(this.templateObjects.menuButton.element);
         }
     },
