@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "main"},
+                "iframe": {"#": "iframe"}
+            }
+        },
+        "summary": {
+            "prototype": "montage/ui/component",
+            "properties": {
+                "element": {"#": "summary"},
+                "hasTemplate": false
+            },
+            "bindings": {
+                "classList.has('Main-summary--failed')": {"<-": "@owner.tests.sum{failed} > 0"},
+                "classList.has('Main-summary--passed')": {"<-": "@owner.tests.sum{failed} == 0"}
+            }
+        },
+        "description": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "description"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@tests:iteration.object.desc"}
+            }
+        },
+        "failed": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "failed"},
+                "removalStrategy": "hide",
+                "value": "0"
+            },
+            "bindings": {
+                "value": {"<-": "@tests:iteration.object.failed"}
+            }
+        },
+        "failureActual": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "failureActual"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@failures:iteration.object.actual"}
+            }
+        },
+        "failureExpected": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "failureExpected"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@failures:iteration.object.expected"}
+            }
+        },
+        "failureMessage": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "failureMessage"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@failures:iteration.object.message"}
+            }
+        },
+        "failureName": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "failureName"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@failures:iteration.object.name"}
+            }
+        },
+        "failureOperator": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "failureOperator"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@failures:iteration.object.operator"}
+            }
+        },
+        "failures": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "failures"},
+                "content": [
+                    1,
+                    2,
+                    3
+                ]
+            },
+            "bindings": {
+                "content": {"<-": "@tests:iteration.object.failures"}
+            }
+        },
+        "failureStack": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "failureStack"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@failures:iteration.object.stack"}
+            }
+        },
+        "isDoneCondition": {
+            "prototype": "montage/ui/condition.reel",
+            "properties": {
+                "element": {"#": "isDoneCondition"},
+                "condition": false,
+                "removalStrategy": "hide"
+            },
+            "bindings": {
+                "condition": {"<-": "@tests:iteration.object.isDone"}
+            }
+        },
+        "open": {
+            "prototype": "matte/ui/anchor.reel",
+            "properties": {
+                "element": {"#": "open"}
+            },
+            "bindings": {
+                "href": {"<-": "@tests:iteration.object.url"}
+            }
+        },
+        "status": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "status"},
+                "value": "Queued"
+            },
+            "bindings": {
+                "value": {"<-": "@tests:iteration.object.isDone ? 'Done' : (@tests:iteration.object.isRunning ? 'Running...' : 'Queued')"}
+            }
+        },
+        "test": {
+            "prototype": "montage/ui/component",
+            "properties": {
+                "element": {"#": "test"},
+                "hasTemplate": false
+            },
+            "bindings": {
+                "classList.has('Main-test--failed')": {"<-": "@tests:iteration.object.failed > 0"}
+            }
+        },
+        "tests": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "tests"},
+                "content": [
+                    1,
+                    2,
+                    3
+                ]
+            },
+            "bindings": {
+                "content": {"<-": "@owner.tests"}
+            }
+        },
+        "total": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "total"},
+                "removalStrategy": "hide",
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@tests:iteration.object.(passed + failed)"}
+            }
+        },
+        "totalFailed": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "totalFailed"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@owner.tests.sum{failed}"}
+            }
+        },
+        "totalSpecs": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "totalSpecs"},
+                "value": "Text"
+            },
+            "bindings": {
+                "value": {"<-": "@owner.tests.sum{passed + failed}"}
+            }
+        },
+        "totalSpecsCondition": {
+            "prototype": "montage/ui/condition.reel",
+            "properties": {
+                "element": {"#": "totalSpecsCondition"},
+                "removalStrategy": "hide"
+            },
+            "bindings": {
+                "condition": {"<-": "@owner.tests.filter{isDone}.length == @owner.tests.length"}
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="main" class="Main">
+        <h1>
+            Live Edit Specs
+            <span data-montage-id="summary">
+            (
+            <span data-montage-id="totalSpecsCondition">
+                <span data-montage-id="totalSpecs"></span> total,
+            </span>
+            <span data-montage-id="totalFailed"></span> failed
+            )
+            </span>
+        </h1>
+        <ul data-montage-id="tests" class="Main-tests">
+            <li data-montage-id="test" class="Main-test">
+                <span data-montage-id="description" class="Main-description"></span>
+                -
+                <span data-montage-id="status"></span>
+                (
+                <span data-montage-id="isDoneCondition">
+                    <span data-montage-id="total"></span>
+                    specs,
+                </span>
+                <span data-montage-id="failed"></span> failed
+                )
+                <a data-montage-id="open" href="">
+                    open
+                </a>
+                <div data-montage-id="failures" class="Main-failures">
+                    <div data-montage-id="failureName" class="Main-failureName"></div>
+                    <div data-montage-id="failureMessage"></div>
+                    Expected
+                    <div data-montage-id="failureExpected"></div>
+                    <div data-montage-id="failureOperator"></div>
+                    <div data-montage-id="failureActual"></div>
+                    at
+                    <div data-montage-id="failureStack"></div>
+                </div>
+            </li>
+        </ul>
+        <iframe data-montage-id="iframe"></iframe>
+    </div>
+</body>
+</html>
