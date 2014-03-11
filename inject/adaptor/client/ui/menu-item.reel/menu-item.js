@@ -42,15 +42,30 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
     open: {
         value: function (position) {
+            var menu = this.menu,
+                activePath = menu.activePath;
+
             this.isOpen = true;
-            this.menu.activeMenuItem = this;
+            menu.activeMenuItem = this;
+            activePath.push(this);
+
             this.templateObjects.contextualMenu.show(position);
         }
     },
 
     close: {
         value: function () {
+            var menu = this.menu,
+                activePath = menu.activePath,
+                i = activePath.indexOf(this);
+
             this.isOpen = false;
+            menu.activeMenuItem = null;
+            if (i > 0) {
+                activePath.splice(i, activePath.length - i);
+            } else {
+                menu.activePath = [];
+            }
             this.templateObjects.contextualMenu.hide();
         }
     },
@@ -160,14 +175,39 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
     isSubMenu: {
         value: function () {
-            return (this.menuItemModel && this.menuItemModel.items && this.menuItemModel.items.length && this.overlayPosition === "right");
+            return (this.menuItemModel && this.menuItemModel.items && this.menuItemModel.items.length && !this.isRootMenu());
+        }
+    },
+
+    isRootMenu: {
+        value: function () {
+            return (this.parentMenuItem === this);
         }
     },
 
     handleMouseover: {
         value: function (evt) {
+            var activePath = this.menu.activePath;
+            evt.stop();
+
+            // Open a submenu
             if (this.isSubMenu() && !this.templateObjects.contextualMenu.isOpen) {
                 this._toggleContextualMenu(this.templateObjects.menuButton.element);
+                return;
+            }
+
+            // Closing sub menus
+            if (this.menu.activePath.length) {
+                var parentIndex = activePath.indexOf(this.parentMenuItem);
+                for (var i = parentIndex + 1; i < activePath.length; i++) {
+                    activePath[i].close();
+                }
+                activePath.slice(parentIndex, activePath.length);
+            }
+
+            // Root menuItem hover act like click if there is already a sub menu open
+            if (this.isRootMenu() && activePath.length && this !== activePath[0]) {
+                this._buttonAction(this.templateObjects.menuButton.element);
             }
         }
     },
@@ -184,7 +224,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     // This happens for example, when the overlay loses active target
     handleHideContextualMenu: {
         value: function (evt) {
-            this.isOpen = false;
+            this.close();
         }
     },
 

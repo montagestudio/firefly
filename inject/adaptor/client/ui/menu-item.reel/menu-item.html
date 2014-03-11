@@ -8,7 +8,13 @@
         "owner": {
             "properties": {
                 "element": {"#": "menuItem"}
-            }
+            },
+            "listeners": [
+                {
+                    "type": "mouseover",
+                    "listener": {"@": "owner"}
+                }
+            ]
         },
 
         "menuButton": {
@@ -70,7 +76,8 @@
             },
             "bindings": {
                 "menuItemModel": {"<-": "@contextualMenuRepetition:iteration.object"},
-                "menu": {"<-": "@owner.menu"}
+                "menu": {"<-": "@owner.menu"},
+                "parentMenuItem": {"<-": "@owner"}
             },
             "listeners": [
                 {

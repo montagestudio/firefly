@@ -48,7 +48,9 @@
                 "overlayPosition": "down"
             },
             "bindings": {
-                "menuItemModel": {"<-": "@owner.userMenu.items.0"}
+                "menuItemModel": {"<-": "@owner.userMenu.items.0"},
+                "menu": {"<-": "@owner.userMenu"},
+                "parentMenuItem": {"<-": "@userMenuItem"}
             }
         }
     }

@@ -15,6 +15,10 @@ exports.Menu = Component.specialize(/** @lends Menu# */ {
         value: null
     },
 
+    activePath: {
+        value: []
+    },
+
     constructor: {
         value: function Menu() {
             this.super();
