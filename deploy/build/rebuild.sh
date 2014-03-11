@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
 COMMAND_PATH="$0"
@@ -63,8 +65,11 @@ staging ()
 {
     # We need to wait for the droplets to come back alive after rebuild
     tugboat wait -n $1
+    
+    IP=`tugboat info -n $1  | grep "IP" | sed 's/IP:[ ]*\([0-9\.]*\)/\1/'`
+    scp -o "IdentitiesOnly=yes" -o "LogLevel=ERROR" -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" "${HOME}/deploy/build/staging.sh" "montage@${IP}:/srv"
     # Execute the staging script on the droplet
-    tugboat ssh -n $1 -c 'bash -s' < ${HOME}/deploy/build/staging.sh
+    tugboat ssh -n $1 -c 'sudo chmod +x /srv/staging.sh; sudo /srv/staging.sh'
 }
 
 if [[ $PRODUCTION == "TRUE" ]]; then
