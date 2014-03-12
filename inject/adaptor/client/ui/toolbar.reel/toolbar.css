@@ -89,3 +89,7 @@
 .Toolbar-button.matte-Button:focus {
     border-color: hsla(0, 0%, 0%, 0.3);
 }
+
+.Toolbar-button.matte-Button.disabled:hover {
+    background-color: hsla(0,0%,0%,0);
+}
