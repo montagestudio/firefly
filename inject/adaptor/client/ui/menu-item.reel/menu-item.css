@@ -28,6 +28,10 @@
     float: right;
 }
 
+.MenuItem-button.selected {
+    background-color: hsla(0,0%,28%,1) !important;
+}
+
 /* MenuItem disabled */
 .MenuItem-button.matte-Button.disabled {
     color: hsl(0, 0%, 40%);
@@ -39,4 +43,15 @@
 
 .MenuItem-button.disabled[data-shortcut]:after {
     border-color: hsl(0, 0%, 40%) !important;
+}
+
+
+.MenuItem.Flashing .MenuItem-button.matte-Button {
+    -webkit-animation: flashing .5s;
+}
+
+@-webkit-keyframes flashing {
+     0% { background-color: hsla(0,0%,0%,0); }
+    50% { background-color: hsla(0,0%,28%,1); }
+   100% { background-color: hsla(0,0%,0%,0); }
 }

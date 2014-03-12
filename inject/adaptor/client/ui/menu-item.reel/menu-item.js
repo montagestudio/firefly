@@ -29,10 +29,18 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         value: "down"
     },
 
+    menuFlashing: {
+        value: false
+    },
+
     enterDocument: {
         value: function (firstTime) {
             if (!firstTime) { return; }
             this.element.addEventListener("mouseover", this, false);
+
+            if (this.isRootMenu()) {
+                this.addEventListener("menuFlashing", this, false);
+            }
         }
     },
 
@@ -60,13 +68,19 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 i = activePath.indexOf(this);
 
             this.isOpen = false;
-            menu.activeMenuItem = null;
             if (i > 0) {
                 activePath.splice(i, activePath.length - i);
             } else {
                 menu.activePath = [];
             }
             this.templateObjects.contextualMenu.hide();
+        }
+    },
+
+    handleMenuFlashing: {
+        value: function (evt) {
+            this.menuFlashing = true;
+            this.needsDraw = true;
         }
     },
 
@@ -106,7 +120,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     handleKeyPress: {
         value: function(event) {
             if (event.identifier === "menuAction" && this.menuItemModel) {
-                //TODO ADD a flashing effect here to give feedback
+                this.dispatchEventNamed("menuFlashing", true, true);
                 this.menuItemModel.dispatchMenuEvent("menuAction");
             }
         }
@@ -245,8 +259,12 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 this.templateObjects.menuButton.element.dataset.shortcut = this.menuItemModel.keyEquivalent;
             }
 
-            if (this.isSubMenu()) {
-                this.templateObjects.menuButton.element.classList.add("subMenu");
+            if (this.menuFlashing) {
+                this.element.classList.remove("Flashing");
+                // Trigger a reflow to make sure the animation is played (http://css-tricks.com/restart-css-animation/)
+                this.element.offsetWidth = this.element.offsetWidth;
+                this.element.classList.add("Flashing");
+                this.menuFlashing = false;
             }
         }
     }
