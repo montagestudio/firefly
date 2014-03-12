@@ -47,10 +47,10 @@ function checkGithubError(method) {
     };
 }
 
-function RepositoryService(session, fs, environment, pathname, fsPath) {
+function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnlyHttpsRemote) {
     // Returned service
     var service = {},
-        _git = new Git(fs, session.githubAccessToken),
+        _git = new Git(fs, session.githubAccessToken, acceptOnlyHttpsRemote),
         _repositoryUrl = null;
 
     /**
@@ -409,7 +409,10 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
 
         shadowBranch = SHADOW_BRANCH_PREFIX + branch;
 
-        return self._branchStatus(shadowBranch, branch)
+        return _git.fetch(fsPath, this.REMOTE_REPOSITORY_NAME, ["--prune"])
+        .then(function() {
+            return self._branchStatus(shadowBranch, branch);
+        })
         .then(function(status) {
             result.localParent = status;
             return self._branchStatus(shadowBranch, REMOTE_REPOSITORY_NAME + "/" + branch);
