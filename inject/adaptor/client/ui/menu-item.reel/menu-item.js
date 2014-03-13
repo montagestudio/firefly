@@ -33,6 +33,10 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         value: false
     },
 
+    ignoreAction : {
+        value: false
+    },
+
     enterDocument: {
         value: function (firstTime) {
             if (!firstTime) { return; }
@@ -54,14 +58,13 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 activePath = menu.activePath;
 
             this.isOpen = true;
-            menu.activeMenuItem = this;
             activePath.push(this);
 
             this.templateObjects.contextualMenu.show(position);
         }
     },
 
-    close: {
+    _closeActivePathUpdate: {
         value: function () {
             var menu = this.menu,
                 activePath = menu.activePath,
@@ -73,6 +76,12 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             } else {
                 menu.activePath = [];
             }
+        }
+    },
+
+    close: {
+        value: function () {
+            this._closeActivePathUpdate();
             this.templateObjects.contextualMenu.hide();
         }
     },
@@ -178,11 +187,12 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
     handleMenuButtonAction: {
         value: function (evt) {
-            if (this === this.menu.activeMenuItem) {
-                this.isOpen = false;
-                this.menu.activeMenuItem = null;
+            evt.stop();
+            if (this.ignoreAction) {
+                this.ignoreAction = false;
                 return;
             }
+
             this._buttonAction(this.templateObjects.menuButton.element);
         }
     },
@@ -238,7 +248,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     // This happens for example, when the overlay loses active target
     handleHideContextualMenu: {
         value: function (evt) {
-            this.close();
+            this._closeActivePathUpdate();
         }
     },
 
@@ -248,6 +258,9 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     // and instead store whom to dispatch from once we've "stolen" the activeTarget status
     acceptsActiveTarget: {
         get: function () {
+            if (this.isOpen) {
+                this.ignoreAction = true;
+            }
             this.nextTarget = this.eventManager.activeTarget;
             return false;
         }

@@ -11,10 +11,6 @@ var Component = require("montage/ui/component").Component;
 
 exports.Menu = Component.specialize(/** @lends Menu# */ {
 
-    activeMenuItem: {
-        value: null
-    },
-
     activePath: {
         value: []
     },
