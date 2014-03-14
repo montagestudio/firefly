@@ -8,6 +8,10 @@
 /reports
 /.deploy
 console.log
+Library/
 npm-debug.log
+output-virtualbox-iso/
+packer_cache/
+packer_virtualbox-iso_virtualbox.box
 SikuliLog.txt
 .viminfo
