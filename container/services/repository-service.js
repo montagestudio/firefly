@@ -34,7 +34,7 @@ function checkGithubError(method) {
     return function wrapped(error) {
         var self = this, args = Array.prototype.slice.call(arguments);
         return method.apply(self, args).catch(function(error) {
-            log("Git Error", error.stack)
+            log("Git Error", error.stack);
             return self._githubCheck().then(function(success) {
                 if (success) {
                     // Nothing wrong with github, let returns the original error
@@ -51,7 +51,7 @@ function checkGithubError(method) {
 
 function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnlyHttpsRemote) {
     return _RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, fsPath, acceptOnlyHttpsRemote);
-};
+}
 
 function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
     // Returned service
@@ -68,8 +68,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      * TODO: Write description: Use for testing only
      */
     service.setGithubApi = function(githubApi) {
-        _githubApi = githubApi
-    }
+        _githubApi = githubApi;
+    };
 
     /**
      * TODO: Write description
@@ -106,7 +106,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         return this._getInfo().then(function(info) {
             return info.gitBranch;
         });
-    }
+    };
 
     /**
      * Return an object describing all branches (local and remotes) as well the current
@@ -253,8 +253,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     }));
 
     service._getInfo = function() {
-        var self = this;
-
         if (!_info) {
             var deferred = Q.defer();
             _info = deferred.promise;
@@ -311,7 +309,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return self._getInfo();
         }).then(function(info) {
             return _git.addRemote(fsPath, info.gitUrl);
-        })
+        });
     };
 
     service._cloneProject = function() {
@@ -329,7 +327,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         .then(function() {
             // Only push when specified where
             return _git.config(fsPath, "push.default", "nothing");
-        })
+        });
     };
 
     service._branchLineParser = function(line, result) {
@@ -1154,4 +1152,4 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     });
 
     return service;
-};
+}

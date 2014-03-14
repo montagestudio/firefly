@@ -1,6 +1,5 @@
 var log = require("logging").from(__filename);
 var PATH = require("path");
-var Q = require("q");
 var Minit = require("./minit");
 var RepositoryService = require("./services/repository-service").service;
 var fs = require("q-io/fs");
@@ -54,26 +53,6 @@ Object.defineProperties(ProjectWorkspace.prototype, {
 /**
  * Workspace setup operations
  */
-ProjectWorkspace.prototype._info = null;
-ProjectWorkspace.prototype.getInfo = function() {
-    if (!this._info) {
-        var deferred = Q.defer();
-        this._info = deferred.promise;
-        this._githubApi.getRepository(this._owner, this._repo)
-        .then(function(repository) {
-            deferred.resolve({
-                //jshint -W106
-                gitUrl: repository.clone_url,
-                gitBranch: repository.default_branch
-                //jshint +W106
-            });
-        })
-        .fail(deferred.reject);
-    }
-
-    return this._info;
-};
-
 ProjectWorkspace.prototype.existsWorkspace = function() {
     return this._fs.exists(this._fs.join(this._workspacePath, ".git"));
 };
@@ -92,9 +71,9 @@ ProjectWorkspace.prototype.initializeWorkspace = function() {
                 }
             }).then(function() {
                 return self._repoService.defaultBranchName()
-                    .then(function(branch) {
-                        return self._repoService.checkoutShadowBranch(branch);
-                    })
+                .then(function(branch) {
+                    return self._repoService.checkoutShadowBranch(branch);
+                });
             });
         }
     });
@@ -198,8 +177,6 @@ ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extend
  * the default remote.
  */
 ProjectWorkspace.prototype.flushWorkspace = function(message) {
-    var self = this;
-
     return this._repoService.commitFiles(null, message)
     .then(function(result) {
         if (result.success !== true) {
