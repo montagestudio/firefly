@@ -21,6 +21,47 @@
         "state_timeout": "12m",
         "snapshot_name": "{{user `snapshot_name`}}",
         "droplet_name": "firefly-base-image"
+    }, {
+        "type": "virtualbox-iso",
+        "guest_os_type": "Ubuntu_64",
+        "iso_url": "http://releases.ubuntu.com/12.04/ubuntu-12.04.4-server-amd64.iso",
+        "iso_checksum": "e83adb9af4ec0a039e6a5c6e145a34de",
+        "iso_checksum_type": "md5",
+
+        "boot_command": [
+            "<esc><esc><enter><wait>",
+            "/install/vmlinuz noapic preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+            "debian-installer=en_US auto locale=en_US kbd-chooser/method=us <wait>",
+            "hostname={{ .Name }} <wait>",
+            "fb=false debconf/frontend=noninteractive <wait>",
+            "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA keyboard-configuration/variant=USA console-setup/ask_detect=false <wait>",
+            "initrd=/install/initrd.gz -- <enter><wait>"
+        ],
+        "boot_wait": "4s",
+        "guest_os_type": "Ubuntu_64",
+        "http_directory": "deploy/vagrant",
+        "ssh_username": "vagrant",
+        "ssh_password": "vagrant",
+        "ssh_port": 22,
+        "ssh_wait_timeout": "600s",
+        "shutdown_command": "echo 'shutdown -P now' > shutdown.sh; echo 'vagrant'|sudo -S sh 'shutdown.sh'",
+        "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+        "headless": false,
+        "virtualbox_version_file": ".vbox_version",
+        "vboxmanage": [
+            [
+                "modifyvm",
+                "{{.Name}}",
+                "--memory",
+                "512"
+            ],
+            [
+                "modifyvm",
+                "{{.Name}}",
+                "--cpus",
+                "1"
+            ]
+        ]
     }],
 
     "provisioners": [{
@@ -36,6 +77,21 @@
         "destination": "/tmp/sudoers"
     }, {
         "type": "shell",
+        "override": { "virtualbox-iso": { "execute_command": "echo 'vagrant' | sudo -S bash '{{ .Path }}'" } },
         "script": "{{user `home`}}/deploy/provision/base.sh"
-    }]
+    },
+
+    {
+        "type": "shell",
+        "only": ["virtualbox-iso"],
+        "override": { "virtualbox-iso": { "execute_command": "echo 'vagrant' | sudo -S bash '{{ .Path }}'" } },
+        "script": "{{user `home`}}/deploy/vagrant/setup.sh"
+    }],
+
+    "post-processors": [
+        {
+            "type": "vagrant",
+            "only": ["virtualbox-iso"]
+        }
+    ]
 }
