@@ -3,6 +3,7 @@ var fs = require("q-io/fs");
 var exec = require('child_process').exec;
 var MockGithubApi = require("../mocks/github-api");
 var ProjectWorkspace = require("../../container/project-workspace");
+var Git = require("../../container/git");
 
 function createWorkspace(tmpPath, owner, repo) {
     return fs.makeTree(fs.join(tmpPath, owner, repo));
@@ -23,7 +24,7 @@ describe("ProjectWorkspace", function () {
         repo = "repo";
         var workspacePath = fs.join(tmpPath, owner, repo);
         projectWorkspace = new ProjectWorkspace(config, workspacePath, owner, repo, minitPath);
-        projectWorkspace.__githubApi = new MockGithubApi();
+        projectWorkspace._repoService.setGithubApi(new MockGithubApi());
     });
 
     afterEach(function(done) {
@@ -38,10 +39,12 @@ describe("ProjectWorkspace", function () {
     });
 
     describe("setup repository workspace", function() {
+        var _git = new Git(fs, "");
+
         it("creates git config with login and default email", function(done) {
             spyOn(projectWorkspace, "_npmInstall");
 
-            return projectWorkspace._git.init(projectWorkspace._workspacePath)
+            return _git.init(projectWorkspace._workspacePath)
             .then(function() {
                 return projectWorkspace._setupWorkspaceRepository();
             })
@@ -60,7 +63,7 @@ describe("ProjectWorkspace", function () {
 
             githubUser.name = "John Doe";
 
-            return projectWorkspace._git.init(projectWorkspace._workspacePath)
+            return _git.init(projectWorkspace._workspacePath)
             .then(function() {
                 return projectWorkspace._setupWorkspaceRepository();
             })
@@ -79,7 +82,7 @@ describe("ProjectWorkspace", function () {
 
             githubUser.email = "jdoe@declarativ.com";
 
-            return projectWorkspace._git.init(projectWorkspace._workspacePath)
+            return _git.init(projectWorkspace._workspacePath)
             .then(function() {
                 return projectWorkspace._setupWorkspaceRepository();
             })
@@ -96,29 +99,13 @@ describe("ProjectWorkspace", function () {
         it("install node modules", function(done) {
             var spy = spyOn(projectWorkspace, "_npmInstall");
 
-            return projectWorkspace._git.init(projectWorkspace._workspacePath)
+            return _git.init(projectWorkspace._workspacePath)
             .then(function() {
                 return projectWorkspace._setupWorkspaceRepository();
             }).then(function() {
                 expect(spy).toHaveBeenCalled();
             })
             .then(done, done);
-        });
-    });
-
-    describe("info", function() {
-        it("should have the git url", function(done) {
-            return projectWorkspace.getInfo()
-            .then(function(info) {
-                expect(info.gitUrl).toBe("https://github.com/" + owner + "/" + repo + ".git");
-            }).then(done, done);
-        });
-
-        it("should have the default branch", function(done) {
-            return projectWorkspace.getInfo()
-            .then(function(info) {
-                expect(info.gitBranch).toBe("master");
-            }).then(done, done);
         });
     });
 
@@ -148,13 +135,18 @@ describe("ProjectWorkspace", function () {
         it("should initialize by creating an empty project", function(done) {
             var spy = spyOn(projectWorkspace, "initializeWithEmptyProject");
 
-            spyOn(projectWorkspace.__githubApi, "isRepositoryEmpty")
+            spyOn(projectWorkspace.__repoService, "isProjectEmpty")
+            .andCallFake(function() {
+                return Q.resolve(true);
+            });
+
+            spyOn(projectWorkspace.__repoService, "checkoutShadowBranch")
             .andCallFake(function() {
                 return Q.resolve(true);
             });
 
             return projectWorkspace.initializeWorkspace()
-            .then(function(info) {
+            .then(function() {
                 expect(spy).toHaveBeenCalled();
             }).then(done, done);
         });
@@ -162,9 +154,14 @@ describe("ProjectWorkspace", function () {
         it("should initialize by cloning a repository", function(done) {
             var spy = spyOn(projectWorkspace, "initializeWithRepository");
 
-            spyOn(projectWorkspace.__githubApi, "isRepositoryEmpty")
+            spyOn(projectWorkspace.__repoService, "isProjectEmpty")
             .andCallFake(function() {
                 return Q.resolve(false);
+            });
+
+            spyOn(projectWorkspace.__repoService, "checkoutShadowBranch")
+            .andCallFake(function() {
+                return Q.resolve(true);
             });
 
             return projectWorkspace.initializeWorkspace()
@@ -248,27 +245,4 @@ describe("ProjectWorkspace", function () {
             });
         });
     }
-
-    describe("git operations", function() {
-        it("should flush the workspace", function(done) {
-            var callOrder = [];
-
-            spyOn(projectWorkspace, "_commitWorkspace")
-            .andCallFake(function() {
-                callOrder.push("_commitWorkspace");
-                return Q.resolve();
-            });
-
-            spyOn(projectWorkspace, "_pushWorkspace")
-            .andCallFake(function() {
-                callOrder.push("_pushWorkspace");
-                return Q.resolve();
-            });
-
-            return projectWorkspace.flushWorkspace()
-            .then(function() {
-                expect(callOrder).toEqual(["_commitWorkspace", "_pushWorkspace"]);
-            }).then(done, done);
-        });
-    });
 });
