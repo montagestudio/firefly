@@ -70,7 +70,7 @@ var FileDescriptor = exports.FileDescriptor = Montage.specialize({
 
     isImage: {
         get: function () {
-            return (!this.isDirectory && (/\.(png|jpe?g)$/).test(this.name));
+            return (!this.isDirectory && (/\.(jpe?g|png|gif|svg|ico)$/).test(this.name));
         }
     },
 
