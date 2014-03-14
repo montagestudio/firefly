@@ -41,6 +41,8 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         value: function (firstTime) {
             if (!firstTime) { return; }
             this.element.addEventListener("mouseover", this, false);
+            this.element.addEventListener("mouseup", this, false);
+            this.element.addEventListener("mousedown", this, false);
 
             if (this.isRootMenu()) {
                 this.addEventListener("menuFlashing", this, false);
@@ -135,8 +137,6 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         }
     },
 
-    //TODO handle menuValidate event
-
     _toggleContextualMenu: {
         value: function (element) {
             var menuPositions = element.getBoundingClientRect(),
@@ -162,6 +162,26 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         }
     },
 
+    _openSubmenu: {
+        value: function () {
+            var element = this.templateObjects.menuButton.element;
+            this._toggleContextualMenu(element);
+
+            if (this.isOpen) {
+                this.menuItemModel.items.forEach(function (item) {
+                    item.dispatchMenuEvent("menuValidate");
+                });
+            }
+        }
+    },
+
+    _triggerAction: {
+        value: function () {
+            this.menuItemModel.dispatchMenuEvent("menuAction");
+            this.dispatchEventNamed("dismissContextualMenu", true, false);
+        }
+    },
+
     _buttonAction: {
         value: function (element) {
             if (!this.menuItemModel) {
@@ -169,18 +189,9 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             }
 
             if (this.menuItemModel.identifier) {
-                // click on a simple menuItem
-                this.menuItemModel.dispatchMenuEvent("menuAction");
-                this.dispatchEventNamed("dismissContextualMenu", true, false);
+                this._triggerAction();
             } else {
-                // click to toggle a menuItem's submenu
-                this._toggleContextualMenu(element);
-
-                if (this.isOpen) {
-                    this.menuItemModel.items.forEach(function (item) {
-                        item.dispatchMenuEvent("menuValidate");
-                    });
-                }
+                this._openSubmenu();
             }
         }
     },
@@ -188,12 +199,6 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     handleMenuButtonAction: {
         value: function (evt) {
             evt.stop();
-            if (this.ignoreAction) {
-                this.ignoreAction = false;
-                return;
-            }
-
-            this._buttonAction(this.templateObjects.menuButton.element);
         }
     },
 
@@ -216,7 +221,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
             // Open a submenu
             if (this.isSubMenu() && !this.templateObjects.contextualMenu.isOpen) {
-                this._toggleContextualMenu(this.templateObjects.menuButton.element);
+                this._openSubmenu();
                 return;
             }
 
@@ -231,10 +236,29 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
 
             // Root menuItem hover act like click if there is already a sub menu open
             if (this.isRootMenu() && activePath.length && this !== activePath[0]) {
-                this._buttonAction(this.templateObjects.menuButton.element);
+                this._buttonAction();
             }
         }
     },
+
+    handleMousedown: {
+        value: function (evt) {
+            evt.stop();
+
+            if (this.ignoreAction) {
+                this.ignoreAction = false;
+                return;
+            }
+            this._buttonAction();
+        }
+    },
+
+    handleMouseup: {
+        value: function (evt) {
+            this._triggerAction();
+        }
+    },
+
 
     // Event fired from a sub-menu asking for it's closure
     // Typical use is to dismiss a menu after firing a menu event
