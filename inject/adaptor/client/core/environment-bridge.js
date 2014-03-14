@@ -575,7 +575,7 @@ exports.EnvironmentBridge = Montage.specialize({
             return this.backend.get("file-service").invoke("writeFile", url, data)
                 .then(function () {
                     //TODO fix this, temporary
-                    return self.saveFile(data, url);
+                    return self.saveFileBase64(data, url);
                 })
                 .then(function() {
                     return self.flushProject("Add file " + URL.parse(url).pathname);
@@ -598,6 +598,17 @@ exports.EnvironmentBridge = Montage.specialize({
     removeTree: {
         value: function (url) {
             return this.backend.get("file-service").invoke("removeTree", url);
+        }
+    },
+
+    saveFileBase64: {
+        value: function(contents, location) {
+            return this.repositoryController.saveFileBase64(URL.parse(location).pathname, contents).then(function (response) {
+                if (response.error) {
+                    throw new Error(response.error);
+                }
+                return response;
+            });
         }
     },
 
