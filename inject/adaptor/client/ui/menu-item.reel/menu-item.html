@@ -18,7 +18,9 @@
             },
             "bindings": {
                 "label": {"<-": "@owner.menuItemModel.title"},
-                "disabled": {"<-": "@owner.menuItemModel.enabled != undefined && !@owner.menuItemModel.enabled"}
+                "disabled": {"<-": "@owner.menuItemModel.enabled != undefined && !@owner.menuItemModel.enabled"},
+                "classList.has('subMenu')": {"<-": "@owner.isSubMenu()"},
+                "classList.has('selected')": {"<-": "@owner.menu.activePath.has(@owner)"}
             },
             "listeners": [
                 {
@@ -32,7 +34,13 @@
             "prototype": "../contextual-menu.reel",
             "properties": {
                 "element": {"#": "contextualMenu"}
-            }
+            },
+            "listeners": [
+                {
+                    "type": "hideContextualMenu",
+                    "listener": {"@": "owner"}
+                }
+            ]
         },
 
         "contextualMenuRepetition": {
@@ -60,10 +68,13 @@
             "prototype": "../menu-item.reel",
             "properties": {
                 "element": {"#": "contextualMenuItem"},
-                "overlayPosition": "right"
+                "overlayPosition": "right",
+                "nextTarget": {"@": "owner"}
             },
             "bindings": {
-                "menuItemModel": {"<-": "@contextualMenuRepetition:iteration.object"}
+                "menuItemModel": {"<-": "@contextualMenuRepetition:iteration.object"},
+                "menu": {"<-": "@owner.menu"},
+                "parentMenuItem": {"<-": "@owner"}
             },
             "listeners": [
                 {

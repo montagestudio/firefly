@@ -10,6 +10,11 @@ var Component = require("montage/ui/component").Component;
  */
 
 exports.Menu = Component.specialize(/** @lends Menu# */ {
+
+    activePath: {
+        value: []
+    },
+
     constructor: {
         value: function Menu() {
             this.super();

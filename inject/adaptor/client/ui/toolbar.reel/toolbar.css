@@ -90,9 +90,6 @@
     border-color: hsla(0, 0%, 0%, 0.3);
 }
 
-.Menu:first-child .Toolbar-button.matte-Button {
-    border-left: 1px solid hsla(0, 0%, 0%, 0.2);
-}
-.MenuItem.flash .Toolbar-button.matte-Button {
-    background: hsl(0, 0%, 20%);
+.Toolbar-button.matte-Button.disabled:hover {
+    background-color: hsla(0,0%,0%,0);
 }

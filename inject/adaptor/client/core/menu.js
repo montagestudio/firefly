@@ -141,7 +141,7 @@ Montage.defineProperty(exports, "defaultMenu", {
                     makeMenuItem("Documentation", "documentation", true, ""),
                     makeMenuItem("Forum", "forum", true, ""),
                     makeMenuItem("Report a Bug", "report", true, ""),
-                    makeMenuItem("API", "api", true, ""),
+                    makeMenuItem("API Reference", "api", true, ""),
                     makeMenuItem("Framework", "framework", true, "")
                 ]);
                 _defaultMenu.insertItem(helpMenu);
@@ -184,7 +184,7 @@ Montage.defineProperty(exports, "userMenu", {
         if (!_userMenu) {
             _userMenu = new Menu();
             var userMenuItem = makeMenuItem("", "", true, "", [
-                    makeMenuItem("Logout", "logout", true, "")
+                    makeMenuItem("Log Out", "logout", true, "")
                 ]);
 
             _userMenu.insertItem(userMenuItem);

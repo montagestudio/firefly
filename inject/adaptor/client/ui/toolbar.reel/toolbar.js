@@ -22,6 +22,9 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
                     self.mainMenu = bridge.mainMenu;
                     self.userMenu = bridge.userMenu;
 
+                    // TODO this is more of a hack than anything else, should be rethink
+                    self.userMenu.activePath = [];
+
                     bridge.userController.getUser()
                         .then(function (user) {
                             self.user = user;

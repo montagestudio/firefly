@@ -28,15 +28,31 @@
     float: right;
 }
 
+.MenuItem-button.matte-Button.selected,
+.MenuItem-button.matte-Button.over {
+    background-color: hsla(0,0%,28%,1);
+}
+
 /* MenuItem disabled */
 .MenuItem-button.matte-Button.disabled {
     color: hsl(0, 0%, 40%);
     cursor: default;
 }
-.MenuItem-button.disabled:hover {
-    background: hsla(0,0%,0%,0) !important;
+.MenuItem-button.matte-Button.disabled:hover {
+    background: hsla(0,0%,0%,0);
 }
 
 .MenuItem-button.disabled[data-shortcut]:after {
-    border-color: hsl(0, 0%, 40%) !important;
+    border-color: hsl(0, 0%, 40%);
+}
+
+
+.MenuItem.Flashing .MenuItem-button.matte-Button {
+    -webkit-animation: flashing .5s;
+}
+
+@-webkit-keyframes flashing {
+     0% { background-color: hsla(0,0%,0%,0); }
+    50% { background-color: hsla(0,0%,28%,1); }
+   100% { background-color: hsla(0,0%,0%,0); }
 }

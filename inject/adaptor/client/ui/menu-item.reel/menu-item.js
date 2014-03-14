@@ -29,10 +29,72 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         value: "down"
     },
 
+    menuFlashing: {
+        value: false
+    },
+
+    ignoreAction : {
+        value: false
+    },
+
     enterDocument: {
         value: function (firstTime) {
             if (!firstTime) { return; }
             this.element.addEventListener("mouseover", this, false);
+            this.element.addEventListener("mouseout", this, false);
+            this.element.addEventListener("mouseup", this, false);
+            this.element.addEventListener("mousedown", this, false);
+
+            this.templateObjects.menuButton.element.addEventListener("mouseleave", this, false);
+
+            if (this.isRootMenu()) {
+                this.addEventListener("menuFlashing", this, false);
+            }
+        }
+    },
+
+    isOpen: {
+        value: false
+    },
+
+    open: {
+        value: function (position) {
+            var menu = this.menu,
+                activePath = menu.activePath;
+
+            this.isOpen = true;
+            activePath.push(this);
+
+            this.templateObjects.contextualMenu.show(position);
+        }
+    },
+
+    _closeActivePathUpdate: {
+        value: function () {
+            var menu = this.menu,
+                activePath = menu.activePath,
+                i = activePath.indexOf(this);
+
+            this.isOpen = false;
+            if (i > 0) {
+                activePath.splice(i, activePath.length - i);
+            } else {
+                menu.activePath = [];
+            }
+        }
+    },
+
+    close: {
+        value: function () {
+            this._closeActivePathUpdate();
+            this.templateObjects.contextualMenu.hide();
+        }
+    },
+
+    handleMenuFlashing: {
+        value: function (evt) {
+            this.menuFlashing = true;
+            this.needsDraw = true;
         }
     },
 
@@ -72,18 +134,20 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     handleKeyPress: {
         value: function(event) {
             if (event.identifier === "menuAction" && this.menuItemModel) {
-                //TODO ADD a flashing effect here to give feedback
+                this.dispatchEventNamed("menuFlashing", true, true);
                 this.menuItemModel.dispatchMenuEvent("menuAction");
             }
         }
     },
 
-    //TODO handle menuValidate event
-
-    _showContextualMenu: {
+    _toggleContextualMenu: {
         value: function (element) {
             var menuPositions = element.getBoundingClientRect(),
                 contextualMenuPosition;
+
+            if (!this.menuItemModel.items || !this.menuItemModel.items.length) {
+                return;
+            }
 
             if (this.overlayPosition === "down") {
                 contextualMenuPosition = {top: menuPositions.bottom, left: menuPositions.left};
@@ -93,12 +157,31 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 contextualMenuPosition = {top: menuPositions.top, right: menuPositions.left};
             }
 
-
-            if (this.menuItemModel.items && this.menuItemModel.items.length) {
-                this.templateObjects.contextualMenu.show(contextualMenuPosition);
+            if (!this.isOpen) {
+                this.open(contextualMenuPosition);
             } else {
-                this.dispatchEventNamed("dismissContextualMenu");
+                this.close();
             }
+        }
+    },
+
+    _openSubmenu: {
+        value: function () {
+            var element = this.templateObjects.menuButton.element;
+            this._toggleContextualMenu(element);
+
+            if (this.isOpen) {
+                this.menuItemModel.items.forEach(function (item) {
+                    item.dispatchMenuEvent("menuValidate");
+                });
+            }
+        }
+    },
+
+    _triggerAction: {
+        value: function () {
+            this.menuItemModel.dispatchMenuEvent("menuAction");
+            this.dispatchEventNamed("dismissContextualMenu", true, false);
         }
     },
 
@@ -107,40 +190,108 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             if (!this.menuItemModel) {
                 return;
             }
+
             if (this.menuItemModel.identifier) {
-                this.menuItemModel.dispatchMenuEvent("menuAction");
-            } else if (this.menuItemModel.items && this.menuItemModel.items.length) {
-                this.menuItemModel.items.forEach(function (item) {
-                    item.dispatchMenuEvent("menuValidate");
-                });
+                this._triggerAction();
+            } else {
+                this._openSubmenu();
             }
-            this._showContextualMenu(element);
         }
     },
 
     handleMenuButtonAction: {
         value: function (evt) {
-            this._buttonAction(this.templateObjects.menuButton.element);
+            evt.stop();
         }
     },
 
     isSubMenu: {
         value: function () {
-            return (this.menuItemModel && this.menuItemModel.items && this.menuItemModel.items.length && this.overlayPosition === "right");
+            return (this.menuItemModel && this.menuItemModel.items && this.menuItemModel.items.length && !this.isRootMenu());
+        }
+    },
+
+    isRootMenu: {
+        value: function () {
+            return (this.parentMenuItem === this);
         }
     },
 
     handleMouseover: {
         value: function (evt) {
-            if (this.isSubMenu()) {
-                this._showContextualMenu(this.templateObjects.menuButton.element);
+            var activePath = this.menu.activePath;
+            evt.stop();
+
+            // CSS's pseudo class hover is not applied durring a drag, this is a workaround [1/2]
+            this.templateObjects.menuButton.classList.add("over");
+
+            // Open a submenu
+            if (this.isSubMenu() && !this.templateObjects.contextualMenu.isOpen) {
+                this._openSubmenu();
+                return;
+            }
+
+            // Closing sub menus
+            if (this.menu.activePath.length) {
+                var parentIndex = activePath.indexOf(this.parentMenuItem);
+                for (var i = parentIndex + 1; i < activePath.length; i++) {
+                    activePath[i].close();
+                }
+                activePath.slice(parentIndex, activePath.length);
+            }
+
+            // Root menuItem hover act like click if there is already a sub menu open
+            if (this.isRootMenu() && activePath.length && this !== activePath[0]) {
+                this._buttonAction();
             }
         }
     },
 
+    handleMousedown: {
+        value: function (evt) {
+            evt.stop();
+
+            if (this.ignoreAction) {
+                this.ignoreAction = false;
+                return;
+            }
+            this._buttonAction();
+        }
+    },
+
+    handleMouseup: {
+        value: function (evt) {
+            this._triggerAction();
+        }
+    },
+
+    // Prevent button to wait for the end of the press event to stop being displayed as active
+    handleMouseleave: {
+        value: function (evt) {
+            this.templateObjects.menuButton.active = false;
+        }
+    },
+
+    handleMouseout: {
+        value: function (evt) {
+            // CSS's pseudo class hover is not applied durring a drag, this is a workaround [2/2]
+            this.templateObjects.menuButton.classList.remove("over");
+        }
+    },
+
+    // Event fired from a sub-menu asking for it's closure
+    // Typical use is to dismiss a menu after firing a menu event
     handleDismissContextualMenu: {
         value: function (evt) {
-            this.templateObjects.contextualMenu.hide();
+            this.close();
+        }
+    },
+
+    // Event fired to informed that the contextMenu is being closed
+    // This happens for example, when the overlay loses active target
+    handleHideContextualMenu: {
+        value: function (evt) {
+            this._closeActivePathUpdate();
         }
     },
 
@@ -150,6 +301,9 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
     // and instead store whom to dispatch from once we've "stolen" the activeTarget status
     acceptsActiveTarget: {
         get: function () {
+            if (this.isOpen) {
+                this.ignoreAction = true;
+            }
             this.nextTarget = this.eventManager.activeTarget;
             return false;
         }
@@ -161,8 +315,12 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 this.templateObjects.menuButton.element.dataset.shortcut = this.menuItemModel.keyEquivalent;
             }
 
-            if (this.isSubMenu()) {
-                this.templateObjects.menuButton.element.classList.add("subMenu");
+            if (this.menuFlashing) {
+                this.element.classList.remove("Flashing");
+                // Trigger a reflow to make sure the animation is played (http://css-tricks.com/restart-css-animation/)
+                this.element.offsetWidth = this.element.offsetWidth;
+                this.element.classList.add("Flashing");
+                this.menuFlashing = false;
             }
         }
     }
