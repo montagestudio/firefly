@@ -1,6 +1,5 @@
 Vagrant.configure('2') do |config|
-    config.vm.box = "precise64"
-    config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    config.vm.box = "declarativ/base"
 
     if Vagrant.has_plugin?("vagrant-cachier")
         # Only enable `apt` as I don't trust npm and what will happen if we
@@ -10,8 +9,6 @@ Vagrant.configure('2') do |config|
 
     # The base install does an upgrade of all packages but we do not want grub to be updated on the VM as it fails
     config.vm.provision :shell, inline: "echo 'grub-pc hold' | dpkg --set-selections"
-    config.vm.provision :shell, path: "deploy/provision/base.sh"
-    config.vm.provision :shell, inline: "/etc/init.d/vboxadd setup"
 
     # The machines listed below should match as closely as possible the Packer
     # .json images. Try and keep the steps in the same order as in the .json
