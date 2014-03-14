@@ -2,9 +2,11 @@ var Q = require("q");
 var Queue = require("q/queue");
 var Git = require("../git");
 var Http = require("q-io/http");
+var GithubApi = require("../../inject/adaptor/client/core/github-api");
 var log = require("logging").from(__filename);
 
-module.exports = exports = RepositoryService;
+module.exports = exports = RepositoryService;   // High level access to the service
+module.exports.service = _RepositoryService;    // Low level access to the service
 
 var LOCAL_REPOSITORY_NAME = "__local__";
 var REMOTE_REPOSITORY_NAME = "origin";
@@ -31,8 +33,8 @@ function exclusive(method) {
 function checkGithubError(method) {
     return function wrapped(error) {
         var self = this, args = Array.prototype.slice.call(arguments);
-
         return method.apply(self, args).catch(function(error) {
+            log("Git Error", error.stack)
             return self._githubCheck().then(function(success) {
                 if (success) {
                     // Nothing wrong with github, let returns the original error
@@ -48,14 +50,67 @@ function checkGithubError(method) {
 }
 
 function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnlyHttpsRemote) {
+    return _RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, fsPath, acceptOnlyHttpsRemote);
+};
+
+function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
     // Returned service
     var service = {},
-        _git = new Git(fs, session.githubAccessToken, acceptOnlyHttpsRemote),
-        _repositoryUrl = null;
+        _owner = owner,
+        _repo = repo,
+        _accessToken = githubAccessToken,
+        _git = new Git(fs, _accessToken, acceptOnlyHttpsRemote),
+        _githubApi = new GithubApi(_accessToken),
+        _repositoryUrl = null, // JFD TODO: remove me, use info.gitUrl instead
+        _info = null;
+
+    /**
+     * TODO: Write description: Use for testing only
+     */
+    service.setGithubApi = function(githubApi) {
+        _githubApi = githubApi
+    }
+
+    /**
+     * TODO: Write description
+     */
+    service.isProjectEmpty = function() {
+        return _githubApi.isRepositoryEmpty(_owner, _repo);
+    };
+
+    /**
+     * TODO: Write description
+     */
+    service.setupProject = checkGithubError(exclusive(function() {
+        return this._setupProject();
+    }));
+
+    /**
+     * TODO: Write description
+     */
+    service.cloneProject = checkGithubError(exclusive(function() {
+        return this._cloneProject();
+    }));
+
+    /**
+     * TODO: Write description
+     */
+    service.setUserInfo = function(name, email) {
+        return this._setUserInfo(name, email);
+    };
+
+    /**
+     * TODO: Write description
+     */
+    service.defaultBranchName = function() {
+        return this._getInfo().then(function(info) {
+            return info.gitBranch;
+        });
+    }
 
     /**
      * Return an object describing all branches (local and remotes) as well the current
-     * branch (checked out). If a showow branch is checked out, current will represent
+     * branch (checked out). If a shadow branch is checked out, current will represent
      * the name of the parent branch and the property currentIsShadow is set to true.
      *
      * Shadow branches are represented as an attribute of their parent branch and are
@@ -166,7 +221,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
      * return: promise
      */
     service.commitFiles = checkGithubError(exclusive(function(files, message, resolutionStrategy) {
-        return this._commitFiles(files, message, resolutionStrategy);
+        return this._commitFiles(files || "--all", message, resolutionStrategy);
     }));
 
     /**
@@ -197,9 +252,31 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
         return this._updateRefs(resolutionStrategy);
     }));
 
-    service._getRepositoryUrl = function() {
+    service._getInfo = function() {
         var self = this;
 
+        if (!_info) {
+            var deferred = Q.defer();
+            _info = deferred.promise;
+
+            _githubApi.getRepository(_owner, _repo)
+            .then(function(repository) {
+                deferred.resolve({
+                    //jshint -W106
+                    gitUrl: repository.clone_url,
+                    gitBranch: repository.default_branch
+                    //jshint +W106
+                });
+            })
+            .fail(deferred.reject);
+        }
+
+        return _info;
+    };
+
+    service._getRepositoryUrl = function() {
+// JFD TODO: remove me and use getInfo instead
+        var self = this;
         if (_repositoryUrl) {
             return Q.resolve(_repositoryUrl);
         } else {
@@ -224,6 +301,35 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
                 return _repositoryUrl;
             });
         }
+    };
+
+    service._setupProject = function() {
+        var self = this;
+
+        return _git.init(fsPath)
+        .then(function() {
+            return self._getInfo();
+        }).then(function(info) {
+            return _git.addRemote(fsPath, info.gitUrl);
+        })
+    };
+
+    service._cloneProject = function() {
+        return this._getInfo()
+        .then(function(info) {
+            return _git.clone(info.gitUrl, fsPath);
+        });
+    };
+
+    service._setUserInfo = function(name, email) {
+        return _git.config(fsPath, "user.name", name)
+        .then(function() {
+            return _git.config(fsPath, "user.email", email);
+        })
+        .then(function() {
+            // Only push when specified where
+            return _git.config(fsPath, "push.default", "nothing");
+        })
     };
 
     service._branchLineParser = function(line, result) {
@@ -430,7 +536,8 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
     service._commitFiles = function(files, message, resolutionStrategy) {
         var self = this,
             branchesInfo = null,
-            current;
+            current,
+            emptyRepository = false;
 
         // Validate arguments
         if (typeof files === "string" && files.length !== 0) {
@@ -443,10 +550,11 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
         return self._listBranches(true)     // Will cause to do a git fetch
         .then(function(result) {
             branchesInfo = result;
-            current = branchesInfo.current;
+            current = branchesInfo.current || "master";
             if (branchesInfo.currentIsShadow) {
                 current = SHADOW_BRANCH_PREFIX + current;
             }
+            emptyRepository = (Object.keys(branchesInfo.branches).length === 0);
         })
         .then(function() {
             // stage the files
@@ -463,6 +571,16 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
         })
         .then(function() {
             // push the commits if we have some
+            if (emptyRepository) {
+                return self._push(current)
+                .then(function() {
+                    return true;
+                }, function(error) {
+                    log("push failed", error.stack);
+                    return false;
+                });
+            }
+
             return self._branchStatus(current, REMOTE_REPOSITORY_NAME + "/" + current)
             .then(function(branchStatus) {
                 if (branchStatus.ahead > 0 ) {
@@ -972,12 +1090,13 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
     };
 
     service._githubCheck = function() {
+        // TODO: use github API
         return Http.request({
             url: "https://api.github.com/user",
             headers: {
                 "Accept": "application/json",
                 "User-agent": "montage-studio",
-                "Authorization": "token 1" + session.githubAccessToken
+                "Authorization": "token 1" + _accessToken
             }
         }).then(function (response) {
             return response.body.read().then(function (data) {
@@ -986,7 +1105,7 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
                 } catch (e) {
                     data = {message: data};
                 }
-                return data.login === session.owner;
+                return data.login === _owner;
             });
         });
     };
@@ -1031,15 +1150,8 @@ function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnl
             get: function() {
                 return SHADOW_BRANCH_PREFIX;
             }
-        },
-
-        defaultBranchName: {
-            get: function() {
-                return "master";    // TODO: retrieve the name of the default branch from git
-            }
         }
-
     });
 
     return service;
-}
+};
