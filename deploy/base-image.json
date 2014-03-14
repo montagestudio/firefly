@@ -33,7 +33,7 @@
     }, {
         "type": "file",
         "source": "{{user `home`}}/deploy/files/sudoers",
-        "destination": "/etc/sudoers.d/sudoers"
+        "destination": "/tmp/sudoers"
     }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/base.sh"
