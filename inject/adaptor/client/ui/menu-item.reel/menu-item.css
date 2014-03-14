@@ -28,7 +28,8 @@
     float: right;
 }
 
-.MenuItem-button.matte-Button.selected {
+.MenuItem-button.matte-Button.selected,
+.MenuItem-button.matte-Button.over {
     background-color: hsla(0,0%,28%,1);
 }
 

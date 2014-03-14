@@ -41,8 +41,11 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         value: function (firstTime) {
             if (!firstTime) { return; }
             this.element.addEventListener("mouseover", this, false);
+            this.element.addEventListener("mouseout", this, false);
             this.element.addEventListener("mouseup", this, false);
             this.element.addEventListener("mousedown", this, false);
+
+            this.templateObjects.menuButton.element.addEventListener("mouseleave", this, false);
 
             if (this.isRootMenu()) {
                 this.addEventListener("menuFlashing", this, false);
@@ -219,6 +222,9 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
             var activePath = this.menu.activePath;
             evt.stop();
 
+            // CSS's pseudo class hover is not applied durring a drag, this is a workaround [1/2]
+            this.templateObjects.menuButton.classList.add("over");
+
             // Open a submenu
             if (this.isSubMenu() && !this.templateObjects.contextualMenu.isOpen) {
                 this._openSubmenu();
@@ -259,6 +265,19 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
         }
     },
 
+    // Prevent button to wait for the end of the press event to stop being displayed as active
+    handleMouseleave: {
+        value: function (evt) {
+            this.templateObjects.menuButton.active = false;
+        }
+    },
+
+    handleMouseout: {
+        value: function (evt) {
+            // CSS's pseudo class hover is not applied durring a drag, this is a workaround [2/2]
+            this.templateObjects.menuButton.classList.remove("over");
+        }
+    },
 
     // Event fired from a sub-menu asking for it's closure
     // Typical use is to dismiss a menu after firing a menu event
