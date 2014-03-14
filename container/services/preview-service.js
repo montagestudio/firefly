@@ -119,6 +119,14 @@ function PreviewService() {
         sendToPreviewClients("addTemplateFragmentObjects:" + JSON.stringify(params));
     };
 
+    service.deleteObject = function(ownerModuleId, label) {
+        var params = {
+            ownerModuleId: ownerModuleId,
+            label: label
+        };
+        sendToPreviewClients("deleteObject:" + JSON.stringify(params));
+    };
+
     service.setElementAttribute = function(moduleId, elementLocation, attributeName, attributeValue) {
         var params = {
             moduleId: moduleId,

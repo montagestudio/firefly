@@ -380,6 +380,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    deleteObject: {
+        value: function(previewId, ownerModuleId, label) {
+            return this.backend.get("preview-service").invoke("deleteObject", ownerModuleId, label);
+        }
+    },
+
     setPreviewElementAttribute: {
         value: function(previewId, moduleId, elementLocation, attributeName, attributeValue) {
             return this.backend.get("preview-service").invoke("setElementAttribute", moduleId, elementLocation, attributeName, attributeValue);

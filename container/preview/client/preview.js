@@ -99,6 +99,11 @@ if (!window.performance) {
                 return LiveEdit.addTemplateFragmentObjects(args.moduleId, args.templateFragment);
             }
 
+            if (command === "deleteObject") {
+                args = JSON.parse(param);
+                return LiveEdit.deleteObject(args.ownerModuleId, args.label);
+            }
+
             if (command === "setElementAttribute") {
                 args = JSON.parse(param);
                 return LiveEdit.setElementAttribute(args.moduleId,
