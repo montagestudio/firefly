@@ -34,6 +34,22 @@ while getopts ":pn:" opt; do
     esac
 done
 
+wait_for_droplet ()
+{
+    # This should be as simple as using the buildin tugboat feature but it does not appears to work all teh time.
+    # tugboat wait -n $1
+    # We need to wait for the droplets to come back alive after rebuild
+    declare DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
+    if [[ "$DROPLET_STATUS" != "[32mactive[0m" ]]; then
+        echo "$1 is [$DROPLET_STATUS] waiting."
+        tugboat wait -n $1
+        DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
+        echo "$1 is [$DROPLET_STATUS]."
+        # We need to wait for the service to come on line
+        sleep 30
+    fi
+}
+
 ROLLBAR_LOCAL_USERNAME=${BUILD_NUMBER}
 rollbar() {
     # $1 environment
@@ -42,7 +58,7 @@ rollbar() {
     # $4 rollbar access code
 
     # We need to wait for the droplets to come back alive after rebuild
-    tugboat wait -n $2
+    wait_for_droplet $2
     ROLLBAR_ENVIRONMENT=$1
     ROLLBAR_REVISION=`tugboat ssh -n $2 -q -c "cat /srv/$3/GIT_HASH" | tail -n 1`
     if [[ -z $ROLLBAR_REVISION ]]; then
@@ -64,11 +80,13 @@ rollbar() {
 staging ()
 {
     # We need to wait for the droplets to come back alive after rebuild
-    tugboat wait -n $1
+    wait_for_droplet $1
     
+    echo "Uploading script to $1"
     IP=`tugboat info -n $1  | grep "IP" | sed 's/IP:[ ]*\([0-9\.]*\)/\1/'`
     scp -o "IdentitiesOnly=yes" -o "LogLevel=ERROR" -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" "${HOME}/deploy/build/staging.sh" "montage@${IP}:/srv"
     # Execute the staging script on the droplet
+    echo "Executing script to $1"
     tugboat ssh -n $1 -c 'sudo chmod +x /srv/staging.sh; sudo /srv/staging.sh'
 }
 
@@ -98,7 +116,7 @@ else
     staging StagingLogin2
     staging StagingProject1
     staging StagingProject2
-
+    
     rollbar "staging" "StagingLogin1" "filament" "457750e5906f47199de4c5b51d78a141"
     rollbar "staging" "StagingLogin1" "firefly" "afa2e8f334974bc58b0415fd06a02b40"
 fi
