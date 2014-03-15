@@ -34,19 +34,46 @@ while getopts ":pn:" opt; do
     esac
 done
 
+export FIREFLY_SSH_OPTIONS="-o IdentitiesOnly=yes -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+get_ip () {
+    # The argument is teh droplet name
+    echo `tugboat info -n $1  | grep "IP" | sed 's/IP:[ ]*\([0-9\.]*\)/\1/'`
+}
+
+get_status () {
+    # The argument is teh droplet name
+    echo `tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
+}
+
+get_ssh_status () {
+    # The argument is teh droplet IP address
+    echo `ssh -q -o "BatchMode=yes" $FIREFLY_SSH_OPTIONS "montage@$1" "echo 2>&1" && echo "Up" || echo "Down"`
+}
+
 wait_for_droplet ()
 {
     # This should be as simple as using the buildin tugboat feature but it does not appears to work all teh time.
     # tugboat wait -n $1
     # We need to wait for the droplets to come back alive after rebuild
-    declare DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
+    declare DROPLET_STATUS=$(get_status $1)
     if [[ "$DROPLET_STATUS" != "[32mactive[0m" ]]; then
         echo "$1 is [$DROPLET_STATUS] waiting."
         tugboat wait -n $1
-        DROPLET_STATUS=`tugboat info -n $1 | grep "Status" | sed 's/Status:[ ]*\([a-z]*\)/\1/'`
+        DROPLET_STATUS=$(get_status $1)
         echo "$1 is [$DROPLET_STATUS]."
         # We need to wait for the service to come on line
-        sleep 30
+        IP=$(get_ip $1)
+        declare SSH_STATUS=$(get_ssh_status $IP)
+        if [[ "$SSH_STATUS" != "Up" ]]; then
+            echo -n "SSH connection for $1 is down waiting"
+            while [[ "$SSH_STATUS" != "Up" ]]; do
+                echo -n "."
+                sleep 5
+                SSH_STATUS=$(get_ssh_status $IP)
+            done
+            echo ""
+        fi
     fi
 }
 
@@ -83,8 +110,8 @@ staging ()
     wait_for_droplet $1
     
     echo "Uploading script to $1"
-    IP=`tugboat info -n $1  | grep "IP" | sed 's/IP:[ ]*\([0-9\.]*\)/\1/'`
-    scp -o "IdentitiesOnly=yes" -o "LogLevel=ERROR" -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" "${HOME}/deploy/build/staging.sh" "montage@${IP}:/srv"
+    IP=$(get_ip $1)
+    scp $FIREFLY_SSH_OPTIONS "${HOME}/deploy/build/staging.sh" "montage@${IP}:/srv"
     # Execute the staging script on the droplet
     echo "Executing script to $1"
     tugboat ssh -n $1 -c 'sudo chmod +x /srv/staging.sh; sudo /srv/staging.sh'
