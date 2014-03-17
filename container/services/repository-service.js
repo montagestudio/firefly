@@ -1,7 +1,6 @@
 var Q = require("q");
 var Queue = require("q/queue");
 var Git = require("../git");
-var Http = require("q-io/http");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
 var log = require("logging").from(__filename);
 
@@ -49,8 +48,8 @@ function checkGithubError(method) {
     };
 }
 
-function RepositoryService(session, fs, environment, pathname, fsPath, acceptOnlyHttpsRemote) {
-    return _RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, fsPath, acceptOnlyHttpsRemote);
+function RepositoryService(session, fs, environment, pathname, fsPath) {
+    return _RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, fsPath, true);
 }
 
 function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
@@ -61,46 +60,47 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         _accessToken = githubAccessToken,
         _git = new Git(fs, _accessToken, acceptOnlyHttpsRemote),
         _githubApi = new GithubApi(_accessToken),
-        _repositoryUrl = null, // JFD TODO: remove me, use info.gitUrl instead
         _info = null;
 
     /**
-     * TODO: Write description: Use for testing only
+     * Set a GithuApi object
+     *
+     * Use this to setup a different GithubApi object than the default one provided by the service
      */
     service.setGithubApi = function(githubApi) {
         _githubApi = githubApi;
     };
 
     /**
-     * TODO: Write description
+     * Return true if the github project does not contain any file
      */
     service.isProjectEmpty = function() {
         return _githubApi.isRepositoryEmpty(_owner, _repo);
     };
 
     /**
-     * TODO: Write description
+     * Setup a brand new project
      */
     service.setupProject = checkGithubError(exclusive(function() {
         return this._setupProject();
     }));
 
     /**
-     * TODO: Write description
+     * setup a project by cloning it from github
      */
     service.cloneProject = checkGithubError(exclusive(function() {
         return this._cloneProject();
     }));
 
     /**
-     * TODO: Write description
+     * Configure the git user information
      */
     service.setUserInfo = function(name, email) {
         return this._setUserInfo(name, email);
     };
 
     /**
-     * TODO: Write description
+     * Retrieve the github default branch for the current project
      */
     service.defaultBranchName = function() {
         return this._getInfo().then(function(info) {
@@ -273,32 +273,9 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     };
 
     service._getRepositoryUrl = function() {
-// JFD TODO: remove me and use getInfo instead
-        var self = this;
-        if (_repositoryUrl) {
-            return Q.resolve(_repositoryUrl);
-        } else {
-            return _git.command(fsPath, "remote", ["-v"], true)
-            .then(function(output) {
-                output.split(/\r?\n/).some(function(line){
-                    if (line.length) {
-                        var parsedLine = line.match(/([^\s]+)[\s]+([^\s]*)[\s]*\(([^)]+)\)/);
-                        if (parsedLine.length === 4) {
-                            var remote = parsedLine[1],
-                                url = parsedLine[2],
-                                mode = parsedLine[3];
-
-                            if (remote === self.REMOTE_REPOSITORY_NAME && mode === "push") {
-                                _repositoryUrl = url;
-                                return true;
-                            }
-                        }
-                    }
-                });
-
-                return _repositoryUrl;
-            });
-        }
+        return service._getInfo().then(function(info) {
+            return _git._addAccessToken(info.gitUrl);
+        });
     };
 
     service._setupProject = function() {
@@ -1088,23 +1065,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     };
 
     service._githubCheck = function() {
-        // TODO: use github API
-        return Http.request({
-            url: "https://api.github.com/user",
-            headers: {
-                "Accept": "application/json",
-                "User-agent": "montage-studio",
-                "Authorization": "token 1" + _accessToken
+        return _githubApi.getUser().then(function(user) {
+            return (user.login === _owner);
+        }, function(error) {
+            if (error.message.indexOf("credential") !== -1) {
+                // return false rather than an error for credential issue
+                return false;
             }
-        }).then(function (response) {
-            return response.body.read().then(function (data) {
-                try {
-                    data = JSON.parse(data.toString("utf-8"));
-                } catch (e) {
-                    data = {message: data};
-                }
-                return data.login === _owner;
-            });
+            throw error;
         });
     };
 
