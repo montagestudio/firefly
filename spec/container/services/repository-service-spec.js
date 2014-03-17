@@ -4,9 +4,10 @@ var execFile = childProcess.execFile;
 var PATH = require("path");
 var Q = require("q");
 var MockFs = require("q-io/fs-mock");
+var MockGithubApi = require("../../mocks/github-api");
 var FS = require("fs");
 var Git = require("../../../container/git");
-var RepositoryService = require("../../../container/services/repository-service");
+var RepositoryService = require("../../../container/services/repository-service").service;
 
 var createRepo = function(repoName, destPath, repoDestName) {
     var deferred = Q.defer(),
@@ -64,7 +65,9 @@ describe("repository-service", function () {
     tmpPath = "/tmp/repository-service-spec-" + Date.now() + Math.floor(Math.random() * 999999);
 
     session = {
-        githubAccessToken: "xxx"
+        owner: "jasmine",
+        repo: "sample",
+        githubAccessToken: "free-pass"
     };
 
     // Setup a mock fs
@@ -81,7 +84,8 @@ describe("repository-service", function () {
         it ("should have a repo", function(done) {
             createRepo("branchRepo", tmpPath).then(function(path) {
                 serviceRepo1Path = path;
-                service1 = RepositoryService(session, fs, null, null, serviceRepo1Path, false);
+                service1 = RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false);
+                service1.setGithubApi(new MockGithubApi());
             })
             .then(function() {
                 git.isCloned(serviceRepo1Path)
@@ -201,10 +205,17 @@ describe("repository-service", function () {
             executeFile("repo-service-setup.sh", tmpPath)
             .then(function() {
                 serviceRepo1Path = PATH.join(tmpPath, "serviceRepo1");
-                service1 = RepositoryService(session, fs, null, null, serviceRepo1Path, false);
+                service1 = RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false);
+                service1.setGithubApi(new MockGithubApi());
 
                 serviceRepo2Path = PATH.join(tmpPath, "serviceRepo2");
-                service2 = RepositoryService(session, fs, null, null, serviceRepo2Path, false);
+                service2 = RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, serviceRepo2Path, false);
+                service2.setGithubApi(new MockGithubApi());
+
+                service1._getRepositoryUrl = function() {
+                    return Q.resolve(tmpPath + "/originServiceRepo");
+                };
+                service2._getRepositoryUrl = service1._getRepositoryUrl;
 
                 git.isCloned(serviceRepo1Path)
                 .then(function(isCloned) {

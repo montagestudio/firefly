@@ -444,7 +444,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         })
         .then(function() {
             // Make sure we have a shadow branch
-            return self._createShadowBranch(branchesInfo).then(function(remoteModified) {
+            return self._createShadowBranch(branchesInfo)
+            .then(function(remoteModified) {
                 if (remoteModified || !branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].shadow) {
                     // we need to refresh the branchesInfo
                     return self._listBranches(remoteModified)
