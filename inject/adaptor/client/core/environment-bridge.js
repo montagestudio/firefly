@@ -574,8 +574,8 @@ exports.EnvironmentBridge = Montage.specialize({
 
             return this.backend.get("file-service").invoke("writeFile", url, data)
                 .then(function () {
-                    //TODO fix this, temporary
-                    return self.saveFileBase64(data, url);
+                    var path = URL.parse(url).pathname.slice(1);
+                    return self.commitFiles([path]);
                 })
                 .then(function() {
                     return self.flushProject("Add file " + URL.parse(url).pathname);
