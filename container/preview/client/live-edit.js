@@ -327,6 +327,29 @@ Object.defineProperties(window.Declarativ, {
             }
         },
 
+        deleteElement: {
+            value: function(ownerModuleId, elementLocation) {
+                var montageElements;
+                var montageElement;
+                var montageTemplate;
+                var promises = [];
+
+                // Delete from the owner template
+                montageTemplate = MontageTemplate.find(ownerModuleId);
+                montageTemplate.deleteElement(elementLocation);
+
+                // Update the live application
+                montageElements = MontageElement.findAll(ownerModuleId, elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
+                for (var i = 0; (montageElement = montageElements[i]); i++) {
+                    promises.push(
+                        montageElement.destroy()
+                    );
+                }
+
+                return Declarativ.Promise.all(promises);
+            }
+        },
+
         setElementAttribute: {
             value: function(ownerModuleId, elementLocation, attributeName, attributeValue) {
                 var montageElements,
@@ -957,6 +980,9 @@ Object.defineProperties(window.Declarativ, {
         var element = this.value;
         var childComponents;
         var childComponent;
+        var nextSibling = element.nextElementSibling;
+        var previousSibling = element.previousElementSibling;
+        var leArgRangeValue;
 
         this.scope.invalidateTemplates(this.owner);
         element.parentNode.removeChild(element);
@@ -965,6 +991,11 @@ Object.defineProperties(window.Declarativ, {
             childComponent.detachFromParentComponent();
             childComponent.cleanupDeletedComponentTree(true);
         }
+
+        leArgRangeValue = this.owner._montage_metadata.moduleId + "," +
+            this.label;
+        this._updateLiveEditRangeAttributes(ATTR_LE_ARG_BEGIN, leArgRangeValue, nextSibling);
+        this._updateLiveEditRangeAttributes(ATTR_LE_ARG_END, leArgRangeValue, previousSibling);
     };
 
     MontageElement.prototype.rebuild = function() {
@@ -1745,6 +1776,19 @@ Object.defineProperties(window.Declarativ, {
         var serializationObject = template.getSerialization().getSerializationObject();
 
         delete serializationObject[label];
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.deleteElement = function(elementLocation) {
+        var template = this.value;
+        var element;
+        var serializationObject = template.getSerialization().getSerializationObject();
+
+        element = this._findElement(elementLocation);
+        element.parentNode.removeChild(element);
+
         template.objectsString = JSON.stringify(serializationObject);
 
         this._clearCaches();

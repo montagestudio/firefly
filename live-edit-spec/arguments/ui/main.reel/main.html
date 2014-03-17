@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        Main
+    </title>
+    <link rel="stylesheet" href="main.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "main"}
+            }
+        },
+        "singleStarParameterBegin": {
+            "prototype": "ui/star-parameter.reel",
+            "properties": {
+                "element": {"#": "singleStarParameterBegin"}
+            }
+        },
+        "singleStarParameterEnd": {
+            "prototype": "ui/star-parameter.reel",
+            "properties": {
+                "element": {"#": "singleStarParameterEnd"}
+            }
+        },
+        "multipleStarParameter": {
+            "prototype": "ui/star-parameter.reel",
+            "properties": {
+                "element": {"#": "multipleStarParameter"}
+            }
+        },
+        "items": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "items"},
+                "content": [1, 2, 3]
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="main" data-montage-skin="light" class="Main">
+        <div data-montage-id="singleStarParameterBegin">
+            <span class="singleStarArgumentBegin"></span>
+        </div>
+        <div data-montage-id="singleStarParameterEnd">
+            <span class="singleStarArgumentEnd"></span>
+        </div>
+        <div data-montage-id="multipleStarParameter">
+            <span class="multipleStarArgumentBegin"></span>
+            <span></span>
+            <span class="multipleStarArgumentEnd"></span>
+        </div>
+        <ul data-montage-id="items">
+            <li>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
