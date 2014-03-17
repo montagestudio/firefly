@@ -28,7 +28,7 @@ get ()
         fi
 
         # Tag every deploy
-        # git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"
+        # git tag -a -m "$BUILD_URL" "deploy/$BUILD_NUMBER"
         # git push --tags
 
         # Create a file with the git hash so that given just an image we know what
