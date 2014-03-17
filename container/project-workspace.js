@@ -1,9 +1,7 @@
 var log = require("logging").from(__filename);
 var PATH = require("path");
-var Q = require("q");
-var GithubApi = require("../inject/adaptor/client/core/github-api");
 var Minit = require("./minit");
-var Git = require("./git");
+var RepositoryService = require("./services/repository-service").service;
 var fs = require("q-io/fs");
 var PackageManagerService = require("./services/package-manager-service");
 
@@ -34,39 +32,20 @@ function ProjectWorkspace(config, workspacePath, owner, repo, minitPath) {
     this._owner = owner;
     this._repo = repo;
 
-    this._gitUrl = null;
-    this._gitBranch = null;
-
     this._minitPath = minitPath;
 }
 
 Object.defineProperties(ProjectWorkspace.prototype, {
-    __git: {
+    __repoService: {
         writable: true,
         value: null
     },
-    _git: {
+    _repoService: {
         get: function() {
-            if (!this.__git) {
-                this.__git = new Git(this._fs, this._config.githubAccessToken);
+            if (!this.__repoService) {
+                this.__repoService = RepositoryService(this._owner, this._config.githubAccessToken, this._repo, this._fs, this._workspacePath);
             }
-
-            return this.__git;
-        }
-    },
-
-    __githubApi: {
-        writable: true,
-        value: null
-    },
-
-    _githubApi: {
-        get: function() {
-            if (!this.__githubApi) {
-                this.__githubApi = new GithubApi(this._config.githubAccessToken);
-            }
-
-            return this.__githubApi;
+            return this.__repoService;
         }
     }
 });
@@ -74,26 +53,6 @@ Object.defineProperties(ProjectWorkspace.prototype, {
 /**
  * Workspace setup operations
  */
-ProjectWorkspace.prototype._info = null;
-ProjectWorkspace.prototype.getInfo = function() {
-    if (!this._info) {
-        var deferred = Q.defer();
-        this._info = deferred.promise;
-        this._githubApi.getRepository(this._owner, this._repo)
-        .then(function(repository) {
-            deferred.resolve({
-                //jshint -W106
-                gitUrl: repository.clone_url,
-                gitBranch: repository.default_branch
-                //jshint +W106
-            });
-        })
-        .fail(deferred.reject);
-    }
-
-    return this._info;
-};
-
 ProjectWorkspace.prototype.existsWorkspace = function() {
     return this._fs.exists(this._fs.join(this._workspacePath, ".git"));
 };
@@ -103,13 +62,18 @@ ProjectWorkspace.prototype.initializeWorkspace = function() {
 
     return this.existsWorkspace().then(function (exists) {
         if (!exists) {
-            return self._githubApi.isRepositoryEmpty(self._owner, self._repo)
+            return self._repoService.isProjectEmpty()
             .then(function(isEmpty) {
                 if (isEmpty) {
                     return self.initializeWithEmptyProject();
                 } else {
                     return self.initializeWithRepository();
                 }
+            }).then(function() {
+                return self._repoService.defaultBranchName()
+                .then(function(branch) {
+                    return self._repoService.checkoutShadowBranch(branch);
+                });
             });
         }
     });
@@ -125,21 +89,13 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
 
     return minit.createApp(this._workspacePath, self._repo)
     .then(function() {
-        return self._git.init(self._workspacePath);
-    }).then(function() {
-        return self.getInfo();
-    }).then(function(info) {
-        return self._git.addRemote(self._workspacePath, info.gitUrl);
+        return self._repoService.setupProject();
     }).then(function() {
         return self._setupWorkspaceRepository();
     }).then(function() {
-        // Manually commit and push project initialization
-        // it isn't the same as a generic flushing
-        return self._commitWorkspace(INITIAL_COMMIT_MSG);
-    }).then(function () {
-        return self.getInfo();
-    }).then(function(info) {
-        return self._git.push(self._workspacePath, info.gitUrl, info.gitBranch);
+            // TODO: issue! the commit is perform after npm install causing the node_modules folder to be committed!
+            //       npm install occurs during _setupWorkspaceRepository
+        return self._repoService.commitFiles(null, INITIAL_COMMIT_MSG);
     });
 };
 
@@ -149,10 +105,7 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
 ProjectWorkspace.prototype.initializeWithRepository = function() {
     var self = this;
 
-    return this.getInfo()
-    .then(function(info) {
-        return self._git.clone(info.gitUrl, self._workspacePath);
-    })
+    return this._repoService.cloneProject()
     .then(function() {
         return self._setupWorkspaceRepository();
     });
@@ -224,36 +177,12 @@ ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extend
  * the default remote.
  */
 ProjectWorkspace.prototype.flushWorkspace = function(message) {
-    var self = this;
-
-    return this._commitWorkspace(message)
-    .then(function() {
-        return self._pushWorkspace();
-    });
-};
-
-/**
- * Push all commits to the default remote.
- */
-ProjectWorkspace.prototype._pushWorkspace = function(message) {
-    var self = this;
-
-    return this.getInfo()
-    .then(function(info) {
-            //TODO use repository service
-        return self._git.push(self._workspacePath, info.gitUrl);
-    });
-};
-
-/**
- * Creates a commit with all modified files.
- */
-ProjectWorkspace.prototype._commitWorkspace = function(message) {
-    var self = this;
-
-    return this._git.add(this._workspacePath, "--all")
-    .then(function() {
-        return self._git.commit(self._workspacePath, message);
+    return this._repoService.commitFiles(null, message)
+    .then(function(result) {
+        if (result.success !== true) {
+            // TODO: in case of merge conflict, ask user what to do and retry
+            throw new Error("merge failed");
+        }
     });
 };
 
@@ -267,14 +196,7 @@ ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
     var name = githubUser.name || githubUser.login;
     var email = githubUser.email || DEFAULT_GIT_EMAIL;
 
-    return this._git.config(this._workspacePath, "user.name", name)
-    .then(function() {
-        return self._git.config(self._workspacePath, "user.email", email);
-    })
-    .then(function() {
-        // Only push the branch we're currently working on, reduce rejected pushes
-        return self._git.config(self._workspacePath, "push.default", "tracking");
-    })
+    return this._repoService.setUserInfo(name, email)
     .then(function() {
         return self._npmInstall();
     });

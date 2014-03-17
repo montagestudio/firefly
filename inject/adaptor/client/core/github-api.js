@@ -276,12 +276,16 @@ GithubApi.prototype._request = function(request) {
             if (xhr.responseText) {
                 var errors;
                 try {
-                    errors = JSON.parse(xhr.responseText).errors;
+                    var response = JSON.parse(xhr.responseText);
+                    errors = response.errors;
+                    message = response.message;
                 } catch (e) {
                     // ignore
                 }
                 if (errors && errors[0] && errors[0].message) {
                     error = new Error(errors[0].message);
+                } else if (message && message.length) {
+                    error = new Error(message);
                 }
             }
 
