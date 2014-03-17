@@ -601,17 +601,6 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
-    saveFileBase64: {
-        value: function(contents, location) {
-            return this.repositoryController.saveFileBase64(URL.parse(location).pathname, contents).then(function (response) {
-                if (response.error) {
-                    throw new Error(response.error);
-                }
-                return response;
-            });
-        }
-    },
-
     /**
      * Saves a file and creates a new commit for the change.
      */

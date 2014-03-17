@@ -83,18 +83,6 @@ module.exports = function (config) {
             });
         });
 
-
-        POST("saveBase64")
-        .app(function (request) {
-            return handleEndpoint(config, request, function(data) {
-                var buffer = new Buffer(data.contents, "base64");
-                return request.projectWorkspace.saveFile(
-                    data.filename, buffer);
-            }, function() {
-                return {message: "saved"};
-            });
-        });
-
     });
 };
 

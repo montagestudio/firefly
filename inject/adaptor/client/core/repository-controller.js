@@ -190,19 +190,6 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
-    saveFileBase64: {
-        value: function(filename, contents) {
-            return this._request({
-                method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/saveBase64",
-                data: {
-                    "filename": filename,
-                    "contents": contents
-                }
-            });
-        }
-    },
-
     flush: {
         value: function(message) {
             return this._request({
