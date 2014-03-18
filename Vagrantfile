@@ -1,5 +1,12 @@
 Vagrant.configure('2') do |config|
-    config.vm.box = "declarativ/base"
+    # This is the only variable that needs updating when new boxes are available
+    BOX_VERSION = "24"
+
+    BASE_BOX = "declarativ-base-#{BOX_VERSION}"
+    BASE_BOX_URL = "http://107.170.60.86/base-#{BOX_VERSION}.box"
+
+    config.vm.box = BASE_BOX
+    config.vm.box_url = BASE_BOX_URL
 
     if Vagrant.has_plugin?("vagrant-cachier")
         # Only enable `apt` as I don't trust npm and what will happen if we
