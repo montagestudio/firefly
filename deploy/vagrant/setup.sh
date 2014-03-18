@@ -21,6 +21,5 @@ chown -R vagrant ~/.ssh
 
 # Install guest additions
 mount -o loop $HOME/VBoxGuestAdditions_*.iso /mnt
-# This will fail to install the X11 guest additions because we're headless
-yes | sh /mnt/VBoxLinuxAdditions.run || true
+/mnt/VBoxLinuxAdditions.run --nox11
 umount /mnt
