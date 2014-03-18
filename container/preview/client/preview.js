@@ -184,7 +184,7 @@ if (!window.performance) {
 
         div.innerHTML = 'Not connected to the tool. Connecting in <span></span>s... <a href="#" style="color: black">Connect now</a>';
         div.setAttribute("style", "border: 1px solid black;" +
-            "background-color: red;" +
+            "background-color: hsl(10, 80%, 54%);" +
             "padding: 8px;" +
             "position: absolute;" +
             "top: 40px;" +
