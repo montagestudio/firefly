@@ -19,7 +19,11 @@ wget --no-check-certificate 'https://raw.github.com/mitchellh/vagrant/master/key
 chmod 600 ~/.ssh/authorized_keys
 chown -R vagrant ~/.ssh
 
+# I have no idea why, but installing the guest addittions does not work. So,
+# instead let's not install them and let the `vagrant-vbguest` plugin handle
+# them.
+
 # Install guest additions
-mount -o loop $HOME/VBoxGuestAdditions_*.iso /mnt
-/mnt/VBoxLinuxAdditions.run --nox11
-umount /mnt
+# mount -o loop $HOME/VBoxGuestAdditions_*.iso /mnt
+# /mnt/VBoxLinuxAdditions.run --nox11
+# umount /mnt
