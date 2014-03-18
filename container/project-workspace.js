@@ -177,13 +177,7 @@ ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extend
  * the default remote.
  */
 ProjectWorkspace.prototype.flushWorkspace = function(message) {
-    return this._repoService.commitFiles(null, message)
-    .then(function(result) {
-        if (result.success !== true) {
-            // TODO: in case of merge conflict, ask user what to do and retry
-            throw new Error("merge failed");
-        }
-    });
+    return this._repoService.commitFiles(null, message);
 };
 
 /**

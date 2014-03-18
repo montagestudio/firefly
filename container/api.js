@@ -38,8 +38,11 @@ module.exports = function (config) {
             return handleEndpoint(config, request, function(data) {
                 return request.projectWorkspace.createComponent(
                     data.name);
-            }, function() {
-                return {message: "created"};
+            }, function(result) {
+                if (result.success === true) {
+                    result.message = "created";
+                }
+                return result;
             });
         });
 
@@ -49,8 +52,11 @@ module.exports = function (config) {
                 return request.projectWorkspace.createModule(
                     data.name, data.extendsModuleId,
                     data.extendsName);
-            }, function() {
-                return {message: "created"};
+            }, function(result) {
+                if (result.success === true) {
+                    result.message = "created";
+                }
+                return result;
             });
         });
 
@@ -59,8 +65,11 @@ module.exports = function (config) {
             return handleEndpoint(config, request, function(data) {
                 return request.projectWorkspace.flushWorkspace(
                     data.message);
-            }, function() {
-                return {message: "flushed"};
+            }, function(result) {
+                if (result.success === true) {
+                    result.message = "flushed";
+                }
+                return result;
             });
         });
 
