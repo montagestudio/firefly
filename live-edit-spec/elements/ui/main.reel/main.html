@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        Main
+    </title>
+    <link rel="stylesheet" href="main.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "main"}
+            }
+        },
+        "items": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "items"},
+                "content": [1, 2, 3]
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="main" data-montage-skin="light" class="Main">
+        <div class="before">
+            <div data-montage-id="anchor1"></div>
+            <div data-montage-id="anchor2"></div>
+        </div>
+        <div class="after">
+            <div data-montage-id="anchor3"></div>
+            <div data-montage-id="anchor4"></div>
+        </div>
+        <div class="append">
+            <div data-montage-id="anchor5"></div>
+        </div>
+        <ul data-montage-id="items">
+            <li>
+                <div class="before">
+                    <div data-montage-id="itemAnchor1"></div>
+                    <div data-montage-id="itemAnchor2"></div>
+                </div>
+                <div class="after">
+                    <div data-montage-id="itemAnchor3"></div>
+                    <div data-montage-id="itemAnchor4"></div>
+                </div>
+                <div class="append">
+                    <div data-montage-id="itemAnchor5"></div>
+                </div>
+            </li>
+        </ul>
+        <div></div>
+    </div>
+</body>
+</html>

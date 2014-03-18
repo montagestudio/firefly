@@ -1,0 +1,37 @@
+.Main {
+
+}
+
+.Main-summary--failed {
+    background-color: #fbb;
+}
+
+.Main-summary--passed {
+    background-color: #bfb;
+}
+
+.Main-description {
+    font-weight: bold;
+}
+
+.Main-tests {
+    list-style-type: none;
+    padding: 10px;
+}
+
+.Main-test {
+    padding: 2px;
+    margin: 5px;
+}
+
+.Main-test--failed {
+    background-color: #fbb;
+}
+
+.Main-failures {
+    padding-left: 20px;
+}
+
+.Main-failureName {
+    font-weight: bold;
+}

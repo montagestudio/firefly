@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        Main
+    </title>
+    <link rel="stylesheet" href="main.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "main"}
+            }
+        },
+        "button": {
+            "prototype": "digit/ui/button.reel",
+            "properties": {
+                "element": {"#": "button"},
+                "label": "Button"
+            },
+            "listeners": [{
+                "type": "longAction",
+                "listener": {"@": "owner"}
+            }]
+        },
+        "rangeController": {
+            "prototype": "montage/core/range-controller"
+        },
+        "itemsController": {
+            "prototype": "montage/core/range-controller"
+        },
+        "items": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "items"},
+                "content": [1, 2, 3]
+            }
+        },
+        "itemText": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "itemText"}
+            }
+        },
+        "subItems": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "subItems"}
+            }
+        },
+        "repetition": {
+            "prototype": "montage/ui/repetition.reel",
+            "properties": {
+                "element": {"#": "repetition"}
+            }
+        },
+        "text": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "text"},
+                "value": "Text"
+            }
+        },
+        "textField": {
+            "prototype": "digit/ui/text-field.reel",
+            "properties": {
+                "element": {"#": "textField"}
+            },
+            "bindings": {
+                "placeholderValue": {"<-": "@owner.textFieldPlaceholder"}
+            }
+        },
+        "empty": {
+            "prototype": "ui/empty.reel",
+            "properties": {
+                "element": {"#": "empty"}
+            }
+        },
+        "slider": {
+            "prototype": "digit/ui/slider.reel",
+            "properties": {
+                "element": {"#": "slider"}
+            }
+        },
+        "itemTextField": {
+            "prototype": "digit/ui/text-field.reel",
+            "properties": {
+                "element": {"#": "itemTextField"}
+            },
+            "bindings": {
+                "placeholderValue": {"<-": "@owner.textFieldPlaceholder"}
+            }
+        },
+        "itemButton": {
+            "prototype": "digit/ui/button.reel",
+            "properties": {
+                "element": {"#": "itemButton"},
+                "label": "Item Button"
+            },
+            "listeners": [{
+                "type": "longAction",
+                "listener": {"@": "owner"}
+            }]
+        },
+        "itemEmpty": {
+            "prototype": "ui/empty.reel",
+            "properties": {
+                "element": {"#": "itemEmpty"}
+            }
+        },
+        "itemSlider": {
+            "prototype": "digit/ui/slider.reel",
+            "properties": {
+                "element": {"#": "itemSlider"}
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="main" data-montage-skin="light" class="Main">
+        <p data-montage-id="text"></p>
+        <input data-montage-id="textField" type="text">
+        <button data-montage-id="button"></button>
+        <ul data-montage-id="repetition"></ul>
+        <div data-montage-id="empty"></div>
+        <span data-montage-id="slider"></span>
+        <ul data-montage-id="items">
+            <li>
+                <span data-montage-id="itemText"></span>
+                <input data-montage-id="itemTextField" type="text">
+                <button data-montage-id="itemButton"></button>
+                <ul data-montage-id="subItems"><li></li></ul>
+                <div data-montage-id="itemEmpty"></div>
+                <span data-montage-id="itemSlider"></span>
+            </li>
+        </ul>
+        <div></div>
+    </div>
+</body>
+</html>
