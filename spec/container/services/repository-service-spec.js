@@ -101,17 +101,19 @@ describe("repository-service", function () {
         it ("returns the different types of branches in the repo", function(done) {
             /* branchRepo branches:
 
-                * master                      8b475dd4af6358024da1845895a773903788c165 How to compress the test repository
-                  remotes/origin/HEAD         -> origin/master
-                  remotes/origin/__mb__master 3dd4bfcd018655a5e8b4c5a9516fab635052a400 Initial commit
-                  remotes/origin/experimental 3dd4bfcd018655a5e8b4c5a9516fab635052a400 Initial commit
-                  remotes/origin/master       8b475dd4af6358024da1845895a773903788c165 How to compress the test repository
+                * master                                8b475dd4af6358024da1845895a773903788c165 How to compress the test repository
+                  remotes/origin/HEAD                   -> origin/master
+                  remotes/origin/__mb__master           3dd4bfcd018655a5e8b4c5a9516fab635052a400 Initial commit
+                  remotes/origin/__mb__jasmine__master  3dd4bfcd018655a5e8b4c5a9516fab635052a400 Initial commit
+                  remotes/origin/experimental           3dd4bfcd018655a5e8b4c5a9516fab635052a400 Initial commit
+                  remotes/origin/master                 8b475dd4af6358024da1845895a773903788c165 How to compress the test repository
              */
 
             service1.listBranches()
             .then(function(result) {
                 expect(typeof result).toBe("object");
                 expect(typeof result.branches).toBe("object");
+                expect(Object.keys(result.branches[service1.REMOTE_REPOSITORY_NAME]).length).toBe(2);
                 expect(result.current).toBe("master");
 
                 var master = result.branches[service1.LOCAL_REPOSITORY_NAME][result.current];
@@ -125,7 +127,7 @@ describe("repository-service", function () {
                 expect(typeof master).toBe("object");
                 expect(typeof master.sha).toBe("string");
                 expect(typeof master.shadow).toBe("object");
-                expect(master.shadow.name).toBe(service1.REMOTE_REPOSITORY_NAME + "/" + service1.SHADOW_BRANCH_PREFIX + "master");
+                expect(master.shadow.name).toBe(service1.REMOTE_REPOSITORY_NAME + "/" + service1.OWNER_SHADOW_BRANCH_PREFIX + "master");
                 expect(typeof master.shadow.sha).toBe("string");
             })
             .then(done, done);
@@ -163,7 +165,7 @@ describe("repository-service", function () {
 
         it ("can parse a local checked out shadow master branch", function(done) {
             service1._branchLineParser(
-                "* " + service1.SHADOW_BRANCH_PREFIX +
+                "* " + service1.OWNER_SHADOW_BRANCH_PREFIX +
                 "master                           dccd034849028653a944d0f82842f802080657bb Update palette and matte", result);
             expect(result.current).toBe("master");
 
@@ -171,7 +173,7 @@ describe("repository-service", function () {
             expect(typeof branch).toBe("object");
             expect(branch.name).toBe("master");
             expect(typeof branch.shadow).toBe("object");
-            expect(branch.shadow.name).toBe(service1.SHADOW_BRANCH_PREFIX + "master");
+            expect(branch.shadow.name).toBe(service1.OWNER_SHADOW_BRANCH_PREFIX + "master");
             expect(typeof branch.shadow.sha).toBe("string");
             done();
         });
