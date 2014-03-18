@@ -9,13 +9,23 @@ var frontends = {};
  */
 
 module.exports = {
+    _notificationsQueue: [],
+
     getFrontend: function(frontendId) {
         return Q.resolve(frontends[frontendId]);
     },
 
     addFrontend: function(frontendId, connection) {
+        var promises;
+
         frontends[frontendId] = new Frontend(connection);
-        return Q.resolve();
+
+        promises = this._notificationsQueue.map(function(message) {
+            return this.showNotification(message);
+        }, this);
+        this._notificationsQueue.clear();
+
+        return Q.all(promises);
     },
 
     deleteFrontend: function(frontendId) {
@@ -24,7 +34,13 @@ module.exports = {
     },
 
     showNotification: function (message) {
-        return Q.all(Object.keys(frontends).map(function (id) {
+        var frontendKeys = Object.keys(frontends);
+
+        if (frontendKeys.length === 0) {
+            this._notificationsQueue.push(message);
+        }
+
+        return Q.all(frontendKeys.map(function (id) {
             return frontends[id].showNotification(message);
         })).thenResolve();
     }

@@ -31,5 +31,20 @@ describe("Frontend", function () {
             })
             .then(done, done);
         });
+
+        it("queues notifications when no frontend is available and sends then when a frontend is connected", function(done) {
+            var connectionA = {invoke: jasmine.createSpy("invokeA") };
+
+            return Frontend.showNotification("pass")
+            .then(function() {
+                return Frontend.addFrontend("A", connectionA);
+            })
+            .then(function() {
+                expect(connectionA.invoke).toHaveBeenCalled();
+                expect(connectionA.invoke.mostRecentCall.args[0]).toEqual("showNotification");
+                expect(connectionA.invoke.mostRecentCall.args[1]).toEqual("pass");
+            })
+            .then(done, done);
+        });
     });
 });
