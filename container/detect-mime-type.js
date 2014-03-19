@@ -11,6 +11,7 @@ var ADDITIONAL_MIME_TYPES = exports.ADDITIONAL_MIME_TYPES = {
     MONTAGE_TEMPLATE: "text/montage-template",
     MONTAGE_SERIALIZATION: "text/montage-serialization",
     COLLADA: "model/vnd.collada+xml",
+    GLTF: "model/gltf",
     GLTF_BUNDLE: "model/gltf-bundle"
 };
 
@@ -41,8 +42,18 @@ function detectMimeType (fs, path, fsPath) {
 
         } else if (mimeType === LIB_MAGIC_MIME_TYPES.TEXT_PLAIN && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
 
-            return isMontageSerializationMimeType(fs, path).then(function (isMontageSerialization) {
-                return !!isMontageSerialization ? ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION : mimeType;
+            return fs.read(path).then(JSON.parse).then(function (result) {
+                if (result) {
+                    if (result.hasOwnProperty('owner')) { // montage-serialization
+                        mimeType = ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION;
+                    } else if (result.asset.generator && /^collada2gltf/.test(result.asset.generator)) { // gltf json
+                        //fixme support just the gltf files which have been generate by the collada2gltf converter
+
+                        mimeType = ADDITIONAL_MIME_TYPES.GLTF ;
+                    }
+                }
+
+                return mimeType;
             });
         } else if (mimeType === LIB_MAGIC_MIME_TYPES.INODE_DIRECTORY && PATH.extname(fileName) === ".glTF") {
 
@@ -50,13 +61,6 @@ function detectMimeType (fs, path, fsPath) {
         }
 
         return mimeType;
-    });
-}
-
-
-function isMontageSerializationMimeType (fs, path) {
-    return fs.read(path).then(JSON.parse).then(function (result) {
-        return result.hasOwnProperty('owner');
     });
 }
 
