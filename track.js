@@ -19,7 +19,6 @@ if (typeof jasmine !== "undefined") {
 
 var log = require("logging").from(__filename);
 var Q = require("q");
-var environment = require("./environment");
 var rollbar = require("rollbar");
 
 var config = {
