@@ -31,6 +31,8 @@ chown -R montage:montage /home/montage/.ssh/
 
 rm -rf /tmp/authorized_keys
 
+# Move the sudoers file to the correct place
+mv "/tmp/sudoers" "/etc/sudoers.d/sudoers"
 # Verify the permissions on the sudoers file
 if [[ -e "/etc/sudoers.d/sudoers" ]]; then
     chmod 0440 "/etc/sudoers.d/sudoers"

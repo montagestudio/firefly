@@ -30,6 +30,14 @@ Initial setup
  5. Run `vagrant plugin install vagrant-vbguest`. This will keep the
     VirtualBox Guest additions up to date.
 
+### Updating
+
+ 1. Run `vagrant destroy` and remove all of your VMs
+ 2. Download Vagrant >1.5.x
+ 3. Download the latest version of Virtualbox (4.3.8)
+ 4. Run `vagrant plugin install vagrant-vbguest`
+ 5. Run `vagrant up`
+
 Starting
 --------
 
