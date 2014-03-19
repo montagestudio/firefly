@@ -146,7 +146,7 @@ if (!window.performance) {
             }
 
             if (DEBUG_CONNECTION) {
-                console.log("Connected to the tool.");
+                console.log("Connected to Montage Studio.");
             }
         };
 
@@ -157,7 +157,7 @@ if (!window.performance) {
         ws.onclose = function() {
             ws = null;
             if (DEBUG_CONNECTION) {
-                console.log("Disconnected from the tool.");
+                console.log("Disconnected from Montage Studio.");
             }
             showReconnectionMessage(websocketRefresh);
         };
@@ -182,7 +182,7 @@ if (!window.performance) {
     function createReconnectionMessageElement() {
         var div = document.createElement("div");
 
-        div.innerHTML = 'Not connected to the tool. Connecting in <span></span>s... <a href="#" style="color: black">Connect now</a>';
+        div.innerHTML = 'Lost connection to Montage Studio. Connecting in <span></span>s... <a href="#" style="color: black">Connect now</a>';
         div.setAttribute("style", "border: 1px solid black;" +
             "background-color: hsl(10, 80%, 54%);" +
             "padding: 8px;" +
