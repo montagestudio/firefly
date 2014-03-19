@@ -9,17 +9,18 @@ COMMAND_PATH="$0"
 
 usage() {
     echo ""
-    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] [-n <build number>] [-s] [-t <tag name>]";
+    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] [-n <build number>] [-r <build revision>] [-f] [-t <tag name>]";
     echo "     -b filament branch"
     echo "     -c firefly branch"
-    echo "     -n build number"
-    echo "     -s (skip base image build)"
+    echo "     -f (force base image rebuild)"
+    echo "     -n build revision number"
+    echo "     -r build release name"
     echo "     -t tag the repositories"
     echo ""
     exit 1;
 }
 
-while getopts ":b:c:n:t:s" opt; do
+while getopts ":b:c:fn:t:r:x" opt; do
     case $opt in
         b)
             export FILAMENT_COMMIT="$OPTARG"
@@ -27,16 +28,22 @@ while getopts ":b:c:n:t:s" opt; do
         c)
             export FIREFLY_COMMIT="$OPTARG"
             ;;
-        n)
-            export BUILD_NUMBER="$OPTARG"
+        f)
+            export FORCE_BASE_IMAGE_REBUILD="TRUE"
             ;;
-        s)
-            export SKIP_BASE_IMAGE="TRUE"
+        n)
+            export BUILD_REVISION_NUMBER="$OPTARG"
+            ;;
+        r)
+            export BUILD_RELEASE_NAME="$OPTARG"
             ;;
         t)
             export TAG_NAME="$OPTARG"
             ;;
-        \?)
+        x)
+            set -x
+            ;;
+       \?)
             echo "Invalid option: -$OPTARG" >&2
             usage;
             exit 1
@@ -51,3 +58,7 @@ done
 
 # This should be a parameter
 export REGION_ID=4
+
+if [[ -z $TAG_NAME ]]; then
+    export TAG_NAME="$BUILD_RELEASE_NAME/$BUILD_REVISION_NUMBER"
+fi

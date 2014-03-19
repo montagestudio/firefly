@@ -14,6 +14,18 @@ export GEM_CACHE="${BUILD}/digitalocean/cache"
 
 export PATH="${PATH}:${BUILD}/digitalocean/bin:${BUILD}/packerio"
 
-if [[ $BUILD_NUMBER == "" ]]; then
+if [[ -z $BUILD_NUMBER ]]; then
     export BUILD_NUMBER=`whoami`
+fi
+
+# BUILD_RELEASE_NAME is used to define the root tag for the build
+# BUILD_REVISION_NUMBER is used to define the root tag for the build
+# The tag name will be $BUILD_RELEASE_NAME/$BUILD_REVISION_NUMBER
+#
+if [[ -z $BUILD_RELEASE_NAME ]]; then
+    export BUILD_RELEASE_NAME=`whoami`
+fi
+
+if [[ -z $BUILD_REVISION_NUMBER  ]]; then
+    export BUILD_REVISION_NUMBER=1
 fi
