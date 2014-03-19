@@ -434,9 +434,15 @@ Object.defineProperties(window.Declarativ, {
     Template.prototype.instantiate = function(owner, element, documentPart) {
         var self = this;
         var deserializer = new Declarativ.Deserializer();
+        var instances;
+
+        documentPart = documentPart || owner._templateDocumentPart;
+
+        instances = Object.create(documentPart.objects);
+        instances.owner = owner;
 
         deserializer.init(this.serializationString, require);
-        return deserializer.deserialize({owner: owner}, element)
+        return deserializer.deserialize(instances, element)
             .then(function(objects) {
                 self._invokeDelegates(owner, objects, documentPart);
                 return objects;
@@ -460,10 +466,6 @@ Object.defineProperties(window.Declarativ, {
     };
 
     Template.prototype._invokeDelegates = function(owner, objects, documentPart) {
-        if (!documentPart) {
-            documentPart = owner._templateDocumentPart;
-        }
-
         for (var label in objects) {
             var object = objects[label];
 
