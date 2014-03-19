@@ -24,7 +24,7 @@ var rollbar = require("rollbar");
 
 var config = {
     // The environment the code is running in.
-    environment: environment.production ? "production" : "development",
+    environment: process.env.NODE_ENV ? process.env.NODE_ENV : "development",
     // The path to your code, (not including any trailing slash) which will be
     // used to link source files on Rollbar.
     root: __dirname,
