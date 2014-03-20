@@ -116,6 +116,10 @@ function server(options) {
                                 return;
                             }
                             var code = preview.getAccessCode(request.headers.host);
+                            // Chunk into groups of 4 by adding a space after
+                            // every 4th character except if it's at the end of
+                            // the string
+                            code = code.replace(/(....)(?!$)/g, "$1 ");
                             return HTTP.request({
                                 method: "POST",
                                 url: "http://127.0.0.1:" + projectWorkspacePort + "/notice",

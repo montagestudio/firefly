@@ -104,6 +104,9 @@ exports.getAccessCode = function (host) {
 };
 
 function maybeGrantAccessToPreview(code, previewHost, session) {
+    // strip whitespace and make lowercase
+    code = code.replace(/\s/g, "").toLowerCase();
+
     var accessCode = exports.getAccessCode(previewHost);
 
     if (code && accessCode && code === accessCode) {
