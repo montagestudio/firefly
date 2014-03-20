@@ -17,6 +17,9 @@ RUN apt-get install -y curl
 # Git
 RUN apt-get install -y git
 
+# Zip
+RUN apt-get install -y zip
+
 # Node
 RUN apt-get install -y python-software-properties python g++ make software-properties-common
 RUN add-apt-repository ppa:chris-lea/node.js
