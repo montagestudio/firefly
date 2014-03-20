@@ -7,21 +7,25 @@ source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 COMMAND_PATH="$0"
 usage() {
     echo ""
-    echo "${COMMAND_PATH} [-p] [-n <build number>] ";
+    echo "${COMMAND_PATH} [-p] [-n <build number>] [-r <build revision>] ";
     echo "     -p production"
-    echo "     -n build number"
+    echo "     -n build revision number"
+    echo "     -r build release name"
     echo ""
     exit 1;
 }
 
 export PRODUCTION="FALSE"
-while getopts ":pn:" opt; do
+while getopts ":pn:r:" opt; do
     case $opt in
         p)
             export PRODUCTION="TRUE"
             ;;
         n)
-            export BUILD_NUMBER="$OPTARG"
+            export BUILD_REVISION_NUMBER="$OPTARG"
+            ;;
+        r)
+            export BUILD_RELEASE_NAME="$OPTARG"
             ;;
         \?)
             usage;
@@ -33,6 +37,10 @@ while getopts ":pn:" opt; do
             ;;
     esac
 done
+
+source "${HOME}/deploy/build/get.sh"
+
+get-release-number
 
 export FIREFLY_SSH_OPTIONS="-o IdentitiesOnly=yes -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
@@ -77,7 +85,7 @@ wait_for_droplet ()
     fi
 }
 
-ROLLBAR_LOCAL_USERNAME=${BUILD_NUMBER}
+ROLLBAR_LOCAL_USERNAME=$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER
 rollbar() {
     # $1 environment
     # $2 machine name
@@ -118,24 +126,24 @@ staging ()
 }
 
 if [[ $PRODUCTION == "TRUE" ]]; then
-    tugboat rebuild -n LoadBalancer -m loadbalancerimage-$BUILD_NUMBER -c
-    tugboat rebuild -n WebServer -m webserverimage-$BUILD_NUMBER -c
-    tugboat rebuild -n Login1 -m loginimage-$BUILD_NUMBER -c
-    tugboat rebuild -n Login2 -m loginimage-$BUILD_NUMBER -c
-    tugboat rebuild -n Project1 -m projectimage-$BUILD_NUMBER -c
-    tugboat rebuild -n Project2 -m projectimage-$BUILD_NUMBER -c
-    tugboat rebuild -n Project3 -m projectimage-$BUILD_NUMBER -c
-    tugboat rebuild -n Project4 -m projectimage-$BUILD_NUMBER -c
+    tugboat rebuild -n LoadBalancer -m load-balancer-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n WebServer -m web-server-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n Login1 -m login-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n Login2 -m logini-mage-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n Project1 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n Project2 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n Project3 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n Project4 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
 
     rollbar "production" "Login1" "filament" "457750e5906f47199de4c5b51d78a141"
     rollbar "production" "Login1" "firefly" "afa2e8f334974bc58b0415fd06a02b40"
 else
-    tugboat rebuild -n StagingLoadBalancer -m loadbalancerimage-$BUILD_NUMBER -c
-    tugboat rebuild -n StagingWebServer -m webserverimage-$BUILD_NUMBER -c
-    tugboat rebuild -n StagingLogin1 -m loginimage-$BUILD_NUMBER -c
-    tugboat rebuild -n StagingLogin2 -m loginimage-$BUILD_NUMBER -c
-    tugboat rebuild -n StagingProject1 -m projectimage-$BUILD_NUMBER -c
-    tugboat rebuild -n StagingProject2 -m projectimage-$BUILD_NUMBER -c
+    tugboat rebuild -n StagingLoadBalancer -m load-balancer-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n StagingWebServer -m web-server-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n StagingLogin1 -m login-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n StagingLogin2 -m login-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n StagingProject1 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n StagingProject2 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
 
     staging StagingLoadBalancer
     staging StagingWebServer

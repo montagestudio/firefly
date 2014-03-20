@@ -2,10 +2,6 @@
 
 set -e
 
-apt-get update --fix-missing
-# Download HAProxy
-apt-get --yes install nginx --install-suggests
-
 pushd /srv
 
 if [[ -e "/srv/filament.tgz" ]]; then

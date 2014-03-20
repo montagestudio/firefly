@@ -474,17 +474,22 @@ Digital Ocean.
 
 Deploying is a three steps process. First you need to build the images,
 this is non destructive as it does not affect production. Then you will rebuild
-the staging environment (deploy/build/rebuild.sh) and do some QA. If you are satified
+the staging environment (deploy/build/rebuild.sh) and do some QA. If you are satisfied
 with the result you deploy the same images by adding the production flag to the deploy
 script.
+
+The build process will build 9 images: 5 base images and 4 pre-configured one for deployment.
+The base images are postfixed with teh release name. The pre-configured one are postfixed
+with the release name and the build number. The build number is incremented from the tag in the firefly
+repository.
 
 There 6 scripts you will be interested in:
 
  * `deploy/build/images.sh`
    It builds all 4 images including rebuilding the base image. It takes 40~60
-   minutes to run. You can tag the repositories for deployement by passing and optional
-   tag argument [-t "aurora-deploy-25"]. It will frequently fail because of issues on the
-   Digital Ocean site.
+   minutes to run. This script will automatically tag the firefly and filament repository.
+   Adding -f in the command line will force the rebuild of the base images. It will frequently
+   fail because of issues on the Digital Ocean site.
  * `deploy/build/load-balancer-image.sh`
    It will build the load balancer image. It will not rebuild the base image if
    it already exists.

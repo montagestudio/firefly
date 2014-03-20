@@ -5,7 +5,7 @@
         "snapshot_name": null,
         "home": "{{env `HOME`}}",
         "build": "{{env `BUILD`}}",
-        "image_id": "{{env `BASE_IMAGE_ID`}}",
+        "base_image_id": null,
         "region_id": "{{env `REGION_ID`}}"
     },
 
@@ -13,7 +13,7 @@
         "type": "digitalocean",
         "api_key": "{{user `do_api_key`}}",
         "client_id": "{{user `do_client_id`}}",
-        "image_id": "{{user `image_id`}}",
+        "image_id": "{{user `base_image_id`}}",
         "region_id": "{{user `region_id`}}",
         "size_id": 66,
         "private_networking": false,
@@ -26,9 +26,6 @@
     "provisioners": [{
         "type": "shell",
         "inline": ["sleep 30"]
-    }, {
-        "type": "shell",
-        "script": "{{user `home`}}/deploy/provision/base-additions.sh"
     }, {
         "type": "file",
         "source": "{{user `build`}}/filament.tgz",

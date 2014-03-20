@@ -28,26 +28,10 @@
         "inline": ["sleep 30"]
     }, {
         "type": "file",
-        "source": "{{user `home`}}/deploy/files/montagestudio.com.pem",
-        "destination": "/etc/ssl/montagestudio.com.pem"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/project.montagestudio.net.pem",
-        "destination": "/etc/ssl/project.montagestudio.net.pem"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/staging-project.montagestudio.net.pem",
-        "destination": "/etc/ssl/staging-project.montagestudio.net.pem"
+        "source": "{{user `home`}}/deploy/files/30-haproxy.conf",
+        "destination": "/etc/rsyslog.d/30-haproxy.conf"
     }, {
         "type": "shell",
-        "script": "{{user `home`}}/deploy/provision/load-balancer.sh"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/haproxy.cfg",
-        "destination": "/etc/haproxy/haproxy.cfg"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/errors/",
-        "destination": "/etc/haproxy/errors"
+        "script": "{{user `home`}}/deploy/provision/base-load-balancer.sh"
     }]
 }

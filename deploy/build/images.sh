@@ -13,6 +13,14 @@ source "${HOME}/deploy/build/parse-arguments.sh" "$@"
 if [[ $FORCE_BASE_IMAGE_REBUILD == "TRUE" ]]; then
     # Build the base image
     time "${HOME}/deploy/build/base-image.sh"
+    # Build the base image
+    time "${HOME}/deploy/build/base-load-balancer-image.sh"
+    # Build the base image
+    time "${HOME}/deploy/build/base-web-server-image.sh"
+    # Build the base image
+    time "${HOME}/deploy/build/base-login-image.sh"
+    # Build the base image
+    time "${HOME}/deploy/build/base-project-image.sh"
 fi
 
 # Build the Load Balancer Image
