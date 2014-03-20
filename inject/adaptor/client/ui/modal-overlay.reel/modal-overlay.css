@@ -20,12 +20,9 @@
 .ModalOverlay-box {
     margin: auto;
     max-width: 400px;
-    color: hsl(0, 0%, 40%);
+    color: hsl(0, 0%, 90%);
     font-size: .9em;
     line-height: 1.2;
-    border-radius: 8px;
-    background-color: hsl(0, 0%, 98%);
-    box-shadow: 0 3px 6px hsla(0, 0%, 0%, 0.4);
 }
 
 .ModalOverlay-item {
@@ -39,11 +36,10 @@
     margin: 0 0 16px 0;
     padding-left: 8px;
     font-size: 1.2em;
-    border-left: 2px solid red;
 }
 
 .ModalOverlay-warning em {
-    color: black;
+    color: white;
 }
 
 .ModalOverlay-message {
@@ -51,8 +47,8 @@
 }
 
 .ModalOverlay-footer {
-    margin-top: 16px;
-    text-align: right;
+    margin-top: 22px;
+    text-align: center;
 }
 
 .ModalOverlay-footer .matte-Button:last-child {
