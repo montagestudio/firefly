@@ -104,23 +104,24 @@ exports.getAccessCode = function (host) {
 };
 
 function maybeGrantAccessToPreview(code, previewHost, session) {
-    // strip whitespace and make lowercase
-    code = code.replace(/\s/g, "").toLowerCase();
+    if (code) {
+        // strip whitespace and make lowercase
+        code = code.replace(/\s/g, "").toLowerCase();
+        var accessCode = exports.getAccessCode(previewHost);
 
-    var accessCode = exports.getAccessCode(previewHost);
-
-    if (code && accessCode && code === accessCode) {
-        if (session.previewAccess) {
-            if (session.previewAccess.indexOf(previewHost) === -1) {
-                session.previewAccess.push(previewHost);
+        if (code === accessCode) {
+            if (session.previewAccess) {
+                if (session.previewAccess.indexOf(previewHost) === -1) {
+                    session.previewAccess.push(previewHost);
+                }
+            } else {
+                session.previewAccess = [previewHost];
             }
-        } else {
-            session.previewAccess = [previewHost];
+            log("access granted ", previewHost);
+            return true;
         }
-        log("access granted ", previewHost);
-        return true;
-    } else {
-        log("access denied");
-        return false;
     }
+
+    log("access denied");
+    return false;
 }
