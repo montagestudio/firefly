@@ -6,6 +6,7 @@ var fs = require("q-io/fs");
 var PackageManagerService = require("./services/package-manager-service");
 
 var INITIAL_COMMIT_MSG = "Initial commit";
+var UPDATE_DEPENDENCIES_MSG = "Update dependencies";
 var DEFAULT_GIT_EMAIL = "noreply";
 
 module.exports = ProjectWorkspace;
@@ -57,6 +58,10 @@ ProjectWorkspace.prototype.existsWorkspace = function() {
     return this._fs.exists(this._fs.join(this._workspacePath, ".git"));
 };
 
+ProjectWorkspace.prototype.existsNodeModules = function() {
+    return this._fs.exists(this._fs.join(this._workspacePath, "node_modules"));
+};
+
 ProjectWorkspace.prototype.initializeWorkspace = function() {
     var self = this;
 
@@ -69,7 +74,8 @@ ProjectWorkspace.prototype.initializeWorkspace = function() {
                 } else {
                     return self.initializeWithRepository();
                 }
-            }).then(function() {
+            })
+            .then(function() {
                 return self._repoService.defaultBranchName()
                 .then(function(branch) {
                     return self._repoService.checkoutShadowBranch(branch);
@@ -90,12 +96,18 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
     return minit.createApp(this._workspacePath, self._repo)
     .then(function() {
         return self._repoService.setupProject();
-    }).then(function() {
+    })
+    .then(function() {
         return self._setupWorkspaceRepository();
-    }).then(function() {
-            // TODO: issue! the commit is perform after npm install causing the node_modules folder to be committed!
-            //       npm install occurs during _setupWorkspaceRepository
+    })
+    .then(function() {
         return self._repoService.commitFiles(null, INITIAL_COMMIT_MSG);
+    })
+    .then(function() {
+        return self._repoService.defaultBranchName()
+        .then(function(branch) {
+            return self._repoService.checkoutShadowBranch(branch);
+        });
     });
 };
 
@@ -107,7 +119,16 @@ ProjectWorkspace.prototype.initializeWithRepository = function() {
 
     return this._repoService.cloneProject()
     .then(function() {
+        return self._repoService.defaultBranchName()
+        .then(function(branch) {
+            return self._repoService.checkoutShadowBranch(branch);
+        });
+    })
+    .then(function() {
         return self._setupWorkspaceRepository();
+    })
+    .then(function() {
+        return self._repoService.commitFiles(null, UPDATE_DEPENDENCIES_MSG);
     });
 };
 
@@ -198,7 +219,13 @@ ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
 
     return this._repoService.setUserInfo(name, email)
     .then(function() {
-        return self._npmInstall();
+        // Only run npm install if we do not have already a node_modules folders
+        return self.existsNodeModules()
+        .then(function(exists) {
+            if (!exists) {
+                return self._npmInstall();
+            }
+        });
     });
 };
 
@@ -207,7 +234,7 @@ ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
  */
 ProjectWorkspace.prototype._npmInstall = function () {
     // Let the PackageManager installs the project's dependencies.
-    var pathname =  PATH.sep + this._fs.join(this._owner, "/" + this._repo),
+    var pathname =  PATH.sep + PATH.join(this._owner, this._repo),
         fsPath = this._workspacePath;
 
     return this._fs.reroot(this._workspacePath)
