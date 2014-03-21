@@ -30,7 +30,7 @@ update ()
       npm rebuild
     fi
     # Tag every deploy regardless of whether the code was updated or not
-    git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"
+    git tag -a -m "$BUILD_URL" "deploy/$BUILD_NUMBER"
     #git push --tags
   popd
 }
