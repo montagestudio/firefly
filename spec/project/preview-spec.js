@@ -96,6 +96,18 @@ describe("preview", function () {
             .then(done, done);
         });
 
+        it("should grant access with spaces in the correct preview access code", function(done) {
+            code = code.substr(0, 2) + " " + code.substr(2, 3) + "\t" + code.substr(5, 3);
+            request.body = {read: function(){return Q.resolve("code=" + code);}};
+
+            return preview.processAccessRequest(request)
+            .then(function(response) {
+                expect(session.previewAccess.length).toBe(1);
+                expect(session.previewAccess[0]).toBe(host);
+            })
+            .then(done, done);
+        });
+
         it("should not grant access with the wrong preview access code", function(done) {
             request.body = {read: function(){return Q.resolve("code=leWrongCode");}};
 

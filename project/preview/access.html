@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>index.html</title>
+    <title>Preview</title>
     <style>
         html {
             height: 100%;
@@ -10,7 +10,7 @@
             text-shadow: 0 1px 0 hsla(0,0%,100%,.5);
             background: hsl(0,0%,96%);
         }
-        
+
         body {
             display: -webkit-box;
             display: flex;
@@ -20,7 +20,7 @@
             -moz-box-sizing: border-box;
             box-sizing: border-box;
         }
-        
+
         .form {
             display: block;
             margin: auto;
@@ -32,15 +32,15 @@
             border: 1px solid hsla(0, 0%, 0%, .06);
             background: hsl(0, 0%, 92%);
         }
-        
+
         .label {
             ext-align: center;
             display: block;
             margin-bottom: .4em;
         }
-        
+
         .code {
-            width: 5em;
+            width: 6em;
             max-width: 100%;
             text-align: center;
             font-size: 3em;
@@ -50,23 +50,23 @@
             background-color: hsl(210, 100%, 94%);
             box-shadow: inset 0 2px 3px hsla(0, 0%, 0%, 0.08), 0 1px 0 hsla(0, 100%, 100%, 0.4);
         }
-        
+
         .code:hover {
             border-color: hsla(0, 0%, 0%, 0.3)
         }
-        
+
         .code:focus {
             outline: none;
             border-color: hsl(210,100%,70%);
             background-color: hsl(210, 100%, 96%);
         }
-        
+
     </style>
 </head>
 <body>
     <form class="form" method="post" action="access">
-        <label class="label">Enter Preview Code</label>
-        <input class="code" type="text" name="code" autofocus>
+        <label class="label" for="code">Preview access code:</label>
+        <input class="code" type="text" name="code" id="code" autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     </form>
 </body>
 </html>
