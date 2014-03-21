@@ -220,11 +220,25 @@ exports.EnvironmentBridge = Montage.specialize({
 
     previewUrl: {
         get: function () {
+            var url, urlObject;
+
             // Don't indirectly kick off a connection to the backend, because
             // this must be delayed until the local clone exists
             if (this._packageUrl) {
-                var url = this._packageUrl.inspect().value;
-                return url ? url + "/index.html" : void 0;
+
+                url = this._packageUrl.inspect().value;
+
+                if (url) {
+                    // We currently force the preview to be over http
+                    // to avoid the common issue of applications relying on http services
+                    // TODO accept https if the project demands it
+                    urlObject = URL.parse(url);
+                    urlObject.protocol = "http:";
+                    urlObject = URL.resolve(urlObject, "index.html");
+                    url = URL.format(urlObject);
+
+                    return url || void 0;
+                }
             }
         }
     },
