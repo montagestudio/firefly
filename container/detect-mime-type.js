@@ -46,7 +46,7 @@ function detectMimeType (fs, path, fsPath) {
                 if (result) {
                     if (result.hasOwnProperty('owner')) { // montage-serialization
                         mimeType = ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION;
-                    } else if (result.asset.generator && /^collada2gltf/.test(result.asset.generator)) { // gltf json
+                    } else if (result.asset && result.asset.generator && /^collada2gltf/.test(result.asset.generator)) { // gltf json
                         //fixme support just the gltf files which have been generate by the collada2gltf converter
 
                         mimeType = ADDITIONAL_MIME_TYPES.GLTF ;
