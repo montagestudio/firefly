@@ -64,12 +64,15 @@ Vagrant.configure('2') do |config|
         # Exposed so that existing URL works
         lb.vm.network "forwarded_port", guest: 80, host: 2440
 
+        # base load balancer image
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf"
+        lb.vm.provision :shell, path: "deploy/provision/base-load-balancer.sh"
+
+        # load balancer image
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/montagestudio.com.pem /etc/ssl/montagestudio.com.pem"
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/project.montagestudio.net.pem"
-
+        lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/staging-project.montagestudio.net.pem"
         lb.vm.provision :shell, path: "deploy/provision/load-balancer.sh"
-
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg"
 
         # Change the haproxy config for this development environment. If you
@@ -104,11 +107,13 @@ Vagrant.configure('2') do |config|
         web.vm.network "private_network", ip: "10.0.0.3"
         web.vm.network "forwarded_port", guest: 80, host: 8183
 
-        web.vm.provision :shell, path: "deploy/provision/web-server.sh"
+        # base web server image
+        web.vm.provision :shell, path: "deploy/provision/base-web-server.sh"
 
+        # web server image
         web.vm.synced_folder "../filament", "/srv/app"
         web.vm.synced_folder "inject/adaptor", "/srv/app/adaptor"
-
+        web.vm.provision :shell, path: "deploy/provision/web-server.sh"
         web.vm.provision :shell, :inline => "cp /vagrant/deploy/files/nginx.conf /etc/nginx/nginx.conf"
 
         # Using sendfile with remote filesystems (like the Vagrant mounted one)
@@ -120,7 +125,9 @@ Vagrant.configure('2') do |config|
     end
 
     config.vm.define "login" do |login|
+        # base login image
         login.vm.provision :shell, path: "deploy/provision/base-additions.sh"
+        login.vm.provision :shell, path: "deploy/provision/base-login.sh"
 
         login.vm.hostname = "login"
         login.vm.network "private_network", ip: "10.0.0.4"
@@ -154,7 +161,9 @@ Vagrant.configure('2') do |config|
     end
 
     config.vm.define "project" do |project|
+        # base login image
         project.vm.provision :shell, path: "deploy/provision/base-additions.sh"
+        project.vm.provision :shell, path: "deploy/provision/base-project.sh"
 
         project.vm.hostname = "project"
         project.vm.network "private_network", ip: "10.0.0.5"
