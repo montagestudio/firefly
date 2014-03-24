@@ -127,6 +127,14 @@ function PreviewService() {
         sendToPreviewClients("deleteObject:" + JSON.stringify(params));
     };
 
+    service.deleteElement = function(ownerModuleId, elementLocation) {
+        var params = {
+            ownerModuleId: ownerModuleId,
+            elementLocation: elementLocation
+        };
+        sendToPreviewClients("deleteElement:" + JSON.stringify(params));
+    };
+
     service.setElementAttribute = function(moduleId, elementLocation, attributeName, attributeValue) {
         var params = {
             moduleId: moduleId,

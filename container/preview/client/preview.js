@@ -104,6 +104,11 @@ if (!window.performance) {
                 return LiveEdit.deleteObject(args.ownerModuleId, args.label);
             }
 
+            if (command === "deleteElement") {
+                args = JSON.parse(param);
+                return LiveEdit.deleteElement(args.ownerModuleId, args.elementLocation);
+            }
+
             if (command === "setElementAttribute") {
                 args = JSON.parse(param);
                 return LiveEdit.setElementAttribute(args.moduleId,

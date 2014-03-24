@@ -29,8 +29,8 @@ module.exports = function() {
 
                 var element = document.getElementsByClassName("beforeAnchor")[0];
 
-                expect(getMontageId(element.previousElementSibling)).toBe("anchor1");
-                expect(getMontageId(element.nextElementSibling)).toBe("anchor2");
+                expect(getMontageId(element.previousElementSibling)).toBe("beforeFirst");
+                expect(getMontageId(element.nextElementSibling)).toBe("beforeLast");
             });
         });
 
@@ -53,8 +53,8 @@ module.exports = function() {
                 var document = owner._template.document;
                 var element = document.getElementsByClassName("afterAnchor")[0];
 
-                expect(getMontageId(element.previousElementSibling)).toBe("anchor3");
-                expect(getMontageId(element.nextElementSibling)).toBe("anchor4");
+                expect(getMontageId(element.previousElementSibling)).toBe("afterFirst");
+                expect(getMontageId(element.nextElementSibling)).toBe("afterLast");
             });
         });
 
@@ -77,7 +77,7 @@ module.exports = function() {
                 var document = owner._template.document;
                 var element = document.getElementsByClassName("appendAnchor")[0];
 
-                expect(getMontageId(element.previousElementSibling)).toBe("anchor5");
+                expect(getMontageId(element.previousElementSibling)).toBe("appendLast");
                 expect(getMontageId(element.nextElementSibling)).toBe(null);
             });
         });

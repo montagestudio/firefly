@@ -28,8 +28,8 @@ module.exports = function() {
                     var newElement = document.getElementsByClassName("beforeAnchor")[0];
 
                     expect(newElement).toBeDefined();
-                    expect(getMontageId(newElement.previousElementSibling)).toBe("anchor1");
-                    expect(getMontageId(newElement.nextElementSibling)).toBe("anchor2");
+                    expect(getMontageId(newElement.previousElementSibling)).toBe("beforeFirst");
+                    expect(getMontageId(newElement.nextElementSibling)).toBe("beforeLast");
                 });
             });
 
@@ -52,8 +52,8 @@ module.exports = function() {
 
                     expect(newElements.length).toBe(3);
                     Array.prototype.forEach.call(newElements, function(newElement, ix) {
-                        expect(getMontageId(newElement.previousElementSibling)).toBe("itemAnchor1");
-                        expect(getMontageId(newElement.nextElementSibling)).toBe("itemAnchor2");
+                        expect(getMontageId(newElement.previousElementSibling)).toBe("itemBeforeFirst");
+                        expect(getMontageId(newElement.nextElementSibling)).toBe("itemBeforeLast");
                     });
                 });
             });
@@ -78,8 +78,8 @@ module.exports = function() {
                     var newElement = document.getElementsByClassName("afterAnchor")[0];
 
                     expect(newElement).toBeDefined();
-                    expect(getMontageId(newElement.previousElementSibling)).toBe("anchor3");
-                    expect(getMontageId(newElement.nextElementSibling)).toBe("anchor4");
+                    expect(getMontageId(newElement.previousElementSibling)).toBe("afterFirst");
+                    expect(getMontageId(newElement.nextElementSibling)).toBe("afterLast");
                 });
             });
 
@@ -102,8 +102,8 @@ module.exports = function() {
 
                     expect(newElements.length).toBe(3);
                     Array.prototype.forEach.call(newElements, function(newElement, ix) {
-                        expect(getMontageId(newElement.previousElementSibling)).toBe("itemAnchor3");
-                        expect(getMontageId(newElement.nextElementSibling)).toBe("itemAnchor4");
+                        expect(getMontageId(newElement.previousElementSibling)).toBe("itemAfterFirst");
+                        expect(getMontageId(newElement.nextElementSibling)).toBe("itemAfterLast");
                     });
                 });
             });
@@ -128,7 +128,7 @@ module.exports = function() {
                     var newElement = document.getElementsByClassName("appendAnchor")[0];
 
                     expect(newElement).toBeDefined();
-                    expect(getMontageId(newElement.previousElementSibling)).toBe("anchor5");
+                    expect(getMontageId(newElement.previousElementSibling)).toBe("appendLast");
                     expect(newElement.nextElementSibling).toBe(null);
                 });
             });
@@ -152,7 +152,7 @@ module.exports = function() {
 
                     expect(newElements.length).toBe(3);
                     Array.prototype.forEach.call(newElements, function(newElement, ix) {
-                        expect(getMontageId(newElement.previousElementSibling)).toBe("itemAnchor5");
+                        expect(getMontageId(newElement.previousElementSibling)).toBe("itemAppendLast");
                         expect(newElement.nextElementSibling).toBe(null);
                     });
                 });
