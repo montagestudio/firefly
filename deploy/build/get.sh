@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Script to clone a Declarativ repository
 
 if [[ $GITHUBDECLARATIV == "" ]]; then
@@ -139,7 +140,7 @@ get-release-number ()
                 pushd "${BUILD}/firefly"
                     TAG_EXIST=`git tag -l "${BUILD_RELEASE_NAME}/*"`
                     if [[ -n ${TAG_EXIST} ]]; then
-                        LAST_BUILD=`git tag -l "${BUILD_RELEASE_NAME}/*" | sed s?[^/]*/?? | sort -n | tail -n 1`
+                        LAST_BUILD=`git tag -l "${BUILD_RELEASE_NAME}/*" | sed s@[^/]*/@@ | sort -n | tail -n 1`
                         if [[ -n $LAST_BUILD ]]; then
                             export LAST_BUILD_NUMER=$LAST_BUILD
                             export BUILD_REVISION_NUMBER=$LAST_BUILD
