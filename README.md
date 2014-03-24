@@ -506,6 +506,17 @@ There 6 scripts you will be interested in:
 Those 5 scripts accept 2 command line parameters: `-b firefly_branch` and
 `-c filament_branch`.
 
+There are two important environment variables, `$LAST_BUILD_NUMER` and
+`$BUILD_REVISION_NUMBER`.
+
+When the build system is invoked through `build/images.sh` new base images are
+created and `BUILD_REVISION_NUMBER` is set to `$LAST_BUILD_NUMER + 1` (see
+`tag-repositories`). When invoked through, for example,
+`build/base-load-balancer-image.json`, the image will be recreated. This
+feature allows us to rebuild individual images, which is necessary because of
+the (frustratingly) high rate of failure when provisioning the images (usually
+failed DNS lookups).
+
 **Danger**
 
  * deploy/build/rebuild.sh
