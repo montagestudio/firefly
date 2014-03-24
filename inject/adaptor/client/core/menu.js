@@ -43,10 +43,10 @@ var Menu = exports.Menu = Montage.specialize({
 
     insertItem: {
         value: function(item, index) {
-            if (index > this.items.length) {
+            if (!index || index > this.items.length) {
                 this.items.push(item);
             } else {
-                this.items.splice(index, 0, item);
+                this.items.set(index, item);
             }
 
             return Promise.resolve(item);
