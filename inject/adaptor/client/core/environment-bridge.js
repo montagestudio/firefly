@@ -579,6 +579,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    updateProjectRefs: {
+        value: function(resolution) {
+            return this.repositoryController.updateProjectRefs(resolution);
+        }
+    },
+
     /**
      * Pushes all commits to remote repository.
      */
