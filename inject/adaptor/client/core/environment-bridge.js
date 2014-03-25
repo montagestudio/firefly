@@ -579,7 +579,7 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
-    projectExists: {
+    workspaceExists: {
         value: function() {
             return this.repositoryController.workspaceExists();
         }
