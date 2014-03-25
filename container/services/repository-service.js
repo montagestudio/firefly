@@ -834,6 +834,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                                     .then(function() {
                                                         returnValue.success = success;
                                                     });
+                                                } else {
+                                                    throw new Error("Cannot push shadow branch after a rebase on parent");
                                                 }
                                             });
                                         } else {
