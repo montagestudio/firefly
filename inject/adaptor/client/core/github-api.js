@@ -217,15 +217,16 @@ GithubApi.prototype.isRepositoryEmpty = function(username, repository) {
 };
 
 GithubApi.prototype.repositoryExists = function(username, repository) {
-    return this.listUserRepositories(username)
-    .then(function(repos) {
-        for (var i = 0; i < repos.length; i++) {
-            if (repos[i].name === repository) {
-                return true;
+    return this.getRepository(username, repository)
+        .then(function (repo) {
+            return !!repo;
+        }, function (err) {
+            if ("Not Found" === err.message) {
+                return false;
+            } else {
+                throw err;
             }
-        }
-        return false;
-    });
+        });
 };
 
 /**
