@@ -191,7 +191,7 @@ exports.MenuItem = Component.specialize(/** @lends MenuItem# */ {
                 return;
             }
 
-            if (this.menuItemModel.identifier) {
+            if (!this.menuItemModel.items.length) {
                 this._triggerAction();
             } else {
                 this._openSubmenu();
