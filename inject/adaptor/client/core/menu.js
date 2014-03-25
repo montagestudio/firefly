@@ -141,21 +141,19 @@ Montage.defineProperty(exports, "defaultMenu", {
                     helpMenu,
                     newSubMenu;
 
-                // Help
-                helpMenu = makeMenuItem("Help", "", true, "", [
-                    makeMenuItem("Documentation", "documentation", true, ""),
-                    makeMenuItem("Forum", "forum", true, ""),
-                    makeMenuItem("Report a Bug", "report", true, ""),
-                    makeMenuItem("API Reference", "api", true, ""),
-                    makeMenuItem("Framework", "framework", true, "")
+                // Project
+                //  File
+                newSubMenu = makeMenuItem("New", "new", true, "", [
+                    makeMenuItem("Application", "newApplication", false, "control+n"),
+                    makeMenuItem("Component", "newComponent", true, "shift+control+n"),
+                    makeMenuItem("Module", "newModule", true, "")
                 ]);
-                _defaultMenu.insertItem(helpMenu);
-
-                // View
-                viewMenu = makeMenuItem("View", "", true, "", [
-                    makeMenuItem("Launch Preview", "launchPreview", true, "control+r")
+                projectMenu = makeMenuItem("Project", "", true, "", [
+                    newSubMenu,
+                    makeMenuItem("Save All", "save", true, "command+s"),
+                    makeMenuItem("Source", "source", true, "")
                 ]);
-                _defaultMenu.insertItem(viewMenu);
+                _defaultMenu.insertItem(projectMenu);
 
                 // Edit
                 editMenu = makeMenuItem("Edit", "", true, "", [
@@ -165,19 +163,21 @@ Montage.defineProperty(exports, "defaultMenu", {
                 ]);
                 _defaultMenu.insertItem(editMenu);
 
-                // File
-                newSubMenu = makeMenuItem("New", "new", true, "", [
-                    makeMenuItem("Application", "newApplication", false, "control+n"),
-                    makeMenuItem("Component", "newComponent", true, "shift+control+n"),
-                    makeMenuItem("Module", "newModule", true, "")
+                // View
+                viewMenu = makeMenuItem("View", "", true, "", [
+                    makeMenuItem("Launch Preview", "launchPreview", true, "control+r")
                 ]);
+                _defaultMenu.insertItem(viewMenu);
 
-                projectMenu = makeMenuItem("Project", "", true, "", [
-                    newSubMenu,
-                    makeMenuItem("Save All", "save", true, "command+s"),
-                    makeMenuItem("Source", "source", true, "")
+                // Help
+                helpMenu = makeMenuItem("Help", "", true, "", [
+                    makeMenuItem("Documentation", "documentation", true, ""),
+                    makeMenuItem("Forum", "forum", true, ""),
+                    makeMenuItem("Report a Bug", "report", true, ""),
+                    makeMenuItem("API Reference", "api", true, ""),
+                    makeMenuItem("Framework", "framework", true, "")
                 ]);
-                _defaultMenu.insertItem(projectMenu);
+                _defaultMenu.insertItem(helpMenu);
             });
         }
         return _defaultMenu;
