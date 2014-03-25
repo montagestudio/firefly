@@ -24,8 +24,7 @@
     "login-remote-debug": "vagrant ssh login -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\"'",
     "project-debug": "vagrant ssh project -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\" && node-inspector --web-port=8105'",
     "project-remote-debug": "vagrant ssh project -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\"'",
-    "project-clone": "echo 'Removed, use `npm run container-files` or `npm run container-copy-files` instead'",
-    "update-dependencies": "rm -rf node_modules && npm install && npm dedupe && git add --update node_modules && git add node_modules"
+    "project-clone": "echo 'Removed, use `npm run container-files` or `npm run container-copy-files` instead'"
   },
   "repository": {
     "type": "git",

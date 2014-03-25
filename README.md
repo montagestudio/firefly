@@ -444,16 +444,15 @@ Updating dependencies
 ---------------------
 
 The dependencies are checked in [as recommendedd](http://www.futurealoof.com/posts/nodemodules-in-git.html)
-by members of the community. To update them login into a VM
-(`vagrant ssh login`), `cd /srv/firefly` and run:
+by members of the community. To update them login into a VM:
 
 ```bash
-npm run update-dependencies
+vagrant ssh login
+vagrant@login:~$ cd /srv/firefly
+vagrant@login:~$ npm install --save DEP
+vagrant@login:~$ exit
+git add node_modules
 ```
-
-This will remove all the existing dependencies, install and dedupe, and stage
-the node_modules. At this point you should test and rollback any dependencies
-that you don't want to update.
 
 Any checked in binary modules **must** be added and compiled for Linux (that's
 why you run this command inside the VM).
