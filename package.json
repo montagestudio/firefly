@@ -8,7 +8,7 @@
     "test": "if [ \"`uname`\" = \"Linux\" ]; then npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs npm run tests; else echo Running tests in VM; vagrant ssh login -c \"cd /srv/firefly; npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs npm run tests\"; fi",
     "tests": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "slow-tests": "runSlowSpecs=true npm test",
-    "start": "vagrant up || (echo 'To run Aurora please install Vagrant from http://www.vagrantup.com/downloads.html' && exit 1)",
+    "start": "vagrant up",
     "deploy": "deploy/vagrant/deploy.sh",
     "stop": "vagrant halt && echo 'Run `vagrant destroy` to completely remove the VMs (this will make `npm start` a lot slower)'",
     "login-logs": "vagrant ssh login -c 'tail -f /home/montage/stdout.log'",
