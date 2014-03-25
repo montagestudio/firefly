@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Script to clone a Declarativ repository
 
 if [[ $GITHUBDECLARATIV == "" ]]; then
@@ -99,4 +100,69 @@ tag ()
         exit -1
     fi
     
+}
+
+get-image-id ()
+{
+    echo `tugboat info_image -n "$1" | grep ID: | sed 's/ID:[ ]*\([0-9]*\)/\1/'`
+}
+
+build-base-image ()
+{
+    declare BASE_IMAGE_ID=`get-image-id "$1-$BUILD_RELEASE_NAME"`
+    if [[ -z ${BASE_IMAGE_ID} ]]; then
+        echo "The base image $1 must be build before the current image"
+        ${HOME}/deploy/build/$1.sh
+        BASE_IMAGE_ID=`get-image-id "$1-$BUILD_RELEASE_NAME"`
+        if [[ -z ${BASE_IMAGE_ID} ]]; then
+            echo "Error building the base image $1-$BUILD_RELEASE_NAME"
+            exit 1
+        fi
+    fi
+}
+
+remove-image ()
+{
+    declare IMAGE_EXIST=`tugboat info_image "$1" | grep Name`
+    if [[ -n ${IMAGE_EXIST} ]]; then
+        tugboat destroy_image "$1" -c
+    fi
+}
+
+get-release-number ()
+{
+    if [[ $LAST_BUILD_NUMER < 0 ]]; then
+        if [[ -n ${BUILD_RELEASE_NAME} ]]; then
+
+            rm -rf "${BUILD}/firefly"
+            git clone git@$GITHUBDECLARATIV:declarativ/firefly.git "${BUILD}/firefly"
+            if [[ -e "${BUILD}/firefly" ]]; then
+                pushd "${BUILD}/firefly"
+                    TAG_EXIST=`git tag -l "${BUILD_RELEASE_NAME}/*"`
+                    if [[ -n ${TAG_EXIST} ]]; then
+                        LAST_BUILD=`git tag -l "${BUILD_RELEASE_NAME}/*" | sed s@[^/]*/@@ | sort -n | tail -n 1`
+                        if [[ -n $LAST_BUILD ]]; then
+                            export LAST_BUILD_NUMER=$LAST_BUILD
+                            export BUILD_REVISION_NUMBER=$LAST_BUILD
+                        else
+                            echo "Malformed tag name ${TAG_EXIST}"
+                            exit -1
+                        fi
+                    else
+                        export LAST_BUILD_NUMER=0
+                        export BUILD_REVISION_NUMBER=0
+                    fi
+                export TAG_NAME="$BUILD_RELEASE_NAME/$BUILD_REVISION_NUMBER"
+                popd
+                rm -rf "${BUILD}/firefly"
+            else
+                echo "Cannot clone git repository: ${BUILD}/firefly"
+                exit -1
+            fi
+        else
+                echo "The Release name must be set: "
+                exit -1
+        fi
+    fi
+
 }

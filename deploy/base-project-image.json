@@ -20,26 +20,17 @@
         "ssh_timeout": "12m",
         "state_timeout": "12m",
         "snapshot_name": "{{user `snapshot_name`}}",
-        "droplet_name": "firefly-login-image"
+        "droplet_name": "firefly-project-image"
     }],
 
     "provisioners": [{
         "type": "shell",
         "inline": ["sleep 30"]
     }, {
-        "type": "file",
-        "source": "{{user `build`}}/filament.tgz",
-        "destination": "/srv/filament.tgz"
-    }, {
-        "type": "file",
-        "source": "{{user `build`}}/firefly.tgz",
-        "destination": "/srv/firefly.tgz"
+        "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/base-additions.sh"
     }, {
         "type": "shell",
-        "script": "{{user `home`}}/deploy/provision/login.sh"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/services/firefly-login.conf",
-        "destination": "/etc/init/firefly-login.conf"
+        "script": "{{user `home`}}/deploy/provision/base-project.sh"
     }]
 }
