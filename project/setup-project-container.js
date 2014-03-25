@@ -83,7 +83,7 @@ function SetupProjectContainer(docker, containers, _request) {
                 Image: IMAGE_NAME,
                 Cmd: ['-c', JSON.stringify(config)],
                 Env: [
-                    "NODE_ENV=" + process.env.NODE_ENV || "development",
+                    "NODE_ENV=" + (process.env.NODE_ENV || "development"),
                     "FIREFLY_APP_URL=" + environment.app.href,
                     "FIREFLY_PROJECT_URL=" + environment.project.href,
                     "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
