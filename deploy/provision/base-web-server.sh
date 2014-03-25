@@ -3,5 +3,5 @@
 set -e
 
 apt-get update --fix-missing
-# Download HAProxy
+# Download nginx
 apt-get --yes install nginx --install-suggests
