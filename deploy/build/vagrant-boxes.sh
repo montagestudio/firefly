@@ -6,5 +6,6 @@ packer build \
     -only virtualbox-iso \
     -var "do_api_key=" \
     -var "do_client_id=" \
+    -var "base_image_id=" \
     -var "snapshot_name=" \
     "${HOME}/deploy/base-image.json"
