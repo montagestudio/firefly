@@ -808,7 +808,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                             // We can try to rebase, discard local changes, revert remote changes or force local changes
                                             // Let's do a dry rebase to check if we can safely rebase
                                             returnValue.resolutionStrategy = [];
-                                            return self._rebase(local.shadow.name, remote.shadow.name, local.shadow.Sha).then(function(success) {
+                                            return self._rebase(local.shadow.name, remote.shadow.name, local.shadow.sha).then(function(success) {
                                                 returnValue.resolutionStrategy = ["discard", "revert", "force"];
                                                 if (success) {
                                                     returnValue.resolutionStrategy.unshift(["rebase"]);
