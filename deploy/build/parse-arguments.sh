@@ -9,18 +9,19 @@ COMMAND_PATH="$0"
 
 usage() {
     echo ""
-    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] [-n <build number>] [-r <build revision>] [-f] [-t <tag name>]";
+    echo "${COMMAND_PATH} [-b <branch>] [-c <branch>] [-n <build number>] [-r <build revision>] [-f] [-t]";
     echo "     -b filament branch"
     echo "     -c firefly branch"
     echo "     -f (force base image rebuild)"
     echo "     -n build revision number"
     echo "     -r build release name"
-    echo "     -t tag the repositories"
+    echo "     -t (do not tag repositories)"
+    echo "     -x (debug mode)"
     echo ""
     exit 1;
 }
 
-while getopts ":b:c:fn:t:r:x" opt; do
+while getopts ":b:c:fn:r:tx" opt; do
     case $opt in
         b)
             export FILAMENT_COMMIT="$OPTARG"
@@ -38,7 +39,7 @@ while getopts ":b:c:fn:t:r:x" opt; do
             export BUILD_RELEASE_NAME="$OPTARG"
             ;;
         t)
-            export TAG_NAME="$OPTARG"
+            export TAG_REPOSITORIES="FALSE"
             ;;
         x)
             set -x

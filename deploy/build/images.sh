@@ -8,7 +8,9 @@ source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 # Parse the arguments list and setup the environment
 source "${HOME}/deploy/build/parse-arguments.sh" "$@"
 
-"${HOME}/deploy/build/tag-repositories.sh"
+if [[ $TAG_REPOSITORIES == "TRUE" ]]; then
+    "${HOME}/deploy/build/tag-repositories.sh"
+fi
 
 if [[ $FORCE_BASE_IMAGE_REBUILD == "TRUE" ]]; then
     # Build the base image

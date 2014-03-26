@@ -31,6 +31,8 @@ if [[ -z $DEFAULTS_HAVE_BEEN_SET ]]; then
 
     export LAST_BUILD_NUMER=-1
 
+    export TAG_REPOSITORIES="TRUE"
+
     export DEFAULTS_HAVE_BEEN_SET="TRUE"
 
 fi
