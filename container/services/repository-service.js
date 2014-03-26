@@ -256,6 +256,32 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         return this._updateRefs(resolutionStrategy);
     }));
 
+    /**
+     * Merge the Shadow branch into its parent and update the remote shadow and remote parent.
+     * If a conflict occurs, a resolution strategy can be provided.
+     *
+     * Make sure to call checkoutShadowBranch before and make sure there is not uncommitted
+     * changes.
+     *
+     * mergeShadowBranch returns notifications and possible resolution strategies in case of a conflict
+     *
+     * Possible resolution strategy are:
+     *  - "discard": Discard the local commit and update the local repository
+     *               with the remote changes
+     *  - "revert":  Revert the remote commits and push the local changes
+     *
+     * argument:
+     *      branch: the branch name to merge into (parent branch)
+     *      message: merge commit message (only when squash is true)
+     *      squash: true to squash the commits
+     *      resolutionStrategy:  [optional] resolution strategy to use to resolve conflict
+     *
+     * return: promise for an notifications object
+     */
+    service.mergeShadowBranch = checkGithubError(exclusive(function(branch, message, squash, resolutionStrategy) {
+        return this._mergeShadowBranch(branch, message, squash, resolutionStrategy);
+    }));
+
     service._getInfo = function() {
         if (!_info) {
             var deferred = Q.defer();
@@ -713,6 +739,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 }
             })
             .then(function() {
+                var didPush = false;
+
                 // check shadow branch
                 var local = branchesInfo.branches[LOCAL_REPOSITORY_NAME][current],
                     remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME][current];
@@ -744,6 +772,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                     return self._rebase(local.shadow.name, remote.shadow.name)
                                     .then(function(success) {
                                         if (success) {
+                                            didPush = true;
                                             returnValue.success = success;
                                         } else {
                                             // We cannot rebase, let's propose other solutions
@@ -771,7 +800,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                      */
                                     return self._revertRemoteChanges(OWNER_SHADOW_BRANCH_PREFIX + current, branchesInfo, status)
                                     .then(function() {
-                                        return { success: true };
+                                        didPush = true;
+                                        returnValue.success = true;
                                     }, function(error) {
                                         log("Revert remote changes failed:", error.stack);
                                         throw new Error("Revert remote changes failed: " + error.message);
@@ -781,9 +811,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                        Force local changes into remote
                                     */
                                     return self._push(OWNER_SHADOW_BRANCH_PREFIX + current, "--force").then(function() {
-                                        return {
-                                            success: true
-                                        };
+                                        didPush = true;
+                                        returnValue.success = true;
                                     }, function(error) {
                                         log("Forced push failed:", error.stack);
                                         throw new Error("Forced push failed: " + error.message);
@@ -792,7 +821,11 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                     // Default
                                     if (status.behind === 0) {
                                         // Somehow the local shadow is ahead of the remote shadow, let's just push it
-                                        return self._push(local.shadow.name);
+                                        return self._push(local.shadow.name)
+                                        .then(function() {
+                                            didPush = true;
+                                            returnValue.success = true;
+                                        });
                                     } else {
                                         returnValue.success = false;
                                         returnValue.notifications.push({
@@ -819,7 +852,18 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                 }
                             });
                         }
-                    }).then(function() {
+                    })
+                    .then(function() {
+                        if (didPush) {
+                            // We need to update the branches info
+                            return self._listBranches(true).then(function(result) {
+                                branchesInfo = result;
+                                local = branchesInfo.branches[LOCAL_REPOSITORY_NAME][current];
+                                remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME][current];
+                            });
+                        }
+                    })
+                    .then(function() {
                         // check if shadow differs from parent
                         if (returnValue.success) {
                             if (local.shadow.sha !== remote.sha) {
@@ -830,7 +874,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                             return self._rebase(local.shadow.name, remote.name)
                                             .then(function(success) {
                                                 if (success) {
-                                                    return self._push(local.shadow.name)
+                                                    // We can force push as we should have already resolve any conflict with the remote shadow
+                                                    return self._push(local.shadow.name, "--force")
                                                     .then(function() {
                                                         returnValue.success = success;
                                                     });
@@ -841,7 +886,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                         } else {
                                             // Default
                                             returnValue.notifications.push({
-                                                type: "shadowBehindParent",
+                                                type: "shadowBehindParent",     // JFD TODO: could be out of sync too!!!
                                                 branch: current,
                                                 ahead: status.ahead,
                                                 behind: status.behind
@@ -860,6 +905,67 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 return returnValue;
             });
 
+        });
+    };
+
+    service._mergeShadowBranch = function(branch, message, squash, resolutionStrategy) {
+        var self = this,
+            branchesInfo;
+
+        return self._listBranches(true)
+        .then(function(result) {
+            branchesInfo = result;
+            // Make sure we have a shadow branch
+            if (!branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch] || !branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].shadow) {
+                throw new Error("Invalid branch");
+            }
+        })
+        .then(function() {
+            // Make sure we have something to merge...
+            return self._branchStatus(branch, OWNER_SHADOW_BRANCH_PREFIX + branch)
+            .then(function(status) {
+                if (status.behind > 0) {
+                    return _git.checkout(fsPath, branch)
+                    .then(function() {
+                        // git merge <shadow branch> [--squash]
+                        return _git.merge(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch, squash)
+                        .catch(function(error) {
+                            // TODO: handle merge error
+                            log("Merge error:", error.stack);
+                        });
+                    })
+                    .then(function() {
+                        // git commit -m <message>
+                        if (squash) {
+                            return _git.commit(fsPath, message || "merge changes");
+                        }
+                    })
+                    .then(function(){
+                        return self._push(branch);
+                    })
+                    .then(function() {
+                        // git checkout <shadow branch>
+                        return _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                    })
+                    .then(function() {
+                        // reset the shadow branch after a squash
+                        if (squash) {
+                            return _git.command(fsPath, "reset", ["--hard", branch])
+                            .then(function() {
+                                return self._push(OWNER_SHADOW_BRANCH_PREFIX + branch, "--force");
+                            });
+                        }
+                    }).then(function() {
+                        return {success: true};
+                    }, function(error) {
+                        // checkout the shadow branch, just in case we are still on the parent branch
+                        _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                        throw error;
+                    });
+                } else {
+                    return {success: true};
+                }
+            });
         });
     };
 
@@ -1059,9 +1165,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         .then(function() {
             if (dryRunSha) {
                 return _git.command(fsPath, "reset", ["--hard", dryRunSha])
-                .then(function() {
-                    return true;
-                });
+                .thenResolve(true);
             }
             return true;
         })

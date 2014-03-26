@@ -734,6 +734,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    mergeShadowBranch: {
+        value: function (branch, message, squash, resolutionStrategy) {
+            return this.backend.get("repository-service").invoke("mergeShadowBranch", branch, message, squash, resolutionStrategy);
+        }
+    },
+
     resetShadowBranch: {
         value: function (branch) {
             //TODO only do this for shadow branches?
