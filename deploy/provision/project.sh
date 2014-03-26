@@ -2,9 +2,6 @@
 
 set -e
 
-# Install Docker
-curl -sL https://get.docker.io/ | sh
-
 # Unpack filament and firefly
 pushd /srv
 if [[ -e "/srv/filament.tgz" ]]; then
