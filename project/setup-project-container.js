@@ -83,7 +83,7 @@ function SetupProjectContainer(docker, containers, _request) {
                 Image: IMAGE_NAME,
                 Cmd: ['-c', JSON.stringify(config)],
                 Env: [
-                    "NODE_ENV=" + process.env.NODE_ENV || "development",
+                    "NODE_ENV=" + (process.env.NODE_ENV || "development"),
                     "FIREFLY_APP_URL=" + environment.app.href,
                     "FIREFLY_PROJECT_URL=" + environment.project.href,
                     "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
@@ -118,7 +118,9 @@ function SetupProjectContainer(docker, containers, _request) {
         .then(function (containerInfo) {
             if (containerInfo.State.Running) {
                 return containerInfo;
-            } else if (!info.started) {
+            } else if (info.started && info.started.then) {
+                return info.started;
+            } else {
                 log("Starting container", container.id);
                 var options = {};
                 options.PortBindings = {};
@@ -129,8 +131,8 @@ function SetupProjectContainer(docker, containers, _request) {
                 .then(function () {
                     return container.inspect();
                 });
+                return info.started;
             }
-            return info.started;
         })
         .then(getExposedPort);
     }
@@ -139,14 +141,15 @@ function SetupProjectContainer(docker, containers, _request) {
      * Waits for a server to be available on the given port. Retries every
      * 100ms until timeout passes.
      * @param  {string} port        The port
-     * @param  {number} timeout     The number of milliseconds to keep trying for
+     * @param  {number} [timeout]   The number of milliseconds to keep trying for
+     * @param  {Error} [error]      An previous error that caused the timeout
      * @return {Promise.<string>}   A promise for the port resolved when the
      * server is available.
      */
-    function waitForServer(port, timeout) {
+    function waitForServer(port, timeout, error) {
         timeout = typeof timeout === "undefined" ? 2000 : timeout;
         if (timeout <= 0) {
-            return Q.reject(new Error("Timeout while waiting for server on port " + port));
+            return Q.reject(new Error("Timeout while waiting for server on port " + port + (error ? " because " + error.message : "")));
         }
 
         return request({
@@ -156,20 +159,19 @@ function SetupProjectContainer(docker, containers, _request) {
             path: "/check"
         })
         .catch(function (error) {
-            if (error.code === "ECONNRESET") {
-                log("Server at", port, "not available yet. Trying for", timeout - 100, "more ms");
-                return Q.delay(100).then(function () {
-                    return waitForServer(port, timeout - 100);
-                });
-            } else {
-                log("*Error connecting to " + port + "*", error);
-                throw error;
-            }
+            log("Server at", port, "not available yet. Trying for", timeout - 100, "more ms");
+            return Q.delay(100).then(function () {
+                return waitForServer(port, timeout - 100, error);
+            });
         })
         .thenResolve(port);
     }
 
     function getExposedPort(containerInfo) {
-        return containerInfo.HostConfig.PortBindings[IMAGE_PORT_TCP][0].HostPort;
+        if (containerInfo && containerInfo.HostConfig && containerInfo.HostConfig.PortBindings) {
+            return containerInfo.HostConfig.PortBindings[IMAGE_PORT_TCP][0].HostPort;
+        } else {
+            throw new Error("Cannot get exposed port, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
+        }
     }
 }
