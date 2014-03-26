@@ -92,9 +92,9 @@ Git.prototype.checkout = function (repoPath, branch, create, merge) {
     });
 };
 
-Git.prototype.merge = function (repoPath, branch) {
-    var args = ["merge", "-q", branch];
-    log("merge ", branch);
+Git.prototype.merge = function (repoPath, branch, squash) {
+    var args = (squash === true) ? ["merge", "-q", "--squash", branch] : ["merge", "-q", branch];
+    log("merge ", branch, squash === true ? "squash" : "");
     return exec("git", args, repoPath)
     .fail(function() {
         throw new Error("git merge failed.");
