@@ -129,7 +129,7 @@ if [[ $PRODUCTION == "TRUE" ]]; then
     tugboat rebuild -n LoadBalancer -m load-balancer-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n WebServer -m web-server-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n Login1 -m login-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
-    tugboat rebuild -n Login2 -m logini-mage-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+    tugboat rebuild -n Login2 -m login-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n Project1 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n Project2 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n Project3 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
