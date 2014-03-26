@@ -14,11 +14,13 @@ module.exports = function (config) {
         .app(function (request) {
             return handleEndpoint(config, request, function() {
                 log("init handleEndpoint");
-                initializingPromise = request.projectWorkspace.initializeWorkspace();
-                initializingPromise.catch(function (error) {
-                    log("*Error initializing*", error, error.stack);
-                    track.error(error, request);
-                });
+                if (!initializingPromise) {
+                    initializingPromise = request.projectWorkspace.initializeWorkspace();
+                    initializingPromise.catch(function (error) {
+                        log("*Error initializing*", error, error.stack);
+                        track.error(error, request);
+                    });
+                }
             }, function() {
                 return {message: "initializing"};
             });
@@ -80,9 +82,10 @@ module.exports = function (config) {
         GET("workspace")
         .app(function (request) {
             return handleEndpoint(config, request, function() {
-                return request.projectWorkspace.existsWorkspace();
-            }, function(exists) {
-                return {created: exists};
+                return initializingPromise && !initializingPromise.isFulfilled() ?
+                    "initializing" : request.projectWorkspace.existsWorkspace();
+            }, function(status) {
+                return {created: status};
             });
         });
 
