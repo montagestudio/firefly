@@ -20,7 +20,7 @@
         "ssh_timeout": "12m",
         "state_timeout": "12m",
         "snapshot_name": "{{user `snapshot_name`}}",
-        "droplet_name": "firefly-login-image"
+        "droplet_name": "firefly-base-login-image"
     }],
 
     "provisioners": [{
