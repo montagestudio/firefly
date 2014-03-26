@@ -118,7 +118,9 @@ function SetupProjectContainer(docker, containers, _request) {
         .then(function (containerInfo) {
             if (containerInfo.State.Running) {
                 return containerInfo;
-            } else if (!info.started) {
+            } else if (info.started && info.started.then) {
+                return info.started;
+            } else {
                 log("Starting container", container.id);
                 var options = {};
                 options.PortBindings = {};
@@ -129,8 +131,8 @@ function SetupProjectContainer(docker, containers, _request) {
                 .then(function () {
                     return container.inspect();
                 });
+                return info.started;
             }
-            return info.started;
         })
         .then(getExposedPort);
     }
@@ -166,6 +168,10 @@ function SetupProjectContainer(docker, containers, _request) {
     }
 
     function getExposedPort(containerInfo) {
-        return containerInfo.HostConfig.PortBindings[IMAGE_PORT_TCP][0].HostPort;
+        if (containerInfo && containerInfo.HostConfig && containerInfo.HostConfig.PortBindings) {
+            return containerInfo.HostConfig.PortBindings[IMAGE_PORT_TCP][0].HostPort;
+        } else {
+            throw new Error("Cannot get exposed port, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
+        }
     }
 }
