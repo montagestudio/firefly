@@ -1,3 +1,10 @@
-.PromptPanel .Input {
-    margin-top: 0.6em;
+.PromptPanel .matte-InputText.Input {
+    margin-top: 1.2em;
+    border-color: hsl(0, 0%, 20%);
+    box-shadow: inset 0 1px 2px hsla(0, 0%, 0%, 0.15), 0 1px 0 hsla(0, 100%, 100%, 0.15);
+    color: hsl(0, 0%, 90%);
+}
+
+.PromptPanel .matte-InputText.Input:focus {
+    color: hsl(0, 100%, 100%);
 }
