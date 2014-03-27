@@ -48,19 +48,6 @@ module.exports = function (config) {
             });
         });
 
-        POST("update")
-        .app(function (request) {
-            return handleEndpoint(config, request, function(data) {
-                return request.projectWorkspace.updateRefs(
-                    data.resolution);
-            }, function(result) {
-                if (result.success === true) {
-                    result.message = "updated";
-                }
-                return result;
-            });
-        });
-
         POST("modules")
         .app(function (request) {
             return handleEndpoint(config, request, function(data) {

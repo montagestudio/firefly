@@ -151,18 +151,6 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
-    updateProjectRefs: {
-        value: function(resolution) {
-            return this._request({
-                method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/update",
-                data: {
-                    "resolution": resolution
-                }
-            });
-        }
-    },
-
     createComponent: {
         value: function(name) {
             return this._request({
