@@ -17,4 +17,10 @@ describe("logging", function () {
         expect(output.length).toEqual(1);
         expect(output[0]).toContain("https://SCRUBBED:x-oauth-basic@github.com/example/example.git");
     });
+
+    it("handles non-strings", function () {
+        log(false);
+        expect(output.length).toEqual(1);
+        expect(output[0]).toContain("false");
+    });
 });

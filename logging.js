@@ -7,8 +7,10 @@ var SCRUB_LENGTH = SCRUB.length;
 
 var OPTIONS = {
     filter: function (message) {
-        for (var i = 0; i < SCRUB_LENGTH; i++) {
-            message = message.replace(SCRUB[i].match, SCRUB[i].replace);
+        if (typeof message === "string") {
+            for (var i = 0; i < SCRUB_LENGTH; i++) {
+                message = message.replace(SCRUB[i].match, SCRUB[i].replace);
+            }
         }
         return message;
     }
