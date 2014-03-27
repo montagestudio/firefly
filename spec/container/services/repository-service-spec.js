@@ -392,10 +392,9 @@ describe("repository-service", function () {
                     expect(result.success).toBeFalsy();
                     expect(result.ahead).toBe(1);
                     expect(result.behind).toBe(1);
-                    expect(result.resolutionStrategy.length).toBe(3);
+                    expect(result.resolutionStrategy.length).toBe(2);
                     expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
                     expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
-                    expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
                 })
                 .then(done, done);
             });
@@ -433,10 +432,9 @@ describe("repository-service", function () {
                     expect(result.success).toBeFalsy();
                     expect(result.ahead).toBe(1);
                     expect(result.behind).toBe(1);
-                    expect(result.resolutionStrategy.length).toBe(3);
+                    expect(result.resolutionStrategy.length).toBe(2);
                     expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
                     expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
-                    expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
                 })
                 .then(done, done);
             });
