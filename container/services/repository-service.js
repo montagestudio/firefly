@@ -2,7 +2,7 @@ var Q = require("q");
 var Queue = require("q/queue");
 var Git = require("../git");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
-var log = require("logging").from(__filename);
+var log = require("../../logging").from(__filename);
 
 module.exports = exports = RepositoryService;   // High level access to the service
 module.exports.service = _RepositoryService;    // Low level access to the service

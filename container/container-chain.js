@@ -1,4 +1,4 @@
-var log = require("logging").from(__filename);
+var log = require("../logging").from(__filename);
 var track = require("../track");
 var Q = require("q");
 var joey = require("joey");

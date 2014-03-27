@@ -1,4 +1,4 @@
-var log = require("logging").from(__filename);
+var log = require("./logging").from(__filename);
 var crypto = require('crypto');
 
 var SAH_DEFAULT_SECRET = "dd5d8cafe37ee96fbc4115b950117725843651bc";

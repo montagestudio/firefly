@@ -1,4 +1,4 @@
-var log = require("logging").from(__filename);
+var log = require("./logging").from(__filename);
 var URL = require("url");
 var routeProject; // Circular dependency, and so required once just before it's needed
 

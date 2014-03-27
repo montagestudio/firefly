@@ -1,6 +1,6 @@
 var track = require("./track");
 var Env = require("./environment");
-var log = require("logging").from(__filename);
+var log = require("./logging").from(__filename);
 var FS = require("q-io/fs");
 
 var projectChainFactory = require("./project/project-chain");
