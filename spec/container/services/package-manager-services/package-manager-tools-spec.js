@@ -103,13 +103,74 @@ describe("package-tools", function () {
         });
 
         it("should accept valid git urls.", function() {
-            expect(PackageManagerTools.isRequestValid('git://git@github.com:declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isRequestValid('git://git@github.com/declarativ/palette.git')).toEqual(true);
             expect(PackageManagerTools.isRequestValid('git+ssh://git@github.com:declarativ/palette.git')).toEqual(true);
             expect(PackageManagerTools.isRequestValid('git+ssh://git@github.com:declarativ/.git')).toEqual(false);
-            expect(PackageManagerTools.isRequestValid('git+http://github.com:declarativ/palette.git')).toEqual(true);
-            expect(PackageManagerTools.isRequestValid('git+https://git@github.com:declarativ/palette.git#445')).toEqual(true);
+            expect(PackageManagerTools.isRequestValid('git+http://github.com/declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isRequestValid('git+https://git@github.com/declarativ/palette.git#445')).toEqual(true);
             expect(PackageManagerTools.isRequestValid('git+ftp://git@github.com:declarativ/palette.git')).toEqual(false);
             expect(PackageManagerTools.isRequestValid('git://git@github.com:declarativ/palette.git#93930#')).toEqual(false);
+
+        });
+
+    });
+
+    describe("Git urls", function () {
+
+        it("should be able to determine if an url is a git ssh url", function() {
+            expect(PackageManagerTools.isSecureShellGitUrl('ssh://git@github.com:declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isSecureShellGitUrl('ssh://git@github.com:declarativ/palette.git#93930')).toEqual(true);
+            expect(PackageManagerTools.isSecureShellGitUrl('ssh://github.com:declarativ/palette.git')).toEqual(false);
+            expect(PackageManagerTools.isSecureShellGitUrl('ssh://@github.com:declarativ/palette.git')).toEqual(false);
+            expect(PackageManagerTools.isSecureShellGitUrl('http://git@github.com:declarativ/palette.git')).toEqual(false);
+            expect(PackageManagerTools.isSecureShellGitUrl('ftp://github.com:declarativ/palette.git')).toEqual(false);
+
+        });
+
+        it("should be able to determine if an url is a git http{s} url", function() {
+            expect(PackageManagerTools.isHttpGitUrl('ssh://git@github.com:declarativ/palette.git')).toEqual(false);
+            expect(PackageManagerTools.isHttpGitUrl('https://github.com/declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isHttpGitUrl('https://git@github.com/declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isHttpGitUrl('http://github.com/declarativ/palette.git')).toEqual(true);
+
+        });
+
+        it("should be able to determine if an url is a git url", function() {
+            expect(PackageManagerTools.isGitUrl('ssh://git@github.com:declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isGitUrl('https://github.com/declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isGitUrl('http://git@github.com/declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isGitUrl('ftp://github.com:declarativ/palette.git')).toEqual(false);
+
+        });
+
+        it("should be able to determine if an url is a git url compatible with npm", function() {
+            expect(PackageManagerTools.isNpmCompatibleGitUrl('ssh://git@github.com:declarativ/palette.git')).toEqual(false);
+            expect(PackageManagerTools.isNpmCompatibleGitUrl('git+https://github.com/declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isNpmCompatibleGitUrl('git+http://github.com/declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isNpmCompatibleGitUrl('git+ssh://git@github.com:declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isNpmCompatibleGitUrl('git://git@github.com/declarativ/palette.git')).toEqual(true);
+            expect(PackageManagerTools.isNpmCompatibleGitUrl('git+ftp://github.com:declarativ/palette.git')).toEqual(false);
+
+        });
+
+        it("should be able to transform a git url to a git https url", function() {
+            var httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('ssh://git@github.com:declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+ssh://git@github.com:declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('https://git@github.com/declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('http://git@github.com/declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+http://git@github.com/declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+ftp://git@github.com/declarativ/palette.git');
+            expect(httpsUrl).toBe(null);
 
         });
 
