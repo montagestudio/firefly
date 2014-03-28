@@ -695,6 +695,24 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    buildOptimize: {
+        value: function (options) {
+            return this.backend.get("build-service").invoke("optimize", options);
+        }
+    },
+
+    buildArchive: {
+        value: function () {
+            return this.backend.get("build-service").invoke("archive");
+        }
+    },
+
+    buildPublishToGithubPages: {
+        value: function () {
+            return this.backend.get("build-service").invoke("publishToGithubPages");
+        }
+    },
+
     /**
      * Repository functions.
      */
