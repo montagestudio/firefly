@@ -254,28 +254,20 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
 
     /**
      * Merge the Shadow branch into its parent and update the remote shadow and remote parent.
-     * If a conflict occurs, a resolution strategy can be provided.
      *
-     * Make sure to call checkoutShadowBranch before and make sure there is not uncommitted
-     * changes.
+     * Make sure to updateRefs and fix any potential conflict before merging.
      *
-     * mergeShadowBranch returns notifications and possible resolution strategies in case of a conflict
-     *
-     * Possible resolution strategy are:
-     *  - "discard": Discard the local commit and update the local repository
-     *               with the remote changes
-     *  - "revert":  Revert the remote commits and push the local changes
+     * mergeShadowBranch returns true if the merge was successful (via a promise)
      *
      * argument:
      *      branch: the branch name to merge into (parent branch)
      *      message: merge commit message (only when squash is true)
      *      squash: true to squash the commits
-     *      resolutionStrategy:  [optional] resolution strategy to use to resolve conflict
      *
-     * return: promise for an notifications object
+     * return: promise for an boolean
      */
-    service.mergeShadowBranch = checkGithubError(exclusive(function(branch, message, squash, resolutionStrategy) {
-        return this._mergeShadowBranch(branch, message, squash, resolutionStrategy);
+    service.mergeShadowBranch = checkGithubError(exclusive(function(branch, message, squash) {
+        return this._mergeShadowBranch(branch, message, squash);
     }));
 
     service._getInfo = function() {
@@ -926,7 +918,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         });
     };
 
-    service._mergeShadowBranch = function(branch, message, squash, resolutionStrategy) {
+    service._mergeShadowBranch = function(branch, message, squash) {
         var self = this,
             branchesInfo;
 
@@ -978,14 +970,15 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                             });
                         }
                     }).then(function() {
-                        return {success: true};
+                        console.log("MERGE WILL RETURNS TRUE")
+                        return true;
                     }, function(error) {
                         // checkout the shadow branch, just in case we are still on the parent branch
                         _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
                         throw error;
                     });
                 } else {
-                    return {success: true};
+                    return true;
                 }
             });
         });
@@ -1219,13 +1212,16 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         return self._listBranches(true)     // Will cause to do a git fetch
             .then(function(result) {
                 currentBranchName = result.current;
+                if (result.currentIsShadow) {
+                    currentBranchName = self.OWNER_SHADOW_BRANCH_PREFIX + currentBranchName;
+                }
                 return result;
             })
             .then(function () {
                 _git.command(fsPath, "reset", ["--hard", ref]);
             })
             .then(function () {
-                return self._push(currentBranchName);
+                return self._push(currentBranchName, "--force");
             })
             .then(function() {
                 return true;
