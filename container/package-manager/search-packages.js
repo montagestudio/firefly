@@ -20,7 +20,7 @@ module.exports = function searchPackages (packages) {
                 ssl: searchConfig.ssl,
                 method: searchConfig.method,
                 charset: searchConfig.charset,
-                path: searchConfig.path + url.format(packages),
+                path: searchConfig.path + url.format(packages)
             },
             request = joey.client();
 
@@ -37,45 +37,65 @@ module.exports = function searchPackages (packages) {
     function _formatResultSearchRequest(resultSearch) {
         var details = false,
             description = false,
+            version = true,
             results = [],
-            curResult = null;
+            curResult = null,
+            openLiCount = 0;
 
         var parser = new htmlparser.Parser({
             onopentag: function (name, attribs) {
-                if (name === "li" && attribs.class === "search-result package"){
+                if (curResult) {
+                    if (name === "li") {
+                        openLiCount++;
+                    }
+
+                    if (name === "a" && /^\/package\//.test(attribs.href)) {
+                        curResult.name = attribs.title;
+
+                    } else if (name === "div" && attribs.class === "details") {
+                        details = true;
+
+                    } else if (name === "p" && attribs.class === "description") {
+                        description = true;
+
+                    } else if (name === "span" && attribs.class === "version") {
+                        version = true;
+                    }
+                }
+
+                if (name === "li" && attribs.class === "search-result package") {
+                    openLiCount++;
                     curResult = {};
-
-                } else if (curResult && name === "a" && /^\/package\//.test(attribs.href)) {
-                    curResult.name = /^\/package\/(.+)/.exec(attribs.href)[1];
-
-                } else if (curResult && name === "p" && attribs.class === "details") {
-                    details = true;
-
-                } else if (curResult && name === "p") {
-                    description = true;
                 }
             },
             ontext: function (text) {
                 text = text.trim();
 
-                if (curResult && description) {
-                    curResult.description = text;
-                    description = false;
+                if (curResult) {
+                    if (description) {
+                        curResult.description = text;
+                        description = false;
 
-                } else if (curResult && curResult.version && details && text.length > 0) {
-                    curResult.author = text.trim();
+                    } else if (curResult.version && details && text.length > 0) {
+                        curResult.author = text.trim();
 
-                } else if (curResult && details && text.length > 0) {
-                    curResult.version = /([0-9]+\.[0-9]+\.[0-9]+)/.exec(text)[0];
+                    } else if (version && text.length > 0 && /([0-9]+\.[0-9]+\.[0-9]+)/.test(text)) {
+                        curResult.version = /([0-9]+\.[0-9]+\.[0-9]+)/.exec(text)[0];
+                    }
                 }
             },
             onclosetag: function (tagname) {
-                if (curResult && tagname === "li") {
-                    results.push(curResult);
-                    curResult = null;
+                if (curResult) {
+                    if (tagname === "li") {
+                        openLiCount--;
 
-                } else if (curResult && tagname === "p" && details) {
-                    details = false;
+                        if (openLiCount === 0) {
+                            results.push(curResult);
+                            curResult = null;
+                        }
+                    } else if (tagname === "p" && details) {
+                        details = false;
+                    }
                 }
             }
         });
