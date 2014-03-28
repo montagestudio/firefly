@@ -244,16 +244,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             var deferred = Q.defer();
             _info = deferred.promise;
 
-            _githubApi.getRepository(_owner, _repo)
-            .then(function(repository) {
-                deferred.resolve({
-                    //jshint -W106
-                    gitUrl: repository.clone_url,
-                    gitBranch: repository.default_branch
-                    //jshint +W106
-                });
-            })
-            .fail(deferred.reject);
+            _githubApi.getInfo(_owner, _repo)
+            .then(deferred.resolve, deferred.reject).done();
         }
 
         return _info;

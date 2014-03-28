@@ -261,6 +261,18 @@ GithubApi.prototype.checkCredentials = function(username) {
     });
 };
 
+GithubApi.prototype.getInfo = function(username, repository) {
+    return this.getRepository(username, repository)
+    .then(function(repository) {
+        return {
+            //jshint -W106
+            gitUrl: repository.clone_url,
+            gitBranch: repository.default_branch
+            //jshint +W106
+        };
+    });
+};
+
 /**
  * @typeof RequestOptions
  * @type {object}
