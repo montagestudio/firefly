@@ -1,4 +1,4 @@
-/* global XMLHttpRequest */
+/* global XMLHttpRequest, console */
 var Q = require("q");
 
 if (typeof window === "undefined") {
@@ -227,6 +227,38 @@ GithubApi.prototype.repositoryExists = function(username, repository) {
                 throw err;
             }
         });
+};
+
+GithubApi.prototype.checkError = function(method, username, thisp) {
+    var self = this;
+    return function wrapped(error) {
+        var args = Array.prototype.slice.call(arguments);
+        return method.apply(thisp, args).catch(function(error) {
+            console.log("Git Error", error.stack);
+            return self.checkCredentials(username).then(function(success) {
+                if (success) {
+                    // Nothing wrong with github, let returns the original error
+                    throw error;
+                } else {
+                    throw new Error("Unauthorized access");
+                }
+            }, function(error) {
+                throw new Error("Network error");
+            });
+        });
+    };
+};
+
+GithubApi.prototype.checkCredentials = function(username) {
+    return this.getUser().then(function(user) {
+        return (user.login === username);
+    }, function(error) {
+        if (error.message.indexOf("credential") !== -1) {
+            // return false rather than an error for credential issue
+            return false;
+        }
+        throw error;
+    });
 };
 
 /**

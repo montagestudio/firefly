@@ -12,24 +12,6 @@ var SHADOW_BRANCH_PREFIX = "__mb__";
 var SHADOW_BRANCH_SUFFIX = "__";
 var OWNER_SHADOW_BRANCH_PREFIX;
 
-function checkGithubError(method) {
-    return function wrapped(error) {
-        var self = this, args = Array.prototype.slice.call(arguments);
-        return method.apply(self, args).catch(function(error) {
-            log("Git Error", error.stack);
-            return self._githubCheck().then(function(success) {
-                if (success) {
-                    // Nothing wrong with github, let returns the original error
-                    throw error;
-                } else {
-                    throw new Error("Unauthorized access");
-                }
-            }, function(error) {
-                throw new Error("Network error");
-            });
-        });
-    };
-}
 var semaphore = Git.semaphore;
 
 function RepositoryService(session, fs, environment, pathname, fsPath) {
@@ -44,10 +26,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         _accessToken = githubAccessToken,
         _git = new Git(fs, _accessToken, acceptOnlyHttpsRemote),
         _githubApi = new GithubApi(_accessToken),
-        _info = null;
+        _info = null,
+        checkGithubError;
 
     OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
 
+    checkGithubError = function(method) {
+        return _githubApi.checkError(method, owner, service);
+    };
 
     /**
      * Set a GithuApi object
@@ -1172,18 +1158,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             function() {
                 return false;
             });
-        });
-    };
-
-    service._githubCheck = function() {
-        return _githubApi.getUser().then(function(user) {
-            return (user.login === _owner);
-        }, function(error) {
-            if (error.message.indexOf("credential") !== -1) {
-                // return false rather than an error for credential issue
-                return false;
-            }
-            throw error;
         });
     };
 
