@@ -1,5 +1,4 @@
 var Q = require("q");
-var Queue = require("q/queue");
 var Git = require("../git");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
 var log = require("../../logging").from(__filename);
@@ -12,23 +11,6 @@ var REMOTE_REPOSITORY_NAME = "origin";
 var SHADOW_BRANCH_PREFIX = "__mb__";
 var SHADOW_BRANCH_SUFFIX = "__";
 var OWNER_SHADOW_BRANCH_PREFIX;
-
-var semaphore = new Queue();
-semaphore.put(); // once for one job at a time
-
-// Wrap any function with exclusive to make sure it wont execute before all pending exclusive methods are done
-function exclusive(method) {
-    return function wrapped() {
-        var self = this, args = Array.prototype.slice.call(arguments);
-
-        return semaphore.get()
-        .then(function () {
-            return method.apply(self, args);
-        }).finally(function() {
-            semaphore.put();
-        });
-    };
-}
 
 function checkGithubError(method) {
     return function wrapped(error) {
@@ -48,6 +30,7 @@ function checkGithubError(method) {
         });
     };
 }
+var semaphore = Git.semaphore;
 
 function RepositoryService(session, fs, environment, pathname, fsPath) {
     return _RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, fsPath, true);
@@ -85,14 +68,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     /**
      * Setup a brand new project
      */
-    service.setupProject = checkGithubError(exclusive(function() {
+    service.setupProject = checkGithubError(semaphore.exclusive(function() {
         return this._setupProject();
     }));
 
     /**
      * setup a project by cloning it from github
      */
-    service.cloneProject = checkGithubError(exclusive(function() {
+    service.cloneProject = checkGithubError(semaphore.exclusive(function() {
         return this._cloneProject();
     }));
 
@@ -147,7 +130,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *      }
      * }
      */
-    service.listBranches = checkGithubError(exclusive(function() {
+    service.listBranches = checkGithubError(semaphore.exclusive(function() {
         return this._listBranches(true);
     }));
 
@@ -166,14 +149,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *
      * return: promise
      */
-    service.checkoutShadowBranch = checkGithubError(exclusive(function(branch) {
+    service.checkoutShadowBranch = checkGithubError(semaphore.exclusive(function(branch) {
         return this._checkoutShadowBranch(branch);
     }));
 
     /**
      * Return the status of the local shadow branch compared to the local
      * parent branch and the remote parent branch.
-     * 
+     *
      * argument:
      *      branch: branch name to checkout (without shadow branch prefix)
      *
@@ -195,7 +178,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *      }
      * }
     */
-    service.shadowBranchStatus = checkGithubError(exclusive(function(branch) {
+    service.shadowBranchStatus = checkGithubError(semaphore.exclusive(function(branch) {
         return this._shadowBranchStatus(branch);
     }));
 
@@ -222,7 +205,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *
      * return: promise
      */
-    service.commitFiles = checkGithubError(exclusive(function(files, message, resolutionStrategy) {
+    service.commitFiles = checkGithubError(semaphore.exclusive(function(files, message, resolutionStrategy) {
         return this._commitFiles(files || "--all", message, resolutionStrategy);
     }));
 
@@ -248,7 +231,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *
      * return: promise for an notifications object
      */
-    service.updateRefs = checkGithubError(exclusive(function(resolutionStrategy) {
+    service.updateRefs = checkGithubError(semaphore.exclusive(function(resolutionStrategy) {
         return this._updateRefs(resolutionStrategy);
     }));
 
@@ -266,7 +249,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *
      * return: promise for an boolean
      */
-    service.mergeShadowBranch = checkGithubError(exclusive(function(branch, message, squash) {
+    service.mergeShadowBranch = checkGithubError(semaphore.exclusive(function(branch, message, squash) {
         return this._mergeShadowBranch(branch, message, squash);
     }));
 

@@ -3,11 +3,18 @@ var Q = require("q");
 var fs = require("q-io/fs");
 var URL = require("url");
 var exec = require("./exec");
+var Semaphore = require("./semaphore").Semaphore;
 
 // This module uses Github's OAuth over Basic Authentication as described at
 // https://github.com/blog/1270-easier-builds-and-deployments-using-git-over-https-and-oauth
 
 module.exports = Git;
+/**
+ * Semaphore to use when building chained git operations. Prevents interleaving
+ * git operations that might affect two different chained operations.
+ */
+module.exports.semaphore = new Semaphore();
+
 function Git(fs, accessToken, acceptOnlyHttpsRemote) {
     this._accessToken = accessToken;
     this._acceptOnlyHttpsRemote = (acceptOnlyHttpsRemote !== false);
