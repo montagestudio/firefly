@@ -713,6 +713,17 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    downloadFile: {
+        value: function(fileUrl) {
+            var link = this.applicationDelegate.downloadLink;
+            var event = document.createEvent("MouseEvents");
+
+            link.href = fileUrl;
+            event.initEvent("click", true, true);
+            link.dispatchEvent(event);
+        }
+    },
+
     /**
      * Repository functions.
      */
