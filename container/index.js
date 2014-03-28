@@ -14,6 +14,10 @@ if (process.getgid() === 0) {
 }
 
 var log = require("../logging").from(__filename);
+process.on('uncaughtException', function(err) {
+    log('Caught exception: ', err.stack);
+});
+
 var track = require("../track");
 var FS = require("q-io/fs");
 var Mop = require("./mop");
