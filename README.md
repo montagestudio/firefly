@@ -174,7 +174,7 @@ Logging
 -------
 
 ```javascript
-var log = require("logging").from(__filename);
+var log = require("./logging").from(__filename);
 
 log("string", {object: 1}, 123, "http://example.com");
 ```

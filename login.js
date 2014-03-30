@@ -1,5 +1,5 @@
 var Env = require("./environment");
-var log = require("logging").from(__filename);
+var log = require("./logging").from(__filename);
 var FS = require("q-io/fs");
 
 var loginChainFactory = require("./login/login-chain");

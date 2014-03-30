@@ -1,4 +1,4 @@
-var log = require("logging").from(__filename);
+var log = require("../logging").from(__filename);
 var Q = require("q");
 
 var frontends = {};

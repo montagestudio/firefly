@@ -1,4 +1,4 @@
-var log = require("logging").from(__filename);
+var log = require("../logging").from(__filename);
 
 var spawn = require("child_process").spawn;
 var Q = require("q");

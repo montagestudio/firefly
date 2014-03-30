@@ -1,4 +1,4 @@
-var log = require("logging").from(__filename);
+var log = require("../logging").from(__filename);
 var PATH = require("path");
 var Minit = require("./minit");
 var RepositoryService = require("./services/repository-service").service;
