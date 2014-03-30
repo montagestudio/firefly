@@ -970,7 +970,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                             });
                         }
                     }).then(function() {
-                        console.log("MERGE WILL RETURNS TRUE")
                         return true;
                     }, function(error) {
                         // checkout the shadow branch, just in case we are still on the parent branch
