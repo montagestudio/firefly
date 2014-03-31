@@ -202,6 +202,11 @@ if (!window.performance) {
     var reconnectionTries = 0;
     var reconnecting = false;
 
+    function reconnected() {
+        reconnectionTries = 0;
+        reconnecting = false;
+    }
+
     function showReconnectionMessage(reconnectCallback) {
         if (!reconnecting) {
             reconnecting = true;
@@ -222,10 +227,6 @@ if (!window.performance) {
                 document.body.removeChild(disconnectionMessageElement);
             }
             reconnectCallback(reconnected);
-        };
-        var reconnected = function() {
-            reconnectionTries = 0;
-            reconnecting = false;
         };
         // Update the seconds to reconnect, in the message, at every second.
         // When the time is up try to reconnect.
