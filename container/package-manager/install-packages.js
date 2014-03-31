@@ -4,32 +4,37 @@ var PackageManagerTools = require("./package-manager-tools"),
     Q = require("q"),
     FS = require("q-io/fs"),
     Path = require("path"),
+    semver = require("semver"),
     execNpm = require('../package-manager/exec-npm');
 
-module.exports = function installPackages (packages, gitHubAccessToken, fsPath) {
+module.exports = function installPackages (packages, gitHubAccessToken, fsPath, dependencyTree, currentDependency) {
     var _packagesFiltered = {
             npmPackages : [],
             gitPackages: []
         },
 
         _packagesInstalled = [],
-
+        _dependencyTree = dependencyTree || null,
+        _currentDependency = currentDependency || null,
         _regularDependencyCategory = 'regular';
 
     function _install () {
-        _filterPackages(); // separate packages that can be installed from a git url or with npm.
+        return _buildDependencyTree().then(function () {
+            _filterPackages(); // separate packages that can be installed from a git url or with npm.
 
-        if (_packagesFiltered.npmPackages.length > 0) {
-            return execNpm(execNpm.COMMANDS.INSTALL, _packagesFiltered.npmPackages, fsPath).then(function (packagesInstalled) {
-                _packagesInstalled = _packagesInstalled.concat(packagesInstalled);
+            if (_packagesFiltered.npmPackages.length > 0) {
+                return execNpm(execNpm.COMMANDS.INSTALL, _packagesFiltered.npmPackages, fsPath).then(function (packagesInstalled) {
+                    _packagesInstalled = _packagesInstalled.concat(packagesInstalled);
+                    _addDependenciesToDependencyNode(packagesInstalled);
 
-                return _installGitPackages(); // install eventual packages from a git url.
-            });
-        } else if (_packagesFiltered.gitPackages.length > 0) {
-            return _installGitPackages();
-        }
+                    return _installGitPackages(); // install eventual packages from a git url.
+                });
+            } else if (_packagesFiltered.gitPackages.length > 0) {
+                return _installGitPackages();
+            }
 
-        return Q.reject(new Error("no packages to install"));
+            throw new Error("no packages to install");
+        });
     }
 
     function _installGitPackages () {
@@ -47,10 +52,11 @@ module.exports = function installPackages (packages, gitHubAccessToken, fsPath) 
 
                         _packagesInstalled.push(packageInstalled);
 
-                        var packagesToInstall = _findPackagesToInstall(packageJson.children);
+                        var dependencyNodeInstalled = _addDependencyToDependencyNode(packageInstalled, _currentDependency),
+                            packagesToInstall = _findPackagesToInstall(packageJson.children, dependencyNodeInstalled);
 
                         if (Array.isArray(packagesToInstall) && packagesToInstall.length > 0) {
-                            return installPackages(packagesToInstall, gitHubAccessToken, pathToPackage);
+                            return installPackages(packagesToInstall, gitHubAccessToken, pathToPackage, _dependencyTree, dependencyNodeInstalled);
                         }
                     });
                 });
@@ -60,7 +66,7 @@ module.exports = function installPackages (packages, gitHubAccessToken, fsPath) 
         return void 0;
     }
 
-    function _findPackagesToInstall (dependencyListRaw) {
+    function _findPackagesToInstall (dependencyListRaw, dependencyNode) {
         var dependencyList = [],
             dependenciesToInstall = [];
 
@@ -76,7 +82,9 @@ module.exports = function installPackages (packages, gitHubAccessToken, fsPath) 
             if (PackageManagerTools.isNpmCompatibleGitUrl(dependency.version)) {
                 dependenciesToInstall.push(dependency.version);
             } else {
-                dependenciesToInstall.push(dependency.name);
+                if (!_searchSubstituteParentNode(dependencyNode, dependency.name, dependency.version)) {
+                    dependenciesToInstall.push(dependency.name);
+                }
             }
         });
 
@@ -97,8 +105,84 @@ module.exports = function installPackages (packages, gitHubAccessToken, fsPath) 
         if (PackageManagerTools.isNpmCompatibleGitUrl(packageToInstall)) { // git url
             _packagesFiltered.gitPackages.push(packageToInstall);
         } else {
-            _packagesFiltered.npmPackages.push(packageToInstall); // packageName[@version]
+            var module = PackageManagerTools.getModuleFromString(packageToInstall);
+
+            if (module && !_searchSubstituteParentNode(_currentDependency, module.name, module.version)) {
+                _packagesFiltered.npmPackages.push(packageToInstall); // packageName[@version]
+            }
         }
+    }
+
+    function _buildDependencyTree () {
+        if (!_currentDependency && !_dependencyTree) {
+            return listDependencies(FS, fsPath, true).then(function (dependencyTree) {
+                _currentDependency = _dependencyTree = {};
+                _dependencyTree.name = dependencyTree.name;
+                _dependencyTree.version = dependencyTree.version;
+                _dependencyTree.children = {};
+
+                Object.keys(dependencyTree.children).forEach(function (dependencyCategoryKey) {
+                    var dependencyCategory = dependencyTree.children[dependencyCategoryKey];
+
+                    for (var i = 0, length = dependencyCategory.length; i < length; i++) {
+                        var dependency = dependencyCategory[i];
+
+                        if (!dependency.missing) {
+                            _addDependencyToDependencyNode({
+                                name: dependency.name,
+                                version: dependency.versionInstalled
+                            }, _dependencyTree);
+                        }
+                    }
+                });
+            });
+        }
+
+        return Q.resolve(true);
+    }
+
+    function _addDependenciesToDependencyNode (dependencies) {
+        if (Array.isArray(dependencies)) {
+            dependencies.forEach(function (dependency) {
+                _addDependencyToDependencyNode(dependency, _currentDependency);
+            });
+        }
+    }
+
+    function _addDependencyToDependencyNode (dependency, parentNode) {
+        if (parentNode && dependency) {
+            var dependencyNode = {
+                name: dependency.name,
+                version: dependency.version,
+                children: {},
+                parent: parentNode
+            };
+
+            parentNode.children[dependency.name] = dependencyNode;
+
+            return dependencyNode;
+        }
+    }
+
+    function _searchSubstituteParentNode (dependencyNode, dependencyName, dependencyRange) {
+        if (dependencyNode && dependencyNode.parent) {
+            var children = dependencyNode.parent.children,
+                substituteParentNode = null;
+
+            Object.keys(children).some(function (childKey) {
+                var child = children[childKey];
+
+                if (dependencyRange && child.name === dependencyName && semver.satisfies(child.version, dependencyRange, true)) {
+                    substituteParentNode = child;
+                }
+
+                return !!substituteParentNode;
+            });
+
+            return substituteParentNode ? substituteParentNode : _searchSubstituteParentNode(dependencyNode.parent, dependencyName, dependencyRange);
+        }
+
+        return false;
     }
 
     return _install().then(function () {
