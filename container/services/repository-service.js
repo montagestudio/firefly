@@ -213,8 +213,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *  - "discard": Discard the local commit and update the local repository
      *               with the remote changes
      *  - "revert":  Revert the remote commits and push the local changes
-     *  - "force":   Force the local commit, the remote repository will lose
-     *               any history of the remote changes.
      *
      * argument:
      *                   files: Array of file paths relative to the project, can pass ["."] to
@@ -244,8 +242,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *  - "discard": Discard the local commit and update the local repository
      *               with the remote changes
      *  - "revert":  Revert the remote commits and push the local changes
-     *  - "force":   Force the local commit, the remote repository will lose
-     *               any history of the remote changes.
      *
      * argument:
      *      resolutionStrategy:  [optional] resolution strategy to use to resolve conflict
@@ -254,6 +250,24 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      */
     service.updateRefs = checkGithubError(exclusive(function(resolutionStrategy) {
         return this._updateRefs(resolutionStrategy);
+    }));
+
+    /**
+     * Merge the Shadow branch into its parent and update the remote shadow and remote parent.
+     *
+     * Make sure to updateRefs and fix any potential conflict before merging.
+     *
+     * mergeShadowBranch returns true if the merge was successful (via a promise)
+     *
+     * argument:
+     *      branch: the branch name to merge into (parent branch)
+     *      message: merge commit message (only when squash is true)
+     *      squash: true to squash the commits
+     *
+     * return: promise for an boolean
+     */
+    service.mergeShadowBranch = checkGithubError(exclusive(function(branch, message, squash) {
+        return this._mergeShadowBranch(branch, message, squash);
     }));
 
     service._getInfo = function() {
@@ -607,28 +621,13 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                         throw new Error("Cannot discard local changes, invalid SHA");
                     }
                     return _git.command(fsPath, "reset", ["--hard", sha])
-                    .then(function() {
-                        return {
-                            success: true
-                        };
-                    });
-                } else if (resolutionStrategy === "force") {
-                    /*
-                        Resolve conflict by forcing the local changes
-                     */
-                    return self._push(current, "--force").then(function() {
-                        return {
-                            success: true
-                        };
-                    }, function(error) {
-                        log("Forced push failed:", error.stack);
-                        throw new Error("Forced push failed: " + error.message);
-                    });
+                    .thenResolve({success: true});
                 } else if (resolutionStrategy === "revert") {
                     /*
                         Resolve conflict by reverting remote changes
                      */
-                    return self._revertRemoteChanges(current, branchesInfo).then(function() {
+                    return self._revertRemoteChanges(current, branchesInfo)
+                    .then(function() {
                         return {
                             success: true
                         };
@@ -641,7 +640,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     return self._rebase(current, REMOTE_REPOSITORY_NAME + "/" + current).then(function(success) {
                         if (success) {
                             // Rebase was successfull, let push it again
-                            return self._push(current).then(function() {
+                            return self._push(current)
+                            .then(function() {
                                 return {
                                     success: true
                                 };
@@ -657,7 +657,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                     success: false,
                                     ahead: status.ahead,
                                     behind: status.behind,
-                                    resolutionStrategy: ["discard", "revert", "force"]
+                                    resolutionStrategy: ["discard", "revert"]
                                 };
                             });
                         }
@@ -698,8 +698,25 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     return self._branchStatus(local.name, remote.name)
                     .then(function(status) {
                         if (status.ahead > 0) {
-                            throw new Error("Parent branch has local commits");
-                        } else if (status.behind > 0) {
+                            log("Parent branch has local " + status.ahead + " commit(s)");
+                            return _git.checkout(fsPath, current)
+                            .then(function() {
+                                return _git.command(fsPath, "reset", ["--hard", "HEAD~" + status.ahead]);
+                            })
+                            .then(function() {
+                                returnValue.notifications.push({type:"parentReset", branch:current, ahead:status.ahead});
+                                return _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + current)
+                                .thenResolve(status);
+                            }, function(error) {
+                                return _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + current)
+                                .thenReject(error);
+                            });
+                        } else {
+                            return status;
+                        }
+                    })
+                    .then(function(status) {
+                        if (status.behind > 0) {
                             returnValue.notifications.push({type:"parentUpdated", branch:current, behind:status.behind});
                             return self._rebase(local.name, remote.name).then(function(success) {
                                 if (!success) {
@@ -713,6 +730,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 }
             })
             .then(function() {
+                var didPush = false;
+
                 // check shadow branch
                 var local = branchesInfo.branches[LOCAL_REPOSITORY_NAME][current],
                     remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME][current];
@@ -744,11 +763,12 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                     return self._rebase(local.shadow.name, remote.shadow.name)
                                     .then(function(success) {
                                         if (success) {
+                                            didPush = true;
                                             returnValue.success = success;
                                         } else {
                                             // We cannot rebase, let's propose other solutions
                                             returnValue.success = false;
-                                            returnValue.resolutionStrategy = ["discard", "revert", "force"];
+                                            returnValue.resolutionStrategy = ["discard", "revert"];
                                             returnValue.notifications.push({
                                                 type: "shadowsOutOfSync",
                                                 branch: current,
@@ -756,6 +776,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                                 behind: status.behind
                                             });
                                         }
+                                        resolutionStrategy = "";
                                     });
                                 } else if (resolutionStrategy === "discard") {
                                     /*
@@ -763,7 +784,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                     */
                                     return _git.command(fsPath, "reset", ["--hard", remote.shadow.sha])
                                     .then(function() {
-                                        return { success: true };
+                                        returnValue.success = true;
+                                        resolutionStrategy = "";
                                     });
                                 } else if (resolutionStrategy === "revert") {
                                     /*
@@ -771,28 +793,22 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                      */
                                     return self._revertRemoteChanges(OWNER_SHADOW_BRANCH_PREFIX + current, branchesInfo, status)
                                     .then(function() {
-                                        return { success: true };
+                                        didPush = true;
+                                        returnValue.success = true;
+                                        resolutionStrategy = "";
                                     }, function(error) {
                                         log("Revert remote changes failed:", error.stack);
                                         throw new Error("Revert remote changes failed: " + error.message);
-                                    });
-                                } else if (resolutionStrategy === "force") {
-                                    /*
-                                       Force local changes into remote
-                                    */
-                                    return self._push(OWNER_SHADOW_BRANCH_PREFIX + current, "--force").then(function() {
-                                        return {
-                                            success: true
-                                        };
-                                    }, function(error) {
-                                        log("Forced push failed:", error.stack);
-                                        throw new Error("Forced push failed: " + error.message);
                                     });
                                 } else {
                                     // Default
                                     if (status.behind === 0) {
                                         // Somehow the local shadow is ahead of the remote shadow, let's just push it
-                                        return self._push(local.shadow.name);
+                                        return self._push(local.shadow.name)
+                                        .then(function() {
+                                            didPush = true;
+                                            returnValue.success = true;
+                                        });
                                     } else {
                                         returnValue.success = false;
                                         returnValue.notifications.push({
@@ -805,11 +821,11 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                             // We can safely rebase
                                             returnValue.resolutionStrategy = ["rebase"];
                                         } else {
-                                            // We can try to rebase, discard local changes, revert remote changes or force local changes
+                                            // We can try to rebase, discard local changes or revert remote changes
                                             // Let's do a dry rebase to check if we can safely rebase
                                             returnValue.resolutionStrategy = [];
-                                            return self._rebase(local.shadow.name, remote.shadow.name, local.shadow.Sha).then(function(success) {
-                                                returnValue.resolutionStrategy = ["discard", "revert", "force"];
+                                            return self._rebase(local.shadow.name, remote.shadow.name, local.shadow.sha).then(function(success) {
+                                                returnValue.resolutionStrategy = ["discard", "revert"];
                                                 if (success) {
                                                     returnValue.resolutionStrategy.unshift(["rebase"]);
                                                 }
@@ -819,7 +835,18 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                 }
                             });
                         }
-                    }).then(function() {
+                    })
+                    .then(function() {
+                        if (didPush) {
+                            // We need to update the branches info
+                            return self._listBranches(true).then(function(result) {
+                                branchesInfo = result;
+                                local = branchesInfo.branches[LOCAL_REPOSITORY_NAME][current];
+                                remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME][current];
+                            });
+                        }
+                    })
+                    .then(function() {
                         // check if shadow differs from parent
                         if (returnValue.success) {
                             if (local.shadow.sha !== remote.sha) {
@@ -830,24 +857,55 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                             return self._rebase(local.shadow.name, remote.name)
                                             .then(function(success) {
                                                 if (success) {
-                                                    return self._push(local.shadow.name)
-                                                    .then(function() {
-                                                        returnValue.success = success;
-                                                    });
+                                                    didPush = true;
+                                                    returnValue.success = success;
                                                 } else {
-                                                    throw new Error("Cannot push shadow branch after a rebase on parent");
+                                                    // We cannot rebase, let's propose other solutions
+                                                    returnValue.success = false;
+                                                    returnValue.resolutionStrategy = ["discard", "revert"];
+                                                    returnValue.notifications.push({
+                                                        type: "shadowDivertedFromParent",
+                                                        branch: current,
+                                                        ahead: status.ahead,
+                                                        behind: status.behind
+                                                    });
                                                 }
+                                            });
+                                        } else if (resolutionStrategy === "discard") {
+                                            /*
+                                                Discard local changes
+                                            */
+                                            return _git.command(fsPath, "reset", ["--hard", remote.sha])
+                                            .then(function() {
+                                                return self._push(local.shadow.name, "--force");
+                                            })
+                                            .then(function() {
+                                                returnValue.success = true;
+                                                resolutionStrategy = "";
                                             });
                                         } else {
                                             // Default
+                                            returnValue.success = false;
                                             returnValue.notifications.push({
-                                                type: "shadowBehindParent",
+                                                type: status.ahead > 0 ? "shadowDivertedFromParent" : "shadowBehindParent",
                                                 branch: current,
                                                 ahead: status.ahead,
                                                 behind: status.behind
                                             });
-                                            returnValue.resolutionStrategy = ["rebase"];
-                                            returnValue.success = false;
+                                            if (status.ahead === 0) {
+                                                // We can safely rebase
+                                                returnValue.resolutionStrategy = ["rebase"];
+                                            } else {
+                                                // We can try to rebase, discard local changes or revert remote changes
+                                                // Let's do a dry rebase to check if we can safely rebase
+                                                returnValue.resolutionStrategy = [];
+                                                return self._rebase(local.shadow.name, remote.name, local.shadow.sha).then(function(success) {
+                                                    returnValue.resolutionStrategy = ["discard"];
+                                                    if (success) {
+                                                        returnValue.resolutionStrategy.unshift(["rebase"]);
+                                                    }
+                                                });
+                                            }
                                         }
                                     }
                                 });
@@ -856,17 +914,79 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     });
                 }
             })
-            .then(function() {
-                return returnValue;
-            });
+            .thenResolve(returnValue);
+        });
+    };
 
+    service._mergeShadowBranch = function(branch, message, squash) {
+        var self = this,
+            branchesInfo;
+
+        return self._listBranches(true)
+        .then(function(result) {
+            branchesInfo = result;
+            // Make sure we have a shadow branch
+            if (!branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch] || !branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].shadow) {
+                throw new Error("Invalid branch");
+            }
+        })
+        .then(function() {
+            // Make sure we have something to merge...
+            return self._branchStatus(branch, OWNER_SHADOW_BRANCH_PREFIX + branch)
+            .then(function(status) {
+                if (status.behind > 0) {
+                    return _git.checkout(fsPath, branch)
+                    .then(function() {
+                        // git merge <shadow branch> [--squash]
+                        return _git.merge(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch, squash)
+                        .catch(function(error) {
+                            return _git.command(fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
+                            .thenReject(error);
+                        });
+                    })
+                    .then(function() {
+                        // git commit -m <message>
+                        if (squash) {
+                            return _git.commit(fsPath, message || "merge changes");
+                        }
+                    })
+                    .then(function(){
+                        return self._push(branch)
+                        .catch(function(error) {
+                            return _git.command(fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
+                            .thenReject(error);
+                        });
+                    })
+                    .then(function() {
+                        // git checkout <shadow branch>
+                        return _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                    })
+                    .then(function() {
+                        // reset the shadow branch after a squash
+                        if (squash) {
+                            return _git.command(fsPath, "reset", ["--hard", branch])
+                            .then(function() {
+                                return self._push(OWNER_SHADOW_BRANCH_PREFIX + branch, "--force");
+                            });
+                        }
+                    }).then(function() {
+                        return true;
+                    }, function(error) {
+                        // checkout the shadow branch, just in case we are still on the parent branch
+                        _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                        throw error;
+                    });
+                } else {
+                    return true;
+                }
+            });
         });
     };
 
     service._branchStatus = function(localBranch, remoteBranch) {
         return Q.spread([
-            _git.command(fsPath, "rev-list", [localBranch + ".." + remoteBranch, "--count"], true),
-            _git.command(fsPath, "rev-list", [remoteBranch + ".." + localBranch, "--count"], true)
+            _git.command(fsPath, "rev-list", ["--first-parent", localBranch + ".." + remoteBranch, "--count"], true),
+            _git.command(fsPath, "rev-list", ["--first-parent", remoteBranch + ".." + localBranch, "--count"], true)
         ], function(behind, ahead) {
             return {
                 behind: parseInt(behind, 10),
@@ -968,9 +1088,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             }
 
             return next
-            .then(function() {
-                return remoteModified;
-            });
+            .thenResolve(remoteModified);
         });
     };
 
@@ -993,7 +1111,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             .then(function(uncommittedChanges) {
                 if (uncommittedChanges) {
                     return _git.command(fsPath, "stash", ["save", "local changes"])
-                    .then(function(uncommittedChanges) {
+                    .then(function() {
                         stashed = true;
                     });
                 }
@@ -1023,7 +1141,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 // Let's revert the remote changes
                 return next
                 .then(function() {
-                    return _git.command(fsPath, "revert", ["HEAD~" + status.behind + "..HEAD"]);
+                    return _git.command(fsPath, "revert", ["-m 0", "HEAD~" + status.behind + "..HEAD"]);
                 })
                 .then(function() {
                     if (status.ahead > 0) {
@@ -1059,9 +1177,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         .then(function() {
             if (dryRunSha) {
                 return _git.command(fsPath, "reset", ["--hard", dryRunSha])
-                .then(function() {
-                    return true;
-                });
+                .thenResolve(true);
             }
             return true;
         })
@@ -1095,13 +1211,16 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         return self._listBranches(true)     // Will cause to do a git fetch
             .then(function(result) {
                 currentBranchName = result.current;
+                if (result.currentIsShadow) {
+                    currentBranchName = self.OWNER_SHADOW_BRANCH_PREFIX + currentBranchName;
+                }
                 return result;
             })
             .then(function () {
                 _git.command(fsPath, "reset", ["--hard", ref]);
             })
             .then(function () {
-                return self._push(currentBranchName);
+                return self._push(currentBranchName, "--force");
             })
             .then(function() {
                 return true;

@@ -392,10 +392,9 @@ describe("repository-service", function () {
                     expect(result.success).toBeFalsy();
                     expect(result.ahead).toBe(1);
                     expect(result.behind).toBe(1);
-                    expect(result.resolutionStrategy.length).toBe(3);
+                    expect(result.resolutionStrategy.length).toBe(2);
                     expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
                     expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
-                    expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
                 })
                 .then(done, done);
             });
@@ -433,10 +432,9 @@ describe("repository-service", function () {
                     expect(result.success).toBeFalsy();
                     expect(result.ahead).toBe(1);
                     expect(result.behind).toBe(1);
-                    expect(result.resolutionStrategy.length).toBe(3);
+                    expect(result.resolutionStrategy.length).toBe(2);
                     expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
                     expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
-                    expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
                 })
                 .then(done, done);
             });
@@ -458,6 +456,58 @@ describe("repository-service", function () {
                     expect(status.remoteParent.behind).toBe(0);
                     expect(status.remoteShadow.ahead).toBe(0);
                     expect(status.remoteShadow.behind).toBe(0);
+                })
+                .then(done, done);
+            });
+        });
+
+        describe("merge commits", function () {
+            it ("reset service 1", function(done) {
+                return service1.updateRefs("discard")
+                .then(function() {
+                    return service2.updateRefs("discard");
+                })
+                .then(function(result) {
+                    return service1.listBranches();
+                })
+                .then(function(branchesInfo) {
+                    var remoteMaster = branchesInfo.branches[service1.REMOTE_REPOSITORY_NAME].master;
+                    return service1._reset(remoteMaster.sha);
+                })
+                .then(function(result) {
+                    return service1.shadowBranchStatus();
+                })
+                .then(function(status1) {
+                    return service2.shadowBranchStatus()
+                    .then(function(status2) {
+                        expect(status1.localParent.ahead).toBe(0);
+                        expect(status1.localParent.behind).toBe(0);
+                        expect(status1.remoteParent.ahead).toBe(0);
+                        expect(status1.remoteParent.behind).toBe(0);
+                        expect(status1.remoteShadow.ahead).toBe(0);
+                        expect(status1.remoteShadow.behind).toBe(0);
+
+                        expect(status2.remoteParent.ahead).not.toBe(0);
+                    });
+                })
+                .then(done, done);
+            });
+
+            it ("can merge", function(done) {
+                return service2.mergeShadowBranch("master", "jasmin test", true).then(function(success) {
+                    expect(success).toBeTruthy();
+                    return service1.updateRefs("rebase")
+                    .then(function(result) {
+                        expect(result.success).toBeTruthy();
+                        return service1.listBranches();
+                    })
+                    .then(function(branchesInfo1) {
+                        return service2.listBranches()
+                        .then(function(branchesInfo2) {
+                            expect(branchesInfo1.branches[service1.LOCAL_REPOSITORY_NAME].master.sha)
+                                .toBe(branchesInfo2.branches[service2.LOCAL_REPOSITORY_NAME].master.sha);
+                        });
+                    });
                 })
                 .then(done, done);
             });

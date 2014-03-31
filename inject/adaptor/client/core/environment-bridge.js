@@ -585,12 +585,6 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
-    updateProjectRefs: {
-        value: function(resolution) {
-            return this.repositoryController.updateProjectRefs(resolution);
-        }
-    },
-
     /**
      * Pushes all commits to remote repository.
      */
@@ -728,9 +722,15 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
-    updateRepositoryReferences: {
+    updateProjectRefs: {
         value: function (resolutionStrategy) {
             return this.backend.get("repository-service").invoke("updateRefs", resolutionStrategy);
+        }
+    },
+
+    mergeShadowBranch: {
+        value: function (branch, message, squash, resolutionStrategy) {
+            return this.backend.get("repository-service").invoke("mergeShadowBranch", branch, message, squash, resolutionStrategy);
         }
     },
 
