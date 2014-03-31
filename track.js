@@ -40,6 +40,7 @@ rollbar.init("afa2e8f334974bc58b0415fd06a02b40", config);
 rollbar.handleUncaughtExceptions();
 
 exports.error = function(error, request, data) {
+    request = request || {};
     request.payloadData = data;
     rollbar.handleError(error, request, logErrorCallback);
 };
