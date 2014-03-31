@@ -13,6 +13,7 @@ if (!window.performance) {
     var DEBUG_OPSS = Declarativ.DEVELOPMENT && false;
     var DEBUG_SPEED = Declarativ.DEVELOPMENT && true;
     var DEBUG_CONNECTION = Declarativ.DEVELOPMENT && true;
+    var PING_INTERVAL = 20000;
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
@@ -145,6 +146,7 @@ if (!window.performance) {
         var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
+            websocketStartPing(PING_INTERVAL);
 
             if (callback) {
                 callback();
@@ -160,12 +162,44 @@ if (!window.performance) {
         };
 
         ws.onclose = function() {
+            websocketStopPing();
+
             ws = null;
             if (DEBUG_CONNECTION) {
                 console.log("Disconnected from Montage Studio.");
             }
             showReconnectionMessage(websocketRefresh);
         };
+    }
+
+    var _ping;
+    function websocketStartPing(delay) {
+        if (_ping) {
+            return;
+        }
+
+        var visibilitychange = document.webkitVisibilityState ? "webkitvisibilitychange" : "visibilitychange";
+
+        _ping = function () {
+            if ((document.webkitVisibilityState || document.visibilityState) === "visible") {
+                if (_ping) {
+                    ws.send("ping");
+                    setTimeout(_ping, delay);
+                }
+            }
+        };
+
+        document.addEventListener(visibilitychange, _ping, false);
+        _ping();
+    }
+
+    function websocketStopPing() {
+        if (_ping) {
+            var visibilitychange = document.webkitVisibilityState ? "webkitvisibilitychange" : "visibilitychange";
+
+            document.removeEventListener(visibilitychange, _ping, false);
+            _ping = null;
+        }
     }
 
     function setup() {
@@ -202,6 +236,11 @@ if (!window.performance) {
     var reconnectionTries = 0;
     var reconnecting = false;
 
+    function reconnected() {
+        reconnectionTries = 0;
+        reconnecting = false;
+    }
+
     function showReconnectionMessage(reconnectCallback) {
         if (!reconnecting) {
             reconnecting = true;
@@ -222,10 +261,6 @@ if (!window.performance) {
                 document.body.removeChild(disconnectionMessageElement);
             }
             reconnectCallback(reconnected);
-        };
-        var reconnected = function() {
-            reconnectionTries = 0;
-            reconnecting = false;
         };
         // Update the seconds to reconnect, in the message, at every second.
         // When the time is up try to reconnect.
