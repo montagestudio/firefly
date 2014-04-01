@@ -37,7 +37,7 @@ PackageManagerTools.isGitUrl = function (gitUrl) {
     var response = false;
 
     if (typeof gitUrl === 'string') {
-        var result = /^(git|https?|ssh)?:\/\//.exec(gitUrl);
+        var result = /^(?:(git|https?|ssh)?:\/\/|[\w\-\.~]+@)/.exec(gitUrl);
 
         if (Array.isArray(result) && result.length > 1) {
             var protocol = result[1];
@@ -49,7 +49,7 @@ PackageManagerTools.isGitUrl = function (gitUrl) {
                 response = this.isSecureShellGitUrl(gitUrl);
 
             } else { // git:// case
-                response = /^git:\/\/(?:[\w\-\.~]+@)?github\.com\/[\/\w\.\-:~\?]*\/(?:[0-9a-zA-Z~][\w\-\.~]*)\.git(?:#[\w\-\.~]*)?$/.test(gitUrl);
+                response = /^(?:git:\/\/(?:[\w\-\.~]+@)?|[\w\-\.~]+@)github\.com(?:\/|:)[\/\w\.\-:~\?]*\/(?:[0-9a-zA-Z~][\w\-\.~]*)\.git(?:#[\w\-\.~]*)?$/.test(gitUrl);
             }
         }
     }
@@ -59,7 +59,7 @@ PackageManagerTools.isGitUrl = function (gitUrl) {
 
 PackageManagerTools.isSecureShellGitUrl = function (url) {
     return typeof url === 'string' ?
-        /^ssh:\/\/[\w\-\.~]+@github\.com:[\/\w\.\-:~\?]*\/(?:[0-9a-zA-Z~][\w\-\.~]*)\.git(?:#[\w\-\.~]*)?$/.test(url) : false;
+        /^(?:ssh:\/\/)?[\w\-\.~]+@github\.com:[\/\w\.\-:~\?]*\/(?:[0-9a-zA-Z~][\w\-\.~]*)\.git(?:#[\w\-\.~]*)?$/.test(url) : false;
 };
 
 PackageManagerTools.isHttpGitUrl = function (url) {
@@ -98,7 +98,7 @@ PackageManagerTools.transformGitUrlToHttpGitUrl = function (gitUrl, secure) {
                 url = url.replace(/@github.com:/, "@github.com/");
             }
 
-            urlTransformed = url.replace(/^(?:https?|ssh|git):\/\/(?:.*@)?/, patternProtocol);
+            urlTransformed = url.replace(/^(?:(?:https?|ssh|git):\/\/(?:[\w\-\.~]+@)?|[\w\-\.~]+@)/, patternProtocol);
         }
     }
 

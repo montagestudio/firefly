@@ -169,6 +169,9 @@ describe("package-tools", function () {
             httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+http://git@github.com/declarativ/palette.git');
             expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
 
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git@github.com/declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
             httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+ftp://git@github.com/declarativ/palette.git');
             expect(httpsUrl).toBe(null);
 
