@@ -82,6 +82,10 @@ function server(options) {
         })
         .redirect("/auth/next");
 
+        var settingsPath = fs.join(client, "settings", "index.html");
+        var serveSettings = serveFile(settingsPath, "text/html", fs);
+        route("settings").terminate(serveSettings);
+
         // TODO Remove this:
         // Redirect the old /projects URL for the moment
         route("projects").redirect(env.getAppUrl(), 301);
