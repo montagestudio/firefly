@@ -5,6 +5,7 @@ var PackageManagerTools = require("./package-manager-tools"),
     FS = require("q-io/fs"),
     Path = require("path"),
     semver = require("semver"),
+    exec = require("child_process").exec,
     execNpm = require('../package-manager/exec-npm');
 
 module.exports = function installPackages (packages, gitHubAccessToken, fsPath, dependencyTree, currentDependency) {
@@ -19,7 +20,7 @@ module.exports = function installPackages (packages, gitHubAccessToken, fsPath, 
         _regularDependencyCategory = 'regular';
 
     function _install () {
-        return _buildDependencyTree().then(function () {
+        return Q.fapply(_buildDependencyTree).then(function () {
             _filterPackages(); // separate packages that can be installed from a git url or with npm.
 
             if (_packagesFiltered.npmPackages.length > 0) {
@@ -53,17 +54,42 @@ module.exports = function installPackages (packages, gitHubAccessToken, fsPath, 
                         _packagesInstalled.push(packageInstalled);
 
                         var dependencyNodeInstalled = _addDependencyToDependencyNode(packageInstalled, _currentDependency),
-                            packagesToInstall = _findPackagesToInstall(packageJson.children, dependencyNodeInstalled);
+                            packagesToInstall = _findPackagesToInstall(packageJson.children, dependencyNodeInstalled),
+                            scripts = packageJson.fileJsonRaw.scripts;
 
-                        if (Array.isArray(packagesToInstall) && packagesToInstall.length > 0) {
-                            return installPackages(packagesToInstall, gitHubAccessToken, pathToPackage, _dependencyTree, dependencyNodeInstalled);
-                        }
+                        return Q.fcall(_execScript, scripts, 'preinstall', pathToPackage).then(function () {
+                            if (Array.isArray(packagesToInstall) && packagesToInstall.length > 0) {
+                                return installPackages(packagesToInstall, gitHubAccessToken, pathToPackage, _dependencyTree, dependencyNodeInstalled);
+                            }
+                        }).then(function () {
+                            return Q.fcall(_execScript, scripts, 'install', pathToPackage).then(function () {
+                                return Q.fcall(_execScript, scripts, 'postinstall', pathToPackage);
+                            });
+                        });
                     });
                 });
             }));
         }
 
         return void 0;
+    }
+
+    function _execScript (scriptsList, scriptName, cwd) {
+        if (scriptsList && scriptsList.hasOwnProperty(scriptName)) {
+            var deferred = Q.defer();
+
+            exec(scriptsList[scriptName], {cwd: cwd}, function (error, stdout, stderr) {
+                if (error !== null) {
+                    deferred.reject(error);
+                } else if (stderr) {
+                    deferred.reject(stderr);
+                } else {
+                    deferred.resolve(stdout);
+                }
+            });
+
+            return deferred.promise;
+        }
     }
 
     function _findPackagesToInstall (dependencyListRaw, dependencyNode) {
@@ -137,8 +163,6 @@ module.exports = function installPackages (packages, gitHubAccessToken, fsPath, 
                 });
             });
         }
-
-        return Q.resolve(true);
     }
 
     function _addDependenciesToDependencyNode (dependencies) {
