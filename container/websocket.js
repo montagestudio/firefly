@@ -51,13 +51,17 @@ function websocket(config, workspacePath, services, clientPath) {
         .done();
 
         wsQueue.closed.then(function () {
-            Object.keys(services).forEach(function (key) {
-                if (typeof services[key].close === "function") {
-                    services[key].close(request);
-                }
+            connectionServices.then(function(services) {
+                var promises = [];
+                Object.keys(services).forEach(function (key) {
+                    promises.push(services[key].invoke("close", request));
+                });
+                return Q.allSettled(promises);
+            })
+            .finally(function() {
+                Frontend.deleteFrontend(frontendId).done();
+                log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
             });
-            Frontend.deleteFrontend(frontendId).done();
-            log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
     };
 }
