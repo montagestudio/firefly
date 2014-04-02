@@ -94,8 +94,8 @@ PackageManagerTools.transformGitUrlToHttpGitUrl = function (gitUrl, secure) {
         if (url) {
             var patternProtocol = (secure || typeof secure === "undefined") ? 'https://' : 'http://';
 
-            if (this.isSecureShellGitUrl(url)) {
-                url = url.replace(/@github.com:/, "@github.com/");
+            if (/github.com:/.test(url)) {
+                url = url.replace(/github\.com:/, "github.com/");
             }
 
             urlTransformed = url.replace(/^(?:(?:https?|ssh|git):\/\/(?:[\w\-\.~]+@)?|[\w\-\.~]+@)/, patternProtocol);

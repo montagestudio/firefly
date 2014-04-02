@@ -154,25 +154,60 @@ describe("package-tools", function () {
         });
 
         it("should be able to transform a git url to a git https url", function() {
+            // case : ssh://username@github.com
             var httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('ssh://git@github.com:declarativ/palette.git');
             expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
 
+            // case : git+ssh://username@github.com
             httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+ssh://git@github.com:declarativ/palette.git');
             expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
 
+            // case : https://github.com
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('https://github.com/declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            // case : https://username@github.com
             httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('https://git@github.com/declarativ/palette.git');
             expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
 
+            // case : https://github.com
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('https://github.com/declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            // case : git+https://github.com
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+https://github.com/declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            // case : http://github.com
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('http://github.com/declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            // case : http://username@github.com
             httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('http://git@github.com/declarativ/palette.git');
             expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
 
-            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+http://git@github.com/declarativ/palette.git');
+            // case : git+http://github.com
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+http://github.com/declarativ/palette.git');
             expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
 
-            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git@github.com/declarativ/palette.git');
+            // case : username@github.com
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git@github.com:declarativ/palette.git');
             expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
 
+            // case : git://username@github.com
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git://git@github.com:declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            // case : git://github.com
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git://github.com:declarativ/palette.git');
+            expect(httpsUrl).toEqual("https://github.com/declarativ/palette.git");
+
+            // case : git://github.com [not valid]
             httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+ftp://git@github.com/declarativ/palette.git');
+            expect(httpsUrl).toBe(null);
+
+            // case : git+https://github.com: [not valid]
+            httpsUrl = PackageManagerTools.transformGitUrlToHttpGitUrl('git+https://git@github.com:declarativ/palette.git');
             expect(httpsUrl).toBe(null);
 
         });
