@@ -299,7 +299,7 @@ GithubApi.prototype._request = function(request) {
         }
     }, false);
     xhr.addEventListener("error", function() {
-        var error = new Error("Cannot " + request.method + " " + JSON.stringify(this.API_URL + request.url + queryString));
+        var error = new Error("Cannot " + request.method + " " + JSON.stringify(self.API_URL + request.url + queryString));
         error.xhr = xhr;
         deferred.reject(error);
     }, false);
