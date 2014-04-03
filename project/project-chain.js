@@ -41,7 +41,6 @@ function server(options) {
     .route(function () {
         this.OPTIONS("*").content("");
     })
-    .log(log, function (message) { return message; })
     .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .tap(parseCookies)
@@ -51,6 +50,7 @@ function server(options) {
         // payload. It then "echos" this back as a set-cookie, so that
         // the project domain now has the session cookie from the app domain
         GET("session")
+        .log(log, function (message) { return message; })
         .parseQuery()
         .app(function (request, response) {
             var next = APPS.redirect(request, environment.getAppUrl());
@@ -86,7 +86,9 @@ function server(options) {
             }
         });
 
-        POST("access").app(preview.processAccessRequest);
+        POST("access")
+        .log(log, function (message) { return message; })
+        .app(preview.processAccessRequest);
     })
     .use(function (next) {
         return function (request, response) {
@@ -143,6 +145,7 @@ function server(options) {
             }
         };
     })
+    .log(log, function (message) { return message; })
     .use(checkSession)
     .route(function (any, GET, PUT, POST) {
         GET("api/workspaces").app(function (request) {
