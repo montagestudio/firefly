@@ -180,6 +180,18 @@ GithubApi.prototype.getBranch = function(username, repository, branch) {
     });
 };
 
+// https://developer.github.com/v3/activity/events/#list-repository-events
+GithubApi.prototype.getRepositoryEvents = function(username, repository, lastETag) {
+    lastETag = lastETag || 0;
+
+    return this._request({
+        method: "GET",
+        url: "/repos/" + username + "/" + repository + "/events",
+        headers: {"If-None-Match": lastETag},
+        responseHeaders: ["etag", "x-poll-interval"]
+    });
+};
+
 /**
  * Gists
  */
@@ -242,6 +254,7 @@ GithubApi.prototype.repositoryExists = function(username, repository) {
  *           value to send in the request.
  * @property {string=""} param The github param modifier for media types:
  *           http://developer.github.com/v3/media/.
+ * @property {array=} responseHeaders The list of headers to return with response.
  */
 
 /**
@@ -252,7 +265,8 @@ GithubApi.prototype._request = function(request) {
         self = this,
         deferred = Q.defer(),
         param = request.param ? "." + request.param : "",
-        queryString = "";
+        queryString = "",
+        responseHeaders = request.responseHeaders;
 
     if (request.query) {
         queryString = "?" + this._createQueryString(request.query);
@@ -260,7 +274,8 @@ GithubApi.prototype._request = function(request) {
 
     xhr.open(request.method, this.API_URL + request.url + queryString);
     xhr.addEventListener("load", function() {
-        var message;
+        var message,
+            response;
 
         if (xhr.status >= 200 && xhr.status < 300) {
             if (xhr.responseText) {
@@ -270,14 +285,24 @@ GithubApi.prototype._request = function(request) {
                     message = JSON.parse(xhr.responseText);
                 }
             }
-            deferred.resolve(message);
+            if (responseHeaders && responseHeaders.length) {
+                response = {response: message};
+
+                responseHeaders.forEach(function(header) {
+                    response[header] = xhr.getResponseHeader(header);
+                })
+                deferred.resolve(response);
+            }
+            else {
+                deferred.resolve(message);
+            }
         } else {
             var error;
             // Try and give a friendly error from Github
             if (xhr.responseText) {
                 var errors;
                 try {
-                    var response = JSON.parse(xhr.responseText);
+                    response = JSON.parse(xhr.responseText);
                     errors = response.errors;
                     message = response.message;
                 } catch (e) {
