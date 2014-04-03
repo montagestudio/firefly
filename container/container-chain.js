@@ -9,6 +9,7 @@ var StatusApps = require("q-io/http-apps/status");
 var LogStackTraces = require("../log-stack-traces");
 
 var api = require("./api");
+var serveArchivedBuild = require("./mop").serveArchivedBuild;
 var Preview = require("./preview/preview-server").Preview;
 var WebSocket = require("faye-websocket");
 var websocket = require("./websocket");
@@ -68,6 +69,9 @@ function server(options) {
         route("static/...")
         .app(serveProject);
 
+        route("build/archive")
+        .app(serveArchivedBuild);
+
         POST("notice")
         .app(function (request) {
             return request.body.read()
@@ -93,6 +97,7 @@ function server(options) {
     services["preview-service"] = require("./services/preview-service").service;
     services["package-manager-service"] = require("./services/package-manager-service");
     services["repository-service"] = require("./services/repository-service");
+    services["build-service"] = require("./services/build-service");
 
     var websocketServer = websocket(config, workspacePath, services, clientPath);
 
