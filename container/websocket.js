@@ -52,11 +52,9 @@ function websocket(config, workspacePath, services, clientPath) {
 
         wsQueue.closed.then(function () {
             connectionServices.then(function(services) {
-                var promises = [];
-                Object.keys(services).forEach(function (key) {
-                    promises.push(services[key].invoke("close", request));
-                });
-                return Q.allSettled(promises);
+                return Q.allSettled(Object.keys(services).map(function (key) {
+                    return services[key].invoke("close", request);
+                }));
             })
             .finally(function() {
                 Frontend.deleteFrontend(frontendId).done();
