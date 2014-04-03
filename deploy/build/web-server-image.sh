@@ -17,6 +17,16 @@ pushd ${BUILD}
     if [[ -e "firefly" ]]; then
         if [[ -e "filament" ]]; then
             cp -R "firefly/inject/adaptor" "filament/."
+
+            # Configure Rollbar logging
+            if [[ -e "filament/track.js" ]]; then
+                sudo sed -i.bak 's/var ENVIRONMENT = .*;/var ENVIRONMENT = "production";/' "filament/track.js"
+                if [[ -e "filament/GIT_HASH" ]]; then
+                    GIT_HASH=`cat filament/GIT_HASH`
+                    sudo sed -i.bak "s/var GIT_HASH = .*;/var GIT_HASH = \"$GIT_HASH\";/" "filament/track.js"
+                fi
+            fi
+
             tar -czf "filament.tgz" "filament"
         fi
     fi
