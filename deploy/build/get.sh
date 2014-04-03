@@ -44,7 +44,7 @@ get ()
         rm -rf spec
     popd
     pushd "${BUILD}"
-        tar -czf "$1.tgz" "$1"
+        tar --disable-copyfile -czf "$1.tgz" "$1"
     popd
   else
       echo "Cannot clone git repository: "${BUILD}/$1

@@ -27,7 +27,7 @@ pushd ${BUILD}
                 fi
             fi
 
-            tar -czf "filament.tgz" "filament"
+            tar --disable-copyfile -czf "filament.tgz" "filament"
         fi
     fi
 popd

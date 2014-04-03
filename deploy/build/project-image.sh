@@ -16,7 +16,7 @@ get firefly ${FIREFLY_COMMIT}
 pushd "${BUILD}"
     if [[ -e "firefly" ]]; then
         rm -rf "firefly/deploy"
-        tar -czf "firefly.tgz" "firefly"
+        tar --disable-copyfile -czf "firefly.tgz" "firefly"
     fi
 popd
 
