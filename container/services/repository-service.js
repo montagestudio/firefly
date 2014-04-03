@@ -2,6 +2,7 @@ var Q = require("q");
 var Queue = require("q/queue");
 var Git = require("../git");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
+var Frontend = require("../frontend");
 var log = require("../../logging").from(__filename);
 
 module.exports = exports = RepositoryService;   // High level access to the service
@@ -15,6 +16,8 @@ var OWNER_SHADOW_BRANCH_PREFIX;
 
 var semaphore = new Queue();
 semaphore.put(); // once for one job at a time
+
+var _cachedServices = {};
 
 // Wrap any function with exclusive to make sure it wont execute before all pending exclusive methods are done
 function exclusive(method) {
@@ -55,13 +58,26 @@ function RepositoryService(session, fs, environment, pathname, fsPath) {
 
 function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
     // Returned service
-    var service = {},
+
+    var serviceUUID = owner + ":" + repo + ":" + fsPath;
+
+    if (_cachedServices[serviceUUID]) {
+        return _cachedServices[serviceUUID];
+    } else {
+        _cachedServices[serviceUUID] = {};
+    }
+
+    var service = _cachedServices[serviceUUID],
         _owner = owner,
         _repo = repo,
         _accessToken = githubAccessToken,
-        _git = new Git(fs, _accessToken, acceptOnlyHttpsRemote),
+        _fs = fs,
+        _fsPath = fsPath,
+        _git = new Git(_fs, _accessToken, acceptOnlyHttpsRemote),
         _githubApi = new GithubApi(_accessToken),
-        _info = null;
+        _info = null,
+        _githubPollTimer = null;
+
 
     OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
 
@@ -299,29 +315,29 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     service._setupProject = function() {
         var self = this;
 
-        return _git.init(fsPath)
+        return _git.init(_fsPath)
         .then(function() {
             return self._getInfo();
         }).then(function(info) {
-            return _git.addRemote(fsPath, info.gitUrl);
+            return _git.addRemote(_fsPath, info.gitUrl);
         });
     };
 
     service._cloneProject = function() {
         return this._getInfo()
         .then(function(info) {
-            return _git.clone(info.gitUrl, fsPath);
+            return _git.clone(info.gitUrl, _fsPath);
         });
     };
 
     service._setUserInfo = function(name, email) {
-        return _git.config(fsPath, "user.name", name)
+        return _git.config(_fsPath, "user.name", name)
         .then(function() {
-            return _git.config(fsPath, "user.email", email);
+            return _git.config(_fsPath, "user.email", email);
         })
         .then(function() {
             // Only push when specified where
-            return _git.config(fsPath, "push.default", "nothing");
+            return _git.config(_fsPath, "push.default", "nothing");
         });
     };
 
@@ -407,12 +423,12 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         if (fetch === false) {
             next = Q();
         } else {
-            next = _git.fetch(fsPath, this.REMOTE_REPOSITORY_NAME, ["--prune"]);
+            next = _git.fetch(_fsPath, this.REMOTE_REPOSITORY_NAME, ["--prune"]);
         }
 
         return next
         .then(function() {
-            return _git.branch(fsPath, ["-a", "-v", "--no-abbrev"]).then(function(output) {
+            return _git.branch(_fsPath, ["-a", "-v", "--no-abbrev"]).then(function(output) {
                 var result = {
                     current:null,
                     branches:{}
@@ -453,7 +469,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                         throw new Error("Unknown branch " + branch);
                     }
                 }
-                next = _git.checkout(fsPath, branch)    // will create the local branch and track the remote one if needed
+                next = _git.checkout(_fsPath, branch)    // will create the local branch and track the remote one if needed
                 .then(function() {
                     return self._listBranches(false);
                 })
@@ -481,7 +497,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         .then(function() {
             // Checkout the shadow branch if needed
             if (!(branchesInfo.current === branch && branchesInfo.currentIsShadow)) {
-                return _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                return _git.checkout(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
             }
         });
     };
@@ -514,7 +530,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
 
         shadowBranch = OWNER_SHADOW_BRANCH_PREFIX + branch;
 
-        return _git.fetch(fsPath, this.REMOTE_REPOSITORY_NAME, ["--prune"])
+        return _git.fetch(_fsPath, this.REMOTE_REPOSITORY_NAME, ["--prune"])
         .then(function() {
             return self._branchStatus(shadowBranch, branch);
         })
@@ -557,14 +573,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         })
         .then(function() {
             // stage the files
-            return _git.add(fsPath, files);
+            return _git.add(_fsPath, files);
         })
         .then(function() {
             // make sure we have staged files before committing
             return self._hasUncommittedChanges()
             .then(function(hasUncommittedChanges) {
                 if (hasUncommittedChanges) {
-                    return _git.commit(fsPath, message || "Update component");
+                    return _git.commit(_fsPath, message || "Update component");
                 }
             });
         })
@@ -620,7 +636,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     if (!sha) {
                         throw new Error("Cannot discard local changes, invalid SHA");
                     }
-                    return _git.command(fsPath, "reset", ["--hard", sha])
+                    return _git.command(_fsPath, "reset", ["--hard", sha])
                     .thenResolve({success: true});
                 } else if (resolutionStrategy === "revert") {
                     /*
@@ -699,16 +715,16 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     .then(function(status) {
                         if (status.ahead > 0) {
                             log("Parent branch has local " + status.ahead + " commit(s)");
-                            return _git.checkout(fsPath, current)
+                            return _git.checkout(_fsPath, current)
                             .then(function() {
-                                return _git.command(fsPath, "reset", ["--hard", "HEAD~" + status.ahead]);
+                                return _git.command(_fsPath, "reset", ["--hard", "HEAD~" + status.ahead]);
                             })
                             .then(function() {
                                 returnValue.notifications.push({type:"parentReset", branch:current, ahead:status.ahead});
-                                return _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + current)
+                                return _git.checkout(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + current)
                                 .thenResolve(status);
                             }, function(error) {
-                                return _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + current)
+                                return _git.checkout(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + current)
                                 .thenReject(error);
                             });
                         } else {
@@ -782,7 +798,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                     /*
                                         Discard local changes
                                     */
-                                    return _git.command(fsPath, "reset", ["--hard", remote.shadow.sha])
+                                    return _git.command(_fsPath, "reset", ["--hard", remote.shadow.sha])
                                     .then(function() {
                                         returnValue.success = true;
                                         resolutionStrategy = "";
@@ -875,7 +891,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                             /*
                                                 Discard local changes
                                             */
-                                            return _git.command(fsPath, "reset", ["--hard", remote.sha])
+                                            return _git.command(_fsPath, "reset", ["--hard", remote.sha])
                                             .then(function() {
                                                 return self._push(local.shadow.name, "--force");
                                             })
@@ -935,36 +951,36 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return self._branchStatus(branch, OWNER_SHADOW_BRANCH_PREFIX + branch)
             .then(function(status) {
                 if (status.behind > 0) {
-                    return _git.checkout(fsPath, branch)
+                    return _git.checkout(_fsPath, branch)
                     .then(function() {
                         // git merge <shadow branch> [--squash]
-                        return _git.merge(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch, squash)
+                        return _git.merge(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch, squash)
                         .catch(function(error) {
-                            return _git.command(fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
+                            return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
                             .thenReject(error);
                         });
                     })
                     .then(function() {
                         // git commit -m <message>
                         if (squash) {
-                            return _git.commit(fsPath, message || "merge changes");
+                            return _git.commit(_fsPath, message || "merge changes");
                         }
                     })
                     .then(function(){
                         return self._push(branch)
                         .catch(function(error) {
-                            return _git.command(fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
+                            return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
                             .thenReject(error);
                         });
                     })
                     .then(function() {
                         // git checkout <shadow branch>
-                        return _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                        return _git.checkout(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
                     })
                     .then(function() {
                         // reset the shadow branch after a squash
                         if (squash) {
-                            return _git.command(fsPath, "reset", ["--hard", branch])
+                            return _git.command(_fsPath, "reset", ["--hard", branch])
                             .then(function() {
                                 return self._push(OWNER_SHADOW_BRANCH_PREFIX + branch, "--force");
                             });
@@ -973,7 +989,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                         return true;
                     }, function(error) {
                         // checkout the shadow branch, just in case we are still on the parent branch
-                        _git.checkout(fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                        _git.checkout(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
                         throw error;
                     });
                 } else {
@@ -985,8 +1001,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
 
     service._branchStatus = function(localBranch, remoteBranch) {
         return Q.spread([
-            _git.command(fsPath, "rev-list", ["--first-parent", localBranch + ".." + remoteBranch, "--count"], true),
-            _git.command(fsPath, "rev-list", ["--first-parent", remoteBranch + ".." + localBranch, "--count"], true)
+            _git.command(_fsPath, "rev-list", ["--first-parent", localBranch + ".." + remoteBranch, "--count"], true),
+            _git.command(_fsPath, "rev-list", ["--first-parent", remoteBranch + ".." + localBranch, "--count"], true)
         ], function(behind, ahead) {
             return {
                 behind: parseInt(behind, 10),
@@ -996,7 +1012,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     };
 
     service._status = function() {
-        return _git.status(fsPath, ["--porcelain"])
+        return _git.status(_fsPath, ["--porcelain"])
         .then(function(output) {
             var result = [];
 
@@ -1077,10 +1093,10 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 }
             } else if (remote.shadow) {
                 // Create a local branch that track the remote shadow branch
-                next = _git.branch(fsPath, ["--track", OWNER_SHADOW_BRANCH_PREFIX + currentBranch, remote.shadow.name]);
+                next = _git.branch(_fsPath, ["--track", OWNER_SHADOW_BRANCH_PREFIX + currentBranch, remote.shadow.name]);
             } else {
                 // Create a shadow branch both locally and remotely
-                next = _git.branch(fsPath, ["--no-track", OWNER_SHADOW_BRANCH_PREFIX + currentBranch, remote.name])
+                next = _git.branch(_fsPath, ["--no-track", OWNER_SHADOW_BRANCH_PREFIX + currentBranch, remote.name])
                 .then(function() {
                     remoteModified = true;
                     return self._push(OWNER_SHADOW_BRANCH_PREFIX + currentBranch, "-u");
@@ -1110,7 +1126,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return self._hasUncommittedChanges()
             .then(function(uncommittedChanges) {
                 if (uncommittedChanges) {
-                    return _git.command(fsPath, "stash", ["save", "local changes"])
+                    return _git.command(_fsPath, "stash", ["save", "local changes"])
                     .then(function() {
                         stashed = true;
                     });
@@ -1128,9 +1144,9 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             if (status.behind > 0) {
                 // Before we can revert, we need to move away our local commits
                 if (status.ahead > 0) {
-                    next = _git.command(fsPath, "reset", ["--soft", "HEAD~" + status.ahead])
+                    next = _git.command(_fsPath, "reset", ["--soft", "HEAD~" + status.ahead])
                     .then(function() {
-                        return _git.command(fsPath, "stash", ["save", "local commits"]);
+                        return _git.command(_fsPath, "stash", ["save", "local commits"]);
                     }).then(function() {
                         return self._rebase(branch, [REMOTE_REPOSITORY_NAME + "/" + branch]);
                     });
@@ -1141,13 +1157,13 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 // Let's revert the remote changes
                 return next
                 .then(function() {
-                    return _git.command(fsPath, "revert", ["-m 0", "HEAD~" + status.behind + "..HEAD"]);
+                    return _git.command(_fsPath, "revert", ["-m 0", "HEAD~" + status.behind + "..HEAD"]);
                 })
                 .then(function() {
                     if (status.ahead > 0) {
-                        return _git.command(fsPath, "stash", ["pop"])
+                        return _git.command(_fsPath, "stash", ["pop"])
                         .then(function() {
-                            return _git.command(fsPath, "commit", ["-a", "-m", "replay local commits"]);
+                            return _git.command(_fsPath, "commit", ["-a", "-m", "replay local commits"]);
                         });
                     }
                 })
@@ -1158,7 +1174,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         })
         .then(function() {
             if (stashed) {
-                return _git.command(fsPath, "stash", ["pop"]);
+                return _git.command(_fsPath, "stash", ["pop"]);
             }
         });
     };
@@ -1166,23 +1182,23 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     service._push = function(local, options) {
         return this._getRepositoryUrl()
         .then(function(repoUrl) {
-            return _git.push(fsPath, repoUrl, local, options);
+            return _git.push(_fsPath, repoUrl, local, options);
         });
     };
 
     service._rebase = function(local, remote, dryRunSha) {
         var options = [remote, local];
 
-        return _git.command(fsPath, "rebase", options)
+        return _git.command(_fsPath, "rebase", options)
         .then(function() {
             if (dryRunSha) {
-                return _git.command(fsPath, "reset", ["--hard", dryRunSha])
+                return _git.command(_fsPath, "reset", ["--hard", dryRunSha])
                 .thenResolve(true);
             }
             return true;
         })
         .catch(function() {
-            return _git.command(fsPath, "rebase", "--abort")
+            return _git.command(_fsPath, "rebase", "--abort")
             .then(function() {
                 return false;
             },
@@ -1217,7 +1233,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 return result;
             })
             .then(function () {
-                _git.command(fsPath, "reset", ["--hard", ref]);
+                _git.command(_fsPath, "reset", ["--hard", ref]);
             })
             .then(function () {
                 return self._push(currentBranchName, "--force");
@@ -1228,6 +1244,61 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 log("push failed", error.stack);
                 return false;
             });
+    };
+
+    service._setupRepoWatch = function() {
+        var self = this;
+
+        if (_githubPollTimer === null) {
+            var eTag = 0,
+               pollInterval = 0;
+
+            var _pollGithub = function() {
+                _githubApi.getRepositoryEvents(_owner, _repo, eTag).then(function(response) {
+                    var prevEtag = eTag;
+
+                    eTag = response.etag;
+                    pollInterval = response['x-poll-interval']; // we should respect the poll interval provided by github
+                    if (prevEtag !== 0) {
+                        /* We could check the response for any push events done after our last push but the easy way
+                           is just to retrieves the branches info and check their refs
+                         */
+                        self.listBranches().then(function(info) {
+                            var currentBranch = info.current,
+                                branches = info.branches,
+                                localBranch = branches[LOCAL_REPOSITORY_NAME][currentBranch],
+                                remoteBranch = branches[REMOTE_REPOSITORY_NAME][currentBranch];
+
+                            if (remoteBranch && ((localBranch.sha !== remoteBranch.sha)) ||
+                                    (remoteBranch.shadow && (localBranch.shadow.sha !== remoteBranch.shadow.sha))) {
+                                var detail = {};
+                                detail.localRef = localBranch.sha;
+                                detail.localShadowRef = localBranch.shadow ? localBranch.shadow.sha : undefined;
+                                if (remoteBranch) {
+                                    detail.remoteRef = remoteBranch.sha;
+                                    detail.remoteShadowRef = remoteBranch.shadow ? remoteBranch.shadow.sha : undefined;
+                                }
+                                Frontend.dispatchAppEventNamed("remoteChange", true, true, detail).done();
+                            }
+                        });
+                    }
+                })
+                .finally(function() {
+                    pollInterval = pollInterval || 60;  // In case of failure before we had time to get the poll interval, just set it to 60 secs
+                    _githubPollTimer = setTimeout(_pollGithub, pollInterval * 1000);
+                });
+            };
+
+            _pollGithub();
+        }
+    };
+
+    service.close = function(request) {
+        delete _cachedServices[serviceUUID];
+        if (_githubPollTimer) {
+            clearTimeout(_githubPollTimer);
+            _githubPollTimer = null;
+        }
     };
 
     Object.defineProperties(service, {
@@ -1249,6 +1320,9 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             }
         }
     });
+
+    // Install github watch
+    service._setupRepoWatch();
 
     return service;
 }
