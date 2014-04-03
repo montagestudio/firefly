@@ -206,6 +206,8 @@ describe("repository-service", function () {
         it ("should have two repos", function(done) {
             executeFile("repo-service-setup.sh", tmpPath)
             .then(function() {
+                service1.close(null);   // We need to close the service in order to reset it (as we use the same path)
+
                 serviceRepo1Path = PATH.join(tmpPath, "serviceRepo1");
                 service1 = RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false);
                 service1.setGithubApi(new MockGithubApi());

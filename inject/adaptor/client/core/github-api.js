@@ -290,7 +290,7 @@ GithubApi.prototype._request = function(request) {
 
                 responseHeaders.forEach(function(header) {
                     response[header] = xhr.getResponseHeader(header);
-                })
+                });
                 deferred.resolve(response);
             }
             else {
