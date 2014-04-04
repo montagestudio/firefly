@@ -14,8 +14,13 @@ if (process.getgid() === 0) {
 }
 
 var log = require("../logging").from(__filename);
+process.on('uncaughtException', function(err) {
+    log('Caught exception: ', err.stack);
+});
+
 var track = require("../track");
 var FS = require("q-io/fs");
+var Mop = require("./mop");
 
 var containerChainFactory = require("./container-chain");
 var SetupProjectWorkspace = require("./setup-project-workspace");
@@ -58,6 +63,7 @@ function main(options) {
 
     var fs = options.fs || FS;
     var minitPath = fs.join(__dirname, "..", "node_modules", "minit", "minit");
+    Mop.init(fs, options.directory);
 
     var containerChain = containerChainFactory({
         fs: fs,

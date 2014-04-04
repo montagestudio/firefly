@@ -49,3 +49,10 @@ GithubApi.prototype.getUser = function() {
         login: "Jasmine"
     });
 };
+
+GithubApi.prototype.getInfo = function(owner, repo) {
+    return Q.resolve({
+        gitUrl: getRepositoryUrl("clone", owner, repo),
+        gitBranch: this._options.defaultBranch || "master"
+    });
+};

@@ -695,6 +695,35 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    buildOptimize: {
+        value: function (options) {
+            return this.backend.get("build-service").invoke("optimize", options);
+        }
+    },
+
+    buildArchive: {
+        value: function () {
+            return this.backend.get("build-service").invoke("archive");
+        }
+    },
+
+    buildPublishToGithubPages: {
+        value: function () {
+            return this.backend.get("build-service").invoke("publishToGithubPages");
+        }
+    },
+
+    downloadFile: {
+        value: function(fileUrl) {
+            var link = this.applicationDelegate.downloadLink;
+            var event = document.createEvent("MouseEvents");
+
+            link.href = fileUrl;
+            event.initEvent("click", true, true);
+            link.dispatchEvent(event);
+        }
+    },
+
     /**
      * Repository functions.
      */

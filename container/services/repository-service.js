@@ -1,5 +1,4 @@
 var Q = require("q");
-var Queue = require("q/queue");
 var Git = require("../git");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
 var Frontend = require("../frontend");
@@ -14,43 +13,8 @@ var SHADOW_BRANCH_PREFIX = "__mb__";
 var SHADOW_BRANCH_SUFFIX = "__";
 var OWNER_SHADOW_BRANCH_PREFIX;
 
-var semaphore = new Queue();
-semaphore.put(); // once for one job at a time
-
 var _cachedServices = {};
-
-// Wrap any function with exclusive to make sure it wont execute before all pending exclusive methods are done
-function exclusive(method) {
-    return function wrapped() {
-        var self = this, args = Array.prototype.slice.call(arguments);
-
-        return semaphore.get()
-        .then(function () {
-            return method.apply(self, args);
-        }).finally(function() {
-            semaphore.put();
-        });
-    };
-}
-
-function checkGithubError(method) {
-    return function wrapped(error) {
-        var self = this, args = Array.prototype.slice.call(arguments);
-        return method.apply(self, args).catch(function(error) {
-            log("Git Error", error.stack);
-            return self._githubCheck().then(function(success) {
-                if (success) {
-                    // Nothing wrong with github, let returns the original error
-                    throw error;
-                } else {
-                    throw new Error("Unauthorized access");
-                }
-            }, function(error) {
-                throw new Error("Network error");
-            });
-        });
-    };
-}
+var semaphore = Git.semaphore;
 
 function RepositoryService(session, fs, environment, pathname, fsPath) {
     return _RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, fsPath, true);
@@ -76,11 +40,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         _git = new Git(_fs, _accessToken, acceptOnlyHttpsRemote),
         _githubApi = new GithubApi(_accessToken),
         _info = null,
-        _githubPollTimer = null;
-
+        _githubPollTimer = null,
+        checkGithubError;
 
     OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
 
+    checkGithubError = function(method) {
+        return _githubApi.checkError(method, owner, service);
+    };
 
     /**
      * Set a GithuApi object
@@ -101,14 +68,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     /**
      * Setup a brand new project
      */
-    service.setupProject = checkGithubError(exclusive(function() {
+    service.setupProject = checkGithubError(semaphore.exclusive(function() {
         return this._setupProject();
     }));
 
     /**
      * setup a project by cloning it from github
      */
-    service.cloneProject = checkGithubError(exclusive(function() {
+    service.cloneProject = checkGithubError(semaphore.exclusive(function() {
         return this._cloneProject();
     }));
 
@@ -163,7 +130,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *      }
      * }
      */
-    service.listBranches = checkGithubError(exclusive(function() {
+    service.listBranches = checkGithubError(semaphore.exclusive(function() {
         return this._listBranches(true);
     }));
 
@@ -182,14 +149,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *
      * return: promise
      */
-    service.checkoutShadowBranch = checkGithubError(exclusive(function(branch) {
+    service.checkoutShadowBranch = checkGithubError(semaphore.exclusive(function(branch) {
         return this._checkoutShadowBranch(branch);
     }));
 
     /**
      * Return the status of the local shadow branch compared to the local
      * parent branch and the remote parent branch.
-     * 
+     *
      * argument:
      *      branch: branch name to checkout (without shadow branch prefix)
      *
@@ -211,7 +178,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *      }
      * }
     */
-    service.shadowBranchStatus = checkGithubError(exclusive(function(branch) {
+    service.shadowBranchStatus = checkGithubError(semaphore.exclusive(function(branch) {
         return this._shadowBranchStatus(branch);
     }));
 
@@ -238,7 +205,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *
      * return: promise
      */
-    service.commitFiles = checkGithubError(exclusive(function(files, message, resolutionStrategy) {
+    service.commitFiles = checkGithubError(semaphore.exclusive(function(files, message, resolutionStrategy) {
         return this._commitFiles(files || "--all", message, resolutionStrategy);
     }));
 
@@ -264,7 +231,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *
      * return: promise for an notifications object
      */
-    service.updateRefs = checkGithubError(exclusive(function(resolutionStrategy) {
+    service.updateRefs = checkGithubError(semaphore.exclusive(function(resolutionStrategy) {
         return this._updateRefs(resolutionStrategy);
     }));
 
@@ -282,7 +249,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *
      * return: promise for an boolean
      */
-    service.mergeShadowBranch = checkGithubError(exclusive(function(branch, message, squash) {
+    service.mergeShadowBranch = checkGithubError(semaphore.exclusive(function(branch, message, squash) {
         return this._mergeShadowBranch(branch, message, squash);
     }));
 
@@ -291,16 +258,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             var deferred = Q.defer();
             _info = deferred.promise;
 
-            _githubApi.getRepository(_owner, _repo)
-            .then(function(repository) {
-                deferred.resolve({
-                    //jshint -W106
-                    gitUrl: repository.clone_url,
-                    gitBranch: repository.default_branch
-                    //jshint +W106
-                });
-            })
-            .fail(deferred.reject);
+            _githubApi.getInfo(_owner, _repo)
+            .then(deferred.resolve, deferred.reject).done();
         }
 
         return _info;
@@ -1205,18 +1164,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             function() {
                 return false;
             });
-        });
-    };
-
-    service._githubCheck = function() {
-        return _githubApi.getUser().then(function(user) {
-            return (user.login === _owner);
-        }, function(error) {
-            if (error.message.indexOf("credential") !== -1) {
-                // return false rather than an error for credential issue
-                return false;
-            }
-            throw error;
         });
     };
 

@@ -155,6 +155,23 @@ function server(options) {
             return APPS.json(workspaceKeys);
         });
 
+        GET("build/:owner/:repo/...").app(function (request) {
+            log("build");
+            var session = request.session;
+            return session.githubUser.then(function (githubUser) {
+                return setupProjectContainer(
+                    session.username,
+                    request.params.owner,
+                    request.params.repo,
+                    session.githubAccessToken,
+                    githubUser
+                );
+            })
+            .then(function (projectWorkspacePort) {
+                return proxyContainer(request, projectWorkspacePort, "build");
+            });
+        });
+
         this.DELETE("api/workspaces").app(function (request) {
             var username = request.session.username;
             var workspaceKeys = containerIndex.forUsername(username).keys();
