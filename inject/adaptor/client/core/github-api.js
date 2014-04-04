@@ -118,8 +118,7 @@ GithubApi.prototype.listUserRepositories = function(username) {
  */
 
 /**
- * Create a new repository for the authenticated user. OAuth users must supply
- * repo scope.
+ * Create a new repository for the authenticated user. Requires OAuth user.
  *
  * @param {string} name The name of the repository.
  * @param {CreateRepositoryOptions=} options
@@ -134,6 +133,30 @@ GithubApi.prototype.createRepository = function(name, options) {
         url: "/user/repos",
         data: options
     });
+};
+
+/**
+ * fork a repository into an organization. OAuth users must supply
+ * repo scope.
+ *
+ * @param {string} owner The owner of the repository to fork from.
+ * @param {string} repo The name of the repository to fork.
+ * @param {string} organization The name of the organization were to fork the repository to (optional).
+ *
+ * http://developer.github.com/v3/repos/forks/#create-a-fork
+ */
+GithubApi.prototype.forkRepositoryInOrganization = function(owner, repo, organization) {
+    var params = {
+        method: "POST",
+        url: "/repos/" + owner + "/" + repo + "/forks"
+    };
+
+    if (typeof organization === "string" && organization.length > 0) {
+        params.data = {
+            organization: organization
+        };
+    }
+    return this._request(params);
 };
 
 /**
