@@ -165,4 +165,12 @@ get-release-number ()
         fi
     fi
 
+    if [[ -z ${FIREFLY_COMMIT} ]]; then
+        export FIREFLY_COMMIT=${TAG_NAME}
+    fi
+
+    if [[ -z ${FILAMENT_COMMIT} ]]; then
+        export FILAMENT_COMMIT=${TAG_NAME}
+    fi
+
 }
