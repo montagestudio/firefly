@@ -1,3 +1,6 @@
+/*global waitsFor*/
+var Q = require("q");
+var WebSocket = require("faye-websocket");
 var websocket = require("../../container/websocket");
 
 describe("websocket", function () {
@@ -39,6 +42,29 @@ describe("websocket", function () {
             websocket.makeServices(services, null, null, null, null, clientPath);
             expect(testServiceFn.mostRecentCall.args[4]).toEqual(clientPath);
         });
+    });
 
+    describe("services", function () {
+        it ("are closed", function() {
+            var serviceClosed = false,
+                services = {
+                    test: function() {
+                        var service = {};
+                        service.close = function() {
+                            serviceClosed = true;
+                        };
+                        return service;
+                    }
+                },
+                socketServer = websocket(null, null, services, null),
+                wsQueue = new WebSocket.Client('ws://www.example.com/', ['irc', 'amqp']);
+
+            wsQueue.closed = Q();
+            socketServer({url:"localhost/spec"}, {remoteAddress: "127.0.0.1"}, null, wsQueue);
+
+            waitsFor(function() {
+                return serviceClosed;
+            }, "the service should have been closed", 2000);
+        });
     });
 });

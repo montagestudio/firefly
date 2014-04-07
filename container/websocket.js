@@ -17,8 +17,8 @@ module.exports = websocket;
 function websocket(config, workspacePath, services, clientPath) {
     log("Websocket given services", Object.keys(services));
 
-    return function (request, socket, body) {
-        var wsQueue = adaptWebsocket(new WebSocket(request, socket, body, ["firefly-app"]));
+    return function (request, socket, body, wsQueue) {
+        wsQueue = wsQueue || adaptWebsocket(new WebSocket(request, socket, body, ["firefly-app"]));
 
         var pathname = URL.parse(request.url).pathname;
         // used for logging
