@@ -17,6 +17,12 @@ if (process.getgid() === 0) {
     process.setuid("montage");
 }
 
+// To see the memory usage logged run:
+// kill -USR2 <pid>
+process.on("SIGUSR2", function() {
+    global.console.log(process.memoryUsage());
+});
+
 var log = require("../logging").from(__filename);
 
 var track = require("../track");
