@@ -1,3 +1,7 @@
+process.on("uncaughtException", function (error) {
+    global.console.log("Uncaught exception:", error.stack);
+});
+
 // If the workspace dir exists correct the permisions before dropping uid and
 // gid. This is only used when in development mode.
 // Magic number 1000 is the `montage` user's UID, because I couldn't find a
@@ -14,9 +18,6 @@ if (process.getgid() === 0) {
 }
 
 var log = require("../logging").from(__filename);
-process.on('uncaughtException', function(err) {
-    log('Caught exception: ', err.stack);
-});
 
 var track = require("../track");
 var FS = require("q-io/fs");
