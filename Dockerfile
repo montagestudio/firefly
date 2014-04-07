@@ -37,6 +37,8 @@ RUN sudo -u montage -g montage bash -c "mkdir /tmp/npm-cache/a && cd /tmp/npm-ca
 RUN sudo -u montage -g montage bash -c "mkdir /tmp/npm-cache/b && cd /tmp/npm-cache/b && npm install montage@0.14 digit@0.5"
 RUN sudo -u montage -g montage bash -c "mkdir /tmp/npm-cache/c && cd /tmp/npm-cache/c && npm install montage digit"
 
+RUN git clone https://github.com/montagejs/popcorn.git /home/montage/popcorn
+
 # If you change this then you also need to update `mountVolume` in
 # /srv/firefly/project.js for development
 ADD firefly /srv/firefly
