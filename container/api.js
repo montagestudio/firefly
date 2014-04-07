@@ -26,6 +26,22 @@ module.exports = function (config) {
             });
         });
 
+        POST("init_popcorn")
+        .app(function (request) {
+            return handleEndpoint(config, request, function() {
+                log("init_popcorn handleEndpoint");
+                if (!initializingPromise) {
+                    initializingPromise = request.projectWorkspace.initializeWorkspace("/home/montage/popcorn");
+                    initializingPromise.catch(function (error) {
+                        log("*Error initializing popcorn*", error, error.stack);
+                        track.error(error, request);
+                    });
+                }
+            }, function() {
+                return {message: "initializing"};
+            });
+        });
+
         GET("init/progress")
         .app(function (request) {
             return handleEndpoint(config, request, function() {
