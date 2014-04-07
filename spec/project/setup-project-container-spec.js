@@ -64,6 +64,15 @@ describe("SetupProjectContainer", function () {
         .then(done, done);
     });
 
+    it("gives the container a useful name", function (done) {
+        spyOn(docker, "createContainer").andCallThrough();
+        setupProjectContainer("one-one", "two&two", "three123456three", "xxx", {})
+        .then(function () {
+            expect(docker.createContainer.mostRecentCall.args[0].name).toContain("one-one_twotwo_three123456three");
+        })
+        .then(done, done);
+    });
+
     it("returns false if there's no container and no github access token or username are given", function (done) {
         setupProjectContainer("user", "owner", "repo")
         .then(function (port) {

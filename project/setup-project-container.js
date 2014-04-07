@@ -79,7 +79,10 @@ function SetupProjectContainer(docker, containers, _request) {
                 githubUser: githubUser
             };
 
+            var name = generateContainerName(user, owner, repo);
+
             var created = docker.createContainer({
+                name: name,
                 Image: IMAGE_NAME,
                 Cmd: ['-c', JSON.stringify(config)],
                 Env: [
@@ -174,4 +177,18 @@ function SetupProjectContainer(docker, containers, _request) {
             throw new Error("Cannot get exposed port, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
         }
     }
+}
+
+var REPLACE_RE = /[^a-zA-Z0-9\-]/g;
+function generateContainerName(user, owner, repo) {
+    // Remove all characters that don't match the RE at the bottom of
+    // http://docs.docker.io/en/latest/reference/api/docker_remote_api_v1.10/#create-a-container
+    // (excluding "_", because we use that ourselves)
+    user = user.replace(REPLACE_RE, "");
+    owner = owner.replace(REPLACE_RE, "");
+    repo = repo.replace(REPLACE_RE, "");
+    // avoid collisions
+    var random = Date.now() + "" + Math.floor(Math.random()*10000);
+
+    return user + "_" + owner + "_" + repo + "_" + random;
 }
