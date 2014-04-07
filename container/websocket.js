@@ -17,8 +17,8 @@ module.exports = websocket;
 function websocket(config, workspacePath, services, clientPath) {
     log("Websocket given services", Object.keys(services));
 
-    return function (request, socket, body) {
-        var wsQueue = adaptWebsocket(new WebSocket(request, socket, body, ["firefly-app"]));
+    return function (request, socket, body, wsQueue) {
+        wsQueue = wsQueue || adaptWebsocket(new WebSocket(request, socket, body, ["firefly-app"]));
 
         var pathname = URL.parse(request.url).pathname;
         // used for logging
@@ -51,13 +51,15 @@ function websocket(config, workspacePath, services, clientPath) {
         .done();
 
         wsQueue.closed.then(function () {
-            Object.keys(services).forEach(function (key) {
-                if (typeof services[key].close === "function") {
-                    services[key].close(request);
-                }
+            connectionServices.then(function(services) {
+                return Q.allSettled(Object.keys(services).map(function (key) {
+                    return services[key].invoke("close", request);
+                }));
+            })
+            .finally(function() {
+                Frontend.deleteFrontend(frontendId).done();
+                log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
             });
-            Frontend.deleteFrontend(frontendId).done();
-            log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
         });
     };
 }
