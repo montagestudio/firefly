@@ -62,27 +62,36 @@ ProjectWorkspace.prototype.existsNodeModules = function() {
     return this._fs.exists(this._fs.join(this._workspacePath, "node_modules"));
 };
 
-ProjectWorkspace.prototype.initializeWorkspace = function() {
+ProjectWorkspace.prototype.initializeWorkspace = function(templateDirectory) {
     var self = this;
 
     return this.existsWorkspace().then(function (exists) {
         if (!exists) {
-            return self._repoService.isProjectEmpty()
-            .then(function(isEmpty) {
-                if (isEmpty) {
-                    return self.initializeWithEmptyProject();
-                } else {
-                    return self.initializeWithRepository();
-                }
-            })
-            .then(function() {
-                return self._repoService.defaultBranchName()
-                .then(function(branch) {
-                    return self._repoService.checkoutShadowBranch(branch);
+            if (templateDirectory) {
+                return self.copyTemplate(templateDirectory);
+                // TODO I'm not sure what to do next
+            } else {
+                return self._repoService.isProjectEmpty()
+                .then(function(isEmpty) {
+                    if (isEmpty) {
+                        return self.initializeWithEmptyProject();
+                    } else {
+                        return self.initializeWithRepository();
+                    }
+                })
+                .then(function() {
+                    return self._repoService.defaultBranchName()
+                    .then(function(branch) {
+                        return self._repoService.checkoutShadowBranch(branch);
+                    });
                 });
-            });
+            }
         }
     });
+};
+
+ProjectWorkspace.prototype.copyTemplate = function (path) {
+    return this._fs.copyTree(path, this._workspacePath);
 };
 
 /**
