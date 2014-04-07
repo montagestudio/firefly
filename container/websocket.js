@@ -44,7 +44,7 @@ function websocket(config, workspacePath, services, clientPath) {
             track.errorForUsername(error, config.username);
         });
 
-        frontend = Connection(wsQueue, connectionServices);
+        frontend = Connection(wsQueue, connectionServices, {max: 50});
         connectionServices.then(function() {
             return Frontend.addFrontend(frontendId, frontend);
         })

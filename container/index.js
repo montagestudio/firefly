@@ -1,3 +1,7 @@
+process.on("uncaughtException", function (error) {
+    global.console.log("Uncaught exception:", error.stack);
+});
+
 // If the workspace dir exists correct the permisions before dropping uid and
 // gid. This is only used when in development mode.
 // Magic number 1000 is the `montage` user's UID, because I couldn't find a
@@ -13,10 +17,13 @@ if (process.getgid() === 0) {
     process.setuid("montage");
 }
 
-var log = require("../logging").from(__filename);
-process.on('uncaughtException', function(err) {
-    log('Caught exception: ', err.stack);
+// To see the memory usage logged run:
+// kill -USR2 <pid>
+process.on("SIGUSR2", function() {
+    global.console.log(process.memoryUsage());
 });
+
+var log = require("../logging").from(__filename);
 
 var track = require("../track");
 var FS = require("q-io/fs");

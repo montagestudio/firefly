@@ -1,10 +1,11 @@
 /* global XMLHttpRequest, console */
 var Q = require("q");
 
-if (typeof window === "undefined") {
-    //jshint -W020
-    XMLHttpRequest = require/**/("xmlhttprequest").XMLHttpRequest;
-    //jshint +W020
+var XHR;
+if (typeof XMLHttpRequest === "undefined") {
+    XHR = require/**/("xmlhttprequest").XMLHttpRequest;
+} else {
+    XHR = XMLHttpRequest;
 }
 
 module.exports = GithubApi;
@@ -328,7 +329,7 @@ GithubApi.prototype.getInfo = function(username, repository) {
  * param {RequestOptions} request
  */
 GithubApi.prototype._request = function(request) {
-    var xhr = new XMLHttpRequest(),
+    var xhr = new XHR(),
         self = this,
         deferred = Q.defer(),
         param = request.param ? "." + request.param : "",

@@ -67,7 +67,7 @@ exports.EnvironmentBridge = Montage.specialize({
                     self._backend = null;
                 }).done();
 
-                self._backend = Connection(connection, this._frontendService);
+                self._backend = Connection(connection, this._frontendService, {max: 50});
                 self._backend.done();
 
                 // every 20 seconds
