@@ -39,7 +39,7 @@ module.exports = function (config) {
         .app(function (request) {
             return handleEndpoint(config, request, function(data) {
                 return request.projectWorkspace.createComponent(
-                    data.name);
+                    data.name, data.destination);
             }, function(result) {
                 if (result.success === true) {
                     result.message = "created";
@@ -66,7 +66,7 @@ module.exports = function (config) {
             return handleEndpoint(config, request, function(data) {
                 return request.projectWorkspace.createModule(
                     data.name, data.extendsModuleId,
-                    data.extendsName);
+                    data.extendsName, data.destination);
             }, function(result) {
                 if (result.success === true) {
                     result.message = "created";

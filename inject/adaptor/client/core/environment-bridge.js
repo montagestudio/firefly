@@ -481,8 +481,8 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     createComponent: {
-        value: function (name) {
-            return this.repositoryController.createComponent(name).then(function(response) {
+        value: function (name, packageHome, destination) {
+            return this.repositoryController.createComponent(name, packageHome, destination).then(function(response) {
                 if (response.error) {
                     throw new Error(response.error);
                 }
@@ -493,8 +493,8 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     createModule: {
-        value: function (name) {
-            return this.repositoryController.createModule(name).then(function(response) {
+        value: function (name, packageHome, destination) {
+            return this.repositoryController.createModule(name, undefined, undefined, destination).then(function(response) {
                 if (response.error) {
                     throw new Error(response.error);
                 }
