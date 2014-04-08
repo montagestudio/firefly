@@ -56,7 +56,7 @@ function websocket(config, workspacePath, services, clientPath) {
             track.messageForUsername("disconnect websocket", config.username);
             connectionServices.then(function(services) {
                 return Q.allSettled(Object.keys(services).map(function (key) {
-                    return services[key].invoke("close", request);
+                    return services[key].invoke("close");
                 }));
             })
             .finally(function() {

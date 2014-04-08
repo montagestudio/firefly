@@ -167,7 +167,7 @@ function PreviewService() {
         sendToPreviewClients("removeObjectEventListener:" + JSON.stringify(params));
     };
 
-    service.close = function(request) {
+    service.close = function() {
         this.unregister();
     };
 

@@ -1240,7 +1240,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         }
     };
 
-    service.close = function(request) {
+    service.close = function() {
         delete _cachedServices[serviceUUID];
         if (_githubPollTimer) {
             clearTimeout(_githubPollTimer);
