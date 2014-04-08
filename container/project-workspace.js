@@ -67,30 +67,25 @@ ProjectWorkspace.prototype.initializeWorkspace = function(templateDirectory) {
 
     return this.existsWorkspace().then(function (exists) {
         if (!exists) {
-            if (templateDirectory) {
-                return self.copyTemplate(templateDirectory);
-                // TODO I'm not sure what to do next
-            } else {
-                return self._repoService.isProjectEmpty()
-                .then(function(isEmpty) {
-                    if (isEmpty) {
-                        return self.initializeWithEmptyProject();
-                    } else {
-                        return self.initializeWithRepository();
-                    }
-                })
-                .then(function() {
-                    return self._repoService.defaultBranchName()
-                    .then(function(branch) {
-                        return self._repoService.checkoutShadowBranch(branch);
-                    });
+            return self._repoService.isProjectEmpty()
+            .then(function(isEmpty) {
+                if (isEmpty) {
+                    return self.initializeWithEmptyProject();
+                } else {
+                    return self.initializeWithRepository(templateDirectory);
+                }
+            })
+            .then(function() {
+                return self._repoService.defaultBranchName()
+                .then(function(branch) {
+                    return self._repoService.checkoutShadowBranch(branch);
                 });
-            }
+            });
         }
     });
 };
 
-ProjectWorkspace.prototype.copyTemplate = function (path) {
+ProjectWorkspace.prototype.cloneTemplate = function (path) {
     return this._fs.copyTree(path, this._workspacePath);
 };
 
@@ -123,10 +118,16 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
 /**
  * Initializes the workspace by cloning the remote repository.
  */
-ProjectWorkspace.prototype.initializeWithRepository = function() {
-    var self = this;
+ProjectWorkspace.prototype.initializeWithRepository = function(templateDirectory) {
+    var self = this,
+        next;
 
-    return this._repoService.cloneProject()
+    if (templateDirectory) {
+        next = this._repoService.cloneTemplate(templateDirectory);
+    } else {
+        next = this._repoService.cloneProject();
+    }
+    return next
     .then(function() {
         return self._repoService.defaultBranchName()
         .then(function(branch) {
