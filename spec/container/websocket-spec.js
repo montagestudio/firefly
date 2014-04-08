@@ -56,7 +56,7 @@ describe("websocket", function () {
                         return service;
                     }
                 },
-                socketServer = websocket(null, null, services, null),
+                socketServer = websocket({username: "test"}, null, services, null),
                 wsQueue = new WebSocket.Client('ws://www.example.com/', ['irc', 'amqp']);
 
             wsQueue.closed = Q();
