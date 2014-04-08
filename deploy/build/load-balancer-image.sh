@@ -8,6 +8,7 @@ source "${HOME}/deploy/build/parse-arguments.sh" "$@"
 source "${HOME}/deploy/build/get.sh"
 
 get-release-number
+check-refs
 
 build-base-image "base-load-balancer-image"
 export BASE_IMAGE_ID=`get-image-id "base-load-balancer-image-$BUILD_RELEASE_NAME"`

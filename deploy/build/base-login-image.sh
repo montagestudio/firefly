@@ -7,6 +7,9 @@ source "${HOME}/deploy/build/parse-arguments.sh" "$@"
 
 source "${HOME}/deploy/build/get.sh"
 
+get-release-number
+check-refs
+
 build-base-image "base-image"
 export BASE_IMAGE_ID=`get-image-id "base-image-$BUILD_RELEASE_NAME"`
 

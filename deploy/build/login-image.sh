@@ -8,6 +8,7 @@ source "${HOME}/deploy/build/parse-arguments.sh" "$@"
 source "${HOME}/deploy/build/get.sh"
 
 get-release-number
+check-refs
 
 get filament ${FILAMENT_COMMIT}
 get firefly ${FIREFLY_COMMIT}

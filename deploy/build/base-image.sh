@@ -8,10 +8,16 @@ source "${HOME}/deploy/build/parse-arguments.sh" "$@"
 source "${HOME}/deploy/build/get.sh"
 
 get-release-number
+check-refs
 
 remove-image "base-image-$BUILD_RELEASE_NAME"
 
-export BASE_IMAGE_ID=1505447
+# Global Images:
+# Ubuntu 12.04.3 x64 (id: 1505447, distro: Ubuntu)
+# Ubuntu 12.10 x64 (id: 473123, distro: Ubuntu)
+# Ubuntu 13.04 x64 (id: 350076, distro: Ubuntu)
+# Ubuntu 13.10 x64 (id: 1505699, distro: Ubuntu)
+export BASE_IMAGE_ID=1505699
 
 echo "***** Building base-image-$BUILD_RELEASE_NAME *****"
 

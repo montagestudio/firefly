@@ -23,5 +23,10 @@ else
     exit 1
 fi
 
+# Configure cgroup to get the stats
+# echo "cgroup  /sys/fs/cgroup  cgroup  defaults                        0       0" >> /etc/fstab
+sed -i.bak 's/GRUB_CMDLINE_LINUX_DEFAULT=*/GRUB_CMDLINE_LINUX_DEFAULT="quiet cgroup_enable=memory swapaccount=1"/' /etc/default/grub
+update-grub
+
 # Install Docker
 curl -sL https://get.docker.io/ | sh
