@@ -242,7 +242,10 @@ function FileService(session, fs, environment, pathname, fsPath) {
                     });
                 }
             }
-        });
+        })
+        // Ignore the return value which is ignored on the client side, and
+        // contains a lot of properties that really don't need to be serialized
+        .thenResolve();
     };
 
     return service;
