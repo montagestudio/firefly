@@ -84,6 +84,8 @@ function SetupProjectContainer(docker, containers, _request) {
             var created = docker.createContainer({
                 name: name,
                 Image: IMAGE_NAME,
+                Memory: 256 * 1024 * 1024,
+                MemorySwap: 256 * 1024 * 1024,
                 Cmd: ['-c', JSON.stringify(config)],
                 Env: [
                     "NODE_ENV=" + (process.env.NODE_ENV || "development"),
