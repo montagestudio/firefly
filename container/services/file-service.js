@@ -52,6 +52,7 @@ function FileService(session, fs, environment, pathname, fsPath) {
                     path += "/";
                 }
 
+                stat = {node: {mode: stat.node.mode}};
                 return {url: convertPathToProjectUrl(path), stat: stat};
             });
         }));
@@ -228,9 +229,11 @@ function FileService(session, fs, environment, pathname, fsPath) {
                     filePath = filePath.replace(fsPath, "");
                     var url = convertPathToProjectUrl(filePath);
 
-                    // FIXME Don't pass in the stat objects, because they could
-                    // be used for nefarious purposes
-                    handlers.handleChange.fcall(changeType, url, fileCurrentStat)
+                    // Pass in a reduced stat object, with just the mode. This
+                    // is the only used client side, to check if the file is
+                    // a directory. See inject/adaptor/client/core/file-descriptor.js
+                    fileStat = {mode: fileStat.mode};
+                    handlers.handleChange.fcall(changeType, url, fileStat)
                     .catch(function (error) {
                         log("handleChange", "*" + error.stack + "*");
                     });
