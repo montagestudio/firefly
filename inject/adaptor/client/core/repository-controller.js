@@ -152,26 +152,29 @@ exports.RepositoryController = Montage.specialize({
     },
 
     createComponent: {
-        value: function(name) {
+        value: function(name, packageHome, destination) {
             return this._request({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/components",
                 data: {
-                    "name": name
+                    "name": name,
+                    "packageHome": packageHome,
+                    "destination": destination
                 }
             });
         }
     },
 
     createModule: {
-        value: function(name, extendsModuleId, extendsName) {
+        value: function(name, extendsModuleId, extendsName, destination) {
             return this._request({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/modules",
                 data: {
                     "name": name,
                     "extendsModuleId": extendsModuleId,
-                    "extendsName": extendsName
+                    "extendsName": extendsName,
+                    "destination": destination
                 }
             });
         }

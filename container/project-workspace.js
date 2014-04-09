@@ -159,22 +159,21 @@ ProjectWorkspace.prototype.saveFile = function(filename, contents) {
  * Montage related operations
  */
 
-ProjectWorkspace.prototype.createComponent = function(name) {
+ProjectWorkspace.prototype.createComponent = function(name, destination) {
     var self = this;
     var minit = new Minit(this._minitPath);
 
     if (!name) {
         throw new Error("Name missing.");
     }
-
-    log("create component in: " + this._workspacePath);
-    return minit.createComponent(this._workspacePath, name)
+    log("create component in: " , this._workspacePath + (destination)? "/" + destination : "");
+    return minit.createComponent(this._workspacePath, name, destination)
     .then(function() {
         return self.flushWorkspace("Add component " + name);
     });
 };
 
-ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extendsName) {
+ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extendsName, destination) {
     var self = this;
     var minit = new Minit(this._minitPath);
 
@@ -182,8 +181,8 @@ ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extend
         throw new Error("Name missing.");
     }
 
-    log("create module in: " + this._workspacePath);
-    return minit.createModule(this._workspacePath, name, extendsModuleId, extendsName)
+    log("create module in: " , this._workspacePath);
+    return minit.createModule(this._workspacePath, name, extendsModuleId, extendsName, destination)
     .then(function() {
         return self.flushWorkspace("Add module " + name);
     });
@@ -241,5 +240,3 @@ ProjectWorkspace.prototype._npmInstall = function () {
         return service.installProjectPackages();
     });
 };
-
-
