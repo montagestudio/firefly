@@ -135,8 +135,8 @@ if [[ $PRODUCTION == "TRUE" ]]; then
     tugboat rebuild -n Project3 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n Project4 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
 
-    rollbar "production" "Login1" "filament" "457750e5906f47199de4c5b51d78a141"
-    rollbar "production" "Login1" "firefly" "afa2e8f334974bc58b0415fd06a02b40"
+    rollbar "production" "Login1" "filament" "dccb9acdbffd4c8bbd21247e51a0619e"
+    rollbar "production" "Login1" "firefly" "80c8078968bf4f9a92aee1af74e46b57"
 else
     tugboat rebuild -n StagingLoadBalancer -m load-balancer-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n StagingWebServer -m web-server-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
@@ -152,6 +152,6 @@ else
     staging StagingProject1
     staging StagingProject2
     
-    rollbar "staging" "StagingLogin1" "filament" "457750e5906f47199de4c5b51d78a141"
-    rollbar "staging" "StagingLogin1" "firefly" "afa2e8f334974bc58b0415fd06a02b40"
+    rollbar "staging" "StagingLogin1" "filament" "dccb9acdbffd4c8bbd21247e51a0619e"
+    rollbar "staging" "StagingLogin1" "firefly" "80c8078968bf4f9a92aee1af74e46b57"
 fi

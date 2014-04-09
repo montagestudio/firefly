@@ -36,7 +36,7 @@ var config = {
 };
 
 setCodeVersion(config);
-rollbar.init("afa2e8f334974bc58b0415fd06a02b40", config);
+rollbar.init("80c8078968bf4f9a92aee1af74e46b57", config);
 rollbar.handleUncaughtExceptions();
 
 exports.error = function(error, request, data) {
