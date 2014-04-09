@@ -5,6 +5,7 @@ var Montage = require("montage").Montage,
     Connection = require("q-connection"),
     adaptConnection = require("q-connection/adapt"),
     FileDescriptor = require("./file-descriptor").FileDescriptor,
+    MenuItem = require("adaptor/client/core/menu-item").MenuItem,
     mainMenu = require("adaptor/client/core/menu").defaultMenu,
     userMenu = require("adaptor/client/core/menu").userMenu,
     RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
@@ -33,6 +34,10 @@ exports.EnvironmentBridge = Montage.specialize({
             this._frontendService = frontendService;
             return this;
         }
+    },
+
+    MenuItem: {
+        value: MenuItem
     },
 
     _frontendService: {
