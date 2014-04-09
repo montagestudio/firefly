@@ -116,7 +116,7 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
         }
     },
 
-    draw: {
+    didDraw: {
         value: function () {
             if (this._needsFocus) {
                 this.templateObjects.inputField.element.select();
