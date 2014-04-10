@@ -264,11 +264,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
 
     service._getInfo = function() {
         if (!_info) {
-            var deferred = Q.defer();
-            _info = deferred.promise;
-
-            _githubApi.getInfo(_owner, _repo)
-            .then(deferred.resolve, deferred.reject).done();
+            _info = _githubApi.getInfo(_owner, _repo);
         }
 
         return _info;
