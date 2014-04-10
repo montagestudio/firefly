@@ -62,7 +62,7 @@ ProjectWorkspace.prototype.existsNodeModules = function() {
     return this._fs.exists(this._fs.join(this._workspacePath, "node_modules"));
 };
 
-ProjectWorkspace.prototype.initializeWorkspace = function(templateDirectory) {
+ProjectWorkspace.prototype.initializeWorkspace = function() {
     var self = this;
 
     return this.existsWorkspace().then(function (exists) {
@@ -72,7 +72,7 @@ ProjectWorkspace.prototype.initializeWorkspace = function(templateDirectory) {
                 if (isEmpty) {
                     return self.initializeWithEmptyProject();
                 } else {
-                    return self.initializeWithRepository(templateDirectory);
+                    return self.initializeWithRepository();
                 }
             });
         }
@@ -108,16 +108,10 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
 /**
  * Initializes the workspace by cloning the remote repository.
  */
-ProjectWorkspace.prototype.initializeWithRepository = function(templateDirectory) {
-    var self = this,
-        next;
+ProjectWorkspace.prototype.initializeWithRepository = function() {
+    var self = this;
 
-    if (templateDirectory) {
-        next = this._repoService.cloneTemplate(templateDirectory);
-    } else {
-        next = this._repoService.cloneProject();
-    }
-    return next
+    return this._repoService.cloneProject()
     .then(function() {
         return self._repoService.defaultBranchName()
         .then(function(branch) {
@@ -129,6 +123,22 @@ ProjectWorkspace.prototype.initializeWithRepository = function(templateDirectory
     })
     .then(function() {
         return self._repoService.commitFiles(null, UPDATE_DEPENDENCIES_MSG);
+    });
+};
+
+ProjectWorkspace.prototype.initializeWithTemplate = function(templateDirectory) {
+    var self = this;
+
+    return this.existsWorkspace().then(function (exists) {
+        if (!exists) {
+            return self._repoService.cloneTemplate(templateDirectory)
+            .then(function () {
+                return self._repoService.checkoutShadowBranch("master");
+            })
+            .then(function() {
+                return self._setupWorkspaceRepository();
+            });
+        }
     });
 };
 
