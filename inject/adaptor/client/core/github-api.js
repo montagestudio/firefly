@@ -129,6 +129,12 @@ GithubApi.prototype.listUserRepositories = function(username) {
 GithubApi.prototype.createRepository = function(name, options) {
     options = options || {};
     options.name = name;
+
+    // sanity check on repo name
+    if (/^[A-Za-z0-9_].+$/.test(name) !== true) {
+        throw new Error("Invalid project name");
+    }
+
     return this._request({
         method: "POST",
         url: "/user/repos",
