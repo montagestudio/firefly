@@ -39,7 +39,7 @@ RUN sudo -u montage -g montage bash -c "mkdir /tmp/npm-cache/c && cd /tmp/npm-ca
 
 # Install popcorn as a repository template
 RUN git clone https://github.com/montagejs/popcorn.git /home/montage/popcorn
-RUN git --git-dir ./home/montage/popcorn/.git remote rm origin
+RUN git --git-dir /home/montage/popcorn/.git remote rm origin
 
 # If you change this then you also need to update `mountVolume` in
 # /srv/firefly/project.js for development
