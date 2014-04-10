@@ -4,11 +4,11 @@
 
 # This file needs to me moved up as a sibling of firefly and filament
 
-FROM ubuntu
+FROM ubuntu:13.10
 MAINTAINER Stuart Knightley, stuart@stuartk.com
 
 # Updates
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu saucy main universe" > /etc/apt/sources.list
 RUN apt-get update
 
 # Curl
