@@ -301,11 +301,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             var _localGit = new Git(_fs, _accessToken, false);  // Use _localGit only for cloning the template
             next = _localGit.clone(path, _fsPath);
         } else {
-            next =_fs.copyTree(path, _fsPath)
-            .then(function() {
-                // clean up any artifact cause by the copy operation
-                return _git.command(_fsPath, "checkout", ["--", "."]);
-            });
+            log("copy tree");
+            next =_fs.copyTree(path, _fsPath);
         }
 
         return Q.all([this._getInfo(), next])
