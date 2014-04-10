@@ -297,24 +297,21 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     service._cloneTemplate = function(path) {
         var next;
 
-        return this._getInfo()
-        .then(function(info) {
-            if (path.lastIndexOf(".git") ===  path.length - ".git".length) {
-                var _localGit = new Git(_fs, _accessToken, false);  // Use _localGit only for cloning the template
-                next = _localGit.clone(path, _fsPath);
-            } else {
-                next =_fs.copyTree(path, _fsPath)
-                .then(function() {
-                    // clean up any artifact cause by the copy operation
-                    return _git.command(_fsPath, "checkout", ["--", "."]);
-                });
-            }
-
-            return next
+        if (path.lastIndexOf(".git") ===  path.length - ".git".length) {
+            var _localGit = new Git(_fs, _accessToken, false);  // Use _localGit only for cloning the template
+            next = _localGit.clone(path, _fsPath);
+        } else {
+            next =_fs.copyTree(path, _fsPath)
             .then(function() {
-                // Setup the remotes
-                return _git.command(_fsPath, "remote", ["add", "origin", _git._addAccessToken(info.gitUrl)]);
+                // clean up any artifact cause by the copy operation
+                return _git.command(_fsPath, "checkout", ["--", "."]);
             });
+        }
+
+        return Q.all([this._getInfo(), next])
+        .spread(function (info) {
+            // Setup the remotes
+            return _git.command(_fsPath, "remote", ["add", "origin", _git._addAccessToken(info.gitUrl)]);
         });
     };
 
