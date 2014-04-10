@@ -74,12 +74,6 @@ ProjectWorkspace.prototype.initializeWorkspace = function(templateDirectory) {
                 } else {
                     return self.initializeWithRepository(templateDirectory);
                 }
-            })
-            .then(function() {
-                return self._repoService.defaultBranchName()
-                .then(function(branch) {
-                    return self._repoService.checkoutShadowBranch(branch);
-                });
             });
         }
     });
