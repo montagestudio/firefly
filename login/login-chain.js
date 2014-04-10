@@ -43,7 +43,10 @@ function server(options) {
 
         var serveLogin = serveFile(fs.join(client, "login", "index.html"), "text/html", fs)();
         var serveProjects = serveFile(fs.join(client, "project-list", "index.html"), "text/html", fs)();
-        var root = checkSession(serveProjects, serveLogin);
+        var root = checkSession(function (request) {
+            track.message("load project page", request);
+            return serveProjects(request);
+        }, serveLogin);
         route("").app(root);
 
         route("favicon.ico").terminate(serveFile(fs.join(client, "favicon.ico"), "image/x-icon", fs));
