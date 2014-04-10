@@ -85,10 +85,6 @@ ProjectWorkspace.prototype.initializeWorkspace = function(templateDirectory) {
     });
 };
 
-ProjectWorkspace.prototype.cloneTemplate = function (path) {
-    return this._fs.copyTree(path, this._workspacePath);
-};
-
 /**
  * Initializes the workspace by creating an empty app and pushing it to the
  * remote repository.
