@@ -14,7 +14,7 @@ module.exports = function (config) {
         .app(function (request) {
             return handleEndpoint(config, request, function() {
                 log("init handleEndpoint");
-                if (!initializingPromise) {
+                if (!initializingPromise || initializingPromise.isRejected()) {
                     initializingPromise = request.projectWorkspace.initializeWorkspace();
                     initializingPromise.catch(function (error) {
                         log("*Error initializing*", error, error.stack);
