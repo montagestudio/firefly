@@ -80,6 +80,15 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     }));
 
     /**
+     * setup a project by cloning it from a local template
+     */
+    service.cloneTemplate = checkGithubError(semaphore.exclusive(function(path) {
+//        return this._cloneProject();
+        return this._cloneTemplate(path);
+    }));
+
+
+    /**
      * Configure the git user information
      */
     service.setUserInfo = function(name, email) {
@@ -255,11 +264,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
 
     service._getInfo = function() {
         if (!_info) {
-            var deferred = Q.defer();
-            _info = deferred.promise;
-
-            _githubApi.getInfo(_owner, _repo)
-            .then(deferred.resolve, deferred.reject).done();
+            _info = _githubApi.getInfo(_owner, _repo);
         }
 
         return _info;
@@ -286,6 +291,24 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         return this._getInfo()
         .then(function(info) {
             return _git.clone(info.gitUrl, _fsPath);
+        });
+    };
+
+    service._cloneTemplate = function(path) {
+        var next;
+
+        if (path.lastIndexOf(".git") ===  path.length - ".git".length) {
+            var _localGit = new Git(_fs, _accessToken, false);  // Use _localGit only for cloning the template
+            next = _localGit.clone(path, _fsPath);
+        } else {
+            log("copy tree");
+            next =_fs.copyTree(path, _fsPath);
+        }
+
+        return Q.all([this._getInfo(), next])
+        .spread(function (info) {
+            // Setup the remotes
+            return _git.command(_fsPath, "remote", ["add", "origin", _git._addAccessToken(info.gitUrl)]);
         });
     };
 

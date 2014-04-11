@@ -74,12 +74,6 @@ ProjectWorkspace.prototype.initializeWorkspace = function() {
                 } else {
                     return self.initializeWithRepository();
                 }
-            })
-            .then(function() {
-                return self._repoService.defaultBranchName()
-                .then(function(branch) {
-                    return self._repoService.checkoutShadowBranch(branch);
-                });
             });
         }
     });
@@ -129,6 +123,22 @@ ProjectWorkspace.prototype.initializeWithRepository = function() {
     })
     .then(function() {
         return self._repoService.commitFiles(null, UPDATE_DEPENDENCIES_MSG);
+    });
+};
+
+ProjectWorkspace.prototype.initializeWithTemplate = function(templateDirectory) {
+    var self = this;
+
+    return this.existsWorkspace().then(function (exists) {
+        if (!exists) {
+            return self._repoService.cloneTemplate(templateDirectory)
+            .then(function () {
+                return self._repoService.checkoutShadowBranch("master");
+            })
+            .then(function() {
+                return self._setupWorkspaceRepository();
+            });
+        }
     });
 };
 
