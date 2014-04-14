@@ -47,7 +47,7 @@ function websocket(config, workspacePath, services, clientPath) {
         });
 
         frontend = Connection(wsQueue, connectionServices, {
-            max: 50,
+            capacity: 100,
             onmessagelost: function (message) {
                 log("*message to unknown promise*", message);
                 track.errorForUsername(new Error("message to unknown promise: " + JSON.stringify(message)), config.username);

@@ -74,7 +74,7 @@ exports.EnvironmentBridge = Montage.specialize({
                 }).done();
 
                 self._backend = Connection(connection, this._frontendService, {
-                    max: 50,
+                    capacity: 100,
                     onmessagelost: function (message) {
                         window.console.warn("message to unknown promise", message);
                         track.error(new Error("message to unknown promise: " + JSON.stringify(message)));
