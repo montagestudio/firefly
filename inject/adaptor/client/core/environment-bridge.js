@@ -10,7 +10,8 @@ var Montage = require("montage").Montage,
     userMenu = require("adaptor/client/core/menu").userMenu,
     RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
     UserController = require("adaptor/client/core/user-controller").UserController,
-    URL = require("core/url");
+    URL = require("core/url"),
+    track = require("track");
 
 // TODO we should only inject the base prototype of generic services this environment provides
 // the hosted application may build on top of that with specific features it needs of the bridge
@@ -72,7 +73,13 @@ exports.EnvironmentBridge = Montage.specialize({
                     self._backend = null;
                 }).done();
 
-                self._backend = Connection(connection, this._frontendService, {max: 50});
+                self._backend = Connection(connection, this._frontendService, {
+                    capacity: 100,
+                    onmessagelost: function (message) {
+                        window.console.warn("message to unknown promise", message);
+                        track.error(new Error("message to unknown promise: " + JSON.stringify(message)));
+                    }
+                });
                 self._backend.done();
 
                 // every 20 seconds
