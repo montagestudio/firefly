@@ -46,7 +46,13 @@ function websocket(config, workspacePath, services, clientPath) {
             track.errorForUsername(error, config.username);
         });
 
-        frontend = Connection(wsQueue, connectionServices, {max: 50});
+        frontend = Connection(wsQueue, connectionServices, {
+            max: 50,
+            onmessagelost: function (message) {
+                log("*message to unknown promise*", message);
+                track.errorForUsername(new Error("message to unknown promise: " + JSON.stringify(message)), config.username);
+            }
+        });
         connectionServices.then(function() {
             return Frontend.addFrontend(frontendId, frontend);
         })
