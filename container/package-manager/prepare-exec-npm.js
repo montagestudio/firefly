@@ -3,7 +3,9 @@ var Q = require('q'),
 
 module.exports = function loadNPM (fsPath, request, execCommandCallBack) {
     return Q.ninvoke(NPM, "load", {
-        "loglevel": "silent",
+        // Commented out for the moment so that we can see what happens when
+        // things go all wrong
+        // "loglevel": "silent",
         "prefix": fsPath,
         "global": false
     }).then(function (loadedNPM) {
