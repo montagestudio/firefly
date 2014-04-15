@@ -41,7 +41,7 @@
     vertical-align: middle;
 }
 
-.Toolbar-username {
+.Toolbar .Toolbar-username {
     font-size: 13px;
     margin: 0 8px 0 8px;
     vertical-align: middle;
@@ -63,7 +63,7 @@
 
 /* Toolbar Button */
 
-.Toolbar-button.matte-Button {
+.MenuItem-button.matte-Button {
     display: inline-block;
     height: 33px;
     margin: 0;
@@ -78,7 +78,7 @@
     background: hsla(0,0%,0%,0);
 }
 
-.Toolbar-button.matte-Button:hover {
+.MenuItem-button.matte-Button:hover {
     background: hsl(0, 0%, 28%);
 }
 
