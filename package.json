@@ -41,7 +41,7 @@
     "minimatch": "~0.2.12",
     "logging": "git+ssh://git@github.com:Stuk/logging.git#4dbe3884056c0deab8ca409c81461948d911aff0",
     "xmlhttprequest": "~1.6.0",
-    "minit": "0.5.3",
+    "minit": "0.5.4",
     "mop": "0.15.0",
     "htmlparser2": "3.4.0",
     "npm": "1.4.4",
