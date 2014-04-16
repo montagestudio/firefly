@@ -1,9 +1,9 @@
 var DetectErrorDependencyTree = require("./detect-error-dependency-tree"),
-    DependencyNode = require("./dependency-node"),
+    makeDependencyNode = require("./dependency-node"),
     PATH = require("path"),
     Q = require("q"),
 
-    DEPENDENCY_CATEGORIES = DependencyNode.DEPENDENCY_CATEGORIES;
+    DEPENDENCY_CATEGORIES = makeDependencyNode.DEPENDENCY_CATEGORIES;
 
 /**
  * Makes a "dependency tree" at a given path and will try to find some eventual errors.
@@ -15,7 +15,7 @@ var DetectErrorDependencyTree = require("./detect-error-dependency-tree"),
  */
 module.exports = function listDependencies (fs, projectPath, shouldReadChildren) {
 
-    var dependencyTree = new DependencyNode(),
+    var dependencyTree = makeDependencyNode(),
         rootExamined = false;
 
     dependencyTree.path = projectPath;
@@ -68,7 +68,7 @@ module.exports = function listDependencies (fs, projectPath, shouldReadChildren)
                         if (!!dependencySaved) {
                             dependencySaved.missing = false;
                         } else {
-                            var dependencyExtraneous = new DependencyNode();
+                            var dependencyExtraneous = makeDependencyNode();
 
                             dependencyExtraneous.name = installedDependencyName;
                             dependencyExtraneous.missing = false;
@@ -180,7 +180,7 @@ module.exports = function listDependencies (fs, projectPath, shouldReadChildren)
             containerDependencies = [];
 
         listDependencyNames.forEach(function (dependencyName) {
-            var tempDependencyNode = new DependencyNode();
+            var tempDependencyNode = makeDependencyNode();
 
             tempDependencyNode.name = dependencyName;
             tempDependencyNode.path = PATH.join(dependencyNode.path, 'node_modules/', dependencyName, "/");

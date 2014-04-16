@@ -1,37 +1,40 @@
-var DependencyNode = function DependencyNode () {
+var makeDependencyNode = function makeDependencyNode () {
 
-    this.name = '';
-    this.version = '';
-    this.versionInstalled = null;
-    this.type = null;
+    var dependencyNode = {};
+    dependencyNode.name = '';
+    dependencyNode.version = '';
+    dependencyNode.versionInstalled = null;
+    dependencyNode.type = null;
 
-    this.fileJsonRaw = null;
-    this.path = null;
-    this.bundled = [];
+    dependencyNode.fileJsonRaw = null;
+    dependencyNode.path = null;
+    dependencyNode.bundled = [];
 
-    this.parent = null;
-    this.children = {
+    dependencyNode.parent = null;
+    dependencyNode.children = {
         regular: [],
         optional: [],
         dev: []
     };
 
-    this.missing = true;
-    this.extraneous = false;
-    this.jsonFileError = false;
-    this.jsonFileMissing = false;
+    dependencyNode.missing = true;
+    dependencyNode.extraneous = false;
+    dependencyNode.jsonFileError = false;
+    dependencyNode.jsonFileMissing = false;
 
-    Object.defineProperties(this, {
+    Object.defineProperties(dependencyNode, {
         parent: { enumerable: false},
         path: { enumerable: false}
     });
+
+    return dependencyNode;
 };
 
-DependencyNode.DEPENDENCY_CATEGORIES = {
+makeDependencyNode.DEPENDENCY_CATEGORIES = {
     REGULAR: 'dependencies',
     OPTIONAL: 'optionalDependencies',
     DEV: 'devDependencies',
     BUNDLED : 'bundledDependencies'
 };
 
-module.exports = DependencyNode;
+module.exports = makeDependencyNode;
