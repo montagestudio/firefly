@@ -1,4 +1,5 @@
 var log = require("../logging").from(__filename);
+var PATH = require("path");
 var FS = require("q-io/fs");
 var exec = require("./exec");
 
@@ -9,12 +10,25 @@ function Minit(path) {
 
 Minit.prototype.createApp = function(path, name) {
     log(path + "$ create:digit -n " + name);
-    // Minit creates the app in the directory you give it, with the name you
+    // Minit creates the app in the directory you give it, base on the name you
     // give it, so we just create it in /tmp and move it where it's needed.
-    return exec(this._path, ["create:digit", "-n", name], "/tmp")
-    .then(function () {
-        log("moving", FS.join("/tmp", name), "to", path);
-        return FS.move(FS.join("/tmp", name), path);
+    var dest = "_" + new Date().getTime() + Math.floor(Math.random() * 999999),
+        destFullPath = PATH.join("/tmp", dest);
+    return exec(this._path, ["create:digit", "-n", name, "-d", dest], "/tmp")
+    .then(function() {
+        // As minit might have altered the name we provided, we need to list the
+        // destination directory to find out the new name
+        return FS.list(destFullPath);
+    })
+    .then(function (paths) {
+        if (paths.length !== 1) {
+            throw new Error("unexpected minit output");
+        }
+        var source = PATH.join("/tmp", dest, paths[0]);
+        log("moving", source, "to", path);
+        return FS.move(source, path);
+    }).finally(function() {
+        FS.remove(destFullPath);
     });
 };
 
