@@ -14,7 +14,13 @@
 /* list ------------------------- */
 .ToolBarContextualMenu-list {
     display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flex;
+    display: flex;
     -webkit-flex-direction: column;
+    -moz-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -28,6 +34,9 @@
 /* button ----------------------- */
 .ToolBarContextualMenu-list button {
     -webkit-appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+    appearance: none;
     text-align: left;
     height: auto;
     min-height: 23px;
