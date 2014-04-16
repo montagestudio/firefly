@@ -4,23 +4,61 @@ var htmlparser = require("htmlparser2");
 var Q = require("q");
 var PATH = require('path');
 
+var Configuration = {
+
+    mimeTypes: {
+
+        APPLICATION_XML: {
+            value: "application/xml",
+            enabled: true
+        },
+
+        TEXT_HTML: {
+            value: "text/html",
+            enabled: true
+        },
+
+        TEXT_PLAIN: {
+            value: "text/plain",
+            enabled: true
+        },
+
+        INODE_DIRECTORY:  {
+            value: "inode/directory",
+            enabled: true
+        },
+
+        // List of mime types not supported by mmmagic.
+
+        MONTAGE_TEMPLATE: {
+            value: "text/montage-template",
+            enabled: false
+        },
+
+        MONTAGE_SERIALIZATION: {
+            value: "text/montage-template",
+            enabled: false
+        },
+
+        COLLADA: {
+            value: "model/vnd.collada+xml",
+            enabled: true
+        },
+
+        GLTF: {
+            value: "model/gltf",
+            enabled: false
+        },
+
+        GLTF_BUNDLE: {
+            value: "model/gltf-bundle",
+            enabled: true
+        }
+    }
+};
+
 module.exports = exports = detectMimeType;
-
-// List of mime types not supported by mmmagic.
-var ADDITIONAL_MIME_TYPES = exports.ADDITIONAL_MIME_TYPES = {
-    MONTAGE_TEMPLATE: "text/montage-template",
-    MONTAGE_SERIALIZATION: "text/montage-serialization",
-    COLLADA: "model/vnd.collada+xml",
-    GLTF: "model/gltf",
-    GLTF_BUNDLE: "model/gltf-bundle"
-};
-
-var LIB_MAGIC_MIME_TYPES = {
-    APPLICATION_XML: "application/xml",
-    TEXT_HTML: "text/html",
-    TEXT_PLAIN: "text/plain",
-    INODE_DIRECTORY: "inode/directory"
-};
+module.exports.mimeTypes = Configuration.mimeTypes;
 
 function detectMimeType (fs, path, fsPath) {
     var magic = new Magic(mmm.MAGIC_MIME_TYPE),
@@ -28,36 +66,46 @@ function detectMimeType (fs, path, fsPath) {
 
     return Q.ninvoke(magic, "detectFile", fsFilePath).then(function (mimeType) {
         var parts = path.split('/'),
-            fileName = parts[parts.length - 1];
+            fileName = parts[parts.length - 1],
+            supportedMimeTypes = Configuration.mimeTypes;
 
         mimeType = mimeType.toLowerCase();
 
-        if (mimeType === LIB_MAGIC_MIME_TYPES.APPLICATION_XML && /\.dae$/.test(fileName)) {
+        if (mimeType === supportedMimeTypes.APPLICATION_XML.value && supportedMimeTypes.COLLADA.enabled &&
+            /\.dae$/.test(fileName)) {
 
-            return !!isColladaMimeType(fs, path) ? ADDITIONAL_MIME_TYPES.COLLADA : mimeType;
+            return !!isColladaMimeType(fs, path) ? supportedMimeTypes.COLLADA.value : mimeType;
 
-        } else if (mimeType === LIB_MAGIC_MIME_TYPES.TEXT_HTML && /^(?!index\.html$)(?=(.+\.html)$)/.test(fileName)) {
+        } else if (mimeType === supportedMimeTypes.TEXT_HTML.value && supportedMimeTypes.MONTAGE_TEMPLATE.enabled &&
+            /^(?!index\.html$)(?=(.+\.html)$)/.test(fileName)) {
 
-            return !!isMontageTemplateMimeType(fs, path) ? ADDITIONAL_MIME_TYPES.MONTAGE_TEMPLATE : mimeType;
+            return !!isMontageTemplateMimeType(fs, path) ? supportedMimeTypes.MONTAGE_TEMPLATE.value : mimeType;
 
-        } else if (mimeType === LIB_MAGIC_MIME_TYPES.TEXT_PLAIN && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
+        } else if (mimeType === supportedMimeTypes.TEXT_PLAIN.value && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
 
-            return fs.read(path).then(JSON.parse).then(function (result) {
-                if (result) {
-                    if (result.hasOwnProperty('owner')) { // montage-serialization
-                        mimeType = ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION;
-                    } else if (result.asset && result.asset.generator && /^collada2gltf/.test(result.asset.generator)) { // gltf json
-                        //fixme support just the gltf files which have been generate by the collada2gltf converter
+            if (supportedMimeTypes.MONTAGE_SERIALIZATION.enabled || supportedMimeTypes.GLTF.enabled) {
 
-                        mimeType = ADDITIONAL_MIME_TYPES.GLTF ;
+                return fs.read(path).then(JSON.parse).then(function (result) {
+                    if (result) {
+                        if (result.hasOwnProperty('owner') && supportedMimeTypes.MONTAGE_SERIALIZATION.enabled) { // montage-serialization
+                            mimeType = supportedMimeTypes.MONTAGE_SERIALIZATION.value;
+
+                        } else if (result.asset && result.asset.generator &&
+                            /^collada2gltf/.test(result.asset.generator) && supportedMimeTypes.GLTF.enabled) { // gltf json
+                            //fixme support just the gltf files which have been generate by the collada2gltf converter
+
+                            mimeType = supportedMimeTypes.GLTF.value ;
+                        }
                     }
-                }
 
-                return mimeType;
-            });
-        } else if (mimeType === LIB_MAGIC_MIME_TYPES.INODE_DIRECTORY && PATH.extname(fileName) === ".glTF") {
+                    return mimeType;
+                });
+            }
 
-            return ADDITIONAL_MIME_TYPES.GLTF_BUNDLE;
+        } else if (mimeType === supportedMimeTypes.INODE_DIRECTORY.value && supportedMimeTypes.GLTF_BUNDLE.enabled &&
+            PATH.extname(fileName) === ".glTF") {
+
+            return supportedMimeTypes.GLTF_BUNDLE.value;
         }
 
         return mimeType;
@@ -67,9 +115,11 @@ function detectMimeType (fs, path, fsPath) {
 function isMontageTemplateMimeType (fs, path) {
     return fs.read(path, "r").then(function (content) {
         var isTemplate = false,
+            montageSerializationMimeType = Configuration.mimeTypes.MONTAGE_SERIALIZATION.value,
+
             parser = new htmlparser.Parser({
                 onopentag: function(tagName, attributes){
-                    if (tagName === "script" && attributes.type.toLowerCase() === ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION) {
+                    if (tagName === "script" && attributes.type.toLowerCase() === montageSerializationMimeType) {
                         isTemplate = true;
                         parser.reset();
                     }

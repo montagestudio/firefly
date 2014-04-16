@@ -1,6 +1,6 @@
 var FileService = require("../../../container/services/file-service");
 var MockFs = require("q-io/fs-mock");
-var ADDITIONAL_MIME_TYPES = require("../../../container/detect-mime-type").ADDITIONAL_MIME_TYPES;
+var ADDITIONAL_MIME_TYPES = require("../../../container/detect-mime-type").mimeTypes;
 
 describe("file-service", function () {
     var fs, service;
@@ -103,16 +103,16 @@ describe("file-service", function () {
                     return service.listAsset("/").then(function (listAssets) {
                         listAssets.forEach(function (asset) {
                             switch (asset.mimeType) {
-                                case ADDITIONAL_MIME_TYPES.MONTAGE_TEMPLATE:
+                                case ADDITIONAL_MIME_TYPES.MONTAGE_TEMPLATE.value:
                                     expect(asset.url).toBe("http://localhost:2441/template-test.html");
                                     break;
-                                case ADDITIONAL_MIME_TYPES.GLTF_BUNDLE:
+                                case ADDITIONAL_MIME_TYPES.GLTF_BUNDLE.value:
                                     expect(asset.url).toBe("http://localhost:2441/bundle-test.glTF/");
                                     break;
-                                case ADDITIONAL_MIME_TYPES.COLLADA:
+                                case ADDITIONAL_MIME_TYPES.COLLADA.value:
                                     expect(asset.url).toBe("http://localhost:2441/collada-test.dae");
                                     break;
-                                case ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION:
+                                case ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION.value:
                                     expect(asset.url).toBe("http://localhost:2441/serialization-test.json");
                                     break;
                             }
