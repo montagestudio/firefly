@@ -414,7 +414,7 @@ GithubApi.prototype._request = function(request) {
     }
 
     if (request.data) {
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf8");
         xhr.send(JSON.stringify(request.data));
     } else {
         xhr.send();
