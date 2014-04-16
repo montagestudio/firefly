@@ -2,8 +2,17 @@
     position: relative;
     z-index: 1;
     display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flex;
+    display: flex;
     -webkit-justify-content: space-between;
+    -moz-justify-content: space-between;
+    -ms-justify-content: space-between;
+    justify-content: space-between;
     -webkit-align-items: center;
+    -moz-align-items: center;
+    -ms-align-items: center;
+    align-items: center;
     height: 34px;
     padding-bottom: 1px; /* Fixes vertical centering */
     border-top: 1px solid hsla(0, 0%, 100%, .1);
@@ -13,7 +22,13 @@
 
 .Toolbar-group {
     display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flex;
+    display: flex;
     -webkit-align-items: center;
+    -moz-align-items: center;
+    -ms-align-items: center;
+    align-items: center;
     border-right: 1px solid hsla(0, 0%, 0%, 0.2);
 }
 
@@ -50,12 +65,18 @@
 
 .Toolbar .matte-ButtonGroup {
     display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flex;
+    display: flex;
     margin: 0 7px;
     line-height: 0;
 }
 
 .Toolbar .mainMenu {
     display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flex;
+    display: flex;
     margin: 0 7px;
     line-height: 0;
 }

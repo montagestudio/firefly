@@ -49,9 +49,27 @@
 
 .MenuItem.Flashing .MenuItem-button.matte-Button {
     -webkit-animation: flashing .5s;
+    -moz-animation: flashing .5s;
+    -ms-animation: flashing .5s;
+    animation: flashing .5s;
 }
 
 @-webkit-keyframes flashing {
+    0% { background-color: hsla(0,0%,0%,0); }
+    50% { background-color: hsla(0,0%,28%,1); }
+    100% { background-color: hsla(0,0%,0%,0); }
+}
+@-moz-keyframes flashing {
+    0% { background-color: hsla(0,0%,0%,0); }
+    50% { background-color: hsla(0,0%,28%,1); }
+    100% { background-color: hsla(0,0%,0%,0); }
+}
+@-ms-keyframes flashing {
+    0% { background-color: hsla(0,0%,0%,0); }
+    50% { background-color: hsla(0,0%,28%,1); }
+    100% { background-color: hsla(0,0%,0%,0); }
+}
+@keyframes flashing {
      0% { background-color: hsla(0,0%,0%,0); }
     50% { background-color: hsla(0,0%,28%,1); }
    100% { background-color: hsla(0,0%,0%,0); }
