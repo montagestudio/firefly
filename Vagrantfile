@@ -14,6 +14,10 @@ Vagrant.configure('2') do |config|
         config.cache.enable :apt
     end
 
+    # Disable Guest Addition install for the moment. It seems to cause more
+    # problems than it solves
+    config.vbguest.no_install = true
+
     # The machines listed below should match as closely as possible the Packer
     # .json images. Try and keep the steps in the same order as in the .json
     # files to make comparison easier.
