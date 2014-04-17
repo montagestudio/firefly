@@ -65,6 +65,10 @@ function detectMimeType (fs, path, fsPath) {
         fsFilePath = PATH.join(fsPath, path);
 
     return Q.ninvoke(magic, "detectFile", fsFilePath).then(function (mimeType) {
+        if (path.charAt(path.length - 1) === "/") { // remove last trailing slash.
+            path = path.slice(0, -1);
+        }
+
         var parts = path.split('/'),
             fileName = parts[parts.length - 1],
             supportedMimeTypes = Configuration.mimeTypes;
@@ -107,7 +111,7 @@ function detectMimeType (fs, path, fsPath) {
             }
 
         } else if (mimeType === supportedMimeTypes.INODE_DIRECTORY.value && supportedMimeTypes.GLTF_BUNDLE.enabled &&
-            PATH.extname(fileName) === ".glTF") {
+            /\.glTF$/.test(fileName)) {
 
             return supportedMimeTypes.GLTF_BUNDLE.value;
         }
