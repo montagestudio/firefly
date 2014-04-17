@@ -384,7 +384,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     getPreviewClients: {
         value: function() {
-            return this.backend.get("preview-service").invoke("getClients");
+            return this.getService("preview-service").invoke("getClients");
         }
     },
 
@@ -824,13 +824,13 @@ exports.EnvironmentBridge = Montage.specialize({
 
     convertColladaToGlTFAtUrl: {
         value: function (inputUrl, outputUrl) {
-            return this.backend.get("asset-converter-service").invoke("convertColladaAtUrl", inputUrl, {output: outputUrl});
+            return this.getService("asset-converter-service").invoke("convertColladaAtUrl", inputUrl, {output: outputUrl});
         }
     },
 
     convertColladaToGlTFBundleAtUrl: {
         value: function (inputUrl, outputUrl) {
-            return this.backend.get("asset-converter-service").invoke("convertColladaAtUrl", inputUrl, {bundle: true, output: outputUrl});
+            return this.getService("asset-converter-service").invoke("convertColladaAtUrl", inputUrl, {bundle: true, output: outputUrl});
         }
     }
 
