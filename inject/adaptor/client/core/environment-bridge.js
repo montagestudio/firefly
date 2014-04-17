@@ -22,6 +22,7 @@ exports.EnvironmentBridge = Montage.specialize({
     constructor: {
         value: function EnvironmentBridge() {
             this.super();
+            this._serviceCache = {};
             var pathComponents = window.location.pathname.replace(/^\//, "").split("/");
             if (pathComponents.length >= 2) {
                 this._userName = pathComponents[0];
@@ -70,9 +71,13 @@ exports.EnvironmentBridge = Montage.specialize({
                 var connection = adaptConnection(new WebSocket(protocol + "//" + window.location.host + window.location.pathname));
 
                 connection.closed.then(function () {
+                    self.dispatchBeforeOwnPropertyChange("backend", self._backend);
                     self._backend = null;
+                    self._serviceCache.clear();
+                    self.dispatchOwnPropertyChange("backend", self._backend);
                 }).done();
 
+                self.dispatchBeforeOwnPropertyChange("backend", self._backend);
                 self._backend = Connection(connection, this._frontendService, {
                     capacity: 256,
                     onmessagelost: function (message) {
@@ -80,6 +85,8 @@ exports.EnvironmentBridge = Montage.specialize({
                         track.error(new Error("message to unknown promise: " + JSON.stringify(message)));
                     }
                 });
+                self.dispatchOwnPropertyChange("backend", self._backend);
+
                 self._backend.done();
 
                 // every 20 seconds
@@ -87,6 +94,20 @@ exports.EnvironmentBridge = Montage.specialize({
             }
 
             return self._backend;
+        }
+    },
+
+    _serviceCache: {
+        value: null
+    },
+
+    getService: {
+        value: function (name) {
+            if (!this._serviceCache[name]) {
+                this._serviceCache[name] = this.backend.get(name);
+            }
+
+            return this._serviceCache[name];
         }
     },
 
@@ -140,7 +161,7 @@ exports.EnvironmentBridge = Montage.specialize({
         get: function () {
             if(!this._packageUrl) {
                 var self = this;
-                this._packageUrl = this.backend.get("env-service").get("projectUrl")
+                this._packageUrl = this.getService("env-service").get("projectUrl")
                 .then(function (url) {
                     // The PreviewController depends on this changing
                     self.dispatchOwnPropertyChange("previewUrl", self.previewUrl);
@@ -200,14 +221,14 @@ exports.EnvironmentBridge = Montage.specialize({
 
     read: {
         value: function (url) {
-            return this.backend.get("file-service").invoke("read", url);
+            return this.getService("file-service").invoke("read", url);
         }
     },
 
     dependenciesInPackage: {
         value: function (packageUrl) {
 
-            return this.backend.get("file-service").invoke("read", packageUrl + "/package.json")
+            return this.getService("file-service").invoke("read", packageUrl + "/package.json")
                 .then(function (content) {
                     var packageInfo = JSON.parse(content),
                         dependencyNames,
@@ -263,7 +284,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     listTreeAtUrl: {
         value: function (url, exclude) {
-            return this.backend.get("file-service").invoke("listTree", url, exclude).then(function (fileDescriptors) {
+            return this.getService("file-service").invoke("listTree", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
                     return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
                 });
@@ -273,7 +294,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     list: {
         value: function (url) {
-            return this.backend.get("file-service").invoke("list", url).then(function (fileDescriptors) {
+            return this.getService("file-service").invoke("list", url).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
                     return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
                 });
@@ -283,7 +304,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     listAssetAtUrl: {
         value: function (url, exclude) {
-            return this.backend.get("file-service").invoke("listAsset", url, exclude).then(function (fileDescriptors) {
+            return this.getService("file-service").invoke("listAsset", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
                     var fileDescriptor = FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
                     fileDescriptor.mimeType = fd.mimeType;
@@ -296,7 +317,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     detectMimeTypeAtUrl: {
         value: function (url) {
-            return this.backend.get("file-service").invoke("detectMimeTypeAtUrl", url);
+            return this.getService("file-service").invoke("detectMimeTypeAtUrl", url);
         }
     },
 
@@ -307,7 +328,16 @@ exports.EnvironmentBridge = Montage.specialize({
                 handleError: Promise.master(errorHandler)
             };
 
-            return this.backend.get("file-service").invoke("watch", url, ignoreSubPaths, handlers);
+            var result = this.getService("file-service").invoke("watch", url, ignoreSubPaths, handlers);
+
+            // rewatch when the backend websocket reconnects
+            this.addOwnPropertyChangeListener("backend", function (backend, key, self) {
+                if (backend) {
+                    self.getService("file-service").invoke("watch", url, ignoreSubPaths, handlers).done();
+                }
+            });
+
+            return result;
         }
     },
 
@@ -319,7 +349,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
     componentsInPackage: {
         value: function (url) {
-            return this.backend.get("file-service").invoke("listPackage", url, true).then(function (fileDescriptors) {
+            return this.getService("file-service").invoke("listPackage", url, true).then(function (fileDescriptors) {
                 return fileDescriptors.filter(function (fd) {
                     return (/\.reel\/$/).test(fd.url);
                 }).map(function (fd) {
@@ -332,7 +362,7 @@ exports.EnvironmentBridge = Montage.specialize({
     registerPreview: {
         value: function (name, url) {
             this._previewUrl = url;
-            return this.backend.get("preview-service").invoke("register");
+            return this.getService("preview-service").invoke("register");
         }
     },
 
@@ -342,7 +372,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
             // If the websocket isn't connected don't trigger a reconnect
             if (this._backend) {
-                return this.backend.get("preview-service").invoke("unregister")
+                return this.getService("preview-service").invoke("unregister")
                 .then(function() {
                     self._previewUrl = null;
                 });
@@ -360,79 +390,79 @@ exports.EnvironmentBridge = Montage.specialize({
 
     refreshPreview: {
         value: function () {
-            return this.backend.get("preview-service").invoke("refresh");
+            return this.getService("preview-service").invoke("refresh");
         }
     },
 
     setPreviewObjectProperties: {
         value: function(previewId, label, ownerModuleId, properties) {
-            return this.backend.get("preview-service").invoke("setObjectProperties", label, ownerModuleId, properties);
+            return this.getService("preview-service").invoke("setObjectProperties", label, ownerModuleId, properties);
         }
     },
 
     setPreviewObjectProperty: {
         value: function(previewId, ownerModuleId, label, propertyName, propertyValue, propertyType) {
-            return this.backend.get("preview-service").invoke("setObjectProperty", ownerModuleId, label, propertyName, propertyValue, propertyType);
+            return this.getService("preview-service").invoke("setObjectProperty", ownerModuleId, label, propertyName, propertyValue, propertyType);
         }
     },
 
     setPreviewObjectLabel: {
         value: function(previewId, ownerModuleId, label, newLabel) {
-            return this.backend.get("preview-service").invoke("setObjectLabel", ownerModuleId, label, newLabel);
+            return this.getService("preview-service").invoke("setObjectLabel", ownerModuleId, label, newLabel);
         }
     },
 
     setPreviewObjectBinding: {
         value: function(previewId, ownerModuleId, label, binding) {
-            return this.backend.get("preview-service").invoke("setObjectBinding", ownerModuleId, label, binding);
+            return this.getService("preview-service").invoke("setObjectBinding", ownerModuleId, label, binding);
         }
     },
 
     deletePreviewObjectBinding: {
         value: function(previewId, ownerModuleId, label, path) {
-            return this.backend.get("preview-service").invoke("deleteObjectBinding", ownerModuleId, label, path);
+            return this.getService("preview-service").invoke("deleteObjectBinding", ownerModuleId, label, path);
         }
     },
 
     addTemplateFragment: {
         value: function(previewId, moduleId, elementLocation, how, templateFragment) {
-            return this.backend.get("preview-service").invoke("addTemplateFragment", moduleId, elementLocation, how, templateFragment);
+            return this.getService("preview-service").invoke("addTemplateFragment", moduleId, elementLocation, how, templateFragment);
         }
     },
 
     addTemplateFragmentObjects: {
         value: function(previewId, moduleId, templateFragment) {
-            return this.backend.get("preview-service").invoke("addTemplateFragmentObjects", moduleId, templateFragment);
+            return this.getService("preview-service").invoke("addTemplateFragmentObjects", moduleId, templateFragment);
         }
     },
 
     deletePreviewObject: {
         value: function(previewId, ownerModuleId, label) {
-            return this.backend.get("preview-service").invoke("deleteObject", ownerModuleId, label);
+            return this.getService("preview-service").invoke("deleteObject", ownerModuleId, label);
         }
     },
 
     deletePreviewElement: {
         value: function(previewId, ownerModuleId, elementLocation) {
-            return this.backend.get("preview-service").invoke("deleteElement", ownerModuleId, elementLocation);
+            return this.getService("preview-service").invoke("deleteElement", ownerModuleId, elementLocation);
         }
     },
 
     setPreviewElementAttribute: {
         value: function(previewId, moduleId, elementLocation, attributeName, attributeValue) {
-            return this.backend.get("preview-service").invoke("setElementAttribute", moduleId, elementLocation, attributeName, attributeValue);
+            return this.getService("preview-service").invoke("setElementAttribute", moduleId, elementLocation, attributeName, attributeValue);
         }
     },
 
     addPreviewObjectEventListener: {
         value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
-            return this.backend.get("preview-service").invoke("addObjectEventListener", moduleId, label, type, listenerLabel, useCapture);
+            return this.getService("preview-service").invoke("addObjectEventListener", moduleId, label, type, listenerLabel, useCapture);
         }
     },
 
     removePreviewObjectEventListener: {
         value: function(previewId, moduleId, label, type, listenerLabel, useCapture) {
-            return this.backend.get("preview-service").invoke("removeObjectEventListener", moduleId, label, type, listenerLabel, useCapture);
+            return this.getService("preview-service").invoke("removeObjectEventListener", moduleId, label, type, listenerLabel, useCapture);
         }
     },
 
@@ -443,19 +473,19 @@ exports.EnvironmentBridge = Montage.specialize({
 
     availableExtensions: {
         get: function () {
-            return this.backend.get("extension-service").invoke("getExtensions");
+            return this.getService("extension-service").invoke("getExtensions");
         }
     },
 
     listLibraryItemUrls: {
         value: function (extensionUrl, packageName) {
-            return this.backend.get("extension-service").invoke("listLibraryItemUrls", extensionUrl, packageName);
+            return this.getService("extension-service").invoke("listLibraryItemUrls", extensionUrl, packageName);
         }
     },
 
     listModuleIconUrls: {
         value: function (extensionUrl, packageName) {
-            return this.backend.get("extension-service").invoke("listModuleIconUrls", extensionUrl, packageName);
+            return this.getService("extension-service").invoke("listModuleIconUrls", extensionUrl, packageName);
         }
     },
 
@@ -610,7 +640,7 @@ exports.EnvironmentBridge = Montage.specialize({
         value: function(url, data) {
             var self = this;
 
-            return this.backend.get("file-service").invoke("writeFile", url, data)
+            return this.getService("file-service").invoke("writeFile", url, data)
                 .then(function () {
                     var path = URL.parse(url).pathname.slice(1);
                     return self.commitFiles([path]);
@@ -623,19 +653,19 @@ exports.EnvironmentBridge = Montage.specialize({
 
     remove: {
         value: function (url) {
-            return this.backend.get("file-service").invoke("remove", url);
+            return this.getService("file-service").invoke("remove", url);
         }
     },
 
     makeTree: {
         value: function (url) {
-            return this.backend.get("file-service").invoke("makeTree", url);
+            return this.getService("file-service").invoke("makeTree", url);
         }
     },
 
     removeTree: {
         value: function (url) {
-            return this.backend.get("file-service").invoke("removeTree", url);
+            return this.getService("file-service").invoke("removeTree", url);
         }
     },
 
@@ -667,61 +697,61 @@ exports.EnvironmentBridge = Montage.specialize({
 
     listDependenciesAtUrl: {
         value: function (packageUrl) {
-            return this.backend.get("package-manager-service").invoke("listDependenciesAtUrl", packageUrl);
+            return this.getService("package-manager-service").invoke("listDependenciesAtUrl", packageUrl);
         }
     },
 
     removePackage: {
         value: function (packageName) {
-            return this.backend.get("package-manager-service").invoke("removePackage", packageName);
+            return this.getService("package-manager-service").invoke("removePackage", packageName);
         }
     },
 
     findOutdatedDependency: {
         value: function () {
-            return this.backend.get("package-manager-service").invoke("findOutdatedDependency");
+            return this.getService("package-manager-service").invoke("findOutdatedDependency");
         }
     },
 
     installPackages: {
         value: function (requestedPackages) {
-            return this.backend.get("package-manager-service").invoke("installPackages", requestedPackages);
+            return this.getService("package-manager-service").invoke("installPackages", requestedPackages);
         }
     },
 
     gatherPackageInformation: {
         value: function (requestedPackage) {
-            return this.backend.get("package-manager-service").invoke("gatherPackageInformation", requestedPackage);
+            return this.getService("package-manager-service").invoke("gatherPackageInformation", requestedPackage);
         }
     },
 
     searchPackages: {
         value: function (packages) {
-            return this.backend.get("package-manager-service").invoke("searchPackages", packages);
+            return this.getService("package-manager-service").invoke("searchPackages", packages);
         }
     },
 
     installProjectPackages: {
         value: function (packages) {
-            return this.backend.get("package-manager-service").invoke("installProjectPackages");
+            return this.getService("package-manager-service").invoke("installProjectPackages");
         }
     },
 
     buildOptimize: {
         value: function (options) {
-            return this.backend.get("build-service").invoke("optimize", options);
+            return this.getService("build-service").invoke("optimize", options);
         }
     },
 
     buildArchive: {
         value: function () {
-            return this.backend.get("build-service").invoke("archive");
+            return this.getService("build-service").invoke("archive");
         }
     },
 
     buildPublishToGithubPages: {
         value: function () {
-            return this.backend.get("build-service").invoke("publishToGithubPages");
+            return this.getService("build-service").invoke("publishToGithubPages");
         }
     },
 
@@ -741,44 +771,44 @@ exports.EnvironmentBridge = Montage.specialize({
      */
     listRepositoryBranches: {
         value: function () {
-            return this.backend.get("repository-service").invoke("listBranches");
+            return this.getService("repository-service").invoke("listBranches");
         }
     },
 
     checkoutShadowBranch: {
         value: function (branch) {
-            return this.backend.get("repository-service").invoke("checkoutShadowBranch", branch);
+            return this.getService("repository-service").invoke("checkoutShadowBranch", branch);
         }
     },
 
     shadowBranchStatus: {
         value: function (branch) {
-            return this.backend.get("repository-service").invoke("shadowBranchStatus", branch);
+            return this.getService("repository-service").invoke("shadowBranchStatus", branch);
         }
     },
 
     commitFiles: {
         value: function (files, message, resolutionStrategy) {
-            return this.backend.get("repository-service").invoke("commitFiles", files, message, resolutionStrategy);
+            return this.getService("repository-service").invoke("commitFiles", files, message, resolutionStrategy);
         }
     },
 
     updateProjectRefs: {
         value: function (resolutionStrategy) {
-            return this.backend.get("repository-service").invoke("updateRefs", resolutionStrategy);
+            return this.getService("repository-service").invoke("updateRefs", resolutionStrategy);
         }
     },
 
     mergeShadowBranch: {
         value: function (branch, message, squash, resolutionStrategy) {
-            return this.backend.get("repository-service").invoke("mergeShadowBranch", branch, message, squash, resolutionStrategy);
+            return this.getService("repository-service").invoke("mergeShadowBranch", branch, message, squash, resolutionStrategy);
         }
     },
 
     resetShadowBranch: {
         value: function (branch) {
             //TODO only do this for shadow branches?
-            return this.backend.get("repository-service").invoke("_reset", branch);
+            return this.getService("repository-service").invoke("_reset", branch);
         }
     }
 });
