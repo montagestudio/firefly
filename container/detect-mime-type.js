@@ -74,12 +74,16 @@ function detectMimeType (fs, path, fsPath) {
         if (mimeType === supportedMimeTypes.APPLICATION_XML.value && supportedMimeTypes.COLLADA.enabled &&
             /\.dae$/.test(fileName)) {
 
-            return !!isColladaMimeType(fs, path) ? supportedMimeTypes.COLLADA.value : mimeType;
+            return isColladaMimeType(fs, path).then(function (response) {
+                return response ? supportedMimeTypes.COLLADA.value : mimeType;
+            });
 
         } else if (mimeType === supportedMimeTypes.TEXT_HTML.value && supportedMimeTypes.MONTAGE_TEMPLATE.enabled &&
             /^(?!index\.html$)(?=(.+\.html)$)/.test(fileName)) {
 
-            return !!isMontageTemplateMimeType(fs, path) ? supportedMimeTypes.MONTAGE_TEMPLATE.value : mimeType;
+            return isMontageTemplateMimeType(fs, path).then(function (response) {
+                return response ? supportedMimeTypes.MONTAGE_TEMPLATE.value : mimeType;
+            });
 
         } else if (mimeType === supportedMimeTypes.TEXT_PLAIN.value && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
 
