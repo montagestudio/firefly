@@ -1,19 +1,27 @@
 var log = require("../../logging").from(__filename);
+var uuid = require("uuid");
 
-var preview = {};
+var preview = {
+    connections: []
+};
 
-exports.registerConnection = function(ws) {
-    if (!preview.connections) {
-        preview.connections = [ws];
-    } else {
-        preview.connections.push(ws);
-    }
+exports.registerConnection = function(ws, request) {
+    var client = {
+        ws: ws,
+        info: {
+            clientId: uuid.v4(),
+            userAgent: request.headers['user-agent'],
+            remoteAddress: request.connection.remoteAddress,
+            xForwardedFor: request.headers['x-forwarded-for']
+        }
+    };
+    preview.connections.push(client);
 };
 
 exports.unregisterConnection = function(ws) {
     var connections = preview.connections;
     for (var i in connections) {
-        if (connections[i] === ws) {
+        if (connections[i].ws === ws) {
             connections.splice(i, 1);
         }
     }
@@ -43,10 +51,8 @@ function PreviewService() {
     service.unregister = function() {
         log("unregister preview");
         // Websocket connections
-        if (preview.connections) {
-            for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-                preview.connections[i].close();
-            }
+        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+            preview.connections[i].ws.close();
         }
     };
 
@@ -167,16 +173,20 @@ function PreviewService() {
         sendToPreviewClients("removeObjectEventListener:" + JSON.stringify(params));
     };
 
+    service.getClients = function() {
+        return preview.connections.map(function(connection) {
+            return connection.info;
+        });
+    };
+
     service.close = function() {
         this.unregister();
     };
 
     function sendToPreviewClients(content) {
         // Websocket connections
-        if (preview.connections) {
-            for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-                preview.connections[i].send(content);
-            }
+        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+            preview.connections[i].ws.send(content);
         }
     }
 
