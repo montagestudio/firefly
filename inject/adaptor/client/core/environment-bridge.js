@@ -70,9 +70,12 @@ exports.EnvironmentBridge = Montage.specialize({
                 var connection = adaptConnection(new WebSocket(protocol + "//" + window.location.host + window.location.pathname));
 
                 connection.closed.then(function () {
+                    self.dispatchBeforeOwnPropertyChange("backend", self._backend);
                     self._backend = null;
+                    self.dispatchOwnPropertyChange("backend", self._backend);
                 }).done();
 
+                self.dispatchBeforeOwnPropertyChange("backend", self._backend);
                 self._backend = Connection(connection, this._frontendService, {
                     capacity: 256,
                     onmessagelost: function (message) {
@@ -80,6 +83,8 @@ exports.EnvironmentBridge = Montage.specialize({
                         track.error(new Error("message to unknown promise: " + JSON.stringify(message)));
                     }
                 });
+                self.dispatchOwnPropertyChange("backend", self._backend);
+
                 self._backend.done();
 
                 // every 20 seconds
