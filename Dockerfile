@@ -41,6 +41,14 @@ RUN sudo -u montage -g montage bash -c "mkdir /tmp/npm-cache/c && cd /tmp/npm-ca
 RUN git clone https://github.com/montagejs/popcorn.git /home/montage/popcorn
 RUN git --git-dir /home/montage/popcorn/.git remote rm origin
 
+# Install glTFConverter converter
+RUN apt-get install -y libxml2-dev libpng12-dev libpcre3-dev cmake
+RUN git clone --recurse-submodules https://github.com/KhronosGroup/glTF.git /home/montage/glTF
+RUN cd /home/montage/glTF/ && git checkout 1b34a658c096795b4449b08ba2b1020e98307137
+RUN cd /home/montage/glTF/converter/COLLADA2GLTF && cmake . && make
+RUN mv /home/montage/glTF/converter/COLLADA2GLTF/bin/collada2gltf /usr/bin/collada2gltf
+RUN chmod +x /usr/bin/collada2gltf && rm -rf /home/montage/glTF
+
 # If you change this then you also need to update `mountVolume` in
 # /srv/firefly/project.js for development
 ADD firefly /srv/firefly

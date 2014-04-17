@@ -780,5 +780,22 @@ exports.EnvironmentBridge = Montage.specialize({
             //TODO only do this for shadow branches?
             return this.backend.get("repository-service").invoke("_reset", branch);
         }
+    },
+
+    /**
+     * Assets converter functions.
+     */
+
+    convertColladaToGlTFAtUrl: {
+        value: function (inPutUrl, outputUrl) {
+            return this.backend.get("asset-converter-service").invoke("convertColladaAtUrl", inPutUrl, {output: outputUrl});
+        }
+    },
+
+    convertColladaToGlTFBundleAtUrl: {
+        value: function (inPutUrl, outputUrl) {
+            return this.backend.get("asset-converter-service").invoke("convertColladaAtUrl", inPutUrl, {bundle: true, output: outputUrl});
+        }
     }
+
 });
