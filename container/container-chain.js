@@ -98,6 +98,7 @@ function server(options) {
     services["package-manager-service"] = require("./services/package-manager-service");
     services["repository-service"] = require("./services/repository-service");
     services["build-service"] = require("./services/build-service");
+    services["asset-converter-service"] = require("./services/asset-converter-service");
 
     var websocketServer = websocket(config, workspacePath, services, clientPath);
 
