@@ -312,7 +312,16 @@ exports.EnvironmentBridge = Montage.specialize({
                 handleError: Promise.master(errorHandler)
             };
 
-            return this.backend.get("file-service").invoke("watch", url, ignoreSubPaths, handlers);
+            var result = this.backend.get("file-service").invoke("watch", url, ignoreSubPaths, handlers);
+
+            // rewatch when the backend websocket reconnects
+            this.addOwnPropertyChangeListener("backend", function (backend) {
+                if (backend) {
+                    backend.get("file-service").invoke("watch", url, ignoreSubPaths, handlers).done();
+                }
+            });
+
+            return result;
         }
     },
 
