@@ -71,7 +71,11 @@ var DetectErrorDependencyTree = function DetectErrorDependencyTree (dependencyTr
                 _reportError(childNode, ERROR_TYPES.VERSION_INVALID, dependencyCategory, parentNode);
             }
         } else {
-            _reportError(childNode, ERROR_TYPES.PACKAGE_FILE_INVALID, dependencyCategory, parentNode);
+            if (childNode.extraneous) {
+                _reportError(childNode, ERROR_TYPES.DEPENDENCY_EXTRANEOUS, dependencyCategory, parentNode);
+            } else {
+                _reportError(childNode, ERROR_TYPES.PACKAGE_FILE_INVALID, dependencyCategory, parentNode);
+            }
         }
     }
 
