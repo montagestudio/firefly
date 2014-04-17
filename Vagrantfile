@@ -1,6 +1,6 @@
 Vagrant.configure('2') do |config|
     # This is the only variable that needs updating when new boxes are available
-    BOX_VERSION = "24"
+    BOX_VERSION = "46"
 
     BASE_BOX = "declarativ-base-#{BOX_VERSION}"
     BASE_BOX_URL = "http://107.170.60.86/base-#{BOX_VERSION}.box"
@@ -14,8 +14,9 @@ Vagrant.configure('2') do |config|
         config.cache.enable :apt
     end
 
-    # The base install does an upgrade of all packages but we do not want grub to be updated on the VM as it fails
-    config.vm.provision :shell, inline: "echo 'grub-pc hold' | dpkg --set-selections"
+    # Disable Guest Addition install for the moment. It seems to cause more
+    # problems than it solves
+    config.vbguest.no_install = true
 
     # The machines listed below should match as closely as possible the Packer
     # .json images. Try and keep the steps in the same order as in the .json

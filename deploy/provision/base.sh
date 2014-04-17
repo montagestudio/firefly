@@ -36,6 +36,7 @@ mv "/tmp/sudoers" "/etc/sudoers.d/sudoers"
 # Verify the permissions on the sudoers file
 if [[ -e "/etc/sudoers.d/sudoers" ]]; then
     chmod 0440 "/etc/sudoers.d/sudoers"
+    chown root:root "/etc/sudoers.d/sudoers"
 fi
 
 # Create the clone directory
