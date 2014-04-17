@@ -382,6 +382,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    getPreviewClients: {
+        value: function() {
+            return this.backend.get("preview-service").invoke("getClients");
+        }
+    },
+
     launchPreview: {
         value: function () {
             return Promise.resolve();

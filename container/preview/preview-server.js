@@ -130,7 +130,7 @@ function startWsServer(config) {
 
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
-        preview.registerConnection(ws);
+        preview.registerConnection(ws, request);
 
         ws.on("close", function () {
             log("websocket connection closed: ", --websocketConnections);

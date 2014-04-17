@@ -6,7 +6,7 @@ describe("preview-service", function () {
 
     function createConnection(host) {
         return {
-            req: {headers: {host: host}},
+            req: {headers: {host: host}, connection: {}},
             send: function(content) {},
             close: function() {}
         };
@@ -15,11 +15,7 @@ describe("preview-service", function () {
     beforeEach(function() {
         var preview = PreviewService._getPreview();
 
-        for (var key in preview) {
-            if (preview.hasOwnProperty(key)) {
-                delete preview[key];
-            }
-        }
+        preview.connections.clear();
     });
 
     describe("service", function() {
@@ -28,7 +24,7 @@ describe("preview-service", function () {
             var url = environment.project.hostname;
             service.register();
             var connection = createConnection(url);
-            PreviewService.registerConnection(connection);
+            PreviewService.registerConnection(connection, connection.req);
 
             spyOn(connection, "close");
 
@@ -39,7 +35,7 @@ describe("preview-service", function () {
         it("should refresh all preview clients when the preview is registered", function () {
             var url = environment.project.hostname;
             var connection = createConnection(url);
-            PreviewService.registerConnection(connection);
+            PreviewService.registerConnection(connection, connection.req);
 
             spyOn(connection, "send");
 
@@ -56,8 +52,8 @@ describe("preview-service", function () {
                 connection2 = createConnection(host);
 
                 service.register({name: "preview", url: host});
-                PreviewService.registerConnection(connection1);
-                PreviewService.registerConnection(connection2);
+                PreviewService.registerConnection(connection1, connection1.req);
+                PreviewService.registerConnection(connection2, connection2.req);
             });
 
             it("should refresh all preview's clients", function() {
@@ -96,8 +92,8 @@ describe("preview-service", function () {
         });
 
         it("should register a new connection from a preview", function() {
-            PreviewService.registerConnection(
-                createConnection(environment.getProjectHost()));
+            var connection = createConnection(environment.getProjectHost());
+            PreviewService.registerConnection(connection, connection.req);
 
             expect(PreviewService._getPreview().connections.length).toBe(1);
         });
@@ -105,7 +101,7 @@ describe("preview-service", function () {
         it("should unregister a new connection from a preview", function() {
             var connection = createConnection(environment.getProjectHost());
 
-            PreviewService.registerConnection(connection);
+            PreviewService.registerConnection(connection, connection.req);
             PreviewService.unregisterConnection(connection);
 
             expect(PreviewService._getPreview().connections.length).toBe(0);
