@@ -98,7 +98,7 @@ function server(options) {
                     var details = environment.getDetailsfromProjectUrl(request.url);
                     if (hasAccess) {
                         return setupProjectContainer(
-                            details.owner, // FIXME docker
+                            request.session.username,
                             details.owner,
                             details.repo
                         ).then(function (projectWorkspacePort) {
@@ -109,7 +109,7 @@ function server(options) {
                         });
                     } else {
                         setupProjectContainer(
-                            details.owner, // FIXME docker
+                            request.session.username,
                             details.owner,
                             details.repo
                         )
