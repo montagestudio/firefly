@@ -216,7 +216,12 @@ function FileService(session, fs, environment, pathname, fsPath) {
         return Q.invoke(watchr, "watch", {
             path: fsPath,
             ignorePaths: ignorePaths,
-            ignoreCommonPatterns: true,
+            ignoreCommonPatterns: false,
+            // This is the `ignoreCommonPatterns` regex:
+            // https://github.com/bevry/ignorepatterns/blob/master/src/lib/ignorepatterns.coffee
+            // which ignores node_modules, which we don't want to do.
+            // So let's make our own one:
+            ignoreCustomPatterns: /\.git/,
             listeners: {
                 change: function(changeType, filePath, fileCurrentStat, filePreviousStat) {
 
