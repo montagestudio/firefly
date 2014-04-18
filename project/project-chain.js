@@ -98,7 +98,7 @@ function server(options) {
                     var details = environment.getDetailsfromProjectUrl(request.url);
                     if (hasAccess) {
                         return setupProjectContainer(
-                            request.session.username,
+                            details.owner,
                             details.owner,
                             details.repo
                         ).then(function (projectWorkspacePort) {
@@ -109,7 +109,7 @@ function server(options) {
                         });
                     } else {
                         setupProjectContainer(
-                            request.session.username,
+                            details.owner,
                             details.owner,
                             details.repo
                         )
@@ -227,6 +227,7 @@ function server(options) {
                     if (hasAccess) {
                         log("preview websocket", request.headers.host);
                         details = environment.getDetailsfromProjectUrl(request.headers.host);
+                        details.username = details.owner;
                         return proxyPreviewWebsocket(request, socket, body, details);
                     } else {
                         socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
@@ -236,7 +237,10 @@ function server(options) {
             } else {
                 log("filament websocket");
                 details = environment.getDetailsFromAppUrl(request.url);
-                return proxyAppWebsocket(request, socket, body, details);
+                return sessions.getSession(request, function (session) {
+                    details.username = session.username;
+                    return proxyAppWebsocket(request, socket, body, details);
+                });
             }
         })
         .catch(function (error) {
