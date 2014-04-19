@@ -106,7 +106,7 @@ function servePreviewClientFile(request, response) {
     return clientFs.then(function(fs) {
         path = path.slice(("/" + CLIENT_FILES + "/").length);
 
-        if (path === "preview.js" || path === "live-edit.js") {
+        if (PREVIEW_SCRIPTS.indexOf(path) >= 0) {
             return HttpApps.file(request, path, null, fs);
         }
 
