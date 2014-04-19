@@ -13,7 +13,8 @@ var Frontend = require("../frontend");
 var CLIENT_FILES = "{$PREVIEW}";
 
 var CLIENT_ROOT = __dirname + "/client/";
-var PREVIEW_SCRIPTS = ["live-edit.js", "preview.js"];
+var PREVIEW_SCRIPTS = ["live-edit.js", "montage-studio.js",
+                       "preview.js"];
 
 var clientFs = FS.reroot(CLIENT_ROOT);
 
@@ -104,6 +105,10 @@ function injectPreviewScripts(request, response) {
 function processPreviewClientMessage(message) {
     var data = JSON.parse(message.data),
         promise;
+
+    if (data.command === "inspectComponent") {
+        promise = Frontend.inspectComponent(data.args.ownerModuleId, data.args.label);
+    }
 
     if (promise) {
         promise.catch(function (error) {

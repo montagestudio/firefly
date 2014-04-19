@@ -68,6 +68,14 @@ Frontend.prototype.showNotification = function(message) {
     }
 };
 
+Frontend.prototype.inspectComponent = function(ownerModuleId, label) {
+    if (this._connection) {
+        return this._connection.invoke("inspectComponent", ownerModuleId, label);
+    } else {
+        log("inspectComponent: frontend service is not available yet");
+        return Q.resolve();
+    }
+};
 
 Frontend.prototype.dispatchAppEventNamed = function(type, canBubble, cancelable, detail) {
     if (this._connection) {

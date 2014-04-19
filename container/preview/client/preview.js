@@ -147,6 +147,7 @@ if (!window.performance) {
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
             websocketStartPing(PING_INTERVAL);
+            Declarativ.MontageStudio.init(ws);
 
             if (callback) {
                 callback();
