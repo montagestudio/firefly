@@ -190,5 +190,15 @@ function PreviewService() {
         }
     }
 
+    function sendToPreviewClient(clientId, content) {
+        // Websocket connections
+        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+            if (preview.connections[i].info.clientId === clientId) {
+                preview.connections[i].ws.send(content);
+                return;
+            }
+        }
+    }
+
     return service;
 }
