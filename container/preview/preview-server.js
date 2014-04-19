@@ -13,7 +13,7 @@ var Frontend = require("../frontend");
 var CLIENT_FILES = "{$PREVIEW}";
 
 var CLIENT_ROOT = __dirname + "/client/";
-var PREVIEW_SCRIPTS = ["live-edit.js", "montage-studio.js",
+var PREVIEW_SCRIPTS = ["live-edit.js", "tools.js", "montage-studio.js",
                        "preview.js"];
 
 var clientFs = FS.reroot(CLIENT_ROOT);

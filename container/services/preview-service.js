@@ -60,6 +60,10 @@ function PreviewService() {
         sendToPreviewClients("refresh:");
     };
 
+    service.selectComponentToInspect = function(clientId) {
+        sendToPreviewClient(clientId, "selectComponentToInspect:");
+    };
+
     service.setObjectProperties = function(label, ownerModuleId, properties) {
         var params = {
             label: label,

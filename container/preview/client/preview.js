@@ -18,6 +18,7 @@ if (!window.performance) {
         timer = null,
         disconnectionMessageElement,
         LiveEdit = Declarativ.LiveEdit,
+        Tools = Declarativ.Tools,
         dataProcessingPromise,
         previousTime = window.performance.now(),
         operations = 0;
@@ -63,6 +64,10 @@ if (!window.performance) {
                     operations = 0;
                 }
                 operations++;
+            }
+
+            if (command === "selectComponentToInspect") {
+                return Tools.selectComponentToInspect();
             }
 
             if (command === "setObjectProperties") {
