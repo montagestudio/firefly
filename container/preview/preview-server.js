@@ -8,6 +8,7 @@ var StatusApps = require("q-io/http-apps/status");
 var WebSocket = require("faye-websocket");
 var preview = require("../services/preview-service");
 var Env = require("../../environment");
+var Frontend = require("../frontend");
 
 var CLIENT_FILES = "{$PREVIEW}";
 
@@ -100,6 +101,17 @@ function injectPreviewScripts(request, response) {
     });
 }
 
+function processPreviewClientMessage(message) {
+    var data = JSON.parse(message.data),
+        promise;
+
+    if (promise) {
+        promise.catch(function (error) {
+            log("*Error processing message", error.stack);
+        });
+    }
+}
+
 function servePreviewClientFile(request, response) {
     var path = unescape(request.pathInfo);
 
@@ -136,5 +148,6 @@ function startWsServer(config) {
             log("websocket connection closed: ", --websocketConnections);
             preview.unregisterConnection(ws);
         });
+        ws.on("message", processPreviewClientMessage);
     };
 }

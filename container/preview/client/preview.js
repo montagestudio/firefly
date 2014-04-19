@@ -183,7 +183,7 @@ if (!window.performance) {
         _ping = function () {
             if ((document.webkitVisibilityState || document.visibilityState) === "visible") {
                 if (_ping) {
-                    ws.send("ping");
+                    ws.send(JSON.stringify({type: "ping"}));
                     setTimeout(_ping, delay);
                 }
             }
