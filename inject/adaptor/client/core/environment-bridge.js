@@ -184,10 +184,15 @@ exports.EnvironmentBridge = Montage.specialize({
                 var xhr = new XHR();
                 var open = xhr.open;
                 xhr.open = function (method, url) {
+                    var result = open.apply(this, arguments);
+                    // IE has a bug that requires withCredentials (or other XHR
+                    // properties like responseType) to be set after open() is
+                    // called.
+                    // http://connect.microsoft.com/IE/feedback/details/795580
                     if (url.indexOf(withCredentialsUrl) !== -1) {
                         this.withCredentials = true;
                     }
-                    return open.apply(this, arguments);
+                    return result;
                 };
                 return xhr;
             };
