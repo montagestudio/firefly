@@ -2,6 +2,23 @@ var log = require("../../logging").from(__filename);
 var uuid = require("uuid");
 
 var preview = {
+    /**
+     * This object holds the list of changes that were applied to the
+     * application since its last save state.
+     * The queue property is an object that can be indexed by the sequence
+     * number of the change. Sequence numbers are in increasing order, they
+     * start at _initialSequenceId and end at _lastSequenceId.
+     * Entries in the queue may be deleted for optimization purposes if
+     * they are considered no ops.
+     * This structure is used to send past change operations to Preview clients
+     * that were initialized after changes have been performed on the last save
+     * point.
+     */
+    changes: {
+        queue: {},
+        _initialSequenceId: 0,
+        _lastSequenceId: -1
+    },
     connections: []
 };
 
@@ -188,12 +205,21 @@ function PreviewService() {
     };
 
     function sendToPreviewClients(name, params) {
-        var content = name + ":" + JSON.stringify(params);
+        var content;
+        var sequenceId = ++preview.changes._lastSequenceId;
+
+        if (!params) {
+            params = {};
+        }
+        params.sequenceId = sequenceId;
+        content = name + ":" + JSON.stringify(params);
 
         // Websocket connections
         for (var i = 0, ii = preview.connections.length; i < ii; i++) {
             preview.connections[i].ws.send(content);
         }
+
+        preview.changes.queue[sequenceId] = content;
     }
 
     function sendToPreviewClient(clientId, content) {
