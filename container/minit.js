@@ -28,7 +28,7 @@ Minit.prototype.createApp = function(path, name) {
         log("moving", source, "to", path);
         return FS.move(source, path);
     }).finally(function() {
-        FS.remove(destFullPath);
+        return FS.remove(destFullPath);
     });
 };
 
