@@ -22,10 +22,12 @@
         },
 
         "menuItem": {
-            "prototype": "../menu-item.reel",
+            "prototype": "ui/contextual-menu.reel/menu-item.reel",
             "properties": {
                 "element": {"#": "menuItem"},
-                "overlayPosition": "down"
+                "overlayPosition": "down",
+                "actionEventName" : "menuAction",
+                "validateEventName" : "menuValidate"
             },
             "bindings": {
                 "menuItemModel": {"<-": "@mainMenuRepetition:iteration.object"},
