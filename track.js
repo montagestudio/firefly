@@ -79,7 +79,7 @@ exports.shutdown = function () {
 
 function logErrorCallback(e) {
     if (e) {
-        log(e);
+        log(e.stack || e);
     }
 }
 
