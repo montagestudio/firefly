@@ -70,7 +70,7 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             properties: properties
         };
-        sendToPreviewClients("setObjectProperties:" + JSON.stringify(params));
+        sendToPreviewClients("setObjectProperties", params);
     };
 
     service.setObjectProperty = function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
@@ -81,7 +81,7 @@ function PreviewService() {
             propertyValue: propertyValue,
             propertyType: propertyType
         };
-        sendToPreviewClients("setObjectProperty:" + JSON.stringify(params));
+        sendToPreviewClients("setObjectProperty", params);
     };
 
     service.setObjectLabel = function(ownerModuleId, label, newLabel) {
@@ -90,7 +90,7 @@ function PreviewService() {
             label: label,
             newLabel: newLabel
         };
-        sendToPreviewClients("setObjectLabel:" + JSON.stringify(params));
+        sendToPreviewClients("setObjectLabel", params);
     };
 
     service.setObjectBinding = function(ownerModuleId, label, binding) {
@@ -99,7 +99,7 @@ function PreviewService() {
             label: label,
             binding: binding
         };
-        sendToPreviewClients("setObjectBinding:" + JSON.stringify(params));
+        sendToPreviewClients("setObjectBinding", params);
     };
 
     service.deleteObjectBinding = function(ownerModuleId, label, path) {
@@ -108,7 +108,7 @@ function PreviewService() {
             label: label,
             path: path
         };
-        sendToPreviewClients("deleteObjectBinding:" + JSON.stringify(params));
+        sendToPreviewClients("deleteObjectBinding", params);
     };
 
     service.addTemplateFragment = function(moduleId, elementLocation, how, templateFragment) {
@@ -118,7 +118,7 @@ function PreviewService() {
             how: how,
             templateFragment: templateFragment
         };
-        sendToPreviewClients("addTemplateFragment:" + JSON.stringify(params));
+        sendToPreviewClients("addTemplateFragment", params);
     };
 
     service.addTemplateFragmentObjects = function(moduleId, templateFragment) {
@@ -126,7 +126,7 @@ function PreviewService() {
             moduleId: moduleId,
             templateFragment: templateFragment
         };
-        sendToPreviewClients("addTemplateFragmentObjects:" + JSON.stringify(params));
+        sendToPreviewClients("addTemplateFragmentObjects", params);
     };
 
     service.deleteObject = function(ownerModuleId, label) {
@@ -134,7 +134,7 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             label: label
         };
-        sendToPreviewClients("deleteObject:" + JSON.stringify(params));
+        sendToPreviewClients("deleteObject", params);
     };
 
     service.deleteElement = function(ownerModuleId, elementLocation) {
@@ -142,7 +142,7 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             elementLocation: elementLocation
         };
-        sendToPreviewClients("deleteElement:" + JSON.stringify(params));
+        sendToPreviewClients("deleteElement", params);
     };
 
     service.setElementAttribute = function(moduleId, elementLocation, attributeName, attributeValue) {
@@ -152,7 +152,7 @@ function PreviewService() {
             attributeName: attributeName,
             attributeValue: attributeValue
         };
-        sendToPreviewClients("setElementAttribute:" + JSON.stringify(params));
+        sendToPreviewClients("setElementAttribute", params);
     };
 
     service.addObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
@@ -163,7 +163,7 @@ function PreviewService() {
             listenerLabel: listenerLabel,
             useCapture: useCapture
         };
-        sendToPreviewClients("addObjectEventListener:" + JSON.stringify(params));
+        sendToPreviewClients("addObjectEventListener", params);
     };
 
     service.removeObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
@@ -174,7 +174,7 @@ function PreviewService() {
             listenerLabel: listenerLabel,
             useCapture: useCapture
         };
-        sendToPreviewClients("removeObjectEventListener:" + JSON.stringify(params));
+        sendToPreviewClients("removeObjectEventListener", params);
     };
 
     service.getClients = function() {
@@ -187,7 +187,9 @@ function PreviewService() {
         this.unregister();
     };
 
-    function sendToPreviewClients(content) {
+    function sendToPreviewClients(name, params) {
+        var content = name + ":" + JSON.stringify(params);
+
         // Websocket connections
         for (var i = 0, ii = preview.connections.length; i < ii; i++) {
             preview.connections[i].ws.send(content);
