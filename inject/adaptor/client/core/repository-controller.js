@@ -210,11 +210,14 @@ exports.RepositoryController = Montage.specialize({
             var xhr = new XMLHttpRequest(),
                 deferred = Promise.defer();
 
+            xhr.open(request.method, request.url);
+            // IE has a bug that requires withCredentials (or other XHR
+            // properties like responseType) to be set after open() is
+            // called.
+            // http://connect.microsoft.com/IE/feedback/details/795580
             if (request.withCredentials) {
                 xhr.withCredentials = true;
             }
-
-            xhr.open(request.method, request.url);
             xhr.addEventListener("load", function() {
                 var message;
 
