@@ -805,8 +805,8 @@ exports.EnvironmentBridge = Montage.specialize({
     },
 
     updateProjectRefs: {
-        value: function (resolutionStrategy) {
-            return this.getService("repository-service").invoke("updateRefs", resolutionStrategy);
+        value: function (resolutionStrategy, reference, forceFetch) {
+            return this.getService("repository-service").invoke("updateRefs", resolutionStrategy, reference, forceFetch);
         }
     },
 

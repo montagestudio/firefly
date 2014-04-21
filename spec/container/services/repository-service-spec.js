@@ -312,7 +312,7 @@ describe("repository-service", function () {
             });
 
             it ("is behind remote shadow", function(done) {
-                service1.shadowBranchStatus()
+                service1.shadowBranchStatus(true)
                 .then(function(status) {
                     expect(status.localParent.ahead).toBe(1);
                     expect(status.localParent.behind).toBe(0);
@@ -327,32 +327,28 @@ describe("repository-service", function () {
         });
 
         describe("updateRefs (simple)", function () {
+            var reference;
+
             it ("tries to merge remote shadow into local shadow", function(done) {
                 return service1.updateRefs()
                 .then(function(result) {
-                    var notifications = result.notifications,
-                        notification;
-
+                    reference = result.reference;
                     expect(result.success).toBeFalsy();
-                    expect(notifications.length).toBe(1);
-                    notification = notifications[0];
-                    expect(notification.type).toBe("shadowsOutOfSync");
-                    expect(notification.branch).toBe("master");
-                    expect(notification.ahead).toBe(0);
-                    expect(notification.behind).toBe(1);
+                    expect(result.local).toBe("__mb__jasmine__master");
+                    expect(result.remote).toBe("origin/__mb__jasmine__master");
+                    expect(result.ahead).toBe(0);
+                    expect(result.behind).toBe(1);
                     expect(result.resolutionStrategy.length).toBe(1);
                     expect(result.resolutionStrategy[0]).toBe("rebase");
+                    expect(reference).toBeDefined();
                 })
                 .then(done, done);
             });
 
             it ("rebase local shadow on top of remote shadow", function(done) {
-                return service1.updateRefs("rebase")
+                return service1.updateRefs("rebase", reference)
                 .then(function(result) {
-                    var notifications = result.notifications;
-
                     expect(result.success).toBeTruthy();
-                    expect(notifications.length).toBe(0);
                 })
                 .then(done, done);
             });
@@ -498,7 +494,10 @@ describe("repository-service", function () {
             it ("can merge", function(done) {
                 return service2.mergeShadowBranch("master", "jasmin test", true).then(function(success) {
                     expect(success).toBeTruthy();
-                    return service1.updateRefs("rebase")
+                    return service1.updateRefs(true)
+                    .then(function(result) {
+                        return service1.updateRefs("rebase", result.reference);
+                    })
                     .then(function(result) {
                         expect(result.success).toBeTruthy();
                         return service1.listBranches();
