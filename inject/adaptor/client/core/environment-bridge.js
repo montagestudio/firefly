@@ -1,6 +1,6 @@
 /*jshint browser:true */
 /*global URL:true */
-var Montage = require("montage").Montage,
+var Target = require("montage/core/target").Target,
     Promise = require("montage/core/promise").Promise,
     Connection = require("q-connection"),
     adaptConnection = require("q-connection/adapt"),
@@ -17,7 +17,7 @@ var Montage = require("montage").Montage,
 // the hosted application may build on top of that with specific features it needs of the bridge
 // i.e. we shouldn't expect the environment bridge the host provides to know about the needs of all potential guests
 
-exports.EnvironmentBridge = Montage.specialize({
+exports.EnvironmentBridge = Target.specialize({
 
     constructor: {
         value: function EnvironmentBridge() {
