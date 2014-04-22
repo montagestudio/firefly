@@ -27,6 +27,16 @@
             }
         },
 
+        "subMessageLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "subMessageLabel"}
+            },
+            "bindings": {
+                "value": {"<-": "@owner.subMessage"}
+            }
+        },
+
         "inputField": {
             "prototype": "matte/ui/input-text.reel",
             "properties": {
@@ -96,7 +106,10 @@
 <body>
     <div data-montage-id="promptPanel" class="PromptPanel">
         <p data-montage-id="messageLabel" class="ModalOverlay-message"></p>
-        <input type="text" data-montage-id="inputField" class="Input">
+        <label class="inputGroup">
+            <p data-montage-id="subMessageLabel" class="ModalOverlay-subMessage"></p>
+            <input type="text" data-montage-id="inputField" class="Input">
+        </label>
         <footer class="ModalOverlay-footer">
             <input type="button" data-montage-id="cancelButton" class="Button Button--dark">
             <input type="button" data-montage-id="submitButton" class="Button Button--dark Button--action-dark">
