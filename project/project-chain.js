@@ -97,16 +97,15 @@ function server(options) {
                 .then(function (hasAccess) {
                     var details = environment.getDetailsfromProjectUrl(request.url);
                     if (hasAccess) {
-                        return setupProjectContainer(
+                        var projectWorkspacePort = setupProjectContainer.getPort(
                             details.owner,
                             details.owner,
                             details.repo
-                        ).then(function (projectWorkspacePort) {
-                            if (!projectWorkspacePort) {
-                                return preview.serveNoPreviewPage(request);
-                            }
-                            return proxyContainer(request, projectWorkspacePort, "static");
-                        });
+                        );
+                        if (!projectWorkspacePort) {
+                            return preview.serveNoPreviewPage(request);
+                        }
+                        return proxyContainer(request, projectWorkspacePort, "static");
                     } else {
                         setupProjectContainer(
                             details.owner,
