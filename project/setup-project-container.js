@@ -134,6 +134,9 @@ function SetupProjectContainer(docker, containers, _request) {
 
                 info.started = container.start(options)
                 .then(function () {
+                    // This promise must be removed so that future connections
+                    // don't think we're still in the process of starting
+                    delete info.started;
                     return container.inspect();
                 });
                 return info.started;
