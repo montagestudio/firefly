@@ -152,7 +152,7 @@ function SetupProjectContainer(docker, containers, _request) {
      * server is available.
      */
     function waitForServer(port, timeout, error) {
-        timeout = typeof timeout === "undefined" ? 2000 : timeout;
+        timeout = typeof timeout === "undefined" ? 5000 : timeout;
         if (timeout <= 0) {
             return Q.reject(new Error("Timeout while waiting for server on port " + port + (error ? " because " + error.message : "")));
         }
