@@ -34,7 +34,12 @@ function SetupProjectContainer(docker, containers, _request) {
         .then(waitForServer)
         .catch(function (error) {
             log("Removing container for", JSON.stringify(containerKey), "because", error.message);
+
             containers.delete(containerKey);
+            setupProjectContainer.delete(user, owner, repo)
+            .catch(function (error) {
+                track.errorForUsername(error, user, {containerKey: containerKey});
+            });
 
             track.errorForUsername(error, user, {containerKey: containerKey});
 
@@ -121,9 +126,11 @@ function SetupProjectContainer(docker, containers, _request) {
 
         return container.inspect()
         .then(function (containerInfo) {
+            log("containerInfo.State.Running", containerInfo.State.Running);
             if (containerInfo.State.Running) {
                 return containerInfo;
             } else if (info.started && info.started.then) {
+                log("info.started", info.started);
                 return info.started;
             } else {
                 log("Starting container", container.id);
