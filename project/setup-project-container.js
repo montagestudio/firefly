@@ -49,6 +49,21 @@ function SetupProjectContainer(docker, containers, _request) {
 
     // FIXME: Done for expediency. This file should be reorganised into a class
     // or something.
+
+    /**
+     * Get the port of a given container. If the port is unknown, `undefined`
+     * is returned
+     * @param  {string} user
+     * @param  {string} owner
+     * @param  {string} repo
+     * @return {string}       The port of the container, or `undefined`
+     */
+    setupProjectContainer.getPort = function (user, owner, repo) {
+        var containerKey = {user: user, owner: owner, repo: repo};
+        var info = containers.get(containerKey);
+        return info && info.port;
+    };
+
     setupProjectContainer.delete = function (user, owner, repo) {
         var containerKey = {user: user, owner: owner, repo: repo};
         var info = containers.get(containerKey);
@@ -149,7 +164,12 @@ function SetupProjectContainer(docker, containers, _request) {
                 return info.started;
             }
         })
-        .then(getExposedPort);
+        .then(getExposedPort)
+        .then(function (port) {
+            // store the port in memory so that it can be gotten synchronously
+            info.port = port;
+            return port;
+        });
     }
 
     /**
