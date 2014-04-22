@@ -34,7 +34,12 @@ function SetupProjectContainer(docker, containers, _request) {
         .then(waitForServer)
         .catch(function (error) {
             log("Removing container for", JSON.stringify(containerKey), "because", error.message);
+
             containers.delete(containerKey);
+            setupProjectContainer.delete(user, owner, repo)
+            .catch(function (error) {
+                track.errorForUsername(error, user, {containerKey: containerKey});
+            });
 
             track.errorForUsername(error, user, {containerKey: containerKey});
 
@@ -121,9 +126,11 @@ function SetupProjectContainer(docker, containers, _request) {
 
         return container.inspect()
         .then(function (containerInfo) {
+            log("containerInfo.State.Running", containerInfo.State.Running);
             if (containerInfo.State.Running) {
                 return containerInfo;
             } else if (info.started && info.started.then) {
+                log("info.started", info.started);
                 return info.started;
             } else {
                 log("Starting container", container.id);
@@ -134,6 +141,9 @@ function SetupProjectContainer(docker, containers, _request) {
 
                 info.started = container.start(options)
                 .then(function () {
+                    // This promise must be removed so that future connections
+                    // don't think we're still in the process of starting
+                    delete info.started;
                     return container.inspect();
                 });
                 return info.started;
@@ -152,7 +162,7 @@ function SetupProjectContainer(docker, containers, _request) {
      * server is available.
      */
     function waitForServer(port, timeout, error) {
-        timeout = typeof timeout === "undefined" ? 2000 : timeout;
+        timeout = typeof timeout === "undefined" ? 5000 : timeout;
         if (timeout <= 0) {
             return Q.reject(new Error("Timeout while waiting for server on port " + port + (error ? " because " + error.message : "")));
         }

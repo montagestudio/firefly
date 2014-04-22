@@ -1,5 +1,7 @@
 /*global module, unescape*/
 var log = require("../../logging").from(__filename);
+var activity = require("../activity");
+
 var Q = require("q");
 var FS = require("q-io/fs");
 var URL = require("url");
@@ -122,6 +124,7 @@ function startWsServer(config) {
         if (!WebSocket.isWebSocket(request)) {
             return;
         }
+        activity.increasePreviewConnections();
 
         var ws = new WebSocket(request, socket, body, ["firefly-preview"]);
 
@@ -135,6 +138,7 @@ function startWsServer(config) {
         ws.on("close", function () {
             log("websocket connection closed: ", --websocketConnections);
             preview.unregisterConnection(ws);
+            activity.decreasePreviewConnections();
         });
     };
 }

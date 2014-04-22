@@ -1,6 +1,7 @@
 var Env = require("../environment");
 var log = require("../logging").from(__filename);
 var track = require("../track");
+var activity = require("./activity");
 
 var Q = require("q");
 var URL = require("url");
@@ -18,6 +19,8 @@ function websocket(config, workspacePath, services, clientPath) {
     log("Websocket given services", Object.keys(services));
 
     return function (request, socket, body, wsQueue) {
+        activity.increaseToolConnections();
+
         wsQueue = wsQueue || adaptWebsocket(new WebSocket(request, socket, body, ["firefly-app"]));
 
         var pathname = URL.parse(request.url).pathname;
@@ -68,6 +71,9 @@ function websocket(config, workspacePath, services, clientPath) {
             .finally(function() {
                 Frontend.deleteFrontend(frontendId).done();
                 log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
+            })
+            .finally(function () {
+                activity.decreaseToolConnections();
             });
         });
     };
