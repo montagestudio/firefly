@@ -505,10 +505,9 @@ exports.EnvironmentBridge = Montage.specialize({
             var self = this;
             return this.packageUrl.then(function (packageUrl) {
                 var appDelegate = self.applicationDelegate,
-                    subMessage = options.defaultDirectory.replace(packageUrl, "");
+                    subMessage = options.defaultDirectory.replace(packageUrl, "").replace(/([^/])$/, "$1/");
                 appDelegate.currentPanelKey = "prompt";
                 appDelegate.showModal = true;
-                debugger
                 return self.promptPanel.getResponse(options.prompt, options.defaultName, options.submitLabel, null, subMessage).then(function (response) {
                     //TODO sanitize input
                     if (response) {
@@ -518,7 +517,6 @@ exports.EnvironmentBridge = Montage.specialize({
                     appDelegate.currentPanelKey = null;
                     return response;
                 });
-
             });
         }
     },
