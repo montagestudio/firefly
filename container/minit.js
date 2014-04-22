@@ -24,11 +24,11 @@ Minit.prototype.createApp = function(path, name) {
         if (paths.length !== 1) {
             throw new Error("unexpected minit output");
         }
-        var source = PATH.join("/tmp", dest, paths[0]);
+        var source = PATH.join(destFullPath, paths[0]);
         log("moving", source, "to", path);
         return FS.move(source, path);
     }).finally(function() {
-        return FS.remove(destFullPath);
+        return FS.removeDirectory(destFullPath);
     });
 };
 
