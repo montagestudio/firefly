@@ -107,14 +107,7 @@ exports.EnvironmentBridge = Montage.specialize({
                 this._serviceCache[name] = this.backend.get(name);
             }
 
-            return this._serviceCache[name].then (
-                undefined, // pass through success
-                function (err) {
-                    if (err instanceof TemporaryNetworkError) {
-                        return getService(name); // recurse
-                    }
-                    throw err; // rethrow
-                });
+            return this._serviceCache[name];
         }
     },
 
