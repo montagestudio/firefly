@@ -19,7 +19,7 @@ module.exports = function ($) {
         return HttpApps.redirect(request, "https://github.com/login/oauth/authorize?" +
             querystring.stringify({
                 "client_id": CLIENT_ID,
-                "scope": ["user:email", "repo"].join(","),
+                "scope": ["user", "repo"].join(","),
                 "state": oauthState
             }
         ));
