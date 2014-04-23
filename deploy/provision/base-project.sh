@@ -10,7 +10,7 @@ apt-get install --yes lxc
 declare SWAPON=`swapon -s | grep swapfile`
 if [[ -z ${SWAPON} ]]; then
     echo "Creating a swap file"
-    dd if=/dev/zero of=/swapfile bs=1024 count=2048k
+    dd if=/dev/zero of=/swapfile bs=1024 count=8192k
     mkswap /swapfile
     swapon /swapfile
     echo "/swapfile       none    swap    sw      0       0 " >> /etc/fstab

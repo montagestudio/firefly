@@ -79,7 +79,7 @@ exports.EnvironmentBridge = Montage.specialize({
 
                 self.dispatchBeforeOwnPropertyChange("backend", self._backend);
                 self._backend = Connection(connection, this._frontendService, {
-                    capacity: 256,
+                    capacity: 4096,
                     onmessagelost: function (message) {
                         window.console.warn("message to unknown promise", message);
                         track.error(new Error("message to unknown promise: " + JSON.stringify(message)));
@@ -107,7 +107,14 @@ exports.EnvironmentBridge = Montage.specialize({
                 this._serviceCache[name] = this.backend.get(name);
             }
 
-            return this._serviceCache[name];
+            return this._serviceCache[name].then (
+                undefined, // pass through success
+                function (err) {
+                    if (err instanceof TemporaryNetworkError) {
+                        return getService(name); // recurse
+                    }
+                    throw err; // rethrow
+                });
         }
     },
 

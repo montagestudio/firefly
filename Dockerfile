@@ -11,6 +11,9 @@ MAINTAINER Stuart Knightley, stuart@stuartk.com
 RUN echo "deb http://archive.ubuntu.com/ubuntu saucy main universe" > /etc/apt/sources.list
 RUN apt-get update
 
+# Sudo
+RUN apt-get install -y sudo
+
 # Curl
 RUN apt-get install -y curl
 
