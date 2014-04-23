@@ -801,7 +801,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         });
     };
 
-    service._syncBranches = function(local, remote, resolutionStrategy, canPush) {
+    service._syncBranches = function(local, remote, resolutionStrategy, canForce) {
         var self = this,
             returnValue = {
                 success: true,
@@ -821,7 +821,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                         if (!success) {
                             // We cannot rebase, let's propose other solutions
                             returnValue.success = false;
-                            returnValue.resolutionStrategy = canPush ? ["discard", "revert", "force"] : [];
+                            returnValue.resolutionStrategy = canForce ? ["discard", "revert", "force"] : ["discard", "revert"];
                             returnValue.ahead = status.ahead;
                             returnValue.behind = status.behind;
                         }
@@ -835,10 +835,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     /*
                         Revert remote changes
                      */
-                    if (canPush !== true) {
-                        throw new Error("Cannot update the remote repository, use merge instead");
-                    }
-
                     return self._revertRemoteChanges(local, remote, status)
                     .fail(function(error) {
                         log("Revert remote changes failed:", error.stack);
@@ -848,7 +844,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     /*
                         Destroy remote changes
                      */
-                    if (canPush !== true) {
+                    if (canForce !== true) {
                         throw new Error("Cannot update the remote repository, use merge instead");
                     }
 
@@ -857,9 +853,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     // Default
                     if (status.behind === 0) {
                         // The local branch is ahead of the remote branch, let's just push it
-                        if (canPush) {
-                            return self._push(local.name);
-                        }
+                        return self._push(local.name);
                     } else {
                         returnValue.success = false;
                         returnValue.ahead = status.ahead;
@@ -874,7 +868,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                             returnValue.resolutionStrategy = [];
                             return self._rebase(local.name, remote.name, local.sha)
                             .then(function(success) {
-                                returnValue.resolutionStrategy = canPush ? ["discard", "revert", "force"] : [];
+                                returnValue.resolutionStrategy = canForce ? ["discard", "revert", "force"] : ["discard", "revert"];
                                 if (success) {
                                     returnValue.resolutionStrategy.unshift("rebase");
                                 }
