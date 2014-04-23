@@ -79,6 +79,23 @@ var preview = {
         this.changes.queue[sequenceId] = content;
         this._sendToClients(content);
     },
+
+    /**
+     * Send all changes the preview has stored since `fromSequenceId`
+     * (including) to a client.
+     */
+    sendChangesToClient: function(client, fromSequenceId) {
+        if (!this.changes) {
+            return;
+        }
+
+        var toSequenceId = this.changes._lastSequenceId;
+        var queue = this.changes.queue;
+        log("send changes [" + fromSequenceId + "," + toSequenceId + "]");
+        for (var i = fromSequenceId; i <= toSequenceId; i++) {
+            client.ws.send(queue[i]);
+        }
+    }
 };
 
 exports.registerConnection = function(ws, request) {
@@ -92,6 +109,7 @@ exports.registerConnection = function(ws, request) {
         }
     };
     preview.connections.push(client);
+    preview.sendChangesToClient(client, preview.changes._initialSequenceId);
 };
 
 exports.unregisterConnection = function(ws) {
