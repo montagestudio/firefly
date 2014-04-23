@@ -19,7 +19,58 @@ var preview = {
         _initialSequenceId: 0,
         _lastSequenceId: -1
     },
-    connections: []
+    connections: [],
+
+    disconnectAllClients: function() {
+        for (var i = 0, ii = this.connections.length; i < ii; i++) {
+            this.connections[i].ws.close();
+        }
+    },
+
+    /**
+     * Send a generic operation to all clients.
+     */
+    sendToClients: function(name, params) {
+        var content = name + ":" + (params ? JSON.stringify(params) : "");
+        this._sendToClients(content);
+    },
+
+    _sendToClients: function(content) {
+        for (var i = 0, ii = this.connections.length; i < ii; i++) {
+            this.connections[i].ws.send(content);
+        }
+    },
+
+    sendToClient: function(clientId, name, params) {
+        var content = name + ":" + (params ? JSON.stringify(params) : "");
+        this._sendToClient(clientId, content);
+    },
+
+    _sendToClient: function(clientId, content) {
+        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+            if (preview.connections[i].info.clientId === clientId) {
+                preview.connections[i].ws.send(content);
+                return;
+            }
+        }
+    },
+
+    /**
+     * Send a change command to all clients. Change operations are stored in a
+     * buffer so that they can be replayed on new preview clients.
+     */
+    sendChangeToClients: function(name, params) {
+        var content;
+        var sequenceId = ++this.changes._lastSequenceId;
+
+        if (!params) {
+            params = {};
+        }
+        params.sequenceId = sequenceId;
+        content = name + ":" + JSON.stringify(params);
+        this.changes.queue[sequenceId] = content;
+        this._sendToClients(content);
+    },
 };
 
 exports.registerConnection = function(ws, request) {
@@ -67,18 +118,15 @@ function PreviewService() {
 
     service.unregister = function() {
         log("unregister preview");
-        // Websocket connections
-        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-            preview.connections[i].ws.close();
-        }
+        preview.disconnectAllClients();
     };
 
     service.refresh = function() {
-        sendToPreviewClients("refresh:");
+        preview.sendToClients("refresh");
     };
 
     service.selectComponentToInspect = function(clientId) {
-        sendToPreviewClient(clientId, "selectComponentToInspect:");
+        preview.sendToClient(clientId, "selectComponentToInspect");
     };
 
     service.setObjectProperties = function(label, ownerModuleId, properties) {
@@ -87,7 +135,7 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             properties: properties
         };
-        sendToPreviewClients("setObjectProperties", params);
+        preview.sendChangeToClients("setObjectProperties", params);
     };
 
     service.setObjectProperty = function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
@@ -98,7 +146,7 @@ function PreviewService() {
             propertyValue: propertyValue,
             propertyType: propertyType
         };
-        sendToPreviewClients("setObjectProperty", params);
+        preview.sendChangeToClients("setObjectProperty", params);
     };
 
     service.setObjectLabel = function(ownerModuleId, label, newLabel) {
@@ -107,7 +155,7 @@ function PreviewService() {
             label: label,
             newLabel: newLabel
         };
-        sendToPreviewClients("setObjectLabel", params);
+        preview.sendChangeToClients("setObjectLabel", params);
     };
 
     service.setObjectBinding = function(ownerModuleId, label, binding) {
@@ -116,7 +164,7 @@ function PreviewService() {
             label: label,
             binding: binding
         };
-        sendToPreviewClients("setObjectBinding", params);
+        preview.sendChangeToClients("setObjectBinding", params);
     };
 
     service.deleteObjectBinding = function(ownerModuleId, label, path) {
@@ -125,7 +173,7 @@ function PreviewService() {
             label: label,
             path: path
         };
-        sendToPreviewClients("deleteObjectBinding", params);
+        preview.sendChangeToClients("deleteObjectBinding", params);
     };
 
     service.addTemplateFragment = function(moduleId, elementLocation, how, templateFragment) {
@@ -135,7 +183,7 @@ function PreviewService() {
             how: how,
             templateFragment: templateFragment
         };
-        sendToPreviewClients("addTemplateFragment", params);
+        preview.sendChangeToClients("addTemplateFragment", params);
     };
 
     service.addTemplateFragmentObjects = function(moduleId, templateFragment) {
@@ -143,7 +191,7 @@ function PreviewService() {
             moduleId: moduleId,
             templateFragment: templateFragment
         };
-        sendToPreviewClients("addTemplateFragmentObjects", params);
+        preview.sendChangeToClients("addTemplateFragmentObjects", params);
     };
 
     service.deleteObject = function(ownerModuleId, label) {
@@ -151,7 +199,7 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             label: label
         };
-        sendToPreviewClients("deleteObject", params);
+        preview.sendChangeToClients("deleteObject", params);
     };
 
     service.deleteElement = function(ownerModuleId, elementLocation) {
@@ -159,7 +207,7 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             elementLocation: elementLocation
         };
-        sendToPreviewClients("deleteElement", params);
+        preview.sendChangeToClients("deleteElement", params);
     };
 
     service.setElementAttribute = function(moduleId, elementLocation, attributeName, attributeValue) {
@@ -169,7 +217,7 @@ function PreviewService() {
             attributeName: attributeName,
             attributeValue: attributeValue
         };
-        sendToPreviewClients("setElementAttribute", params);
+        preview.sendChangeToClients("setElementAttribute", params);
     };
 
     service.addObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
@@ -180,7 +228,7 @@ function PreviewService() {
             listenerLabel: listenerLabel,
             useCapture: useCapture
         };
-        sendToPreviewClients("addObjectEventListener", params);
+        preview.sendChangeToClients("addObjectEventListener", params);
     };
 
     service.removeObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
@@ -191,7 +239,7 @@ function PreviewService() {
             listenerLabel: listenerLabel,
             useCapture: useCapture
         };
-        sendToPreviewClients("removeObjectEventListener", params);
+        preview.sendChangeToClients("removeObjectEventListener", params);
     };
 
     service.getClients = function() {
@@ -203,34 +251,6 @@ function PreviewService() {
     service.close = function() {
         this.unregister();
     };
-
-    function sendToPreviewClients(name, params) {
-        var content;
-        var sequenceId = ++preview.changes._lastSequenceId;
-
-        if (!params) {
-            params = {};
-        }
-        params.sequenceId = sequenceId;
-        content = name + ":" + JSON.stringify(params);
-
-        // Websocket connections
-        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-            preview.connections[i].ws.send(content);
-        }
-
-        preview.changes.queue[sequenceId] = content;
-    }
-
-    function sendToPreviewClient(clientId, content) {
-        // Websocket connections
-        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-            if (preview.connections[i].info.clientId === clientId) {
-                preview.connections[i].ws.send(content);
-                return;
-            }
-        }
-    }
 
     return service;
 }
