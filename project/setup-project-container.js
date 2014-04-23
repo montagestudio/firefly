@@ -141,11 +141,9 @@ function SetupProjectContainer(docker, containers, _request) {
 
         return container.inspect()
         .then(function (containerInfo) {
-            log("containerInfo.State.Running", containerInfo.State.Running);
             if (containerInfo.State.Running) {
                 return containerInfo;
             } else if (info.started && info.started.then) {
-                log("info.started", info.started);
                 return info.started;
             } else {
                 log("Starting container", container.id);
