@@ -21,6 +21,14 @@ var preview = {
     },
     connections: [],
 
+    clearChanges: function() {
+        this.changes = {
+            queue: {},
+            _initialSequenceId: 0,
+            _lastSequenceId: -1
+        };
+    },
+
     disconnectAllClients: function() {
         for (var i = 0, ii = this.connections.length; i < ii; i++) {
             this.connections[i].ws.close();
@@ -113,6 +121,7 @@ function PreviewService() {
 
     service.register = function() {
         log("register new preview");
+        preview.clearChanges();
         this.refresh();
     };
 
@@ -240,6 +249,10 @@ function PreviewService() {
             useCapture: useCapture
         };
         preview.sendChangeToClients("removeObjectEventListener", params);
+    };
+
+    service.didSaveProject = function() {
+        preview.clearChanges();
     };
 
     service.getClients = function() {
