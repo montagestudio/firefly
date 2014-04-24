@@ -145,12 +145,68 @@ Object.defineProperties(window.Declarativ, {
     var ATTR_LE_ARG = "data-montage-le-arg";
     var ATTR_LE_ARG_BEGIN = "data-montage-le-arg-begin";
     var ATTR_LE_ARG_END = "data-montage-le-arg-end";
+    var UPDATE_TEMPLATE_TIMEOUT = 500;
 
     ns.LiveEdit = Object.create(Object.prototype, {
+        _bufferedTemplateChanges: {
+            value: {}
+        },
+        /**
+         * Schedule a template update operation to change object properties in
+         * the template.
+         * The template will be updated when there were no more
+         * setObjectProperties operations requested for a specific amount of
+         * time. This way we make sure this heavy operation never interfears
+         * with the processing of a long stream of setObjectProperties
+         * operations.
+         */
+        _scheduleSetObjectPropertiesUpdateTemplate: {
+            value: function(label, ownerModuleId, properties) {
+                var self = this;
+                var key = label+"@"+ownerModuleId;
+                var templateChange = this._bufferedTemplateChanges[key];
+
+                if (!templateChange) {
+                    templateChange = {};
+                    this._bufferedTemplateChanges[key] = templateChange;
+                    var updateTemplateFunction = function() {
+                        var interval = window.performance.now() - templateChange.lastChangeTimestamp;
+                        if (interval < UPDATE_TEMPLATE_TIMEOUT) {
+                            setTimeout(updateTemplateFunction,
+                                UPDATE_TEMPLATE_TIMEOUT);
+                        } else {
+                            delete self._bufferedTemplateChanges[key];
+                            // There's the possibility that a new object of this
+                            // type was instantiated between the last object
+                            // change and this template change, that object will
+                            // still get the previous values. A way to get
+                            // around that is by changing all instances of the
+                            // object again with this template update, but I
+                            // won't do it for now because I don't think it's
+                            // that likely to happen.
+                            self._setObjectPropertiesUpdateTemplate(label,
+                                ownerModuleId, templateChange.properties);
+                        }
+                    };
+                    setTimeout(updateTemplateFunction, UPDATE_TEMPLATE_TIMEOUT);
+                }
+                templateChange.lastChangeTimestamp = window.performance.now();
+                templateChange.properties = properties;
+            }
+        },
+        _setObjectPropertiesUpdateTemplate: {
+            value: function(label, ownerModuleId, properties) {
+                MontageTemplate.get(ownerModuleId).then(function(montageTemplate) {
+                    montageTemplate.setObjectProperties(label, properties);
+                });
+            }
+        },
         setObjectProperties: {
             value: function(label, ownerModuleId, properties) {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
                 var object;
+
+                this._scheduleSetObjectPropertiesUpdateTemplate(label, ownerModuleId, properties);
 
                 for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
                     object = montageObject.value;
@@ -2018,6 +2074,25 @@ Object.defineProperties(window.Declarativ, {
             object.properties = properties = {};
         }
         properties[propertyName] = propertyValue;
+        template.objectsString = JSON.stringify(serializationObject);
+
+        this._clearCaches();
+    };
+
+    MontageTemplate.prototype.setObjectProperties = function(label, properties) {
+        var template = this.value;
+        var serializationObject = template.getSerialization().getSerializationObject();
+        var object = serializationObject[label];
+        var objectProperties = object.properties;
+
+        if (!objectProperties) {
+            object.properties = objectProperties = {};
+        }
+        for (var propertyName in properties) {
+            if (properties.hasOwnProperty(propertyName)) {
+                objectProperties[propertyName] = properties[propertyName];
+            }
+        }
         template.objectsString = JSON.stringify(serializationObject);
 
         this._clearCaches();
