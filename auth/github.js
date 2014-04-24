@@ -11,18 +11,26 @@ var GithubApi = require("../inject/adaptor/client/core/github-api");
 var CLIENT_ID = process.env.GITHUB_CLIENT_ID || "e3a42c8d5e2631ed7707";
 var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "a4c0a8eb95388febf206493eddd26e679b6407ba";
 
+var requestAuth = function (request, scopes) {
+    var oauthState = uuid.v4();
+    request.session.oauthState = oauthState;
+
+    return HttpApps.redirect(request, "https://github.com/login/oauth/authorize?" +
+        querystring.stringify({
+            "client_id": CLIENT_ID,
+            "scope": scopes.join(","),
+            "state": oauthState
+        }
+    ));
+};
+
 module.exports = function ($) {
     $("").app(function (request) {
-        var oauthState = uuid.v4();
-        request.session.oauthState = oauthState;
+        return requestAuth(request, ["user:email", "public_repo"]);
+    });
 
-        return HttpApps.redirect(request, "https://github.com/login/oauth/authorize?" +
-            querystring.stringify({
-                "client_id": CLIENT_ID,
-                "scope": ["user:email", "repo"].join(","),
-                "state": oauthState
-            }
-        ));
+    $("private").app(function (request) {
+        return requestAuth(request, ["user:email", "repo"]);
     });
 
     $("callback").app(function (request) {
