@@ -65,6 +65,59 @@ Object.defineProperties(window.Declarativ, {
 
             return this._Alias;
         }
+    },
+
+    _applicationReady: {
+        value: null,
+        writable: true
+    },
+    /**
+     * This function returns a promise for the application ready.
+     * The application is considered ready when the root component is available
+     * and the main component has completely loaded its component tree.
+     */
+    applicationReady: {
+        value: function() {
+            if (!this._applicationReady) {
+                var phases = [this._checkRootComponentAvailability,
+                              this._checkComponentTreeLoaded];
+                var phaseNr = 0;
+                var deferred = this._applicationReady = this.Promise.defer();
+                var checkApplicationReady = function() {
+                    var isPhaseReady = phases[phaseNr].call(this);
+
+                    if (isPhaseReady) {
+                        phaseNr++;
+                    }
+
+                    if (phaseNr === phases.length) {
+                        deferred.resolve();
+                    } else {
+                        setTimeout(checkApplicationReady, 250);
+                    }
+                };
+                checkApplicationReady();
+            }
+            return this._applicationReady.promise;
+        }
+    },
+
+    _checkRootComponentAvailability: {
+        value: function() {
+            return montageRequire.getModuleDescriptor("ui/component").exports;
+        }
+    },
+
+    _checkComponentTreeLoaded: {
+        value: function() {
+            var main = Declarativ.LiveEdit.MontageComponent.findAll("ui/main.reel")[0];
+
+            if (main && main.value._isComponentTreeLoaded) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 });
 
@@ -1931,6 +1984,8 @@ Object.defineProperties(window.Declarativ, {
     };
 
     MontageTemplate._range = document.createRange();
+
+    ns.LiveEdit.MontageComponent = MontageComponent;
 })(window.Declarativ);
 //jshint +W030
 //jshint +W106
