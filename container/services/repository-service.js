@@ -16,6 +16,8 @@ var OWNER_SHADOW_BRANCH_PREFIX;
 var _cachedServices = {};
 var semaphore = Git.semaphore;
 
+var GIT_FETCH_TIMEOUT = 30 * 1000; // 30 seconds
+
 function RepositoryService(session, fs, environment, pathname, fsPath) {
     return _RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, fsPath, true);
 }
@@ -48,10 +50,10 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
 
     _gitFetch = function(force) {
-        if (force === true || (_gitFetchLastTimeStamp + 30 < new Date().getTime() / 1000)) {
+        if (force === true || (Date.now() - _gitFetchLastTimeStamp) > GIT_FETCH_TIMEOUT) {
             return _git.fetch(_fsPath, service.REMOTE_REPOSITORY_NAME, ["--prune"])
             .then(function() {
-                _gitFetchLastTimeStamp = new Date().getTime() / 1000;
+                _gitFetchLastTimeStamp = Date.now();
             });
         } else {
             return Q();
