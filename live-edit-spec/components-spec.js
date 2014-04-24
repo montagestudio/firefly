@@ -71,6 +71,35 @@ module.exports = function() {
                 });
             });
         });
+
+        it("should wait for a component to be drawn before it considers it added", function() {
+            var serialization = {
+                "newSlider": {
+                    "prototype": "digit/ui/slider.reel",
+                    "properties": {
+                        "element": {"#": "newSlider"}
+                    }
+                }
+            };
+            var templateFragment = {
+                serialization: JSON.stringify(serialization),
+                html: '<div data-montage-id="newSlider"></div>'
+            };
+            result = LiveEdit.addTemplateFragment(
+                mainModuleId,
+                {
+                    label: "owner",
+                    argumentName: "",
+                    cssSelector: ":scope > :nth-child(1)"
+                },
+                "before",
+                templateFragment);
+
+            return Promise.resolve(result).then(function() {
+                var newComponent = findObject(mainModuleId, "newSlider");
+                expect(newComponent._firstDraw).toBe(false);
+            });
+        });
     });
 
     describe("delete components", function() {

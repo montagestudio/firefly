@@ -2143,6 +2143,7 @@ Object.defineProperties(window.Declarativ, {
     MontageTemplate._range = document.createRange();
 
     ns.LiveEdit.MontageComponent = MontageComponent;
+    ns.LiveEdit.MontageElement = MontageElement;
 })(window.Declarativ);
 //jshint +W030
 //jshint +W106
