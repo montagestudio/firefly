@@ -47,7 +47,7 @@
     "npm": "1.4.4",
     "semver": "2.2.1",
     "mmmagic": "0.3.5",
-    "watchr": "2.3.3",
+    "watchr": "2.4.11",
     "collections": "~0.2.2",
     "dockerode": "~1.2.7",
     "faye-websocket": "~0.7.2",
