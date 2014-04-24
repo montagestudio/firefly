@@ -93,7 +93,9 @@ var preview = {
         var queue = this.changes.queue;
         log("send changes [" + fromSequenceId + "," + toSequenceId + "]");
         for (var i = fromSequenceId; i <= toSequenceId; i++) {
-            client.ws.send(queue[i]);
+            if (queue[i]) {
+                client.ws.send(queue[i]);
+            }
         }
     }
 };
@@ -162,7 +164,20 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             properties: properties
         };
+        // Since this operation can happen at 60ops/s (because of the flow
+        // editor) we don't want or need to store every single change to the
+        // properties of an object for memory and performance reasons.
+        // To avoid this we check if we already performed this operation to the
+        // same object in the past and remove the previous operation from the
+        // change set.
+        var key = "setObjectProperties:" + label + "@" + ownerModuleId;
+        var sequenceId = preview.changes[key];
+        if (sequenceId) {
+            delete preview.changes.queue[sequenceId];
+        }
+
         preview.sendChangeToClients("setObjectProperties", params);
+        preview.changes[key] = preview.changes._lastSequenceId;
     };
 
     service.setObjectProperty = function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
