@@ -996,15 +996,39 @@ Object.defineProperties(window.Declarativ, {
     MontageElement.prototype.addTemplate = function(template, how) {
         var self = this;
         var owner = this.owner;
+        var parentComponent;
+
+        if (how === "append") {
+            parentComponent = this.component || this.parentComponent;
+        } else {
+            parentComponent = this.parentComponent;
+        }
 
         this.scope.invalidateTemplates(owner);
         return template.instantiateIntoDocument(this, how)
             .then(function(result) {
+                var deferred;
+                var promises = [];
+
                 self.scope.addObjects(result.objects, owner);
                 if (self.label !== "owner") {
                     self.updateLiveEditAttributes(result.firstElement,
                         result.lastElement);
                 }
+
+                for (var label in result.objects) {
+                    var object = result.objects[label];
+                    // Wait for all immediate child components to be drawn to
+                    // consider the template added to the document.
+                    // This ensures that the next changes will be able to see
+                    // the new components created by this template adition.
+                    if (object.parentComponent === parentComponent) {
+                        deferred = Declarativ.Promise.defer();
+                        object.addEventListener("firstDraw", deferred.resolve, false);
+                        promises.push(deferred.promise);
+                    }
+                }
+                return Declarativ.Promise.all(promises);
             });
     };
 
@@ -1159,6 +1183,14 @@ Object.defineProperties(window.Declarativ, {
                 }
 
                 return this._documentPart;
+            }
+        }
+    });
+
+    Object.defineProperties(MontageElement.prototype, {
+        component: {
+            get: function() {
+                return this.value.component;
             }
         }
     });
