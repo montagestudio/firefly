@@ -1,6 +1,6 @@
 .Toolbar {
     position: relative;
-    z-index: 1;
+    z-index: 50;
     display: -webkit-flex;
     display: -moz-flex;
     display: -ms-flex;
