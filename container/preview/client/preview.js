@@ -297,3 +297,61 @@ if (!window.performance) {
     };
 }());
 
+// Detect cross http/https requests in scripts and XHR requests.
+(function() {
+    if (window.parent === window || // Not under Montage Studio
+        window.location.protocol !== "https:") { // Not under https
+        return;
+    }
+
+    // Patch XHR open to detect requests to http:
+    var XHRopen = window.XMLHttpRequest.prototype.open;
+    var observer;
+
+    window.XMLHttpRequest.prototype.open = function(method, url) {
+        checkUrl(url);
+        return XHRopen.apply(this, arguments);
+    };
+
+    document.addEventListener("DOMContentLoaded", function callback() {
+        document.removeEventListener("DOMContentLoaded", callback, false);
+        checkExistingScripts();
+        if (observer) {
+            observer.observe(document.head, { childList: true });
+        }
+    }, false);
+
+    // We need MutationObserver API to be available to detect new scripts.
+    if (typeof MutationObserver !== "undefined") {
+        observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                for (var i = 0; i < mutation.addedNodes.length; i++) {
+                    var node = mutation.addedNodes[i];
+                    if (node.tagName === "SCRIPT") {
+                        checkUrl(node.src);
+                    }
+                }
+            });
+        });
+    }
+
+    function checkExistingScripts() {
+        var scripts = document.querySelectorAll("script");
+        for (var i = 0, script; script =/*assign*/ scripts[i]; i++) {
+            checkUrl(script.src);
+        }
+    }
+
+    function checkUrl(url) {
+        if (url && url.indexOf("http:") === 0) {
+            informTheMen(url);
+        }
+    }
+
+    function informTheMen(url) {
+        window.parent.postMessage({
+            type: "httpRequestInHttps",
+            url: url
+        }, "*");
+    }
+})();
