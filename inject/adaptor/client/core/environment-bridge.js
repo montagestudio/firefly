@@ -405,6 +405,12 @@ exports.EnvironmentBridge = Montage.specialize({
         }
     },
 
+    selectPreviewComponentToInspect: {
+        value: function(previewId, clientId) {
+            return this.getService("preview-service").invoke("selectComponentToInspect", clientId);
+        }
+    },
+
     setPreviewObjectProperties: {
         value: function(previewId, label, ownerModuleId, properties) {
             return this.getService("preview-service").invoke("setObjectProperties", label, ownerModuleId, properties);

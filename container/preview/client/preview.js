@@ -18,6 +18,7 @@ if (!window.performance) {
         timer = null,
         disconnectionMessageElement,
         LiveEdit = Declarativ.LiveEdit,
+        Tools = Declarativ.Tools,
         dataProcessingPromise,
         previousTime = window.performance.now(),
         operations = 0;
@@ -63,6 +64,10 @@ if (!window.performance) {
                     operations = 0;
                 }
                 operations++;
+            }
+
+            if (command === "selectComponentToInspect") {
+                return Tools.selectComponentToInspect();
             }
 
             if (command === "setObjectProperties") {
@@ -147,6 +152,7 @@ if (!window.performance) {
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
             websocketStartPing(PING_INTERVAL);
+            Declarativ.MontageStudio.init(ws);
 
             if (callback) {
                 callback();
@@ -183,7 +189,7 @@ if (!window.performance) {
         _ping = function () {
             if ((document.webkitVisibilityState || document.visibilityState) === "visible") {
                 if (_ping) {
-                    ws.send("ping");
+                    ws.send(JSON.stringify({type: "ping"}));
                     setTimeout(_ping, delay);
                 }
             }

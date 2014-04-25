@@ -10,11 +10,13 @@ var StatusApps = require("q-io/http-apps/status");
 var WebSocket = require("faye-websocket");
 var preview = require("../services/preview-service");
 var Env = require("../../environment");
+var Frontend = require("../frontend");
 
 var CLIENT_FILES = "{$PREVIEW}";
 
 var CLIENT_ROOT = __dirname + "/client/";
-var PREVIEW_SCRIPTS = ["live-edit.js", "preview.js"];
+var PREVIEW_SCRIPTS = ["live-edit.js", "tools.js", "montage-studio.js",
+                       "preview.js"];
 
 var clientFs = FS.reroot(CLIENT_ROOT);
 
@@ -102,13 +104,28 @@ function injectPreviewScripts(request, response) {
     });
 }
 
+function processPreviewClientMessage(message) {
+    var data = JSON.parse(message.data),
+        promise;
+
+    if (data.command === "inspectComponent") {
+        promise = Frontend.inspectComponent(data.args.ownerModuleId, data.args.label);
+    }
+
+    if (promise) {
+        promise.catch(function (error) {
+            log("*Error processing message", error.stack);
+        });
+    }
+}
+
 function servePreviewClientFile(request, response) {
     var path = unescape(request.pathInfo);
 
     return clientFs.then(function(fs) {
         path = path.slice(("/" + CLIENT_FILES + "/").length);
 
-        if (path === "preview.js" || path === "live-edit.js") {
+        if (PREVIEW_SCRIPTS.indexOf(path) >= 0) {
             return HttpApps.file(request, path, null, fs);
         }
 
@@ -140,5 +157,6 @@ function startWsServer(config) {
             preview.unregisterConnection(ws);
             activity.decreasePreviewConnections();
         });
+        ws.on("message", processPreviewClientMessage);
     };
 }

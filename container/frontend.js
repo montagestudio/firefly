@@ -3,6 +3,8 @@ var Q = require("q");
 
 var frontends = {};
 
+var arraySlice = Array.prototype.slice;
+
 /**
  * The frontendId identifies a specific project and is in the form of
  * <username>/<git-user>/<git-repo>
@@ -10,6 +12,12 @@ var frontends = {};
 
 module.exports = {
     _notificationsQueue: [],
+
+    _addFrontendMethod: function(name) {
+        this[name] = function() {
+            return this._invokeFunction(name, arraySlice.call(arguments, 0));
+        };
+    },
 
     getFrontend: function(frontendId) {
         return Q.resolve(frontends[frontendId]);
@@ -33,27 +41,15 @@ module.exports = {
         return Q.resolve();
     },
 
-    showNotification: function (message) {
+    _invokeFunction: function(name, args) {
         var frontendKeys = Object.keys(frontends);
 
         if (frontendKeys.length === 0) {
-            this._notificationsQueue.push({fn:this.showNotification, args:[message]});
+            this._notificationsQueue.push({fn:this[name], args:args});
         }
 
         return Q.all(frontendKeys.map(function (id) {
-            return frontends[id].showNotification(message);
-        })).thenResolve();
-    },
-
-    dispatchAppEventNamed: function (type, canBubble, cancelable, detail) {
-        var frontendKeys = Object.keys(frontends);
-
-        if (frontendKeys.length === 0) {
-            this._notificationsQueue.push({fn:this.dispatchAppEventNamed, args:[type, canBubble, cancelable, detail]});
-        }
-
-        return Q.all(frontendKeys.map(function (id) {
-            return frontends[id].dispatchAppEventNamed(type, canBubble, cancelable, detail);
+            return frontends[id][name].apply(frontends[id], args);
         })).thenResolve();
     }
 
@@ -72,6 +68,14 @@ Frontend.prototype.showNotification = function(message) {
     }
 };
 
+Frontend.prototype.inspectComponent = function(ownerModuleId, label) {
+    if (this._connection) {
+        return this._connection.invoke("inspectComponent", ownerModuleId, label);
+    } else {
+        log("inspectComponent: frontend service is not available yet");
+        return Q.resolve();
+    }
+};
 
 Frontend.prototype.dispatchAppEventNamed = function(type, canBubble, cancelable, detail) {
     if (this._connection) {
@@ -81,3 +85,13 @@ Frontend.prototype.dispatchAppEventNamed = function(type, canBubble, cancelable,
         return Q.resolve();
     }
 };
+
+/**
+ * Add all Frontend methods to the frontend API
+ */
+
+for (var name in Frontend.prototype) {
+    if (Frontend.prototype.hasOwnProperty(name)) {
+        module.exports._addFrontendMethod(name);
+    }
+}

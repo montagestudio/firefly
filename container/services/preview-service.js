@@ -60,6 +60,10 @@ function PreviewService() {
         sendToPreviewClients("refresh:");
     };
 
+    service.selectComponentToInspect = function(clientId) {
+        sendToPreviewClient(clientId, "selectComponentToInspect:");
+    };
+
     service.setObjectProperties = function(label, ownerModuleId, properties) {
         var params = {
             label: label,
@@ -187,6 +191,16 @@ function PreviewService() {
         // Websocket connections
         for (var i = 0, ii = preview.connections.length; i < ii; i++) {
             preview.connections[i].ws.send(content);
+        }
+    }
+
+    function sendToPreviewClient(clientId, content) {
+        // Websocket connections
+        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+            if (preview.connections[i].info.clientId === clientId) {
+                preview.connections[i].ws.send(content);
+                return;
+            }
         }
     }
 
