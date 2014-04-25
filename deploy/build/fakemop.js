@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/*global console */
 
 var Q = require("q");
 var optimist = require("optimist");
@@ -14,10 +15,9 @@ return FS.removeTree(FS.join(targetRoot, "filament"))
     return FS.listTree(".", function (source, stat) {
         source = FS.normal(source);
         var sourceBase = FS.base(source);
-        if (/^\./.test(sourceBase))
+        if (/^\./.test(sourceBase)) {
             return null;
-        var target = FS.join(targetRoot, "filament", source);
-        var targetParent = FS.directory(target);
+        }
         return stat.isFile();
     }).invoke("reduce", function (ready, source) {
         var target = FS.join(targetRoot, "filament", source);
