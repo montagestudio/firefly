@@ -13,6 +13,7 @@ module.exports = AssetConverterService;
 function AssetConverterService (session, fs, environment, pathname, fsPath) {
     // Returned service
     var service = {},
+        convertPathToProjectUrl = FileService.makeConvertPathToProjectUrl(pathname, environment),
         convertProjectUrlToPath = FileService.makeConvertProjectUrlToPath(pathname);
 
     function _isColladaFile (path) {
@@ -72,7 +73,7 @@ function AssetConverterService (session, fs, environment, pathname, fsPath) {
             outputPath = _getColladaOutPutPath(fileName, outputPath, isBundle);
 
             return _convertToGlTF(modelPath, outputPath, isBundle).then(function () {
-                return outputPath;
+                return convertPathToProjectUrl(outputPath, environment);
             });
         }
 
