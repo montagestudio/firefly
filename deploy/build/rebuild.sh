@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
+# Resets either the staging (default) or production (-p) dropplets with new set
+# of built images. Each of the droplets in the selected working set will be shut
+# down, the corresponding image will be written over their file system, and they
+# will be rebooted.
+# The build number and revision come from TODO
+
 set -e
 
-source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
+source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
 COMMAND_PATH="$0"
 usage() {

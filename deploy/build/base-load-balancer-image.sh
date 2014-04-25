@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
+source "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )/env.sh"
 
-# Parse the arguments list and setup the environment
+# Parse the arguments list and set up the environment
 source "${HOME}/deploy/build/parse-arguments.sh" "$@"
 
 source "${HOME}/deploy/build/get.sh"
@@ -23,3 +23,4 @@ packer build \
     -var "base_image_id=$BASE_IMAGE_ID" \
     -var "snapshot_name=base-load-balancer-image-$BUILD_RELEASE_NAME" \
     "${HOME}/deploy/base-load-balancer-image.json"
+

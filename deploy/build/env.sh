@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HOME="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Root is 2 directories up from here
-HOME=$(dirname "${HOME}")
-export HOME=$(dirname "${HOME}")
+HOME=$(dirname -- "${HOME}")
+export HOME=$(dirname -- "${HOME}")
 
 export BUILD="${HOME}/.deploy"
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Used exclusively by images.sh
+
 # To see the debug log add the x option to the folloing line: set -xe
 set -e
 
