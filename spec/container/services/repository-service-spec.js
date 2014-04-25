@@ -312,7 +312,7 @@ describe("repository-service", function () {
             });
 
             it ("is behind remote shadow", function(done) {
-                service1.shadowBranchStatus(true)
+                service1.shadowBranchStatus(null, true)
                 .then(function(status) {
                     expect(status.localParent.ahead).toBe(1);
                     expect(status.localParent.behind).toBe(0);
@@ -461,9 +461,9 @@ describe("repository-service", function () {
 
         describe("merge commits", function () {
             it ("reset service 1", function(done) {
-                return service1.updateRefs("discard")
+                return service1.updateRefs("discard", null)
                 .then(function() {
-                    return service2.updateRefs("discard");
+                    return service2.updateRefs("discard", null);
                 })
                 .then(function(result) {
                     return service1.listBranches();
@@ -494,7 +494,7 @@ describe("repository-service", function () {
             it ("can merge", function(done) {
                 return service2.mergeShadowBranch("master", "jasmin test", true).then(function(success) {
                     expect(success).toBeTruthy();
-                    return service1.updateRefs(true)
+                    return service1.updateRefs(null, null, true)
                     .then(function(result) {
                         return service1.updateRefs("rebase", result.reference);
                     })

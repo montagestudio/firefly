@@ -526,10 +526,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             };
 
         // Validate arguments
-        if (typeof branch === "boolean") {
-            forceFetch = branch;
-            branch = null;
-        }
         branch = branch || "master";
         if (typeof branch !== "string") {
             return Q.reject(new Error("Invalid shadowBranchStatus argument."));
@@ -569,6 +565,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return Q.reject(new Error("Invalid saveFiles argument."));
         }
 
+        // If we have a resolution strategy, it very likely that commit has been already called recently,
+        // therefore let's save time by not forcing a fetch
         return self._listBranches(typeof resolutionStrategy !== "string" || resolutionStrategy.length === 0)
         .then(function(result) {
             branchesInfo = result;
@@ -719,17 +717,10 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             PARENT_STEP = 2;
 
         // Validate arguments
-        if (typeof resolutionStrategy === "boolean" ) {
-            forceFetch = resolutionStrategy;
-            reference = null;
-            resolutionStrategy = null;
-        } else if (typeof reference === "boolean") {
-            forceFetch = reference;
-            reference = null;
-        }
         reference = reference || {
             step: 0
         };
+        forceFetch = (forceFetch === true);
 
         // INIT_STEP: update branches and make sure we have shadow branches
         return self._hasUncommittedChanges()

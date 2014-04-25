@@ -202,10 +202,6 @@ ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extend
  * Git related operations
  */
 
-ProjectWorkspace.prototype.updateRefs = function(resolution) {
-    return this._repoService.updateRefs(resolution);
-};
-
 /**
  * Creates a single commit with all changes in the workspace and pushes it to
  * the default remote.
