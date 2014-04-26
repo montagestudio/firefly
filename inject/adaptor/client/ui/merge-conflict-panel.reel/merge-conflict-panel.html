@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="merge-conflict-panel.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "mergeConflictPanel"},
+                "detail_0": "Your local {$localBranchName} branch has one commit that conflicts with one commit on your Github {$remoteBranchName} branch.",
+                "detail_1": "Your local {$localBranchName} branch has one commit that conflicts with {$behindCount} commits on your Github {$remoteBranchName} branch.",
+                "detail_2": "Your local {$localBranchName} branch has {$aheadCount} commits that conflict with one commit on your Github {$remoteBranchName} branch.",
+                "detail_3": "Your local {$localBranchName} branch has {$aheadCount} commits that conflict with {$behindCount} commits on your Github {$remoteBranchName} branch."
+            }
+        },
+        "messageLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "messageLabel"}
+            },
+            "bindings": {
+                "value": {"<-": "@owner.message"}
+            }
+        },
+        "detailLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "detailLabel"}
+            },
+            "bindings": {
+                "value": {"<-": "@owner.detail"}
+            }
+        },
+        "actionLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "actionLabel"},
+                "value": "You can resolve the conflict by choosing one of the following resolutions:"
+            }
+        },
+        "discardLocalLabel": {
+            "prototype": "montage/ui/label.reel",
+            "properties": {
+                "element": {"#": "discardLocalLabel"},
+                "value": "Discard local changes",
+                "target": {"@": "discardLocalRadio"}
+            }
+        },
+        "discardLocalRadio": {
+            "prototype": "matte/ui/radio-button.reel",
+            "properties": {
+                "element": {"#": "discardLocalRadio"},
+                "checked": false
+            },
+            "bindings": {
+                "checked": {"<->": "@owner.resolution == 'discard'"},
+                "enabled": {"<-": "@owner.resolutions.has('discard')"}
+            }
+        },
+        "revertRemoteLabel": {
+            "prototype": "montage/ui/label.reel",
+            "properties": {
+                "element": {"#": "revertRemoteLabel"},
+                "value": "Revert Github changes, commit history will be preserved",
+                "target": {"@": "revertRemoteRadio"}
+            }
+        },
+        "revertRemoteRadio": {
+            "prototype": "matte/ui/radio-button.reel",
+            "properties": {
+                "element": {"#": "revertRemoteRadio"},
+                "checked": false
+            },
+            "bindings": {
+                "checked": {"<->": "@owner.resolution == 'revert'"},
+                "enabled": {"<-": "@owner.resolutions.has('revert')"}
+            }
+        },
+        "discardRemoteLabel": {
+            "prototype": "montage/ui/label.reel",
+            "properties": {
+                "element": {"#": "discardRemoteLabel"},
+                "value": "Discard Github changes",
+                "target": {"@": "discardRemoteRadio"}
+            }
+        },
+        "discardRemoteRadio": {
+            "prototype": "matte/ui/radio-button.reel",
+            "properties": {
+                "element": {"#": "discardRemoteRadio"},
+                "checked": false
+            },
+            "bindings": {
+                "checked": {"<->": "@owner.resolution == 'force'"},
+                "enabled": {"<-": "@owner.resolutions.has('force')"}
+            }
+        },
+        "discardRemoteCondition": {
+            "prototype": "montage/ui/condition.reel",
+            "properties": {
+                "element": {"#": "discardRemoteCondition"},
+                "removalStrategy": "hide"
+            },
+            "bindings": {
+                "condition": {"<-": "@owner.resolutions.has('force')"}
+            }
+        },
+        "cancelButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "cancelButton"},
+                "label": "Cancel"
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        },
+        "submitButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "submitButton"},
+                "label": "Resolve conflict",
+                "enabled": false
+            },
+            "bindings": {
+                "enabled": {"<-": "@owner.resolution"}
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="mergeConflictPanel" class="MergeConflictPanel">
+        <p data-montage-id="messageLabel" class="ModalOverlay-message"></p>
+        <div class="MergeConflictPanel-content">
+            <p data-montage-id="detailLabel" class="ModalOverlay-message"></p>
+            <p data-montage-id="actionLabel" class="ModalOverlay-message"></p>
+            <ul>
+                <li>
+                    <input type="radio" data-montage-id="discardLocalRadio">
+                    <label data-montage-id="discardLocalLabel"></label>
+                </li>
+                <li>
+                    <input type="radio" data-montage-id="revertRemoteRadio">
+                    <label data-montage-id="revertRemoteLabel"></label>
+                </li>
+                <li data-montage-id="discardRemoteCondition">
+                    <input type="radio" data-montage-id="discardRemoteRadio">
+                    <label data-montage-id="discardRemoteLabel"></label>
+                </li>
+            </ul>
+        </div>
+        <footer class="ModalOverlay-footer">
+            <input type="button" data-montage-id="cancelButton" class="Button Button--dark">
+            <input type="button" data-montage-id="submitButton" class="Button Button--dark Button--action-dark">
+        </footer>
+    </div>
+</body>
+</html>

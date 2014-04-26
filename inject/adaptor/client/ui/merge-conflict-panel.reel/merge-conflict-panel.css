@@ -1,0 +1,24 @@
+.MergeConflictPanel {
+
+}
+
+.MergeConflictPanel-content {
+    text-align: left;
+}
+
+.MergeConflictPanel p {
+    margin-bottom: 0.75em;
+}
+
+.MergeConflictPanel ul {
+    list-style-type: none;
+    white-space: nowrap;
+    padding-start: 0em;
+    -webkit-padding-start: 0em;
+    -moz-padding-start: 0em;
+    -ms-padding-start: 0em;
+}
+
+.MergeConflictPanel label {
+    cursor: pointer;
+}
