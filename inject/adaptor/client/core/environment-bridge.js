@@ -508,18 +508,28 @@ exports.EnvironmentBridge = Montage.specialize({
 
     promptForSave: {
         value: function (options) {
-            var appDelegate = this.applicationDelegate;
-            appDelegate.currentPanelKey = "prompt";
-            appDelegate.showModal = true;
+            var self = this;
+            return this.packageUrl.then(function (packageUrl) {
+                var appDelegate = self.applicationDelegate,
+                    prefix;
 
-            return this.promptPanel.getResponse(options.prompt, options.defaultName, options.submitLabel).then(function (response) {
-                //TODO sanitize input
-                if (response) {
-                    response = options.defaultDirectory + "/" + response;
+                if (options.defaultDirectory === packageUrl) {
+                    prefix = "/";
                 }
-                appDelegate.showModal = false;
-                appDelegate.currentPanelKey = null;
-                return response;
+                else {
+                    prefix = options.defaultDirectory.replace(packageUrl, "").replace(/([^/])$/, "$1/");
+                }
+                appDelegate.currentPanelKey = "prompt";
+                appDelegate.showModal = true;
+                return self.promptPanel.getResponse(options.prompt, options.defaultName, options.submitLabel, null, prefix).then(function (response) {
+                    //TODO sanitize input
+                    if (response) {
+                        response = options.defaultDirectory + "/" + response;
+                    }
+                    appDelegate.showModal = false;
+                    appDelegate.currentPanelKey = null;
+                    return response;
+                });
             });
         }
     },

@@ -23,6 +23,10 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
         value: null
     },
 
+    prefix: {
+        value: null
+    },
+
     value: {
         value: null
     },
@@ -98,13 +102,14 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
     },
 
     getResponse: {
-        value: function (message, defaultValue, submitLabel, cancelLabel) {
+        value: function (message, defaultValue, submitLabel, cancelLabel, prefix) {
             if (this._deferredResponse) {
                 //TODO maybe simply add it to the queue of things to prompt for, in order?
                 this._deferredResponse.reject(new Error("Prompt instructed to get a different response"));
             }
 
             this.message = message;
+            this.prefix = prefix;
             this.value = defaultValue;
             this.submitLabel = submitLabel || DEFAULT_SUBMIT_LABEL;
             this.cancelLabel = cancelLabel || DEFAULT_CANCEL_LABEL;
