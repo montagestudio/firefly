@@ -15,7 +15,7 @@
     align-items: center;
 }
 
-.PromptPanel .inputGroup .ModalOverlay-subMessage {
+.PromptPanel .inputGroup .ModalOverlay-prefix {
     margin-right: 8px;
     color: hsl(0, 0%, 60%);
 }
