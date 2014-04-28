@@ -23,7 +23,7 @@ exports.PromptPanel = Component.specialize(/** @lends PromptPanel# */ {
         value: null
     },
 
-    subMessage: {
+    prefix: {
         value: null
     },
 
