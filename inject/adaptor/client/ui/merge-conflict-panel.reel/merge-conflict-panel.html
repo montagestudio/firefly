@@ -5,13 +5,12 @@
     <link rel="stylesheet" type="text/css" href="merge-conflict-panel.css">
     <script type="text/montage-serialization">
     {
+        "localizer": {
+            "object": "montage/core/localizer[defaultLocalizer]"
+        },
         "owner": {
             "properties": {
-                "element": {"#": "mergeConflictPanel"},
-                "detail_0": "Your local {$localBranchName} branch has one commit that conflicts with one commit on your Github {$remoteBranchName} branch.",
-                "detail_1": "Your local {$localBranchName} branch has one commit that conflicts with {$behindCount} commits on your Github {$remoteBranchName} branch.",
-                "detail_2": "Your local {$localBranchName} branch has {$aheadCount} commits that conflict with one commit on your Github {$remoteBranchName} branch.",
-                "detail_3": "Your local {$localBranchName} branch has {$aheadCount} commits that conflict with {$behindCount} commits on your Github {$remoteBranchName} branch."
+                "element": {"#": "mergeConflictPanel"}
             }
         },
         "messageLabel": {
@@ -28,23 +27,42 @@
             "properties": {
                 "element": {"#": "detailLabel"}
             },
-            "bindings": {
-                "value": {"<-": "@owner.detail"}
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelDetail",
+                    "default": "Your local {local} branch has {ahead, plural, one {one commit that conflicts} other {# commits that conflict}} with {behind, plural, one {one commit} other {# commits}} on your Github {remote} branch.",
+                    "data": {
+                        "local": {"<-": "@owner.localBranchName"},
+                        "remote": {"<-": "@owner.remoteBranchName"},
+                        "ahead": {"<-": "@owner.aheadCount"},
+                        "behind": {"<-": "@owner.behindCount"}
+                    }
+                }
             }
         },
         "actionLabel": {
             "prototype": "montage/ui/text.reel",
             "properties": {
-                "element": {"#": "actionLabel"},
-                "value": "You can resolve the conflict by choosing one of the following resolutions:"
+                "element": {"#": "actionLabel"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelAction",
+                    "default": "You can resolve the conflict by choosing one of the following resolutions:"
+                }
             }
         },
         "discardLocalLabel": {
             "prototype": "montage/ui/label.reel",
             "properties": {
                 "element": {"#": "discardLocalLabel"},
-                "value": "Discard local changes",
                 "target": {"@": "discardLocalRadio"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelDiscardLocal",
+                    "default": "Discard local changes"
+                }
             }
         },
         "discardLocalRadio": {
@@ -62,8 +80,13 @@
             "prototype": "montage/ui/label.reel",
             "properties": {
                 "element": {"#": "revertRemoteLabel"},
-                "value": "Revert Github changes, commit history will be preserved",
                 "target": {"@": "revertRemoteRadio"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelRevertRemote",
+                    "default": "Revert GitHub changes, commit history will be preserved"
+                }
             }
         },
         "revertRemoteRadio": {
@@ -81,8 +104,13 @@
             "prototype": "montage/ui/label.reel",
             "properties": {
                 "element": {"#": "discardRemoteLabel"},
-                "value": "Discard Github changes",
                 "target": {"@": "discardRemoteRadio"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelDiscardRemote",
+                    "default": "Discard GitHub changes"
+                }
             }
         },
         "discardRemoteRadio": {
@@ -109,8 +137,13 @@
         "cancelButton": {
             "prototype": "matte/ui/button.reel",
             "properties": {
-                "element": {"#": "cancelButton"},
-                "label": "Cancel"
+                "element": {"#": "cancelButton"}
+            },
+            "localizations": {
+                "label": {
+                    "key": "mergeConflictPanelCancel",
+                    "default": "Cancel"
+                }
             },
             "listeners": [
                 {
@@ -123,11 +156,16 @@
             "prototype": "matte/ui/button.reel",
             "properties": {
                 "element": {"#": "submitButton"},
-                "label": "Resolve conflict",
                 "enabled": false
             },
             "bindings": {
                 "enabled": {"<-": "@owner.resolution"}
+            },
+            "localizations": {
+                "label": {
+                    "key": "mergeConflictPanelCancel",
+                    "default": "Resolve conflict"
+                }
             },
             "listeners": [
                 {

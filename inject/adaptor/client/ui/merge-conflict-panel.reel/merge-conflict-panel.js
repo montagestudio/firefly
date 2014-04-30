@@ -16,16 +16,28 @@ exports.MergeConflictPanel = Component.specialize(/** @lends MergeConflictPanel#
         }
     },
 
-    templateDidLoad: {
-        value: function() {
-            // getResponse() might be called before the template is loaded and therefore the detail strings defined in
-            // the html are available, let's rebuild the detail
-            this.updateDetail();
-        }
-    },
-
     resolution: {
         value: null
+    },
+
+    resolutions: {
+        value: null
+    },
+
+    localBranchName: {
+        value: ""
+    },
+
+    remoteBranchName: {
+        value: ""
+    },
+
+    aheadCount: {
+        value: 0
+    },
+
+    behindCount: {
+        value: 0
     },
 
     _deferredResponse: {
@@ -71,36 +83,16 @@ exports.MergeConflictPanel = Component.specialize(/** @lends MergeConflictPanel#
             this.message = message;
             this.localBranchName = local;
             this.remoteBranchName = remote;
-            this.aheadCount = ahead;
-            this.behindCount = behind;
+            this.aheadCount = parseInt(ahead, 10);
+            this.behindCount = parseInt(behind, 10);
             this.resolutions = resolutions;
             this.resolution = null;     // reset the resolution to force the user to make a selection
-
-            this.updateDetail();
 
             this._needsFocus = true;
             this.needsDraw = true;
 
             this._deferredResponse = Promise.defer();
             return this._deferredResponse.promise;
-        }
-    },
-
-    updateDetail: {
-        value: function() {
-            var self = this,
-                detailID,
-                detail;
-
-            if (this.aheadCount || this.behindCount) {
-                detailID = (this.aheadCount > 1 ? 2 : 0) + (this.behindCount > 1 ? 1 : 0);
-                detail = this["detail_" + detailID];
-                if (detail !== undefined) {
-                    this.detail = detail.replace(/\{\$([^}]*)\}/g, function(match, param) {
-                        return self[param] || "";
-                    });
-                }
-            }
         }
     },
 
