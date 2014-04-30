@@ -848,7 +848,8 @@ exports.EnvironmentBridge = Montage.specialize({
             var self = this;
 
             return this.getService("asset-converter-service").invoke("convertColladaAtUrl", inputUrl, {
-                bundle: true, output: outputUrl
+                bundle: true,
+                output: outputUrl
             }).then(function (assetUrl) {
                 var path = URL.parse(assetUrl).pathname.slice(1),
                     parts = path.split('/'),
