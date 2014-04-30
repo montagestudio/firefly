@@ -855,9 +855,7 @@ exports.EnvironmentBridge = Montage.specialize({
                     parts = path.split('/'),
                     assetName = parts[parts.length - 1];
 
-                return self.commitFiles([path], "Add glTF Bundle: " + assetName).then(function () {
-                    return assetUrl;
-                });
+                return self.commitFiles([path], "Add glTF Bundle: " + assetName).thenResolve(assetUrl);
             });
         }
     }
