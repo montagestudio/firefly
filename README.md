@@ -528,3 +528,23 @@ failed DNS lookups).
 In order to be able to login the droplets you will need to have your public key
 added to `deploy/files/authorized_keys`. The only user on the production/
 staging machines is admin and it is a sudoer.
+
+Posting status updates
+======================
+
+Email qmhaxgmmxepk4@tumblr.com with the update in the subject and a body of `#minor` or `#major` to indicate the severity, or `#good` if everything is okay again. Minor or major statuses will appear in the tool (good ones won't) and all posts appear on http://status.montagestudio.com/
+
+**Remember:** always resolve #major or #minor problems with a #good post, so that the warning will disappear in the tool.
+
+If you want to include more information in the body put it before the #tag, but this won't be shown in the tool. Example:
+
+```
+To: qmhaxgmmxepk4@tumblr.com
+Subject: Issues opening projects
+
+There are problems opening projects at the moment.
+
+#major
+```
+
+More information at https://www.tumblr.com/docs/en/email_publishing
