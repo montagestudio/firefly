@@ -16,7 +16,7 @@ if [[ -e "/srv/filament.tgz" ]]; then
     mv -f filament/* "$TARGET_DIR"
     pushd "$TARGET_DIR"
         find . -iname '*.css' | while read -r file ; do
-            sed -i.bak 's?url(/assets/">?url(/app/'$GIT_HASH'/assets/">?' "$file"
+            sed -i.bak 's?url(/assets/?url(/app/'$GIT_HASH'/assets/?' "$file"
         done
     popd
     chown -R montage:montage "$TARGET_DIR"
