@@ -1,8 +1,9 @@
 var Promise = require("montage/core/promise").Promise;
+var Template = require("montage/core/template").Template;
 var findOwner = require("core/spec-helper").findOwner;
 var getMontageId = require("core/spec-helper").getMontageId;
 
-/* global describe, Declarativ */
+/* global describe, window, Declarativ */
 module.exports = function() {
     var LiveEdit = Declarativ.LiveEdit;
     var mainModuleId = "components/ui/main.reel";
@@ -42,6 +43,40 @@ module.exports = function() {
                 expect(component).toBeDefined();
                 expect(getMontageId(element.previousElementSibling)).toBe("text");
                 expect(getMontageId(element.nextElementSibling)).toBe("textField");
+            });
+        });
+    });
+
+    describe("adding components to components not part of the running application", function() {
+        it("should still load and change the template", function() {
+            var serialization = {
+                "button": {
+                    "prototype": "digit/ui/button.reel",
+                    "properties": {
+                        "element": {"#": "button"}
+                    }
+                }
+            };
+            var templateFragment = {
+                serialization: JSON.stringify(serialization),
+                html: '<div data-montage-id="button" class="button"></div>'
+            };
+            result = LiveEdit.addTemplateFragment(
+                "ui/simple.reel",
+                {
+                    label: "owner",
+                    argumentName: "",
+                    cssSelector: ":scope"
+                },
+                "append",
+                templateFragment);
+
+            return Promise.resolve(result).then(function() {
+                return Template.getTemplateWithModuleId("ui/simple.reel/simple.html", window.require)
+                .then(function(template) {
+                    var serializationObject = template.getSerialization().getSerializationObject();
+                    expect(serializationObject.button).toBeDefined();
+                });
             });
         });
     });

@@ -2,7 +2,102 @@ var log = require("../../logging").from(__filename);
 var uuid = require("uuid");
 
 var preview = {
-    connections: []
+    /**
+     * This object holds the list of changes that were applied to the
+     * application since its last save state.
+     * The queue property is an object that can be indexed by the sequence
+     * number of the change. Sequence numbers are in increasing order, they
+     * start at _initialSequenceId and end at _lastSequenceId.
+     * Entries in the queue may be deleted for optimization purposes if
+     * they are considered no ops.
+     * This structure is used to send past change operations to Preview clients
+     * that were initialized after changes have been performed on the last save
+     * point.
+     */
+    changes: {
+        queue: {},
+        _initialSequenceId: 0,
+        _lastSequenceId: -1
+    },
+    connections: [],
+
+    clearChanges: function() {
+        this.changes = {
+            queue: {},
+            _initialSequenceId: 0,
+            _lastSequenceId: -1
+        };
+    },
+
+    disconnectAllClients: function() {
+        for (var i = 0, ii = this.connections.length; i < ii; i++) {
+            this.connections[i].ws.close();
+        }
+    },
+
+    /**
+     * Send a generic operation to all clients.
+     */
+    sendToClients: function(name, params) {
+        var content = name + ":" + (params ? JSON.stringify(params) : "");
+        this._sendToClients(content);
+    },
+
+    _sendToClients: function(content) {
+        for (var i = 0, ii = this.connections.length; i < ii; i++) {
+            this.connections[i].ws.send(content);
+        }
+    },
+
+    sendToClient: function(clientId, name, params) {
+        var content = name + ":" + (params ? JSON.stringify(params) : "");
+        this._sendToClient(clientId, content);
+    },
+
+    _sendToClient: function(clientId, content) {
+        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
+            if (preview.connections[i].info.clientId === clientId) {
+                preview.connections[i].ws.send(content);
+                return;
+            }
+        }
+    },
+
+    /**
+     * Send a change command to all clients. Change operations are stored in a
+     * buffer so that they can be replayed on new preview clients.
+     */
+    sendChangeToClients: function(name, params) {
+        var content;
+        var sequenceId = ++this.changes._lastSequenceId;
+
+        if (!params) {
+            params = {};
+        }
+        params.sequenceId = sequenceId;
+        content = name + ":" + JSON.stringify(params);
+        this.changes.queue[sequenceId] = content;
+        this._sendToClients(content);
+    },
+
+    /**
+     * Send all changes the preview has stored since `fromSequenceId`
+     * (including) to a client.
+     */
+    sendChangesToClient: function(client, fromSequenceId) {
+        if (!this.changes) {
+            return;
+        }
+
+        var toSequenceId = this.changes._lastSequenceId;
+        var queue = this.changes.queue;
+        log("send changes [" + fromSequenceId + "," + toSequenceId + "]");
+        for (var i = fromSequenceId; i <= toSequenceId; i++) {
+            if (queue[i]) {
+                client.ws.send(queue[i]);
+            }
+        }
+    }
 };
 
 exports.registerConnection = function(ws, request) {
@@ -16,6 +111,7 @@ exports.registerConnection = function(ws, request) {
         }
     };
     preview.connections.push(client);
+    preview.sendChangesToClient(client, preview.changes._initialSequenceId);
 };
 
 exports.unregisterConnection = function(ws) {
@@ -45,23 +141,21 @@ function PreviewService() {
 
     service.register = function() {
         log("register new preview");
+        preview.clearChanges();
         this.refresh();
     };
 
     service.unregister = function() {
         log("unregister preview");
-        // Websocket connections
-        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-            preview.connections[i].ws.close();
-        }
+        preview.disconnectAllClients();
     };
 
     service.refresh = function() {
-        sendToPreviewClients("refresh:");
+        preview.sendToClients("refresh");
     };
 
     service.selectComponentToInspect = function(clientId) {
-        sendToPreviewClient(clientId, "selectComponentToInspect:");
+        preview.sendToClient(clientId, "selectComponentToInspect");
     };
 
     service.setObjectProperties = function(label, ownerModuleId, properties) {
@@ -70,7 +164,20 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             properties: properties
         };
-        sendToPreviewClients("setObjectProperties:" + JSON.stringify(params));
+        // Since this operation can happen at 60ops/s (because of the flow
+        // editor) we don't want or need to store every single change to the
+        // properties of an object for memory and performance reasons.
+        // To avoid this we check if we already performed this operation to the
+        // same object in the past and remove the previous operation from the
+        // change set.
+        var key = "setObjectProperties:" + label + "@" + ownerModuleId;
+        var sequenceId = preview.changes[key];
+        if (sequenceId) {
+            delete preview.changes.queue[sequenceId];
+        }
+
+        preview.sendChangeToClients("setObjectProperties", params);
+        preview.changes[key] = preview.changes._lastSequenceId;
     };
 
     service.setObjectProperty = function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
@@ -81,7 +188,7 @@ function PreviewService() {
             propertyValue: propertyValue,
             propertyType: propertyType
         };
-        sendToPreviewClients("setObjectProperty:" + JSON.stringify(params));
+        preview.sendChangeToClients("setObjectProperty", params);
     };
 
     service.setObjectLabel = function(ownerModuleId, label, newLabel) {
@@ -90,7 +197,7 @@ function PreviewService() {
             label: label,
             newLabel: newLabel
         };
-        sendToPreviewClients("setObjectLabel:" + JSON.stringify(params));
+        preview.sendChangeToClients("setObjectLabel", params);
     };
 
     service.setObjectBinding = function(ownerModuleId, label, binding) {
@@ -99,7 +206,7 @@ function PreviewService() {
             label: label,
             binding: binding
         };
-        sendToPreviewClients("setObjectBinding:" + JSON.stringify(params));
+        preview.sendChangeToClients("setObjectBinding", params);
     };
 
     service.deleteObjectBinding = function(ownerModuleId, label, path) {
@@ -108,7 +215,7 @@ function PreviewService() {
             label: label,
             path: path
         };
-        sendToPreviewClients("deleteObjectBinding:" + JSON.stringify(params));
+        preview.sendChangeToClients("deleteObjectBinding", params);
     };
 
     service.addTemplateFragment = function(moduleId, elementLocation, how, templateFragment) {
@@ -118,7 +225,7 @@ function PreviewService() {
             how: how,
             templateFragment: templateFragment
         };
-        sendToPreviewClients("addTemplateFragment:" + JSON.stringify(params));
+        preview.sendChangeToClients("addTemplateFragment", params);
     };
 
     service.addTemplateFragmentObjects = function(moduleId, templateFragment) {
@@ -126,7 +233,7 @@ function PreviewService() {
             moduleId: moduleId,
             templateFragment: templateFragment
         };
-        sendToPreviewClients("addTemplateFragmentObjects:" + JSON.stringify(params));
+        preview.sendChangeToClients("addTemplateFragmentObjects", params);
     };
 
     service.deleteObject = function(ownerModuleId, label) {
@@ -134,7 +241,7 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             label: label
         };
-        sendToPreviewClients("deleteObject:" + JSON.stringify(params));
+        preview.sendChangeToClients("deleteObject", params);
     };
 
     service.deleteElement = function(ownerModuleId, elementLocation) {
@@ -142,7 +249,7 @@ function PreviewService() {
             ownerModuleId: ownerModuleId,
             elementLocation: elementLocation
         };
-        sendToPreviewClients("deleteElement:" + JSON.stringify(params));
+        preview.sendChangeToClients("deleteElement", params);
     };
 
     service.setElementAttribute = function(moduleId, elementLocation, attributeName, attributeValue) {
@@ -152,7 +259,7 @@ function PreviewService() {
             attributeName: attributeName,
             attributeValue: attributeValue
         };
-        sendToPreviewClients("setElementAttribute:" + JSON.stringify(params));
+        preview.sendChangeToClients("setElementAttribute", params);
     };
 
     service.addObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
@@ -163,7 +270,7 @@ function PreviewService() {
             listenerLabel: listenerLabel,
             useCapture: useCapture
         };
-        sendToPreviewClients("addObjectEventListener:" + JSON.stringify(params));
+        preview.sendChangeToClients("addObjectEventListener", params);
     };
 
     service.removeObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
@@ -174,7 +281,11 @@ function PreviewService() {
             listenerLabel: listenerLabel,
             useCapture: useCapture
         };
-        sendToPreviewClients("removeObjectEventListener:" + JSON.stringify(params));
+        preview.sendChangeToClients("removeObjectEventListener", params);
+    };
+
+    service.didSaveProject = function() {
+        preview.clearChanges();
     };
 
     service.getClients = function() {
@@ -186,23 +297,6 @@ function PreviewService() {
     service.close = function() {
         this.unregister();
     };
-
-    function sendToPreviewClients(content) {
-        // Websocket connections
-        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-            preview.connections[i].ws.send(content);
-        }
-    }
-
-    function sendToPreviewClient(clientId, content) {
-        // Websocket connections
-        for (var i = 0, ii = preview.connections.length; i < ii; i++) {
-            if (preview.connections[i].info.clientId === clientId) {
-                preview.connections[i].ws.send(content);
-                return;
-            }
-        }
-    }
 
     return service;
 }

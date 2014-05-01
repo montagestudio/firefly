@@ -77,6 +77,8 @@ describe("preview-service", function () {
 
                 service.setObjectProperties(args.label, args.ownerModuleId, args.properties);
 
+                args.sequenceId = 0;
+
                 expect(connection1.send).toHaveBeenCalledWith(
                     "setObjectProperties:" + JSON.stringify(args));
             });

@@ -40,7 +40,7 @@ if (!window.performance) {
         var startTime;
 
         if (!dataProcessingPromise) {
-            dataProcessingPromise = Declarativ.Promise.resolve();
+            dataProcessingPromise = Declarativ.applicationReady();
         }
 
         if (command === "refresh") {

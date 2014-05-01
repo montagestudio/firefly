@@ -14,5 +14,7 @@ module.exports = [
     {desc: "Components - Template", spec: "template-components-spec", app: "components"},
     {desc: "Repetition", spec: "repetition-spec", app: "repetitions"},
     {desc: "DOM Arguments", spec: "dom-arguments-spec", app: "arguments"},
-    {desc: "DOM Arguments - Deletion", spec: "delete-dom-arguments-spec", app: "arguments"}
+    {desc: "DOM Arguments - Deletion", spec: "delete-dom-arguments-spec", app: "arguments"},
+
+    {desc: "MontageElement", spec: "montage-element-spec", app: "components"}
 ];
