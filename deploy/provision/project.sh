@@ -12,8 +12,8 @@ if [[ -e "/srv/firefly.tgz" ]]; then
     tar -xzf firefly.tgz
     pushd firefly
         # Change the extensions service to account for the hash key
-        if [[ -e GIT_HASH ]]; then
-            export GIT_HASH=`cat GIT_HASH`
+        if [[ -e "/srv/filament/GIT_HASH" ]]; then
+            export GIT_HASH=`cat "/srv/filament/GIT_HASH"`
             sed -i.bak 's@/app/extensions@/app/'$GIT_HASH'/extensions@' container/services/extension-service.js
         fi
     popd
