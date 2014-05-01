@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="merge-conflict-panel.css">
+    <script type="text/montage-serialization">
+    {
+        "localizer": {
+            "object": "montage/core/localizer[defaultLocalizer]"
+        },
+        "owner": {
+            "properties": {
+                "element": {"#": "mergeConflictPanel"}
+            }
+        },
+        "messageLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "messageLabel"}
+            },
+            "bindings": {
+                "value": {"<-": "@owner.message"}
+            }
+        },
+        "detailLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "detailLabel"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelDetail",
+                    "default": "Your local {local} branch has {ahead, plural, one {one commit that conflicts} other {# commits that conflict}} with {behind, plural, one {one commit} other {# commits}} on your Github {remote} branch.",
+                    "data": {
+                        "local": {"<-": "@owner.localBranchName"},
+                        "remote": {"<-": "@owner.remoteBranchName"},
+                        "ahead": {"<-": "@owner.aheadCount"},
+                        "behind": {"<-": "@owner.behindCount"}
+                    }
+                }
+            }
+        },
+        "actionLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "actionLabel"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelAction",
+                    "default": "You can resolve the conflict by choosing one of the following resolutions:"
+                }
+            }
+        },
+        "discardLocalLabel": {
+            "prototype": "montage/ui/label.reel",
+            "properties": {
+                "element": {"#": "discardLocalLabel"},
+                "target": {"@": "discardLocalRadio"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelDiscardLocal",
+                    "default": "Discard local changes"
+                }
+            }
+        },
+        "discardLocalRadio": {
+            "prototype": "matte/ui/radio-button.reel",
+            "properties": {
+                "element": {"#": "discardLocalRadio"},
+                "checked": false
+            },
+            "bindings": {
+                "checked": {"<->": "@owner.resolution == 'discard'"},
+                "enabled": {"<-": "@owner.resolutions.has('discard')"}
+            }
+        },
+        "revertRemoteLabel": {
+            "prototype": "montage/ui/label.reel",
+            "properties": {
+                "element": {"#": "revertRemoteLabel"},
+                "target": {"@": "revertRemoteRadio"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelRevertRemote",
+                    "default": "Revert GitHub changes, commit history will be preserved"
+                }
+            }
+        },
+        "revertRemoteRadio": {
+            "prototype": "matte/ui/radio-button.reel",
+            "properties": {
+                "element": {"#": "revertRemoteRadio"},
+                "checked": false
+            },
+            "bindings": {
+                "checked": {"<->": "@owner.resolution == 'revert'"},
+                "enabled": {"<-": "@owner.resolutions.has('revert')"}
+            }
+        },
+        "discardRemoteLabel": {
+            "prototype": "montage/ui/label.reel",
+            "properties": {
+                "element": {"#": "discardRemoteLabel"},
+                "target": {"@": "discardRemoteRadio"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergeConflictPanelDiscardRemote",
+                    "default": "Discard GitHub changes"
+                }
+            }
+        },
+        "discardRemoteRadio": {
+            "prototype": "matte/ui/radio-button.reel",
+            "properties": {
+                "element": {"#": "discardRemoteRadio"},
+                "checked": false
+            },
+            "bindings": {
+                "checked": {"<->": "@owner.resolution == 'force'"},
+                "enabled": {"<-": "@owner.resolutions.has('force')"}
+            }
+        },
+        "discardRemoteCondition": {
+            "prototype": "montage/ui/condition.reel",
+            "properties": {
+                "element": {"#": "discardRemoteCondition"},
+                "removalStrategy": "hide"
+            },
+            "bindings": {
+                "condition": {"<-": "@owner.resolutions.has('force')"}
+            }
+        },
+        "cancelButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "cancelButton"}
+            },
+            "localizations": {
+                "label": {
+                    "key": "mergeConflictPanelCancel",
+                    "default": "Cancel"
+                }
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        },
+        "submitButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "submitButton"},
+                "enabled": false
+            },
+            "bindings": {
+                "enabled": {"<-": "@owner.resolution"}
+            },
+            "localizations": {
+                "label": {
+                    "key": "mergeConflictPanelCancel",
+                    "default": "Resolve conflict"
+                }
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="mergeConflictPanel" class="MergeConflictPanel">
+        <p data-montage-id="messageLabel" class="ModalOverlay-message"></p>
+        <div class="MergeConflictPanel-content">
+            <p data-montage-id="detailLabel" class="ModalOverlay-message"></p>
+            <p data-montage-id="actionLabel" class="ModalOverlay-message"></p>
+            <ul>
+                <li>
+                    <input type="radio" data-montage-id="discardLocalRadio">
+                    <label data-montage-id="discardLocalLabel"></label>
+                </li>
+                <li>
+                    <input type="radio" data-montage-id="revertRemoteRadio">
+                    <label data-montage-id="revertRemoteLabel"></label>
+                </li>
+                <li data-montage-id="discardRemoteCondition">
+                    <input type="radio" data-montage-id="discardRemoteRadio">
+                    <label data-montage-id="discardRemoteLabel"></label>
+                </li>
+            </ul>
+        </div>
+        <footer class="ModalOverlay-footer">
+            <input type="button" data-montage-id="cancelButton" class="Button Button--dark">
+            <input type="button" data-montage-id="submitButton" class="Button Button--dark Button--action-dark">
+        </footer>
+    </div>
+</body>
+</html>
