@@ -77,11 +77,11 @@ Frontend.prototype.inspectComponent = function(ownerModuleId, label) {
     }
 };
 
-Frontend.prototype.dispatchAppEventNamed = function(type, canBubble, cancelable, detail) {
+Frontend.prototype.dispatchEventNamed = function(type, canBubble, cancelable, detail) {
     if (this._connection) {
-        return this._connection.invoke("dispatchAppEventNamed", type, canBubble, cancelable, detail);
+        return this._connection.invoke("dispatchEventNamed", type, canBubble, cancelable, detail);
     } else {
-        log("dispatchAppEventNamed: frontend service is not available yet");
+        log("dispatchEventNamed: frontend service is not available yet");
         return Q.resolve();
     }
 };

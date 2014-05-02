@@ -1296,7 +1296,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                                     detail.remoteRef = remoteBranch.sha;
                                     detail.remoteShadowRef = remoteBranch.shadow ? remoteBranch.shadow.sha : undefined;
                                 }
-                                Frontend.dispatchAppEventNamed("remoteChange", true, true, detail).done();
+                                Frontend.dispatchEventNamed("remoteChange", true, true, detail).done();
                             }
                         });
                     }
