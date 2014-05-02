@@ -552,6 +552,30 @@ Object.defineProperties(window.Declarativ, {
                     }
                 });
             }
+        },
+
+        _updatedCssFiles: {
+            value: {}
+        },
+        updateCssFileContent: {
+            value: function(url, content) {
+                if (url in this._updatedCssFiles) {
+                    this._updatedCssFiles[url].textContent = content;
+                } else {
+                    var links = document.querySelectorAll("link");
+
+                    for (var i = 0, link; link =/*assign*/ links[i]; i++) {
+                        if (link.href === url) {
+                            var style = document.createElement("style");
+                            style.textContent = content;
+                            link.parentNode.insertBefore(style, link);
+                            link.parentNode.removeChild(link);
+                            this._updatedCssFiles[url] = style;
+                            break;
+                        }
+                    }
+                }
+            }
         }
     });
 

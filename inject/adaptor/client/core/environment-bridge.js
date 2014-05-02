@@ -483,6 +483,12 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    updatePreviewCssFileContent: {
+        value: function(previewId, url, content) {
+            return this.getService("preview-service").invoke("updateCssFileContent", url, content);
+        }
+    },
+
     setDocumentDirtyState: {
         value: function () {
         }

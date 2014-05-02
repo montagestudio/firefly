@@ -288,6 +288,28 @@ function PreviewService() {
         preview.clearChanges();
     };
 
+    service.updateCssFileContent = function(url, content) {
+        var params = {
+            url: url,
+            content: content
+        };
+        // Since this operation can happen quite a lot with big chunks of
+        // content it could potentially make the queue store big amounts of
+        // data that are not necessary because each change on an url
+        // invalidates the previous change made to the same url.
+        // To avoid this we check if we already performed this operation to the
+        // same object in the past and remove the previous operation from the
+        // change set.
+        var key = "updateCssFileContent:" + url;
+        var sequenceId = preview.changes[key];
+        if (sequenceId) {
+            delete preview.changes.queue[sequenceId];
+        }
+
+        preview.sendChangeToClients("updateCssFileContent", params);
+        preview.changes[key] = preview.changes._lastSequenceId;
+    };
+
     service.getClients = function() {
         return preview.connections.map(function(connection) {
             return connection.info;

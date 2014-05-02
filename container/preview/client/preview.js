@@ -130,6 +130,11 @@ if (!window.performance) {
                 args = JSON.parse(param);
                 return LiveEdit.removeObjectEventListener(args.moduleId, args.label, args.type, args.listenerLabel, args.useCapture);
             }
+
+            if (command === "updateCssFileContent") {
+                args = JSON.parse(param);
+                return LiveEdit.updateCssFileContent(args.url, args.content);
+            }
         }).fail(function(reason) {
             console.log("fail: ", reason);
         });
