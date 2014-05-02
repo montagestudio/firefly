@@ -851,17 +851,9 @@ exports.EnvironmentBridge = Montage.specialize({
 
     convertColladaToGlTFBundle: {
         value: function (inputUrl, outputUrl) {
-            var self = this;
-
             return this.getService("asset-converter-service").invoke("convertColladaAtUrl", inputUrl, {
                 bundle: true,
                 output: outputUrl
-            }).then(function (assetUrl) {
-                var path = URL.parse(assetUrl).pathname.slice(1),
-                    parts = path.split('/'),
-                    assetName = parts[parts.length - 1];
-
-                return self.commitFiles([path], "Add glTF Bundle: " + assetName).thenResolve(assetUrl);
             });
         }
     }
