@@ -15,13 +15,12 @@
 }
 
 .Workflow {
-    color: hsl(0, 0%, 86%);
+    color: hsl(0, 0%, 84%);
 }
 
 .Workflow-branchName {
     font-size: 16px;
     line-height: 1;
-    color: hsl(0, 0%, 60%);
 }
 
 .Workflow-segment {
@@ -38,7 +37,7 @@
 
 .Workflow-status {
     font-size: 13px;
-    color: hsl(0, 0%, 60%);
+    color: hsl(0, 0%, 64%);
 }
 
 .Workflow-status-count {

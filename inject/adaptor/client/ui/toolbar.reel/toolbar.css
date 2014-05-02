@@ -14,6 +14,7 @@
     -ms-align-items: center;
     align-items: center;
     height: 34px;
+    color: hsl(0, 0%, 84%);
     padding-bottom: 1px; /* Fixes vertical centering */
     border-top: 1px solid hsla(0, 0%, 100%, .1);
     border-bottom: 1px solid hsla(0, 0%, 0%, .2);
@@ -60,7 +61,6 @@
     font-size: 13px;
     margin: 0 8px 0 8px;
     vertical-align: middle;
-    color: hsl(0, 0%, 50%);
 }
 
 .Toolbar .matte-ButtonGroup {
@@ -90,7 +90,7 @@
     margin: 0;
     font-family: inherit;
     font-size: 13px;
-    color: hsl(0, 0%, 60%);
+    color: hsl(0, 0%, 84%);
     text-shadow: none;
     box-shadow: none;
     border-radius: 0;
