@@ -1,5 +1,6 @@
 var log = require("../../logging").from(__filename);
 var uuid = require("uuid");
+var Frontend = require("../frontend");
 
 var preview = {
     /**
@@ -112,13 +113,16 @@ exports.registerConnection = function(ws, request) {
     };
     preview.connections.push(client);
     preview.sendChangesToClient(client, preview.changes._initialSequenceId);
+    Frontend.dispatchEventNamed("previewClientConnected", true, false, client.info);
 };
 
 exports.unregisterConnection = function(ws) {
     var connections = preview.connections;
     for (var i in connections) {
         if (connections[i].ws === ws) {
-            connections.splice(i, 1);
+            var client = connections.splice(i, 1)[0];
+
+            Frontend.dispatchEventNamed("previewClientDisconnected", true, false, client.info);
         }
     }
 };
