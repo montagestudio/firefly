@@ -15,9 +15,10 @@ module.exports = Git;
  */
 module.exports.semaphore = new Semaphore();
 
-function Git(fs, accessToken, acceptOnlyHttpsRemote) {
+function Git(_fs, accessToken, acceptOnlyHttpsRemote) {
     this._accessToken = accessToken;
     this._acceptOnlyHttpsRemote = (acceptOnlyHttpsRemote !== false);
+    this._fs = _fs;
 }
 
 Git.prototype.init = function(repoPath) {
@@ -68,6 +69,18 @@ Git.prototype.branch = function(repoPath, option) {
     });
 };
 
+Git.prototype.currentBranch = function(repoPath) {
+    log("head");
+    return this.command(repoPath, "rev-parse", ["--abbrev-ref", "HEAD"], true)
+    .then(function(result) {
+        if (result && result.length > 1) {
+            return result.slice(0, -1);
+        } else {
+            return result;
+        }
+    });
+};
+
 Git.prototype.status = function(repoPath, options) {
     log("status " + options);
     return this.command(repoPath, "status", options, true);
@@ -79,6 +92,23 @@ Git.prototype.add = function(repoPath, paths) {
     return exec("git", args, repoPath)
     .fail(function() {
         throw new Error("git add failed.");
+    });
+};
+
+Git.prototype.rm = function(repoPath, paths) {
+    log("rm " + paths);
+    var self = this;
+
+    // We need to process each path one by one as we need to use the -r option when removing a directory
+    return Q.allSettled(paths.map(function (path) {
+        if ((path.slice(-1) === self._fs.SEPARATOR)) {
+            return exec("git", ["rm", "-r", path], repoPath)
+        } else {
+            return exec("git", ["rm", path], repoPath)
+        }
+    }))
+    .fail(function() {
+        throw new Error("git rm failed.");
     });
 };
 
@@ -108,8 +138,8 @@ Git.prototype.merge = function (repoPath, branch, squash) {
     });
 };
 
-Git.prototype.commit = function (repoPath, message) {
-    var args = ["commit", "-m", message];
+Git.prototype.commit = function (repoPath, message, amend) {
+    var args = amend === true ? ["commit", "--amend", "-m", message] : ["commit", "-m", message];
     log("commit ", args);
     return exec("git", args, repoPath)
     .fail(function() {
