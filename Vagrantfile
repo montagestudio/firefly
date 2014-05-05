@@ -18,6 +18,12 @@ Vagrant.configure('2') do |config|
     # problems than it solves
     config.vbguest.no_install = true
 
+    # Configure Vagrant VM to use Host DNS, which is a lot faster than the
+    # default DNS in the VM for some reason...
+    config.vm.provider "virtualbox" do |v|
+        v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    end
+
     # The machines listed below should match as closely as possible the Packer
     # .json images. Try and keep the steps in the same order as in the .json
     # files to make comparison easier.
