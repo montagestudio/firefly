@@ -41,6 +41,7 @@
     "q-io": "git+ssh://git@github.com:kriskowal/q-io.git#caabcc26f406d95bc9442ebd11d5b0c3c5445193",
     "q-connection": "~0.6.1",
     "q": "~0.9.7",
+    "ua-parser-js": "~0.6.2",
     "uuid": "~1.4.1",
     "minimatch": "~0.2.12",
     "logging": "git+ssh://git@github.com:Stuk/logging.git#4dbe3884056c0deab8ca409c81461948d911aff0",
