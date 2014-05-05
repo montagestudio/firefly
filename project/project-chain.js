@@ -105,7 +105,13 @@ function server(options) {
                         if (!projectWorkspacePort) {
                             return preview.serveNoPreviewPage(request);
                         }
-                        return proxyContainer(request, projectWorkspacePort, "static");
+                        return proxyContainer(request, projectWorkspacePort, "static")
+                        .catch(function (error) {
+                            // If there's an error making the request then serve
+                            // the no preview page. The container has probably
+                            // been shut down due to inactivity
+                            return preview.serveNoPreviewPage(request);
+                        });
                     } else {
                         setupProjectContainer(
                             details.owner,
