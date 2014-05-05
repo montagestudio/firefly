@@ -1,6 +1,7 @@
 var log = require("../../logging").from(__filename);
 var uuid = require("uuid");
 var Frontend = require("../frontend");
+var UAParser = require("ua-parser-js").UAParser;
 
 var preview = {
     /**
@@ -107,6 +108,7 @@ exports.registerConnection = function(ws, request) {
         info: {
             clientId: uuid.v4(),
             userAgent: request.headers['user-agent'],
+            browser: browserNameForUserAgent(request.headers['user-agent']),
             remoteAddress: request.connection.remoteAddress,
             xForwardedFor: request.headers['x-forwarded-for']
         }
@@ -131,6 +133,17 @@ exports.unregisterConnection = function(ws) {
 exports._getPreview = function () {
     return preview;
 };
+
+
+var uaParser = null;
+function browserNameForUserAgent(userAgent) {
+    if (!uaParser) {
+        uaParser = new UAParser();
+    }
+    uaParser.setUA(userAgent);
+    return uaParser.getBrowser().name;
+}
+
 
 /**
  * The actual service for the tool. We don't put the previous functions exposed
