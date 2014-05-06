@@ -1,34 +1,41 @@
+// A lot of the Recurly API keys are underscored
+/*jshint camelcase:false */
 var log = require("./logging").from(__filename);
 var track = require("./track");
 var Q = require("q");
 var Recurly = require("./recurly");
 
-var SUBSCRIPTIONS = require("./subscriptions");
-
-// FIXME pull from env
-module.exports = new Accounts(new Recurly({API_KEY: "cafb8772d12945fb972e2f45dbf90512", SUBDOMAIN: "montage-studio"}));
+module.exports = new Accounts(
+    // FIXME pull from env
+    new Recurly({API_KEY: "cafb8772d12945fb972e2f45dbf90512", SUBDOMAIN: "montage-studio"}),
+    require("./subscriptions.json")
+);
 module.exports.Accounts = Accounts;
 
-function Accounts(recurly) {
-    if (!recurly) {
-        throw new Error("Recurly must be given");
+function Accounts(recurly, subscriptions) {
+    if (!recurly || !subscriptions) {
+        throw new Error("Recurly and subscriptions must be given");
     }
 
-    this.cache = {};
+    // this.cache = {};
     this.recurly = recurly;
+    this.subscriptions = subscriptions;
 }
 
 Accounts.prototype.create = function(username, infoPromise) {
     var self = this;
-    var accountCode = this.accountCode(username);
+    var accountCode = this.getAccountCode(username);
 
     log("Creating recurly account", accountCode);
 
-    Q.when(infoPromise, function (info) {
+    return Q.when(infoPromise, function (info) {
         return self.recurly.accounts.create({
             account_code: accountCode,
             username: username,
             email: info.email
+        })
+        .then(function (response) {
+            return response.data.account;
         })
         .catch(function (error) {
             track.errorForUsername(error, username);
@@ -38,8 +45,11 @@ Accounts.prototype.create = function(username, infoPromise) {
 };
 
 Accounts.prototype.get = function(username) {
-    var accountCode = this.accountCode(username);
-    return this.recurly.accounts.get(accountCode);
+    var accountCode = this.getAccountCode(username);
+    return this.recurly.accounts.get(accountCode)
+    .then(function (response) {
+        return response.data.account;
+    });
 };
 
 Accounts.prototype.getOrCreate = function(username, infoPromise) {
@@ -65,7 +75,7 @@ Accounts.prototype.getFeatures = function(username) {
         if (response.data.subscriptions.subscription) {
             plan = self.getPlanFromCode(response.data.subscriptions.subscription.plan.plan_code);
         }
-        return SUBSCRIPTIONS[plan];
+        return self.subscriptions[plan];
     });
 };
 
