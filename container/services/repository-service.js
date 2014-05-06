@@ -587,7 +587,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             fileUrls = ["--all"];
         }
         if (!Array.isArray(fileUrls)) {
-           return Q.reject(new Error("Invalid commitFiles argument."));
+            return Q.reject(new Error("Invalid commitFiles argument."));
         }
         files = fileUrls.map(function(url) {
             return _convertProjectUrlToPath(url);
@@ -601,7 +601,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 if (hasUncommittedChanges) {
                     return _git.commit(_fsPath, message || "Update component", amend === true)
                     .then(function() {
-                        return _git.currentBranch(_fsPath)
+                        return _git.currentBranch(_fsPath);
                     }).then(function(current) {
                         if (_gitAutoFlushTimer[current]) {
                             clearTimeout(_gitAutoFlushTimer[current]);
@@ -614,7 +614,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     });
                 }
             }).then(function() {
-                return {success: true}
+                return {success: true};
             });
         });
     };

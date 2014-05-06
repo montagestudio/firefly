@@ -102,9 +102,9 @@ Git.prototype.rm = function(repoPath, paths) {
     // We need to process each path one by one as we need to use the -r option when removing a directory
     return Q.allSettled(paths.map(function (path) {
         if ((path.slice(-1) === self._fs.SEPARATOR)) {
-            return exec("git", ["rm", "-r", path], repoPath)
+            return exec("git", ["rm", "-r", path], repoPath);
         } else {
-            return exec("git", ["rm", path], repoPath)
+            return exec("git", ["rm", path], repoPath);
         }
     }))
     .fail(function() {

@@ -692,8 +692,7 @@ exports.EnvironmentBridge = Target.specialize({
 
     makeTree: {
         value: function (url) {
-            var self = this;
-            return this.getService("file-service").invoke("makeTree", url)
+            return this.getService("file-service").invoke("makeTree", url);
         }
     },
 
