@@ -293,6 +293,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *              ahead:  number of commits local branch is ahead of remote branch
      *              behind: number of commits local branch is behind of remote branch
      *              resolutionStrategy: Array of possible resolutions
+     *              reference: reference object to pass back to resolve conflicts
      *      }
      */
     service.updateRefs = _checkGithubError(semaphore.exclusive(function(resolutionStrategy, reference, forceFetch) {
@@ -909,8 +910,25 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return self._push(branch);
         }).then(function() {
             return {success: true};
-        }, function() {
-            return {success: false}
+        }, function(error) {
+            // An erro occurs when pushing, let's see if we can just rebase it
+            return _gitFetch(true)
+            .then(function(){
+                return self._rebase(branch, REMOTE_REPOSITORY_NAME + "/" + branch)
+               .then(function(success) {
+                    if (success) {
+                        // Rebase was successful, let push it again
+                        return self._push(branch)
+                        .then(function() {
+                            return {success: true};
+                        }, function() {
+                            return {success: false};
+                        });
+                    } else {
+                        return {success: false};
+                    }
+                });
+            });
         })
         .then(function(result) {
             Frontend.dispatchEventNamed("repositoryFlushed", true, true, result).done();
