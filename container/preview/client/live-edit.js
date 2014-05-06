@@ -559,13 +559,20 @@ Object.defineProperties(window.Declarativ, {
         },
         updateCssFileContent: {
             value: function(url, content) {
+
+                var protocolRegex = /^\S+:\/\//;
+
+                // Ignore the protocol; we're constructing the url assuming https,
+                // but often serving the preview over http
+                url = url.replace(protocolRegex, "");
+
                 if (url in this._updatedCssFiles) {
                     this._updatedCssFiles[url].textContent = content;
                 } else {
                     var links = document.querySelectorAll("link");
 
                     for (var i = 0, link; link =/*assign*/ links[i]; i++) {
-                        if (link.href === url) {
+                        if (link.href.replace(protocolRegex, "") === url) {
                             var style = document.createElement("style");
                             style.textContent = content;
                             link.parentNode.insertBefore(style, link);
