@@ -98,6 +98,9 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
         return self._repoService.commitFiles(null, INITIAL_COMMIT_MSG);
     })
     .then(function() {
+        return self._repoService._flush();
+    })
+    .then(function() {
         return self._repoService.defaultBranchName()
         .then(function(branch) {
             return self._repoService.checkoutShadowBranch(branch);
@@ -123,6 +126,9 @@ ProjectWorkspace.prototype.initializeWithRepository = function() {
     })
     .then(function() {
         return self._repoService.commitFiles(null, UPDATE_DEPENDENCIES_MSG);
+    })
+    .then(function() {
+        return self._repoService._flush();
     });
 };
 
@@ -207,7 +213,12 @@ ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extend
  * the default remote.
  */
 ProjectWorkspace.prototype.flushWorkspace = function(message) {
-    return this._repoService.commitFiles(null, message);
+    var self = this;
+
+    return this._repoService.commitFiles(null, message)
+    .then(function() {
+        return self._repoService._flush();
+    });
 };
 
 /**

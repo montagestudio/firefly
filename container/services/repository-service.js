@@ -1,4 +1,5 @@
 var Q = require("q");
+var URL = require("url");
 var Git = require("../git");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
 var Frontend = require("../frontend");
@@ -16,7 +17,20 @@ var OWNER_SHADOW_BRANCH_PREFIX;
 var _cachedServices = {};
 var semaphore = Git.semaphore;
 
-var GIT_FETCH_TIMEOUT = 30 * 1000; // 30 seconds
+var GIT_FETCH_TIMEOUT = 30 * 1000;  // 30 seconds
+var AUTO_FLUSH_TIMEOUT = 5 * 1000;  // 5 seconds
+
+var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function() {
+    return function (url) {
+        var path = URL.parse(url).pathname;
+
+        if (path.charAt(0) === "/") {
+            return URL.parse(url).pathname.substr(1);   // Remove the leading /
+        } else {
+            return URL.parse(url).pathname;
+        }
+    };
+};
 
 function RepositoryService(session, fs, environment, pathname, fsPath) {
     return _RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, fsPath, true);
@@ -39,12 +53,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         _accessToken = githubAccessToken,
         _fs = fs,
         _fsPath = fsPath,
+        _convertProjectUrlToPath = makeConvertProjectUrlToPath(),
         _git = new Git(_fs, _accessToken, acceptOnlyHttpsRemote),
         _githubApi = new GithubApi(_accessToken),
         _info = null,
         _githubPollTimer = null,
         _gitFetchLastTimeStamp = 0,
         _gitFetch,
+        _gitAutoFlushTimer = [],
         _checkGithubError;
 
     OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
@@ -224,15 +240,25 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      *  - "revert":  Revert the remote commits and push the local changes
      *
      * argument:
-     *                   files: Array of file paths relative to the project, can pass ["."] to
+     *                   files: Array of file's url, can pass null to
      *                          commit all files
      *                 message: [optional] text to use for the commit's message
-     *      resolutionStrategy: [optional] resolution strategy to use to resolve conflicts
+     *                 remove : [optional] set to true to indicate a removal of files, must provide an Array or files
+     *                   amend: [optional] set to true to amend the commit to the previous commit
      *
      * return: promise
      */
-    service.commitFiles = _checkGithubError(semaphore.exclusive(function(files, message, resolutionStrategy) {
-        return this._commitFiles(files || "--all", message, resolutionStrategy);
+    service.commitFiles = _checkGithubError(semaphore.exclusive(function(fileUrls, message, remove, amend) {
+        return this._commitFiles(fileUrls, message, remove, amend);
+    }));
+
+    /**
+     * Pushes the commits from the specified or current branch to the remote repository.
+     *
+     * return: promise
+     */
+    service.flush = _checkGithubError(semaphore.exclusive(function(branch) {
+        return this._flush(branch);
     }));
 
     /**
@@ -551,140 +577,44 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         });
     };
 
-    service._commitFiles = function(files, message, resolutionStrategy) {
+    service._commitFiles = function(fileUrls, message, remove, amend) {
         var self = this,
-            branchesInfo = null,
-            current,
-            emptyRepository = false;
+            files;
 
-        // Validate arguments
-        if (typeof files === "string" && files.length !== 0) {
-            files = [files];
+        // Convert fileUrls to relative paths
+        if (fileUrls === null && remove !== true) {
+            fileUrls = ["--all"];
         }
-        if (!Array.isArray(files)) {
-            return Q.reject(new Error("Invalid saveFiles argument."));
+        if (!Array.isArray(fileUrls)) {
+           return Q.reject(new Error("Invalid commitFiles argument."));
         }
+        files = fileUrls.map(function(url) {
+            return _convertProjectUrlToPath(url);
+        });
 
-        // If we have a resolution strategy, it very likely that commit has been already called recently,
-        // therefore let's save time by not forcing a fetch
-        return self._listBranches(typeof resolutionStrategy !== "string" || resolutionStrategy.length === 0)
-        .then(function(result) {
-            branchesInfo = result;
-            current = branchesInfo.current || "master";
-            if (branchesInfo.currentIsShadow) {
-                current = OWNER_SHADOW_BRANCH_PREFIX + current;
-            }
-            emptyRepository = (Object.keys(branchesInfo.branches).length === 0);
-        })
-        .then(function() {
-            // stage the files
-            return _git.add(_fsPath, files);
-        })
+        return (remove === true ? _git.rm(_fsPath, files) : _git.add(_fsPath, files))
         .then(function() {
             // make sure we have staged files before committing
             return self._hasUncommittedChanges()
             .then(function(hasUncommittedChanges) {
                 if (hasUncommittedChanges) {
-                    return _git.commit(_fsPath, message || "Update component");
-                }
-            });
-        })
-        .then(function() {
-            // push the commits if we have some
-            if (emptyRepository) {
-                return self._push(current)
-                .then(function() {
-                    return true;
-                }, function(error) {
-                    log("push failed", error.stack);
-                    return false;
-                });
-            }
-
-            return self._branchStatus(current, REMOTE_REPOSITORY_NAME + "/" + current)
-            .then(function(branchStatus) {
-                if (branchStatus.ahead > 0 ) {
-                    return self._push(current)
+                    return _git.commit(_fsPath, message || "Update component", amend === true)
                     .then(function() {
-                        return true;
-                    }, function(error) {
-                        log("push failed", error.stack);
-                        return false;
+                        return _git.currentBranch(_fsPath)
+                    }).then(function(current) {
+                        if (_gitAutoFlushTimer[current]) {
+                            clearTimeout(_gitAutoFlushTimer[current]);
+                        }
+                        _gitAutoFlushTimer[current] = setTimeout(function() {
+                            self.flush(current).then(function(result) {
+                                return Frontend.dispatchAppEventNamed("repositoryFlushed", true, true, result);
+                            });
+                        }, AUTO_FLUSH_TIMEOUT);
                     });
-                } else {
-                    return true;
                 }
+            }).then(function() {
+                return {success: true}
             });
-        })
-        .then(function(pushSuccessfulOrNothingDone) {
-            if (pushSuccessfulOrNothingDone) {
-                return {
-                    success: true
-                };
-            } else {
-                if (resolutionStrategy === "discard") {
-                    /*
-                        Resolve conflict by discarding local changes
-                     */
-                    var branch = branchesInfo.branches[REMOTE_REPOSITORY_NAME][branchesInfo.current],
-                        sha;
-
-                    if (branch) {
-                        if (branchesInfo.currentIsShadow) {
-                            if (branch.shadow) {
-                                sha = branch.shadow.sha;
-                            }
-                        } else {
-                            sha = branch.sha;
-                        }
-                    }
-                    if (!sha) {
-                        throw new Error("Cannot discard local changes, invalid SHA");
-                    }
-                    return _git.command(_fsPath, "reset", ["--hard", sha])
-                    .thenResolve({success: true});
-                } else if (resolutionStrategy === "revert") {
-                    /*
-                        Resolve conflict by reverting remote changes
-                     */
-                    return self._revertRemoteChanges(current, REMOTE_REPOSITORY_NAME + "/" + current)
-                    .then(function() {
-                        return {
-                            success: true
-                        };
-                    }, function(error) {
-                        log("Revert remote changes failed:", error.stack);
-                        throw new Error("Revert remote changes failed: " + error.message);
-                    });
-                } else {
-                    // By default, let's try to rebase it
-                    return self._rebase(current, REMOTE_REPOSITORY_NAME + "/" + current).then(function(success) {
-                        if (success) {
-                            // Rebase was successful, let push it again
-                            return self._push(current)
-                            .then(function() {
-                                return {
-                                    success: true
-                                };
-                            }, function(error) {
-                                log("Push after rebase failed:", error.stack);
-                                throw new Error("Push after rebase failed: " + error.message);
-                            });
-                        } else {
-                            // Rebase failed
-                            return self._branchStatus(current, REMOTE_REPOSITORY_NAME + "/" + current)
-                            .then(function(status) {
-                                return {
-                                    success: false,
-                                    ahead: status.ahead,
-                                    behind: status.behind,
-                                    resolutionStrategy: ["discard", "revert"]
-                                };
-                            });
-                        }
-                    });
-                }
-            }
         });
     };
 
@@ -970,6 +900,30 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         });
     };
 
+    service._flush = function(branch) {
+        var self = this;
+
+        return _git.currentBranch(_fsPath)
+        .then(function(current) {
+            branch = branch || current;
+            return self._push(branch);
+        }).then(function() {
+            return {success: true};
+        }, function() {
+            return {success: false}
+        })
+        .then(function(result) {
+            Frontend.dispatchEventNamed("repositoryFlushed", true, true, result).done();
+            return result;
+        })
+        .finally(function() {
+            if (_gitAutoFlushTimer[branch]) {
+                clearTimeout(_gitAutoFlushTimer[branch]);
+                _gitAutoFlushTimer[branch] = null;
+            }
+        });
+    };
+
     service._branchStatus = function(localBranch, remoteBranch) {
         return Q.spread([
             _git.command(_fsPath, "rev-list", ["--first-parent", localBranch + ".." + remoteBranch, "--count"], true),
@@ -1046,8 +1000,10 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         return next
         .then(function() {
             var currentBranch = branchesInfo.current,
-                local = branchesInfo.branches[LOCAL_REPOSITORY_NAME][currentBranch],
-                remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME][currentBranch],
+                local = branchesInfo.branches[LOCAL_REPOSITORY_NAME] ?
+                    branchesInfo.branches[LOCAL_REPOSITORY_NAME][currentBranch] : null,
+                remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME] ?
+                    branchesInfo.branches[REMOTE_REPOSITORY_NAME][currentBranch] : null,
                 next,
                 remoteModified = false;
 
@@ -1281,7 +1237,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                         /* We could check the response for any push events done after our last push but the easy way
                            is just to retrieves the branches info and check their refs
                          */
-                        self.listBranches().then(function(info) {
+                        self.listBranches(true).then(function(info) {
                             var currentBranch = info.current,
                                 branches = info.branches,
                                 localBranch = branches[LOCAL_REPOSITORY_NAME][currentBranch],
