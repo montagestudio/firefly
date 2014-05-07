@@ -164,7 +164,7 @@ function checkDiskFree() {
 if (require.main === module) {
     var optimist = require("optimist");
     var argv = optimist
-        .usage("Usage: $0 [--client=<directory>] [--directory=<directory>] [--port=<port>]")
+        .usage("Usage: $0 [--port=<port>]")
         .options(commandOptions).argv;
 
     if (argv.help) {
