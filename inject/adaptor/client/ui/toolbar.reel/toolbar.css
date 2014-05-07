@@ -40,7 +40,17 @@
 
 .Toolbar-link {
     text-decoration: none;
-    cursor: pointer;
+    color: inherit;
+    font-size: 13px;
+    padding: 0 1em;
+}
+
+.Toolbar-link:hover {
+    color: hsl(0, 0%, 100%);
+}
+
+.Toolbar-link:active {
+    color: hsl(0, 0%, 50%);
 }
 
 .Toolbar-logo {
@@ -85,6 +95,10 @@
 
 /* Toolbar Button */
 
+.MenuItem:last-child {
+    border-right: 1px solid hsla(0, 0%, 0%, 0.2);
+}
+
 .MenuItem-button.matte-Button {
     display: inline-block;
     height: 33px;
@@ -96,7 +110,7 @@
     box-shadow: none;
     border-radius: 0;
     border: none;
-    border-right: 1px solid hsla(0, 0%, 0%, 0.2);
+    border-left: 1px solid hsla(0, 0%, 0%, 0.2);
     background: hsla(0,0%,0%,0);
     -webkit-font-smoothing: antialiased;
 }
