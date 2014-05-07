@@ -2,6 +2,7 @@ var log = require("./logging").from(__filename);
 var track = require("./track");
 var crypto = require("./crypto")();
 var GithubApi = require("./inject/adaptor/client/core/github-api");
+var accounts = require("./accounts");
 
 var routeProject = require("./route-project");
 
@@ -47,6 +48,8 @@ packedSession.unpack = function(sessionID, session) {
                 track.errorForUsername(error, session.username);
                 throw error;
             });
+
+            session.recurlyAccount = accounts.getOrCreate(username, session.githubUser);
 
             return true;
         } else {

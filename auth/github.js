@@ -8,6 +8,8 @@ var HttpApps = require("q-io/http-apps");
 
 var GithubApi = require("../inject/adaptor/client/core/github-api");
 
+var accounts = require("../accounts");
+
 var CLIENT_ID = process.env.GITHUB_CLIENT_ID || "e3a42c8d5e2631ed7707";
 var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "a4c0a8eb95388febf206493eddd26e679b6407ba";
 
@@ -82,8 +84,10 @@ module.exports = function ($) {
                 var githubApi = new GithubApi(request.session.githubAccessToken);
                 var githubUser = githubApi.getUser();
                 request.session.githubUser = githubUser;
+
                 return githubUser.then(function (user) {
                     request.session.username = user.login.toLowerCase();
+                    request.session.recurlyAccount = accounts.getOrCreate(request.session.username, request.session.githubUser);
 
                     track.message("user logged in", request);
 
