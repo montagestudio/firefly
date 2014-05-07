@@ -1,3 +1,9 @@
+// Load environment variables from .env file.
+// chdir needed because the cwd is not this directory when doing an
+// `npm run deploy`, and dotenv loads .wnv from the cwd
+process.chdir(__dirname);
+require("dotenv").load();
+
 var log = require("./logging").from(__filename);
 var URL = require("url");
 var routeProject; // Circular dependency, and so required once just before it's needed
@@ -7,11 +13,11 @@ function Env(options) {
 
     log("production", env.production);
 
-    env.port = process.env.FIREFLY_PORT || 2440;
+    env.port = process.env.FIREFLY_PORT;
 
     log("port", env.port);
 
-    env.app = URL.parse(process.env.FIREFLY_APP_URL || "http://local-firefly.declarativ.net:2440");
+    env.app = URL.parse(process.env.FIREFLY_APP_URL);
     // Remove `host` so that `URL.format` uses `hostname` and `port` instead.
     // Remove `pathname` so that `URL.format` doesn't add "/" to the end,
     // messing up the CORS Accept-Origin header.
@@ -20,13 +26,13 @@ function Env(options) {
 
     log("app", JSON.stringify(env.app));
 
-    env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.montagestudio.com:2440");
+    env.project = URL.parse(process.env.FIREFLY_PROJECT_URL);
     delete env.project.host;
     delete env.project.pathname;
 
     log("project", JSON.stringify(env.project));
 
-    env.projectServers = process.env.FIREFLY_PROJECT_SERVER_COUNT || 4;
+    env.projectServers = process.env.FIREFLY_PROJECT_SERVER_COUNT;
 
     log("project server count", env.projectServers);
 

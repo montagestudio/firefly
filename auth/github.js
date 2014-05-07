@@ -8,8 +8,8 @@ var HttpApps = require("q-io/http-apps");
 
 var GithubApi = require("../inject/adaptor/client/core/github-api");
 
-var CLIENT_ID = process.env.GITHUB_CLIENT_ID || "e3a42c8d5e2631ed7707";
-var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "a4c0a8eb95388febf206493eddd26e679b6407ba";
+var CLIENT_ID = process.env.GITHUB_CLIENT_ID
+var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
 
 var requestAuth = function (request, scopes) {
     var oauthState = uuid.v4();
