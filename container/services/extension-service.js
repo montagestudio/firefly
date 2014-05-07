@@ -61,7 +61,7 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
     };
 
     service.listLibraryItemUrls = function (extensionUrl, packageName) {
-        var FS = (extensionUrl.indexOf(environment.getAppUrl()) != -1) ? QFS : fs,
+        var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
             path = convertExtensionUrlToPath(extensionUrl),
             baseURL = (extensionUrl.match(/https?:\/\/[^\/]+/))[0],
             libraryItemsPath = PATH.join(path, "library-items", packageName);
@@ -78,7 +78,7 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
     };
 
     service.listModuleIconUrls = function (extensionUrl, packageName) {
-        var FS = (extensionUrl.indexOf(environment.getAppUrl()) != -1) ? QFS : fs,
+        var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
             path = extensionUrl.replace(/https?:\/\/[^\/]+/, ""),
             baseURL = (extensionUrl.match(/https?:\/\/[^\/]+/))[0],
             iconsPath = PATH.join(path, "icons", packageName);
