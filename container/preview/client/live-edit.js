@@ -95,7 +95,7 @@ Object.defineProperties(window.Declarativ, {
         value: function() {
             if (!this._applicationReady) {
                 var phases = [this._checkRootComponentAvailability,
-                              this._checkComponentTreeLoaded];
+                              this._checkMainComponentOnScreen];
                 var phaseNr = 0;
                 var deferred = this._applicationReady = this.Promise.defer();
                 var checkApplicationReady = function() {
@@ -123,11 +123,11 @@ Object.defineProperties(window.Declarativ, {
         }
     },
 
-    _checkComponentTreeLoaded: {
+    _checkMainComponentOnScreen: {
         value: function() {
             var main = Declarativ.LiveEdit.MontageComponent.findAll("ui/main.reel")[0];
 
-            if (main && main.value._isComponentTreeLoaded) {
+            if (main && main.value.element.parentNode) {
                 return true;
             } else {
                 return false;
