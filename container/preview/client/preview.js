@@ -21,7 +21,8 @@ if (!window.performance) {
         Tools = Declarativ.Tools,
         dataProcessingPromise,
         previousTime = window.performance.now(),
-        operations = 0;
+        operations = 0,
+        lastSequenceId = Number.NEGATIVE_INFINITY;
 
     function dispatchEvent(type, detail) {
         var event;
@@ -36,7 +37,8 @@ if (!window.performance) {
     function processIncomingData(data) {
         var command = data.substring(0, data.indexOf(":"));
         var param = data.substring(data.indexOf(":") + 1);
-        var args;
+        var args = param ? JSON.parse(param) : {};
+        var sequenceId = args.sequenceId;
         var startTime;
 
         if (!dataProcessingPromise) {
@@ -49,6 +51,14 @@ if (!window.performance) {
                 document.location.reload();
             }
             return;
+        }
+
+        if (typeof sequenceId === "number") {
+            if (sequenceId > lastSequenceId) {
+                lastSequenceId = sequenceId;
+            } else {
+                return;
+            }
         }
 
         //jshint -W074
@@ -71,68 +81,55 @@ if (!window.performance) {
             }
 
             if (command === "setObjectProperties") {
-                args = JSON.parse(param);
                 return LiveEdit.setObjectProperties(args.label, args.ownerModuleId, args.properties);
             }
 
             if (command === "setObjectProperty") {
-                args = JSON.parse(param);
                 return LiveEdit.setObjectProperty(args.ownerModuleId, args.label, args.propertyName, args.propertyValue, args.propertyType);
             }
 
             if (command === "setObjectLabel") {
-                args = JSON.parse(param);
                 return LiveEdit.setObjectLabel(args.ownerModuleId, args.label, args.newLabel);
             }
 
             if (command === "setObjectBinding") {
-                args = JSON.parse(param);
                 return LiveEdit.setObjectBinding(args.ownerModuleId, args.label, args.binding);
             }
 
             if (command === "deleteObjectBinding") {
-                args = JSON.parse(param);
                 return LiveEdit.deleteObjectBinding(args.ownerModuleId, args.label, args.path);
             }
 
             if (command === "addTemplateFragment") {
-                args = JSON.parse(param);
                 return LiveEdit.addTemplateFragment(args.moduleId, args.elementLocation, args.how, args.templateFragment);
             }
 
             if (command === "addTemplateFragmentObjects") {
-                args = JSON.parse(param);
                 return LiveEdit.addTemplateFragmentObjects(args.moduleId, args.templateFragment);
             }
 
             if (command === "deleteObject") {
-                args = JSON.parse(param);
                 return LiveEdit.deleteObject(args.ownerModuleId, args.label);
             }
 
             if (command === "deleteElement") {
-                args = JSON.parse(param);
                 return LiveEdit.deleteElement(args.ownerModuleId, args.elementLocation);
             }
 
             if (command === "setElementAttribute") {
-                args = JSON.parse(param);
                 return LiveEdit.setElementAttribute(args.moduleId,
                     args.elementLocation,args.attributeName, args.attributeValue);
             }
 
             if (command === "addObjectEventListener") {
-                args = JSON.parse(param);
                 return LiveEdit.addObjectEventListener(args.moduleId, args.label, args.type, args.listenerLabel, args.useCapture);
             }
 
             if (command === "removeObjectEventListener") {
-                args = JSON.parse(param);
                 return LiveEdit.removeObjectEventListener(args.moduleId, args.label, args.type, args.listenerLabel, args.useCapture);
             }
 
             if (command === "updateCssFileContent") {
-                args = JSON.parse(param);
                 return LiveEdit.updateCssFileContent(args.url, args.content);
             }
         }).fail(function(reason) {
