@@ -28,7 +28,7 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
 
         if (new RegExp(extensionsRoot).test(path)) {
             url = projectHost + path.replace(extensionsRoot, "");
-        } else {
+        } else if (base) {
             url = base + path;
         }
 
@@ -48,8 +48,20 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
         return path;
     };
 
+    var getBaseUrl = function (url) {
+        var baseUrl = null,
+            matches = url.match(/https?:\/\/[^\/]+/);
+
+        if (matches.length) {
+            baseUrl = matches[0];
+        }
+
+        return baseUrl;
+    };
+
     service.getExtensions = function(extensionFolder) {
         extensionFolder = extensionFolder || extensionsRoot;
+
         return QFS.listTree(extensionFolder, function (filePath) {
             // if false return null so directories aren't traversed
             return PATH.extname(filePath).toLowerCase() === ".filament-extension" ? true : (filePath ===  extensionFolder ? false : null);
@@ -63,7 +75,7 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
     service.listLibraryItemUrls = function (extensionUrl, packageName) {
         var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
             path = convertExtensionUrlToPath(extensionUrl),
-            baseURL = (extensionUrl.match(/https?:\/\/[^\/]+/))[0],
+            baseURL = getBaseUrl(extensionUrl),
             libraryItemsPath = PATH.join(path, "library-items", packageName);
 
         return FS.listTree(libraryItemsPath, function (filePath) {
@@ -79,8 +91,8 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
 
     service.listModuleIconUrls = function (extensionUrl, packageName) {
         var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
-            path = extensionUrl.replace(/https?:\/\/[^\/]+/, ""),
-            baseURL = (extensionUrl.match(/https?:\/\/[^\/]+/))[0],
+            path = convertExtensionUrlToPath(extensionUrl),
+            baseURL = getBaseUrl(extensionUrl),
             iconsPath = PATH.join(path, "icons", packageName);
 
         return FS.listTree(iconsPath, function (filePath) {
