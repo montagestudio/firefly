@@ -1,6 +1,7 @@
 var packedSession = require("../packed-session");
 var MockGithubApi = require("./mocks/github-api");
 var routeProject = require("../route-project");
+var environment = require("../environment");
 
 describe("packedSession", function () {
     var token, username, packed;
@@ -44,6 +45,16 @@ describe("routeProject", function () {
         {name: "Robert", pod: 3},
         {name: "Chloé", pod: 2}
     ];
+
+    var oldProjectServerCount;
+    beforeEach(function () {
+        oldProjectServerCount = environment.projectServers;
+        environment.projectServers = 4;
+    });
+
+    afterEach(function () {
+        environment.projectServers = oldProjectServerCount;
+    });
 
     users.forEach(function (user) {
         it("calculated the pod for " + user.name + " to be " + user.pod, function () {
