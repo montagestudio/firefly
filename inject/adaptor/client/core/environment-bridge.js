@@ -111,8 +111,8 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
-    _pingStarted: {
-        value: false
+    _pingTimeout: {
+        value: null
     },
     _startPing: {
         value: function (delay) {
@@ -125,15 +125,18 @@ exports.EnvironmentBridge = Target.specialize({
                     // Note 2: Using .get because it's more efficient than .invoke
                     self.backend.get("ping")
                     .then(function () {
-                        setTimeout(ping, delay);
+                        clearTimeout(self._pingTimeout);
+                        self._pingTimeout = setTimeout(ping, delay);
                     })
                     .done();
                 }
             };
 
             // If pinging has already been setup, then don't kick it off again
-            if (!this._pingStarted) {
-                this._pingStarted = true;
+            if (!this._pingTimeout) {
+                // Set to true to make sure we don't start two pings before
+                // the first one has responded to set the timeout handle
+                this._pingTimeout = true;
                 var visibilitychange = document.webkitVisibilityState ? "webkitvisibilitychange" : "visibilitychange";
                 document.addEventListener(visibilitychange, ping, false);
                 ping();
