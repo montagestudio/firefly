@@ -154,14 +154,9 @@ Vagrant.configure('2') do |config|
 
         login.vm.provision :shell, path: "deploy/provision/login.sh"
 
-        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
-        login.vm.provision :shell, inline: "sed -i.bak 's/export NODE_ENV=.*//' /etc/init/firefly-login.conf"
-        login.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_ID=.*//' /etc/init/firefly-login.conf"
-        login.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_SECRET=.*//' /etc/init/firefly-login.conf"
-        login.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_APP_URL=.*//' /etc/init/firefly-login.conf"
-        login.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_URL=.*//' /etc/init/firefly-login.conf"
-        login.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_SERVER_COUNT=.*/export FIREFLY_PROJECT_SERVER_COUNT=1/' /etc/init/firefly-login.conf"
-
+        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
+        # Needed because upstart doesn't reload when symlinks get added
+        login.vm.provision :shell, :inline => "initctl reload-configuration"
 
         # Start
         login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
@@ -192,13 +187,9 @@ Vagrant.configure('2') do |config|
 
         project.vm.provision :shell, path: "deploy/provision/project.sh"
 
-        project.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
-        project.vm.provision :shell, inline: "sed -i.bak 's/export NODE_ENV=.*//' /etc/init/firefly-project.conf"
-        project.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_ID=.*//' /etc/init/firefly-project.conf"
-        project.vm.provision :shell, inline: "sed -i.bak 's/export GITHUB_CLIENT_SECRET=.*//' /etc/init/firefly-project.conf"
-        project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_APP_URL=.*//' /etc/init/firefly-project.conf"
-        project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_URL=.*//' /etc/init/firefly-project.conf"
-        project.vm.provision :shell, inline: "sed -i.bak 's/export FIREFLY_PROJECT_SERVER_COUNT=.*/export FIREFLY_PROJECT_SERVER_COUNT=1/' /etc/init/firefly-project.conf"
+        project.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
+        # Needed because upstart doesn't reload when symlinks get added
+        project.vm.provision :shell, :inline => "initctl reload-configuration"
 
         # Start
         project.vm.provision :shell, :inline => "service firefly-project start || service firefly-project reload"
