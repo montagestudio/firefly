@@ -16,6 +16,8 @@ get firefly ${FIREFLY_COMMIT}
 # Lets do a bit of cleanup
 pushd "${BUILD}"
     if [[ -e "firefly" ]]; then
+        cp "firefly/deploy/files/production.env" "firefly/.env"
+        cp "firefly/deploy/files/staging.env" "firefly/staging.env"
         rm -rf "firefly/deploy"
         tar --disable-copyfile -czf "firefly.tgz" "firefly"
     fi
