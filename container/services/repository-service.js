@@ -910,25 +910,9 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return self._push(branch);
         }).then(function() {
             return {success: true};
-        }, function(error) {
-            // An erro occurs when pushing, let's see if we can just rebase it
-            return _gitFetch(true)
-            .then(function(){
-                return self._rebase(branch, REMOTE_REPOSITORY_NAME + "/" + branch)
-               .then(function(success) {
-                    if (success) {
-                        // Rebase was successful, let push it again
-                        return self._push(branch)
-                        .then(function() {
-                            return {success: true};
-                        }, function() {
-                            return {success: false};
-                        });
-                    } else {
-                        return {success: false};
-                    }
-                });
-            });
+        }, function() {
+            // An error occurs when pushing, let's see if we can just rebase it
+            return self._flushRebase(branch);
         })
         .then(function(result) {
             Frontend.dispatchEventNamed("repositoryFlushed", true, true, result).done();
@@ -938,6 +922,28 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             if (_gitAutoFlushTimer[branch]) {
                 clearTimeout(_gitAutoFlushTimer[branch]);
                 _gitAutoFlushTimer[branch] = null;
+            }
+        });
+    };
+
+    service._flushRebase = function(branch) {
+        var self = this;
+
+        return _gitFetch(true)
+        .then(function(){
+            return self._rebase(branch, REMOTE_REPOSITORY_NAME + "/" + branch);
+        })
+        .then(function(success) {
+            if (success) {
+                // Rebase was successful, let push it
+                return self._push(branch)
+                .then(function() {
+                    return {success: true};
+                }, function() {
+                    return {success: false};
+                });
+            } else {
+                return {success: false};
             }
         });
     };
