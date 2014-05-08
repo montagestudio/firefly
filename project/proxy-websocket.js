@@ -26,9 +26,6 @@ function ProxyWebsocket(setupProjectContainer, sessions, protocol) {
             wsClient.on("close", function (event) {
                 wsServer.close(event.code, event.reason);
             });
-            wsServer.on("close", function (event) {
-                wsClient.close(event.code, event.reason);
-            });
             // pipe
             wsServer.pipe(wsClient).pipe(wsServer);
         });
