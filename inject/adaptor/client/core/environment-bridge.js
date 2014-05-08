@@ -675,7 +675,7 @@ exports.EnvironmentBridge = Target.specialize({
 
             return this.getService("file-service").invoke("writeFile", url, data)
                 .then(function () {
-                    return self.commitFiles([url], "Add component " + URL.parse(url).pathname);
+                    return self.commitFiles([url], "Add file " + URL.parse(url).pathname);
                 });
         }
     },
@@ -685,7 +685,7 @@ exports.EnvironmentBridge = Target.specialize({
             var self = this;
             return this.getService("file-service").invoke("remove", url)
                 .then(function () {
-                    return self.commitFiles([url], "Remove component " + URL.parse(url).pathname, true);
+                    return self.commitFiles([url], "Remove file " + URL.parse(url).pathname, true);
                 });
         }
     },
@@ -699,9 +699,12 @@ exports.EnvironmentBridge = Target.specialize({
     removeTree: {
         value: function (url) {
             var self = this;
+            var path = URL.parse(url).path;
+
             return this.getService("file-service").invoke("removeTree", url)
                 .then(function () {
-                    return self.commitFiles([url], "Remove tree" + URL.parse(url).pathname, true);
+                    var message = path.slice(-1) === "/" ? "Remove directory " : "Remove file ";
+                    return self.commitFiles([url], message + URL.parse(url).pathname, true);
                 });
         }
     },
