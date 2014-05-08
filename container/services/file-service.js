@@ -224,24 +224,29 @@ function FileService(session, fs, environment, pathname, fsPath) {
             ignoreCustomPatterns: /\.git/,
             listeners: {
                 change: function(changeType, filePath, fileCurrentStat, filePreviousStat) {
+                    // Errors that happen in this callback don't appear
+                    // anywhere, so let's capture them
+                    try {
+                        //The client expects directories to have a trailing slash
+                        var fileStat = fileCurrentStat || filePreviousStat;
+                        if (fileStat.isDirectory() && !/\/$/.test(filePath)) {
+                            filePath += "/";
+                        }
 
-                    //The client expects directories to have a trailing slash
-                    var fileStat = fileCurrentStat || filePreviousStat;
-                    if (fileStat.isDirectory() && !/\/$/.test(filePath)) {
-                        filePath += "/";
+                        filePath = filePath.replace(fsPath, "");
+                        var url = convertPathToProjectUrl(filePath);
+
+                        // Pass in a reduced stat object, with just the mode. This
+                        // is the only used client side, to check if the file is
+                        // a directory. See inject/adaptor/client/core/file-descriptor.js
+                        fileStat = {mode: fileStat.mode};
+                        handlers.handleChange.fcall(changeType, url, fileStat)
+                        .catch(function (error) {
+                            log("handleChange", "*" + error.stack + "*");
+                        });
+                    } catch (error) {
+                        log("watchr change error", "*" + error.stack + "*");
                     }
-
-                    filePath = filePath.replace(fsPath, "");
-                    var url = convertPathToProjectUrl(filePath);
-
-                    // Pass in a reduced stat object, with just the mode. This
-                    // is the only used client side, to check if the file is
-                    // a directory. See inject/adaptor/client/core/file-descriptor.js
-                    fileStat = {mode: fileStat.mode};
-                    handlers.handleChange.fcall(changeType, url, fileStat)
-                    .catch(function (error) {
-                        log("handleChange", "*" + error.stack + "*");
-                    });
                 },
                 error: function(err) {
                     handlers.handleChange.fcall(err)
