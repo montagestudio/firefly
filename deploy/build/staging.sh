@@ -23,11 +23,11 @@ if [[ -e /srv/app/track.js ]]; then
 fi
 
 if [[ -e /etc/init/firefly-login.conf ]]; then
-    mv "/srv/firefly/env.staging" "/srv/firefly/.env"
+    mv -f "/srv/firefly/staging.env" "/srv/firefly/.env"
     sudo restart firefly-login
 fi
 
 if [[ -e /etc/init/firefly-project.conf ]]; then
-    mv "/srv/firefly/env.staging" "/srv/firefly/.env"
+    mv -f "/srv/firefly/staging.env" "/srv/firefly/.env"
     sudo restart firefly-project
 fi
