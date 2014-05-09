@@ -1,6 +1,7 @@
 var Q = require("q");
 var URL = require("url");
 var Git = require("../git");
+var GitCommitBatchFactory = require("../git-commit-batch");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
 var Frontend = require("../frontend");
 var log = require("../../logging").from(__filename);
@@ -61,7 +62,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         _gitFetchLastTimeStamp = 0,
         _gitFetch,
         _gitAutoFlushTimer = [],
-        _checkGithubError;
+        _checkGithubError,
+        _gitCommitBatch = GitCommitBatchFactory(service, _git, _fsPath);
 
     OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
 
@@ -114,7 +116,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      * setup a project by cloning it from a local template
      */
     service.cloneTemplate = _checkGithubError(semaphore.exclusive(function(path) {
-//        return this._cloneProject();
         return this._cloneTemplate(path);
     }));
 
@@ -134,6 +135,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return info.gitBranch;
         });
     };
+
+    /**
+     * Create a new commit batch
+     */
+    service.openCommitBatch = function(message) {
+        return new _gitCommitBatch(message);
+    };
+
 
     /**
      * Return an object describing all branches (local and remotes) as well the current
@@ -225,19 +234,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     }));
 
     /**
-     * Commit files to the current branch and push the commit to the
+     * Commit files to the current branch and schedule a push to the
      * remote repository. Make sure to call checkoutShadowBranch before.
-     *
-     * if a conflict occurs during the push of the commit, the returned object
-     * will have a list of resolution strategies to resolve the conflict.
-     * Call commitFiles again with an resolution strategy to resolve the conflict.
-     *
-     * Note: commitFiles will automatically rebase the local shadow branch if possible.
-     *
-     * Possible resolutionStrategy are:
-     *  - "discard": Discard the local commit and update the local repository
-     *               with the remote changes
-     *  - "revert":  Revert the remote commits and push the local changes
      *
      * argument:
      *                   files: Array of file's url, can pass null to
@@ -250,6 +248,16 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      */
     service.commitFiles = _checkGithubError(semaphore.exclusive(function(fileUrls, message, remove, amend) {
         return this._commitFiles(fileUrls, message, remove, amend);
+    }));
+
+    /**
+     * Commit a batch to the current branch and schedule a push to the
+     * remote repository. Make sure to call checkoutShadowBranch before.
+     *
+     * return: promise
+     */
+    service.commitBatch = _checkGithubError(semaphore.exclusive(function(batch) {
+        return this._commitBatch(batch);
     }));
 
     /**
@@ -615,6 +623,30 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             }).then(function() {
                 return {success: true};
             });
+        });
+    };
+
+    service._commitBatch = function(batch) {
+        var self = this;
+
+        // make sure we have staged files before committing
+        return self._hasUncommittedChanges()
+        .then(function(hasUncommittedChanges) {
+            if (hasUncommittedChanges) {
+                return _git.commit(_fsPath, batch.message || "Update files")
+                .then(function() {
+                    return _git.currentBranch(_fsPath);
+                }).then(function(current) {
+                    if (_gitAutoFlushTimer[current]) {
+                        clearTimeout(_gitAutoFlushTimer[current]);
+                    }
+                    _gitAutoFlushTimer[current] = setTimeout(function() {
+                        self.flush(current).done();
+                    }, AUTO_FLUSH_TIMEOUT);
+                });
+            }
+        }).then(function() {
+            return {success: true};
         });
     };
 

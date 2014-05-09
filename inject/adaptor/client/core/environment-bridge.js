@@ -680,6 +680,51 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     /**
+     * open a new commit batch
+     */
+    openCommitBatch: {
+        value: function(message) {
+            return this.getService("repository-service").invoke("openCommitBatch", message);
+        }
+    },
+
+    /**
+     * stage files on specified commit batch
+     */
+    stageFiles: {
+        value: function(commitBatch, urls) {
+            return commitBatch.invoke("stageFiles", urls);
+        }
+    },
+
+    /**
+     * stage files for deletion on specified commit batch
+     */
+    stageFilesForDeletion: {
+        value: function(commitBatch, urls) {
+            return commitBatch.invoke("stageFilesForDeletion", urls);
+        }
+    },
+
+    /**
+     * close a commit batch and commit all staged files
+     */
+    closeCommitBatch: {
+        value: function(commitBatch, message) {
+            return commitBatch.invoke("commit", message);
+        }
+    },
+
+    /**
+     * delete a commit batch without commiting
+     */
+    cancelCommitBatch: {
+        value: function(commitBatch) {
+            return commitBatch.invoke("cancel");
+        }
+    },
+
+    /**
      * Pushes all commits to remote repository.
      */
     flushProject: {
