@@ -1,3 +1,7 @@
 .ProgressPanel {
 
 }
+
+.ProgressPanel-message {
+    margin-top: 3em;
+}
