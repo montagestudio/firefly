@@ -17,7 +17,7 @@ function AssetConverterService (session, fs, environment, pathname, fsPath) {
         convertProjectUrlToPath = FileService.makeConvertProjectUrlToPath(pathname);
 
     function _isColladaFile (path) {
-        return (/\.dae$/).test(path);
+        return (/\.dae$/i).test(path);
     }
 
     function _getColladaOutPutPath (filename, path, isBundle) {
@@ -26,8 +26,8 @@ function AssetConverterService (session, fs, environment, pathname, fsPath) {
 
         if (_isColladaFile(path)) { // replace dae extension by json
             outputPath = path.replace(/.dae$/, extension);
-        } else if (/\.json$/.test(path)) { // already valid
-            outputPath = isBundle ? path.replace(/.json$/, OUT_PUT_EXTENSION.BUNDLE) : path;
+        } else if (/\.json$/i.test(path)) { // already valid
+            outputPath = isBundle ? path.replace(/.json$/i, OUT_PUT_EXTENSION.BUNDLE) : path;
         } else {
             if (path.charAt(path.length-1) !== "/") { // name and extension missing
                 outputPath = path + extension;
@@ -59,7 +59,7 @@ function AssetConverterService (session, fs, environment, pathname, fsPath) {
 
         if (_isColladaFile(modelPath)) {
             var isBundle = false,
-                fileName = PATH.basename(modelPath, '.dae'),
+                fileName = /(.*)\.dae$/i.exec(PATH.basename(modelPath))[1],
                 outputPath = modelPath;
 
             if (option && typeof option === "object") {
