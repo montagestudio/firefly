@@ -21,6 +21,9 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
      *  - Packages loaded by the user in the course of working on a project
      *  - From a marketplace
      *  - From a user's own selection of available extensions
+     *
+     * If a base is provided it is used as the base URL rather tha using the value
+     * returned bu getAppUrl(). This enable using container URLs.
      */
     var convertPathToExtensionUrl = function (path, base) {
         var projectHost = environment.getAppUrl() + "/app/extensions",
@@ -42,12 +45,14 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
         if (new RegExp(projectHost).test(url)) {
             path = extensionsRoot + url.replace(projectHost, "");
         } else {
+            // removes parts scheme://domain:port from the URL
             path = url.replace(/https?:\/\/[^\/]+/, "");
         }
 
         return path;
     };
 
+    // Return the base of the URL made of scheme://domain:port
     var getBaseUrl = function (url) {
         var baseUrl = null,
             matches = url.match(/https?:\/\/[^\/]+/);
