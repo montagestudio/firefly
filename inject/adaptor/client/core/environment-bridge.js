@@ -58,6 +58,10 @@ exports.EnvironmentBridge = Target.specialize({
         value: null
     },
 
+    _connection: {
+        value: null
+    },
+
     _backend: {
         value: null
     },
@@ -68,9 +72,10 @@ exports.EnvironmentBridge = Target.specialize({
 
             if (!self._backend) {
                 var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-                var connection = adaptConnection(new WebSocket(protocol + "//" + window.location.host + window.location.pathname));
+                var connection = self._connection = adaptConnection(new WebSocket(protocol + "//" + window.location.host + window.location.pathname));
 
                 connection.closed.then(function () {
+                    self._connection = null;
                     self.dispatchBeforeOwnPropertyChange("backend", self._backend);
                     self._backend = null;
                     self._serviceCache.clear();
@@ -124,11 +129,22 @@ exports.EnvironmentBridge = Target.specialize({
                     // (through the "visibilitychange" event)
                     // Note 2: Using .get because it's more efficient than .invoke
                     self.backend.get("ping")
+                    .timeout(5000)
                     .then(function () {
                         clearTimeout(self._pingTimeout);
                         self._pingTimeout = setTimeout(ping, delay);
-                    })
-                    .done();
+                    }, function (error) {
+                        track.error(error);
+                        // If the ping fails but we still have a connection
+                        // then something has gone wrong. Best we just close
+                        // this connection, stop pinging and let the backend
+                        // getter recover
+                        clearTimeout(self._pingTimeout);
+                        self._pingTimeout = null;
+                        if (self._connection) {
+                            self._connection.close();
+                        }
+                    });
                 }
             };
 
