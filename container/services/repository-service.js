@@ -584,14 +584,15 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
 
         // Convert fileUrls to relative paths
         if (fileUrls === null && remove !== true) {
-            fileUrls = ["--all"];
+            files = ["--all"];
+        } else {
+            if (!Array.isArray(fileUrls) ) {
+                return Q.reject(new Error("Invalid commitFiles argument."));
+            }
+            files = fileUrls.map(function(url) {
+                return _convertProjectUrlToPath(url);
+            });
         }
-        if (!Array.isArray(fileUrls)) {
-            return Q.reject(new Error("Invalid commitFiles argument."));
-        }
-        files = fileUrls.map(function(url) {
-            return _convertProjectUrlToPath(url);
-        });
 
         return (remove === true ? _git.rm(_fsPath, files) : _git.add(_fsPath, files))
         .then(function() {
@@ -607,9 +608,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                             clearTimeout(_gitAutoFlushTimer[current]);
                         }
                         _gitAutoFlushTimer[current] = setTimeout(function() {
-                            self.flush(current).then(function(result) {
-                                return Frontend.dispatchAppEventNamed("repositoryFlushed", true, true, result);
-                            });
+                            self.flush(current).done();
                         }, AUTO_FLUSH_TIMEOUT);
                     });
                 }

@@ -87,7 +87,7 @@ Git.prototype.status = function(repoPath, options) {
 };
 
 Git.prototype.add = function(repoPath, paths) {
-    log("add " + paths);
+    log("add", paths);
     var args = ["add"].concat(paths);
     return exec("git", args, repoPath)
     .fail(function() {
@@ -96,7 +96,7 @@ Git.prototype.add = function(repoPath, paths) {
 };
 
 Git.prototype.rm = function(repoPath, paths) {
-    log("rm " + paths);
+    log("rm", paths);
     var self = this;
 
     // We need to process each path one by one as we need to use the -r option when removing a directory
