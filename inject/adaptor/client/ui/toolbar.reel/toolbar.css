@@ -43,6 +43,7 @@
     color: inherit;
     font-size: 13px;
     padding: 0 1em;
+    white-space: nowrap;
 }
 
 .Toolbar-link:hover {
@@ -113,6 +114,7 @@
     border-left: 1px solid hsla(0, 0%, 0%, 0.2);
     background: hsla(0,0%,0%,0);
     -webkit-font-smoothing: antialiased;
+    white-space: nowrap;
 }
 
 .MenuItem-button.matte-Button:hover {

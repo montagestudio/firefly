@@ -38,6 +38,7 @@
 .Workflow-status {
     font-size: 13px;
     color: hsl(0, 0%, 64%);
+    white-space: nowrap;
 }
 
 .Workflow-status-count {
