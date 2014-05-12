@@ -13,6 +13,7 @@ var serveArchivedBuild = require("./mop").serveArchivedBuild;
 var Preview = require("./preview/preview-server").Preview;
 var WebSocket = require("faye-websocket");
 var websocket = require("./websocket");
+var MrWebsocket = require("./mr-websocket");
 var Frontend = require("./frontend");
 
 module.exports = server;
@@ -108,8 +109,14 @@ function server(options) {
                 return;
             }
 
-            if (request.headers['sec-websocket-protocol'] === "firefly-preview") {
+            var protocols = request.headers['sec-websocket-protocol'].split(/\s*,\s*/);
+
+            if (protocols.indexOf("firefly-preview") >= 0) {
                 return preview.wsServer(request, socket, head);
+            } else if (protocols.indexOf("mr") >= 0) {
+                return MrWebsocket(workspacePath).then(function (mrWebsocket) {
+                    return mrWebsocket.onUpgrade(request, socket, head);
+                });
             } else {
                 return websocketServer(request, socket, head);
             }

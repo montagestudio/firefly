@@ -219,6 +219,7 @@ function server(options) {
 
     var proxyAppWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-app");
     var proxyPreviewWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-preview");
+    var proxyMrWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "mr");
     chain.upgrade = function (request, socket, body) {
         Q.try(function () {
             if (!WebSocket.isWebSocket(request)) {
@@ -233,7 +234,11 @@ function server(options) {
                         log("preview websocket", request.headers.host);
                         details = environment.getDetailsfromProjectUrl(request.headers.host);
                         details.username = details.owner;
-                        return proxyPreviewWebsocket(request, socket, body, details);
+                        if (request.headers['sec-websocket-protocol'] === "mr") {
+                            return proxyMrWebsocket(request, socket, body, details);
+                        } else {
+                            return proxyPreviewWebsocket(request, socket, body, details);
+                        }
                     } else {
                         socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
                         socket.destroy();

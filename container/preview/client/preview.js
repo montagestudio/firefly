@@ -3,7 +3,7 @@
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
-
+window.useMrWebsocket = true;
 if (!window.performance) {
     // yeah, I know..
     window.performance = Date;

@@ -16,7 +16,7 @@ function ProxyWebsocket(setupProjectContainer, sessions, protocol) {
                 return;
             }
             // create server
-            var wsServer = new WebSocket(request, socket, body);
+            var wsServer = new WebSocket(request, socket, body, [protocol]);
             // create client
             log("create wsClient", "ws://127.0.0.1:" + projectWorkspacePort + request.url);
             var clientOptions = {
