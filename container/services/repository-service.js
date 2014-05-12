@@ -330,12 +330,12 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         if (!_info) {
             _info = _githubApi.getInfo(_owner, _repo);
         }
-
         return _info;
     };
 
     service._getRepositoryUrl = function() {
-        return service._getInfo().then(function(info) {
+        return service._getInfo()
+        .then(function(info) {
             return _git._addAccessToken(info.gitUrl);
         });
     };
@@ -685,11 +685,13 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         forceFetch = (forceFetch === true);
 
         // INIT_STEP: update branches and make sure we have shadow branches
-        return self._hasUncommittedChanges()
+        return self._hasUncommittedChanges(true)
         .then(function(hasUncommittedChanges) {
             if (hasUncommittedChanges) {
-                throw new Error("Cannot update refs while there is uncommited changes");
+                return self._recoverChanges();
             }
+        })
+        .then(function() {
              // Fetch and retrieve the branches and their refs
             return self._listBranches(forceFetch);
         })
@@ -1012,12 +1014,12 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         });
     };
 
-    service._hasUncommittedChanges = function() {
+    service._hasUncommittedChanges = function(checkForUntrackedFile) {
         return this._status()
         .then(function(result) {
             var uncommittedChanges = false;
             result.some(function(item) {
-                if (item.dest !== "?" && item.dest !== "!") {
+                if (item.dest !== "!" && (item.dest !== "?" || checkForUntrackedFile === true)) {
                     uncommittedChanges = true;
                     return true;
                 }
@@ -1262,7 +1264,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 return result;
             })
             .then(function () {
-                _git.command(_fsPath, "reset", ["--hard", ref]);
+                _git.command(_fsPath, "reset", ["--hard", ref ? ref : "HEAD"]);
             })
             .then(function () {
                 return self._push(currentBranchName, "--force");
@@ -1320,6 +1322,34 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
 
             _pollGithub();
         }
+    };
+
+    service._recoverChanges = function() {
+        var self = this,
+            batch = this.openCommitBatch("auto-recovery"),
+            hasChanges = false;
+
+        return self._status()
+        .then(function(result) {
+            result.forEach(function(item) {
+                if (item.dest !== "!" && item.dest !== "!") {
+                    hasChanges = true;
+                    if (item.dest == "D") {
+                        batch.stageFilesForDeletion(item.path);
+                    } else {
+                        batch.stageFiles(item.path);
+                    }
+                }
+            });
+            return hasChanges;
+        })
+        .then(function(hasChanges) {
+            if (hasChanges) {
+                batch.commit();
+            } else {
+                batch.cancel();
+            }
+        });
     };
 
     service.close = function() {
