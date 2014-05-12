@@ -392,21 +392,10 @@ vagrant ssh project -c "sudo service firefly-project restart"
 
 ### HAProxy config file
 
-The new config needs to be copied across and certain values replaced. (This
-command is adapted from the Vagrantfile).
+If you change the HAProxy config file then the new config needs to be copied across and certain values replaced.
 
 ```bash
-vagrant ssh load-balancer -c "sudo cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/use-server .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server project1 [0-9\.]*/server project1 10.0.0.5/' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server project2 .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg;\
-sudo service haproxy reload"
+vagrant ssh load-balancer -c "sudo bash /vagrant/deploy/vagrant/haproxy.sh && sudo service haproxy reload"
 ```
 
 Contributing

@@ -80,25 +80,8 @@ Vagrant.configure('2') do |config|
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/project.montagestudio.net.pem"
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/staging-project.montagestudio.net.pem"
         lb.vm.provision :shell, path: "deploy/provision/load-balancer.sh"
-        lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg"
 
-        # Change the haproxy config for this development environment. If you
-        # change any of the following lines make sure to update the bit about
-        # HAProxy in the readme as well
-        # Disable the ssl redirect
-        lb.vm.provision :shell, inline: "sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg"
-        #   login
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg"
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg"
-        #   web-server
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg"
-
-        lb.vm.provision :shell, inline: "sed -i.bak 's/use-server .*//' /etc/haproxy/haproxy.cfg"
-        #   project
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server project1 [0-9\.]*/server project1 10.0.0.5/' /etc/haproxy/haproxy.cfg"
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server project2 .*//' /etc/haproxy/haproxy.cfg"
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg"
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, path: "deploy/vagrant/haproxy.sh"
 
         lb.vm.provision :shell, inline: "cp -R /vagrant/deploy/files/errors/* /etc/haproxy/errors"
 
