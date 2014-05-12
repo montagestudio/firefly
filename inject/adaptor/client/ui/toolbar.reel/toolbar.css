@@ -41,6 +41,7 @@
     text-decoration: none;
     color: inherit;
     padding: 0 1em;
+    white-space: nowrap;
 }
 
 .Toolbar-link:hover {
@@ -108,6 +109,7 @@
     border: none;
     border-left: 1px solid hsla(0, 0%, 0%, 0.2);
     background: hsla(0,0%,0%,0);
+    white-space: nowrap;
 }
 
 .MenuItem-button.matte-Button:hover {
