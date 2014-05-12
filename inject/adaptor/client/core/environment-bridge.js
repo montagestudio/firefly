@@ -694,18 +694,18 @@ exports.EnvironmentBridge = Target.specialize({
 
             return this.getService("file-service").invoke("writeFile", url, data)
                 .then(function () {
-                    var path = URL.parse(url).pathname.slice(1);
-                    return self.commitFiles([path]);
-                })
-                .then(function() {
-                    return self.flushProject("Add file " + URL.parse(url).pathname);
+                    return self.commitFiles([url], "Add file " + URL.parse(url).pathname);
                 });
         }
     },
 
     remove: {
         value: function (url) {
-            return this.getService("file-service").invoke("remove", url);
+            var self = this;
+            return this.getService("file-service").invoke("remove", url)
+                .then(function () {
+                    return self.commitFiles([url], "Remove file " + URL.parse(url).pathname, true);
+                });
         }
     },
 
@@ -717,7 +717,14 @@ exports.EnvironmentBridge = Target.specialize({
 
     removeTree: {
         value: function (url) {
-            return this.getService("file-service").invoke("removeTree", url);
+            var self = this;
+            var path = URL.parse(url).path;
+
+            return this.getService("file-service").invoke("removeTree", url)
+                .then(function () {
+                    var message = path.slice(-1) === "/" ? "Remove directory " : "Remove file ";
+                    return self.commitFiles([url], message + URL.parse(url).pathname, true);
+                });
         }
     },
 
@@ -737,13 +744,7 @@ exports.EnvironmentBridge = Target.specialize({
 
     save: {
         value: function (editingDocument, location) {
-            var self = this;
-            var name = URL.parse(editingDocument.url).pathname;
-
-            return editingDocument.save(location)
-            .then(function() {
-                return self.flushProject("Update component " + name);
-            });
+            return editingDocument.save(location);
         }
     },
 
@@ -846,8 +847,8 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     commitFiles: {
-        value: function (files, message, resolutionStrategy) {
-            return this.getService("repository-service").invoke("commitFiles", files, message, resolutionStrategy);
+        value: function (fileUrls, message, remove, amend) {
+            return this.getService("repository-service").invoke("commitFiles", fileUrls, message, remove, amend);
         }
     },
 

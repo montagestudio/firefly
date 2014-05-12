@@ -284,6 +284,9 @@ describe("repository-service", function () {
                 .then(function() {
                     return service1.commitFiles([file1], "initial commit from repo 1");
                 })
+                .then(function() {
+                    return service1.flush();
+                })
                 .then(function(result) {
                     expect(result.success).toBeTruthy();
                     return service1.shadowBranchStatus();
@@ -304,6 +307,9 @@ describe("repository-service", function () {
                 writeFile(serviceRepo2Path, file2, "A2\n")
                 .then(function() {
                     return service2.commitFiles([file2], "initial commit from repo 2");
+                })
+                .then(function() {
+                    return service2.flush();
                 })
                 .then(function(result) {
                     expect(result.success).toBeTruthy();
@@ -375,6 +381,9 @@ describe("repository-service", function () {
                 .then(function() {
                     return service1.commitFiles([file1], "second commit from repo 1");
                 })
+                .then(function() {
+                    return service1.flush();
+                })
                 .then(function(result) {
                     expect(result.success).toBeTruthy();
                 })
@@ -386,19 +395,30 @@ describe("repository-service", function () {
                 .then(function() {
                     return service2.commitFiles([file1], "second commit from repo 2");
                 })
+                .then(function() {
+                    return service2.flush();
+                })
                 .then(function(result) {
+                    expect(result.success).toBeFalsy();
+                    return service2.updateRefs();
+                }).then(function(result) {
                     expect(result.success).toBeFalsy();
                     expect(result.ahead).toBe(1);
                     expect(result.behind).toBe(1);
-                    expect(result.resolutionStrategy.length).toBe(2);
+                    expect(result.reference).toBeDefined();
+                    expect(result.resolutionStrategy.length).toBe(3);
                     expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
                     expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
+                    expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
                 })
                 .then(done, done);
             });
 
             it ("discard local change", function(done) {
-                service2.commitFiles([file1], "second commit from repo 2", "discard")
+                service2.updateRefs()
+                .then(function(result) {
+                    return service2.updateRefs("discard", result.reference);
+                })
                 .then(function(result) {
                     expect(result.success).toBeTruthy();
                     return readFile(serviceRepo2Path, file1);
@@ -426,19 +446,29 @@ describe("repository-service", function () {
                 .then(function() {
                     return service2.commitFiles([file1], "second commit from repo 2");
                 })
+                .then(function() {
+                    return service2.flush();
+                })
                 .then(function(result) {
                     expect(result.success).toBeFalsy();
+                    return service2.updateRefs();
+                }).then(function(result) {
                     expect(result.ahead).toBe(1);
                     expect(result.behind).toBe(1);
-                    expect(result.resolutionStrategy.length).toBe(2);
+                    expect(result.reference).toBeDefined();
+                    expect(result.resolutionStrategy.length).toBe(3);
                     expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
                     expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
+                    expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
                 })
                 .then(done, done);
             });
 
             it ("revert remote change", function(done) {
-                service2.commitFiles([file1], "second commit from repo 2", "revert")
+                service2.updateRefs()
+                .then(function(result) {
+                    return service2.updateRefs("revert", result.reference);
+                })
                 .then(function(result) {
                     expect(result.success).toBeTruthy();
                     return readFile(serviceRepo2Path, file1);
