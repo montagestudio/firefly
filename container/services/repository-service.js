@@ -63,7 +63,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         _gitFetch,
         _gitAutoFlushTimer = [],
         _checkGithubError,
-        _gitCommitBatch = GitCommitBatchFactory(service, _git, _fsPath);
+        _gitCommitBatch = GitCommitBatchFactory(service);
 
     OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
 
@@ -627,7 +627,21 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     };
 
     service._commitBatch = function(batch) {
-        var self = this;
+        var self = this,
+            files;
+
+        if (batch._addedFiles.length) {
+            files = batch._addedFiles.map(function(url) {
+                return _convertProjectUrlToPath(url);
+            });
+            _git.add(_fsPath, files);
+        }
+        if (batch._removedFiles.length) {
+            files = batch._removedFiles.map(function(url) {
+                return _convertProjectUrlToPath(url);
+            });
+            _git.rm(_fsPath, files);
+        }
 
         // make sure we have staged files before committing
         return self._hasUncommittedChanges()

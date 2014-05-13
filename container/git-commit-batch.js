@@ -3,10 +3,8 @@ var Q = require("q");
 
 module.exports = GitCommitBatchFactory;
 
-function GitCommitBatchFactory(repositoryService, git, repoPath) {
+function GitCommitBatchFactory(repositoryService) {
     var _repositoryService = repositoryService,
-        _git = git,
-        _repoPath = repoPath,
         _commitBatches = [];            // List of all pending batches
 
     function _commitBatch(batch) {
@@ -33,13 +31,6 @@ function GitCommitBatchFactory(repositoryService, git, repoPath) {
             var batch = _commitBatches[i];
             if (batch._readyToBeCommitted && !batch._committed) {
                 batch._committed = true;
-                if (batch._addedFiles.length) {
-                    _git.add(_repoPath, batch._addedFiles);
-                }
-                if (batch._removedFiles.length) {
-                    _git.rm(_repoPath, batch._removedFiles);
-                }
-
                 _commitBatch(batch);
                 break;
             } else if (!batch._deferredCommit || Q.isPending(batch._deferredCommit.promise)) {
