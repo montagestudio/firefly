@@ -14,6 +14,7 @@
     -ms-align-items: center;
     align-items: center;
     height: 34px;
+    font-size: 13px;
     color: hsl(0, 0%, 70%);
     padding-bottom: 1px; /* Fixes vertical centering */
     border-top: 1px solid hsla(0, 0%, 100%, .1);
