@@ -1,0 +1,47 @@
+# This file lists the IP addresses of all of our servers. It is used by
+# HAProxy to whitelist "internal" connections between our servers.
+
+### Production
+
+# LoadBalancer
+107.170.15.246
+# Login1
+107.170.4.128
+# Login2
+107.170.4.142
+# WebServer
+162.243.35.210
+# Project1
+162.243.121.4
+# Project2
+162.243.243.106
+# Project3
+192.241.174.110
+# Project4
+192.241.252.81
+
+### Staging
+
+# StagingLoadBalancer
+162.243.211.240
+# StagingWebServer
+107.170.66.81
+# StagingLogin1
+107.170.71.152
+# StagingLogin2
+162.243.44.160
+# StagingProject1
+107.170.33.167
+# StagingProject2
+107.170.69.149
+
+### Development
+
+# load-balancer
+10.0.0.2
+# web-server
+10.0.0.3
+# login
+10.0.0.4
+# project
+10.0.0.5

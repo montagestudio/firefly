@@ -43,6 +43,10 @@
         "script": "{{user `home`}}/deploy/provision/load-balancer.sh"
     }, {
         "type": "file",
+        "source": "{{user `home`}}/deploy/files/our-ips.lst",
+        "destination": "/etc/haproxy/our-ips.lst"
+    }, {
+        "type": "file",
         "source": "{{user `home`}}/deploy/files/haproxy.cfg",
         "destination": "/etc/haproxy/haproxy.cfg"
     }, {

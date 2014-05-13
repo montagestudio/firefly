@@ -518,6 +518,13 @@ In order to be able to login the droplets you will need to have your public key
 added to `deploy/files/authorized_keys`. The only user on the production/
 staging machines is admin and it is a sudoer.
 
+List of server IPs
+------------------
+
+The file `deploy/files/our-ips.lst` contains a list of all the IPs of our
+servers. If you add or remove a server in production, staging or development
+then add it's IP to that file.
+
 Posting status updates
 ======================
 

@@ -81,6 +81,8 @@ Vagrant.configure('2') do |config|
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/staging-project.montagestudio.net.pem"
         lb.vm.provision :shell, path: "deploy/provision/load-balancer.sh"
 
+        lb.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/files/our-ips.lst /etc/haproxy/our-ips.lst"
+
         lb.vm.provision :shell, path: "deploy/vagrant/haproxy.sh"
 
         lb.vm.provision :shell, inline: "cp -R /vagrant/deploy/files/errors/* /etc/haproxy/errors"
