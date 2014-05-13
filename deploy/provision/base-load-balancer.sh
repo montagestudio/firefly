@@ -21,4 +21,7 @@ echo "ENABLED=1" >> /etc/default/haproxy
 echo "# Add extra flags here." >> /etc/default/haproxy
 echo "#EXTRAOPTS=\"-de -m 16\"" >> /etc/default/haproxy
 
-
+# Redis
+apt-get install --yes redis-server
+# Prevent redis starting on startup
+update-rc.d redis-server disable
