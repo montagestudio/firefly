@@ -1,5 +1,6 @@
 .Toolbar {
     position: relative;
+    min-width: 950px; /* Min width depends on the content - don't forget the "unsaved" message */
     z-index: 50;
     display: -webkit-flex;
     display: -moz-flex;
