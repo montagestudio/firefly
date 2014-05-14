@@ -1348,7 +1348,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             result.forEach(function(item) {
                 if (item.dest !== "!" && item.dest !== "!") {
                     hasChanges = true;
-                    if (item.dest == "D") {
+                    if (item.dest === "D") {
                         batch.stageFilesForDeletion(item.path);
                     } else {
                         batch.stageFiles(item.path);
