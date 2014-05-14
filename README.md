@@ -398,6 +398,13 @@ If you change the HAProxy config file then the new config needs to be copied acr
 vagrant ssh load-balancer -c "sudo bash /vagrant/deploy/vagrant/haproxy.sh && sudo service haproxy reload"
 ```
 
+### Redis and Redis Sentinel config file
+
+```bash
+vagrant ssh load-balancer -c "sudo bash /vagrant/deploy/vagrant/redis-sentinel.sh && sudo service redis-sentinel reload"
+vagrant ssh login -c "sudo bash /vagrant/deploy/vagrant/redis-sentinel.sh && sudo service redis-sentinel reload"
+```
+
 Contributing
 ============
 - Run the specs (`npm test`) at the project's root and make sure there are no

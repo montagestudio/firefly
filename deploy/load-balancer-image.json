@@ -39,6 +39,14 @@
         "source": "{{user `home`}}/deploy/files/staging-project.montagestudio.net.pem",
         "destination": "/etc/ssl/staging-project.montagestudio.net.pem"
     }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/redis-sentinel.conf",
+        "destination": "/etc/redis/redis-sentinel.conf"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/services/redis-sentinel.conf",
+        "destination": "/etc/init/redis-sentinel.conf"
+    }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/load-balancer.sh"
     }, {

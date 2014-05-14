@@ -87,6 +87,9 @@ Vagrant.configure('2') do |config|
 
         lb.vm.provision :shell, inline: "cp -R /vagrant/deploy/files/errors/* /etc/haproxy/errors"
 
+        lb.vm.provision :shell, path: "deploy/vagrant/redis-sentinel.sh"
+        lb.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/redis-sentinel.conf /etc/init/redis-sentinel.conf"
+
         # Start
         # HAProxy uses rsyslog. It needs to be restarted to pick up the
         # configuration change
@@ -144,6 +147,8 @@ Vagrant.configure('2') do |config|
         login.vm.provision :shell, :inline => "initctl reload-configuration"
 
         login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/files/redis.conf /etc/redis/redis.conf"
+        login.vm.provision :shell, path: "deploy/vagrant/redis-sentinel.sh"
+        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/redis-sentinel.conf /etc/init/redis-sentinel.conf"
 
         # Start
         login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"

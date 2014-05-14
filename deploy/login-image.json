@@ -35,6 +35,14 @@
         "source": "{{user `build`}}/firefly.tgz",
         "destination": "/srv/firefly.tgz"
     }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/redis-sentinel.conf",
+        "destination": "/etc/redis/redis-sentinel.conf"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/services/redis-sentinel.conf",
+        "destination": "/etc/init/redis-sentinel.conf"
+    }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/login.sh"
     }, {
@@ -45,13 +53,5 @@
         "type": "file",
         "source": "{{user `home`}}/deploy/files/redis.conf",
         "destination": "/etc/redis/redis.conf"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/redis-sentinel.conf",
-        "destination": "/etc/redis/redis-sentinel.conf"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/services/redis-sentinel.conf",
-        "destination": "/etc/init/redis-sentinel.conf"
     }]
 }
