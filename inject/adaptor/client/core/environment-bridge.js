@@ -718,9 +718,9 @@ exports.EnvironmentBridge = Target.specialize({
     /**
      * delete a commit batch without commiting
      */
-    cancelCommitBatch: {
+    releaseCommitBatch: {
         value: function(commitBatch) {
-            return commitBatch.invoke("cancel");
+            return commitBatch.invoke("release");
         }
     },
 

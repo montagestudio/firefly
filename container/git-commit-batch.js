@@ -13,13 +13,10 @@ function GitCommitBatchFactory(repositoryService) {
             batch._deferredCommit.resolve(result);
         }, function(error) {
             batch._deferredCommit.reject(error);
-        }).finally(function() {
-            // remove the batch from the commitBatches list if still in it
-            var pos = _commitBatches.indexOf(batch);
-            if (pos !== -1) {
-                _commitBatches.splice(pos, 1);
-            }
-            _commit();
+        })
+        .finally(function() {
+            // Release the batch now that we are done with it
+            batch.release();
         });
     }
 
@@ -69,7 +66,7 @@ function GitCommitBatchFactory(repositoryService) {
         }
     };
 
-    GitCommitBatch.prototype.cancel = function() {
+    GitCommitBatch.prototype.release = function() {
         var pos = _commitBatches.indexOf(this);
         if (pos !== -1) {
             _commitBatches.splice(_commitBatches.indexOf(this), 1);
