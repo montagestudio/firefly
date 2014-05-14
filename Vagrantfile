@@ -143,8 +143,11 @@ Vagrant.configure('2') do |config|
         # Needed because upstart doesn't reload when symlinks get added
         login.vm.provision :shell, :inline => "initctl reload-configuration"
 
+        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/files/redis.conf /etc/redis/redis.conf"
+
         # Start
         login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
+        login.vm.provision :shell, :inline => "service redis-server reload"
     end
 
     config.vm.define "project" do |project|

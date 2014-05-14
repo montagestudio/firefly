@@ -41,5 +41,17 @@
         "type": "file",
         "source": "{{user `home`}}/deploy/services/firefly-login.conf",
         "destination": "/etc/init/firefly-login.conf"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/redis.conf",
+        "destination": "/etc/redis/redis.conf"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/files/redis-sentinel.conf",
+        "destination": "/etc/redis/redis-sentinel.conf"
+    }, {
+        "type": "file",
+        "source": "{{user `home`}}/deploy/services/redis-sentinel.conf",
+        "destination": "/etc/init/redis-sentinel.conf"
     }]
 }
