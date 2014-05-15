@@ -366,8 +366,14 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     getExtensionsAt: {
-        value: function () {
-            return [];
+        value: function (url) {
+            return this.getService("file-service").invoke("listPackage", url, true).then(function (fileDescriptors) {
+                return fileDescriptors.filter(function (fd) {
+                    return (/\.filament-extension\/$/).test(fd.url);
+                }).map(function (fd) {
+                    return fd.url;
+                });
+            });
         }
     },
 
@@ -528,6 +534,12 @@ exports.EnvironmentBridge = Target.specialize({
     listModuleIconUrls: {
         value: function (extensionUrl, packageName) {
             return this.getService("extension-service").invoke("listModuleIconUrls", extensionUrl, packageName);
+        }
+    },
+
+    loadLibraryItemJson: {
+        value: function(libraryItemJsonUrl) {
+            return this.getService("extension-service").invoke("loadLibraryItemJson", libraryItemJsonUrl);
         }
     },
 

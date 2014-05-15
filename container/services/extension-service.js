@@ -21,13 +21,18 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
      *  - Packages loaded by the user in the course of working on a project
      *  - From a marketplace
      *  - From a user's own selection of available extensions
+     *
+     * If a base is provided it is used as the base URL rather tha using the value
+     * returned bu getAppUrl(). This enable using container URLs.
      */
-    var convertPathToExtensionUrl = function (path) {
+    var convertPathToExtensionUrl = function (path, base) {
         var projectHost = environment.getAppUrl() + "/app/extensions",
             url = null;
 
         if (new RegExp(extensionsRoot).test(path)) {
             url = projectHost + path.replace(extensionsRoot, "");
+        } else if (base) {
+            url = base + path;
         }
 
         return url;
@@ -39,9 +44,24 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
 
         if (new RegExp(projectHost).test(url)) {
             path = extensionsRoot + url.replace(projectHost, "");
+        } else {
+            // removes parts scheme://domain:port from the URL
+            path = url.replace(/https?:\/\/[^\/]+/, "");
         }
 
         return path;
+    };
+
+    // Return the base of the URL made of scheme://domain:port
+    var getBaseUrl = function (url) {
+        var baseUrl = null,
+            matches = url.match(/https?:\/\/[^\/]+/);
+
+        if (matches.length) {
+            baseUrl = matches[0];
+        }
+
+        return baseUrl;
     };
 
     service.getExtensions = function(extensionFolder) {
@@ -58,27 +78,44 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
     };
 
     service.listLibraryItemUrls = function (extensionUrl, packageName) {
-        var libraryItemsPath = PATH.join(convertExtensionUrlToPath(extensionUrl), "library-items", packageName);
+        var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
+            path = convertExtensionUrlToPath(extensionUrl),
+            baseURL = getBaseUrl(extensionUrl),
+            libraryItemsPath = PATH.join(path, "library-items", packageName);
 
-        return QFS.listTree(libraryItemsPath, function (filePath) {
+        return FS.listTree(libraryItemsPath, function (filePath) {
             return PATH.extname(filePath).toLowerCase() === ".library-item" ? true : (filePath ===  libraryItemsPath ? false : null);
         }).then(function (filePaths) {
             return Q.all(filePaths.map(function (filePath) {
-                return QFS.stat(filePath).then(function (stat) {
-                    return convertPathToExtensionUrl(filePath) + (stat.isDirectory() ? "/" : "");
+                return FS.stat(filePath).then(function (stat) {
+                    return convertPathToExtensionUrl(filePath, baseURL) + (stat.isDirectory() ? "/" : "");
                 });
             }));
         });
     };
 
-    service.listModuleIconUrls = function (extensionUrl, packageName) {
-        var iconsPath = PATH.join(convertExtensionUrlToPath(extensionUrl), "icons", packageName);
+    service.loadLibraryItemJson = function (libraryItemJsonUrl) {
+        var FS = (libraryItemJsonUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
+            path = convertExtensionUrlToPath(libraryItemJsonUrl);
 
-        return QFS.listTree(iconsPath, function (filePath) {
+        return FS.read(path).then(function(content) {
+            content = content.toString("utf8");
+            var obj = JSON.parse(content);
+            return obj;
+        });
+    };
+
+    service.listModuleIconUrls = function (extensionUrl, packageName) {
+        var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
+            path = convertExtensionUrlToPath(extensionUrl),
+            baseURL = getBaseUrl(extensionUrl),
+            iconsPath = PATH.join(path, "icons", packageName);
+
+        return FS.listTree(iconsPath, function (filePath) {
             return PATH.extname(filePath).toLowerCase() === ".png";
         }).then(function (filePaths) {
             return filePaths.map(function (filePath) {
-                return convertPathToExtensionUrl(filePath);
+                return convertPathToExtensionUrl(filePath, baseURL);
             });
         });
     };
