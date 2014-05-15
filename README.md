@@ -499,8 +499,18 @@ There 6 scripts you will be interested in:
    It will build the project image. It will not rebuild the base image if it
    already exists.
 
-Those 5 scripts accept 2 command line parameters: `-b firefly_branch` and
-`-c filament_branch`.
+Those 5 scripts accept the same command line arguments:
+
+```
+./deploy/build/images.sh [-b <branch>] [-c <branch>] [-n <build number>] [-r <build revision>] [-f] [-t]
+     -b filament branch
+     -c firefly branch
+     -f (force base image rebuild)
+     -n build revision number
+     -r build release name
+     -t (do not tag repositories)
+     -x (debug mode)
+```
 
 There are two important environment variables, `$LAST_BUILD_NUMER` and
 `$BUILD_REVISION_NUMBER`.
