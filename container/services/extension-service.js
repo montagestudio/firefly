@@ -94,6 +94,18 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
         });
     };
 
+    service.loadLibraryItemJson = function (libraryItemJsonUrl) {
+        var FS = (libraryItemJsonUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
+            path = convertExtensionUrlToPath(libraryItemJsonUrl);
+
+        return FS.read(path).then(function(content) {
+            content = content.toString("utf8");
+            console.log(content)
+            var obj = JSON.parse(content);
+            return obj;
+        });
+    };
+
     service.listModuleIconUrls = function (extensionUrl, packageName) {
         var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
             path = convertExtensionUrlToPath(extensionUrl),

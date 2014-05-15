@@ -537,6 +537,12 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    loadLibraryItemJson: {
+        value: function(libraryItemJsonUrl) {
+            return this.getService("extension-service").invoke("loadLibraryItemJson", libraryItemJsonUrl);
+        }
+    },
+
     promptForSave: {
         value: function (options) {
             var self = this;
