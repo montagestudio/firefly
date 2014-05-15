@@ -131,6 +131,22 @@ staging ()
     tugboat ssh -n $1 -c 'sudo chmod +x /srv/staging.sh; sudo /srv/staging.sh'
 }
 
+make_redis_slave ()
+{
+    # $1 slave name
+    # $2 master name
+
+    # We need to wait for the droplets to come back alive after rebuild
+    wait_for_droplet $1
+
+    MASTER_IP=$(get_ip $2)
+
+    # Execute the staging script on the droplet
+    echo "Making redis on $1 a slave"
+    tugboat ssh -n $1 -c "echo slaveof $MASTER_IP 6379 | sudo tee -a /etc/redis/redis.conf"
+    # TODO auth
+}
+
 if [[ $PRODUCTION == "TRUE" ]]; then
     tugboat rebuild -n LoadBalancer -m load-balancer-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n WebServer -m web-server-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
@@ -140,6 +156,8 @@ if [[ $PRODUCTION == "TRUE" ]]; then
     tugboat rebuild -n Project2 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n Project3 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n Project4 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+
+    make_redis_slave "Login2" "Login1"
 
     rollbar "production" "Login1" "filament" "dccb9acdbffd4c8bbd21247e51a0619e"
     rollbar "production" "Login1" "firefly" "80c8078968bf4f9a92aee1af74e46b57"
@@ -157,6 +175,8 @@ else
     staging StagingLogin2
     staging StagingProject1
     staging StagingProject2
+
+    make_redis_slave "StagingLogin2" "StagingLogin1"
 
     rollbar "staging" "StagingLogin1" "filament" "dccb9acdbffd4c8bbd21247e51a0619e"
     rollbar "staging" "StagingLogin1" "firefly" "80c8078968bf4f9a92aee1af74e46b57"
