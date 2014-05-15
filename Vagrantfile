@@ -79,6 +79,10 @@ Vagrant.configure('2') do |config|
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/montagestudio.com.pem /etc/ssl/montagestudio.com.pem"
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/project.montagestudio.net.pem"
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/staging-project.montagestudio.net.pem"
+
+        lb.vm.provision :shell, path: "deploy/vagrant/redis-sentinel.sh"
+        lb.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/redis-sentinel.conf /etc/init/redis-sentinel.conf"
+
         lb.vm.provision :shell, path: "deploy/provision/load-balancer.sh"
 
         lb.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/files/our-ips.lst /etc/haproxy/our-ips.lst"
@@ -87,13 +91,16 @@ Vagrant.configure('2') do |config|
 
         lb.vm.provision :shell, inline: "cp -R /vagrant/deploy/files/errors/* /etc/haproxy/errors"
 
-        lb.vm.provision :shell, path: "deploy/vagrant/redis-sentinel.sh"
-        lb.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/redis-sentinel.conf /etc/init/redis-sentinel.conf"
+
+        # Needed because upstart doesn't reload when symlinks get added
+        lb.vm.provision :shell, :inline => "initctl reload-configuration"
 
         # Start
         # HAProxy uses rsyslog. It needs to be restarted to pick up the
         # configuration change
         lb.vm.provision :shell, :inline => "service rsyslog restart"
+        lb.vm.provision :shell, :inline => "service redis-server stop" # Redis automatically starts, and we don't want that
+        lb.vm.provision :shell, :inline => "service redis-sentinel start || service redis-sentinel reload"
         lb.vm.provision :shell, :inline => "service haproxy start || service haproxy reload"
     end
 
@@ -140,19 +147,22 @@ Vagrant.configure('2') do |config|
         login.vm.synced_folder "../filament", "/srv/filament"
         login.vm.synced_folder ".", "/srv/firefly"
 
-        login.vm.provision :shell, path: "deploy/provision/login.sh"
-
-        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
-        # Needed because upstart doesn't reload when symlinks get added
-        login.vm.provision :shell, :inline => "initctl reload-configuration"
-
-        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/files/redis.conf /etc/redis/redis.conf"
         login.vm.provision :shell, path: "deploy/vagrant/redis-sentinel.sh"
         login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/redis-sentinel.conf /etc/init/redis-sentinel.conf"
 
+        login.vm.provision :shell, path: "deploy/provision/login.sh"
+
+        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
+
+        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/files/redis.conf /etc/redis/redis.conf"
+
+        # Needed because upstart doesn't reload when symlinks get added
+        login.vm.provision :shell, :inline => "initctl reload-configuration"
+
         # Start
         login.vm.provision :shell, :inline => "service firefly-login start || service firefly-login reload"
-        login.vm.provision :shell, :inline => "service redis-server reload"
+        login.vm.provision :shell, :inline => "service redis-server start || service redis-server reload"
+        login.vm.provision :shell, :inline => "service redis-sentinel start || service redis-sentinel reload"
     end
 
     config.vm.define "project" do |project|
