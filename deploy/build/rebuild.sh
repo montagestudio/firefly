@@ -122,7 +122,7 @@ staging ()
 {
     # We need to wait for the droplets to come back alive after rebuild
     wait_for_droplet $1
-    
+
     echo "Uploading script to $1"
     IP=$(get_ip $1)
     scp $FIREFLY_SSH_OPTIONS "${HOME}/deploy/build/staging.sh" "montage@${IP}:/srv"
@@ -157,7 +157,7 @@ else
     staging StagingLogin2
     staging StagingProject1
     staging StagingProject2
-    
+
     rollbar "staging" "StagingLogin1" "filament" "dccb9acdbffd4c8bbd21247e51a0619e"
     rollbar "staging" "StagingLogin1" "firefly" "80c8078968bf4f9a92aee1af74e46b57"
 fi
