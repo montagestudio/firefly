@@ -19,5 +19,5 @@ sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg
 sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg
 
 # redis
-sed -i.bak 's/server redis1 [0-9\.]*/server redis1 10.0.0.4/' /etc/haproxy/haproxy.cfg
-sed -i.bak 's/server redis2 .*//' /etc/haproxy/haproxy.cfg
+sed -i.bak 's/server redis-master [0-9\.]*/server redis-master 10.0.0.4/' /etc/haproxy/haproxy.cfg
+sed -i.bak 's/server redis-slave .*//' /etc/haproxy/haproxy.cfg
