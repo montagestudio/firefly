@@ -1,4 +1,3 @@
-var log = require("../logging").from(__filename);
 var Q = require("q");
 
 module.exports = GitCommitBatchFactory;
@@ -90,25 +89,13 @@ function GitCommitBatchFactory(repositoryService) {
     };
 
     /**
-     * For debugging purpose only
+     * For debugging and testing purpose only
      * @private
      */
-    GitCommitBatch.prototype._dump = function() {
-        var nbrBatches = _commitBatches.length,
-            i;
-
-        log("Dumping Commit " + nbrBatches + " Batch");
-        for (i = 0; i < nbrBatches; i ++) {
-            var batch = _commitBatches[i];
-            log("Batch #", i + 1);
-            log("  message:", batch.message);
-            log("  added files:", batch._addedFiles);
-            log("  removed files:", batch._removedFiles);
-            log("  commit pending:", batch._readyToBeCommitted ? "yes" : "no");
-            log("  committed:", batch._committed ? "yes" : "no");
-            log("  commit completed:", !batch._deferredCommit || Q.isPending(batch._deferredCommit.promise) ? "no" : "yes");
-        }
+    GitCommitBatchFactory._batches = function() {
+        return _commitBatches;
     };
 
     return GitCommitBatch;
 }
+
