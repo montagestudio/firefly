@@ -100,7 +100,6 @@ function ExtensionService(session, fs, environment, _, __, clientPath) {
 
         return FS.read(path).then(function(content) {
             content = content.toString("utf8");
-            console.log(content)
             var obj = JSON.parse(content);
             return obj;
         });
