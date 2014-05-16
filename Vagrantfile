@@ -154,7 +154,7 @@ Vagrant.configure('2') do |config|
 
         login.vm.provision :shell, path: "deploy/provision/login.sh"
 
-        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
+        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
         # Needed because upstart doesn't reload when symlinks get added
         login.vm.provision :shell, :inline => "initctl reload-configuration"
 
@@ -187,7 +187,7 @@ Vagrant.configure('2') do |config|
 
         project.vm.provision :shell, path: "deploy/provision/project.sh"
 
-        project.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
+        project.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
         # Needed because upstart doesn't reload when symlinks get added
         project.vm.provision :shell, :inline => "initctl reload-configuration"
 
