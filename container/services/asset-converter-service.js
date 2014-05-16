@@ -43,7 +43,7 @@ function AssetConverterService (session, fs, environment, pathname, fsPath) {
         inputPath = PATH.join(fsPath, inputPath);
         outputPath = PATH.join(fsPath, outputPath);
 
-        return exec("collada2gltf", ["-s", "-f", inputPath, !!bundle ? "-b" : "-o", outputPath], fsPath);
+        return exec("collada2gltf", ["-f", inputPath, !!bundle ? "-b" : "-o", outputPath], fsPath);
     }
 
     /**
