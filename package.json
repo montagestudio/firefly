@@ -56,7 +56,7 @@
     "collections": "~0.2.2",
     "dockerode": "~1.2.7",
     "faye-websocket": "~0.7.2",
-    "rollbar": "~0.3.5",
+    "rollbar": "~0.3.6",
     "dotenv": "^0.2.8"
   },
   "devDependencies": {
