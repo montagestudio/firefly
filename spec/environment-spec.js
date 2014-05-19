@@ -20,15 +20,6 @@ describe("environment", function () {
             });
         });
 
-        describe("getProjectUrlFromAppUrl", function () {
-            it("returns a url", function () {
-                // FIXME
-                expect(environment.getProjectUrlFromAppUrl("owner/repo")).toEqual("http://1-owner-repo.local-project.montagestudio.com:2440");
-                expect(environment.getProjectUrlFromAppUrl("/owner/repo")).toEqual("http://1-owner-repo.local-project.montagestudio.com:2440");
-                expect(environment.getProjectUrlFromAppUrl("/owner/repo/fail")).toEqual("http://1-owner-repo.local-project.montagestudio.com:2440");
-            });
-        });
-
         describe("getAppHost", function () {
             it("returns a host", function () {
                 expect(environment.getAppHost()).toEqual("local-firefly.declarativ.net:2440");
