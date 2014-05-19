@@ -1,20 +1,25 @@
 var Q = require("q");
 var preview = require("../../project/preview.js");
 
+var Set = require("collections/set");
+
 describe("preview", function () {
     describe("hasAccess", function () {
-        var url, githubUser, session;
+        var previewDetails, githubUser, session;
         beforeEach(function () {
-            url = "http://1-owner-repo.local-project.montagestudio.com:2440";
+            previewDetails = {
+                user: "owner",
+                owner: "owner",
+                repo: "repo"
+            };
             githubUser = {login: "owner"};
             session = {
-                githubUser: Q(githubUser),
-                previewAccess: []
+                githubUser: Q(githubUser)
             };
         });
 
         it("should grant access to the logged user to its own previews", function(done) {
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(true);
             }).then(done, done);
@@ -22,7 +27,7 @@ describe("preview", function () {
 
         it("should ignore case when granting access to the logged user", function(done) {
             githubUser.login = "Owner";
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(true);
             }).then(done, done);
@@ -30,9 +35,9 @@ describe("preview", function () {
 
         it("should grant access when a 3rd party logged in user has access", function(done) {
             githubUser.login = "other";
-            session.previewAccess.push(url);
+            session.previewAccess = Set([previewDetails]);
 
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(true);
             }).then(done, done);
@@ -40,9 +45,9 @@ describe("preview", function () {
 
         it("should grant access when a 3rd party user has access", function(done) {
             delete session.githubUser;
-            session.previewAccess.push(url);
+            session.previewAccess = Set([previewDetails]);
 
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(true);
             }).then(done, done);
@@ -51,7 +56,7 @@ describe("preview", function () {
         it("should not grant access when a 3rd party logged in user does not have access", function(done) {
             githubUser.login = "fail";
 
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(false);
             }).then(done, done);
@@ -61,7 +66,7 @@ describe("preview", function () {
             delete session.githubUser;
             delete session.previewAccess;
 
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(false);
             }).then(done, done);
