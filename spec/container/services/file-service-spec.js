@@ -14,7 +14,7 @@ describe("file-service", function () {
 
         service = FileService(null, fs, {
             getProjectUrlFromAppUrl: function () {
-                return "http://localhost:2441";
+                return "http://localhost:2441"; // FIXME
             }
         });
     });

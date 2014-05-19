@@ -7,7 +7,7 @@ var Env = require("./environment");
 var routeProject = {
     // Empty
 };
-
+// NOTE
 exports = module.exports = routeProject;
 
 routeProject.addRouteProjectCookie = function (request, response) {

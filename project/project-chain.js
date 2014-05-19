@@ -94,9 +94,9 @@ function server(options) {
     .use(function (next) {
         return function (request, response) {
             if (preview.isPreview(request)) {
-                return preview.hasAccess(request.headers.host, request.session)
+                return preview.hasAccess(FIXME, request.session)
                 .then(function (hasAccess) {
-                    var details = environment.getDetailsfromProjectUrl(request.url);
+                    var details = environment.getDetailsfromProjectUrl(request.url); // FIXME
                     details = new PreviewDetails(details.owner, details.owner, details.repo);
                     if (hasAccess) {
                         var projectWorkspacePort = containerManager.getPort(details);
@@ -221,11 +221,11 @@ function server(options) {
             var details;
             if (preview.isPreview(request)) {
                 return sessions.getSession(request, function (session) {
-                    return preview.hasAccess(request.headers.host, session);
+                    return preview.hasAccess(FIXME, session);
                 }).then(function (hasAccess) {
                     if (hasAccess) {
                         log("preview websocket", request.headers.host);
-                        details = environment.getDetailsfromProjectUrl(request.headers.host);
+                        details = environment.getDetailsfromProjectUrl(request.headers.host); // FIXME
                         details = new PreviewDetails(details.owner, details.owner, details.repo);
                         return proxyPreviewWebsocket(request, socket, body, details);
                     } else {
