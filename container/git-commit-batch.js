@@ -6,12 +6,23 @@ function GitCommitBatchFactory(repositoryService) {
     var _repositoryService = repositoryService,
         _commitBatches = [];            // List of all pending batches
 
+    var BATCH_COMMIT_STATE = {
+        open: 1,
+        willCommit: 2,
+        committed: 3,
+        done: 4
+    };
+
     function _commitBatch(batch) {
+        batch._state = BATCH_COMMIT_STATE.committed;
+
         _repositoryService.commitBatch(batch)
         .then(function(result) {
-            batch._deferredCommit.resolve(result);
+            batch._state = BATCH_COMMIT_STATE.done;
+            batch._deferred.resolve(result);
         }, function(error) {
-            batch._deferredCommit.reject(error);
+            batch._state = BATCH_COMMIT_STATE.done;
+            batch._deferred.reject(error);
         })
         .finally(function() {
             // Release the batch now that we are done with it
@@ -20,20 +31,12 @@ function GitCommitBatchFactory(repositoryService) {
     }
 
     function _commit() {
-        var nbrBatches = _commitBatches.length,
-            i;
-
-        for (i = 0; i < nbrBatches; i ++) {
-            var batch = _commitBatches[i];
-            if (batch._readyToBeCommitted && !batch._committed) {
-                batch._committed = true;
+        _commitBatches.some(function(batch) {
+            if (batch._state === BATCH_COMMIT_STATE.willCommit) {
                 _commitBatch(batch);
-                break;
-            } else if (!batch._deferredCommit || Q.isPending(batch._deferredCommit.promise)) {
-                // We cannot process other batches if we are not done with the current one.
-                break;
             }
-        }
+            return true;
+        });
     }
 
     function GitCommitBatch(message) {
@@ -41,9 +44,8 @@ function GitCommitBatchFactory(repositoryService) {
 
         this._addedFiles = [];
         this._removedFiles = [];
-        this._readyToBeCommitted = false;
-        this._committed = false;
-        this._deferredCommit = null;
+        this._state = BATCH_COMMIT_STATE.open;
+        this._deferred = null;
 
         // Insert the new batch at the end of the pending batches
         _commitBatches.push(this);
@@ -75,17 +77,13 @@ function GitCommitBatchFactory(repositoryService) {
         _commit();
     };
 
-    GitCommitBatch.prototype.commit = function(message) {
-        if (!this._deferredCommit) {
-            if (message) {
-                this.message = message;
-            }
-            this._readyToBeCommitted = true;
-            this._deferredCommit = Q.defer();
+    GitCommitBatch.prototype.commit = function() {
+        if (!this._deferred) {
+            this._state = BATCH_COMMIT_STATE.willCommit;
+            this._deferred = Q.defer();
             _commit();
         }
-
-        return this._deferredCommit.promise;
+        return this._deferred.promise;
     };
 
     /**

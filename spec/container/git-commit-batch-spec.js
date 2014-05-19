@@ -41,6 +41,7 @@ describe("Git Commit Batch", function () {
 
     it("can stage multiple files for deletion", function(done) {
         batchD.stageFilesForDeletion(["d1.txt", "d2.txt"]);
+        batchD.message = "d";
         expect(GitCommitBatchFactory._batches()[3]._removedFiles.length).toBe(2);
         done();
     });
@@ -61,7 +62,7 @@ describe("Git Commit Batch", function () {
             batchA.commit().then(function() {
                 commitOrder.push(batchA.message);
             }),
-            batchD.commit("d").then(function() {
+            batchD.commit().then(function() {
                 commitOrder.push(batchD.message);
             })
         ])
