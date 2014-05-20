@@ -196,7 +196,7 @@ Object.defineProperties(window.Declarativ, {
         },
         _setObjectPropertiesUpdateTemplate: {
             value: function(label, ownerModuleId, properties) {
-                MontageTemplate.get(ownerModuleId).then(function(montageTemplate) {
+                MontageTemplate.load(ownerModuleId).then(function(montageTemplate) {
                     montageTemplate.setObjectProperties(label, properties);
                 });
             }
