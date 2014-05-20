@@ -29,14 +29,14 @@ return FS.removeTree(FS.join(targetRoot, "filament"))
                     return FS.read(source, {charset: "utf-8"})
                     .then(uglify)
                     .then(function (content) {
-                        console.log("uglified", target);
+                        //console.log("uglified", target);
                         return FS.write(target, content, {charset: "utf-8"});
                     }, function (error) {
-                        console.log("copied non parsable", target);
+                        //console.log("copied non parsable", target);
                         return FS.copy(source, target);
                     });
                 } else {
-                    console.log("copied", target);
+                    //console.log("copied", target);
                     return FS.copy(source, target);
                 }
             });

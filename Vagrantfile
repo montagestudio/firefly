@@ -16,7 +16,7 @@ Vagrant.configure('2') do |config|
 
     # Disable Guest Addition install for the moment. It seems to cause more
     # problems than it solves
-    config.vbguest.no_install = true
+    #config.vbguest.no_install = true
 
     # Configure Vagrant VM to use Host DNS, which is a lot faster than the
     # default DNS in the VM for some reason...
