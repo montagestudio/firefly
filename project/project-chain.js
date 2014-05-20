@@ -26,8 +26,8 @@ function server(options) {
     var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
-    if (!options.setupProjectContainer) throw new Error("options.setupProjectContainer required");
-    var setupProjectContainer = options.setupProjectContainer;
+    if (!options.containerManager) throw new Error("options.containerManager required");
+    var containerManager = options.containerManager;
     if (!options.containerIndex) throw new Error("options.containerIndex required");
     var containerIndex = options.containerIndex;
     //jshint +W116
@@ -97,7 +97,7 @@ function server(options) {
                 .then(function (hasAccess) {
                     var details = environment.getDetailsfromProjectUrl(request.url);
                     if (hasAccess) {
-                        var projectWorkspacePort = setupProjectContainer.getPort(
+                        var projectWorkspacePort = containerManager.getPort(
                             details.owner,
                             details.owner,
                             details.repo
@@ -113,7 +113,7 @@ function server(options) {
                             return preview.serveNoPreviewPage(request);
                         });
                     } else {
-                        setupProjectContainer(
+                        containerManager.setup(
                             details.owner,
                             details.owner,
                             details.repo
@@ -164,7 +164,7 @@ function server(options) {
             log("build");
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
-                return setupProjectContainer(
+                return containerManager.setup(
                     session.username,
                     request.params.owner,
                     request.params.repo,
@@ -185,14 +185,10 @@ function server(options) {
 
             return Q.all(workspaceKeys.map(function (value) {
                 // delete
-                return setupProjectContainer.delete(value.user, value.owner, value.repo)
+                return containerManager.delete(value.user, value.owner, value.repo)
                 .catch(function (error) {
                     // catch error and log
                     track.error(error, request);
-                })
-                .then(function () {
-                    // remove from containerIndex
-                    containerIndex.delete(value);
                 });
             }))
             .then(function () {
@@ -203,7 +199,7 @@ function server(options) {
         any("api/:owner/:repo/...").app(function (request) {
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
-                return setupProjectContainer(
+                return containerManager.setup(
                     session.username,
                     request.params.owner,
                     request.params.repo,
@@ -217,8 +213,8 @@ function server(options) {
         });
     });
 
-    var proxyAppWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-app");
-    var proxyPreviewWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-preview");
+    var proxyAppWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-app");
+    var proxyPreviewWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-preview");
     chain.upgrade = function (request, socket, body) {
         Q.try(function () {
             if (!WebSocket.isWebSocket(request)) {

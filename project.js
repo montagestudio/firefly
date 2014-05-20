@@ -9,7 +9,7 @@ var GithubSessionStore = require("./github-session-store");
 var Session = require("./session");
 var CheckSession = require("./check-session");
 
-var SetupProjectContainer = require("./project/setup-project-container");
+var ContainerManager = require("./project/container-manager");
 var Docker = require("./project/docker");
 var containerIndex = require("./project/make-container-index")("/srv/container-index.json");
 
@@ -42,7 +42,7 @@ function main(options) {
     var projectChain = projectChainFactory({
         sessions: sessions,
         checkSession: CheckSession,
-        setupProjectContainer: SetupProjectContainer(docker, containerIndex),
+        containerManager: new ContainerManager(docker, containerIndex),
         containerIndex: containerIndex
     });
     return projectChain.listen(options.port)
