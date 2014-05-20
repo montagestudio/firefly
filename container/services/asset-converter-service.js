@@ -42,8 +42,9 @@ function AssetConverterService (session, fs, environment, pathname, fsPath) {
     function _convertToGlTF (inputPath, outputPath, bundle) {
         inputPath = PATH.join(fsPath, inputPath);
         outputPath = PATH.join(fsPath, outputPath);
+        var configPath = PATH.join(__dirname, "collada2gltf-config.json");
 
-        return exec("collada2gltf", ["-f", inputPath, !!bundle ? "-b" : "-o", outputPath], fsPath);
+        return exec("collada2gltf", ["-f", inputPath, !!bundle ? "-b" : "-o", outputPath, "-z", configPath], fsPath);
     }
 
     /**
