@@ -47,7 +47,7 @@ RUN git --git-dir /home/montage/popcorn/.git remote rm origin
 # Install glTFConverter converter
 RUN apt-get install -y libxml2-dev libpng12-dev libpcre3-dev cmake
 RUN git clone --recurse-submodules https://github.com/KhronosGroup/glTF.git /home/montage/glTF
-RUN cd /home/montage/glTF/ && git checkout dev-6 && git submodule update
+RUN cd /home/montage/glTF/ && git checkout master && git submodule update
 RUN cd /home/montage/glTF/converter/COLLADA2GLTF && cmake . && make
 RUN mv /home/montage/glTF/converter/COLLADA2GLTF/bin/collada2gltf /usr/bin/collada2gltf
 RUN chmod +x /usr/bin/collada2gltf && rm -rf /home/montage/glTF
