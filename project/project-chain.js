@@ -17,6 +17,7 @@ var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
 var PreviewDetails = require("./preview-details");
+var subdomainDetailsMap = require("./subdomain-details-map");
 
 module.exports = server;
 function server(options) {
@@ -94,10 +95,14 @@ function server(options) {
     .use(function (next) {
         return function (request, response) {
             if (preview.isPreview(request)) {
-                return preview.hasAccess(FIXME, request.session)
+                var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+                if (!previewDetails) {
+                    return preview.serveAccessForm(request);
+                }
+
+                return preview.hasAccess(previewDetails, request.session)
                 .then(function (hasAccess) {
-                    var details = environment.getDetailsfromProjectUrl(request.url); // FIXME
-                    details = new PreviewDetails(details.owner, details.owner, details.repo);
+                    var details = subdomainDetailsMap.detailsFromUrl(request.url);
                     if (hasAccess) {
                         var projectWorkspacePort = containerManager.getPort(details);
                         if (!projectWorkspacePort) {
@@ -221,12 +226,16 @@ function server(options) {
             var details;
             if (preview.isPreview(request)) {
                 return sessions.getSession(request, function (session) {
-                    return preview.hasAccess(FIXME, session);
+                    var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+                    if (previewDetails) {
+                        return preview.hasAccess(previewDetails, session);
+                    } else {
+                        return false;
+                    }
                 }).then(function (hasAccess) {
                     if (hasAccess) {
                         log("preview websocket", request.headers.host);
-                        details = environment.getDetailsfromProjectUrl(request.headers.host); // FIXME
-                        details = new PreviewDetails(details.owner, details.owner, details.repo);
+                        details = subdomainDetailsMap.detailsFromUrl(request.headers.host);
                         return proxyPreviewWebsocket(request, socket, body, details);
                     } else {
                         socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
