@@ -680,6 +680,51 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     /**
+     * open a new commit batch
+     */
+    openCommitBatch: {
+        value: function(message) {
+            return this.getService("repository-service").invoke("openCommitBatch", message);
+        }
+    },
+
+    /**
+     * stage files on specified commit batch
+     */
+    stageFiles: {
+        value: function(commitBatch, urls) {
+            return commitBatch.invoke("stageFiles", urls);
+        }
+    },
+
+    /**
+     * stage files for deletion on specified commit batch
+     */
+    stageFilesForDeletion: {
+        value: function(commitBatch, urls) {
+            return commitBatch.invoke("stageFilesForDeletion", urls);
+        }
+    },
+
+    /**
+     * close a commit batch and commit all staged files
+     */
+    closeCommitBatch: {
+        value: function(commitBatch, message) {
+            return commitBatch.invoke("commit", message);
+        }
+    },
+
+    /**
+     * delete a commit batch without commiting
+     */
+    releaseCommitBatch: {
+        value: function(commitBatch) {
+            return commitBatch.invoke("release");
+        }
+    },
+
+    /**
      * Pushes all commits to remote repository.
      */
     flushProject: {
@@ -690,22 +735,13 @@ exports.EnvironmentBridge = Target.specialize({
 
     writeFile: {
         value: function(url, data) {
-            var self = this;
-
-            return this.getService("file-service").invoke("writeFile", url, data)
-                .then(function () {
-                    return self.commitFiles([url], "Add file " + URL.parse(url).pathname);
-                });
+            return this.getService("file-service").invoke("writeFile", url, data);
         }
     },
 
     remove: {
         value: function (url) {
-            var self = this;
-            return this.getService("file-service").invoke("remove", url)
-                .then(function () {
-                    return self.commitFiles([url], "Remove file " + URL.parse(url).pathname, true);
-                });
+            return this.getService("file-service").invoke("remove", url);
         }
     },
 
@@ -717,14 +753,7 @@ exports.EnvironmentBridge = Target.specialize({
 
     removeTree: {
         value: function (url) {
-            var self = this;
-            var path = URL.parse(url).path;
-
-            return this.getService("file-service").invoke("removeTree", url)
-                .then(function () {
-                    var message = path.slice(-1) === "/" ? "Remove directory " : "Remove file ";
-                    return self.commitFiles([url], message + URL.parse(url).pathname, true);
-                });
+            return this.getService("file-service").invoke("removeTree", url);
         }
     },
 

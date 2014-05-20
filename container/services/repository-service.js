@@ -1,6 +1,7 @@
 var Q = require("q");
 var URL = require("url");
 var Git = require("../git");
+var GitCommitBatchFactory = require("../git-commit-batch");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
 var Frontend = require("../frontend");
 var log = require("../../logging").from(__filename);
@@ -61,7 +62,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         _gitFetchLastTimeStamp = 0,
         _gitFetch,
         _gitAutoFlushTimer = [],
-        _checkGithubError;
+        _checkGithubError,
+        _gitCommitBatch = GitCommitBatchFactory(service);
 
     OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
 
@@ -114,7 +116,6 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      * setup a project by cloning it from a local template
      */
     service.cloneTemplate = _checkGithubError(semaphore.exclusive(function(path) {
-//        return this._cloneProject();
         return this._cloneTemplate(path);
     }));
 
@@ -134,6 +135,14 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return info.gitBranch;
         });
     };
+
+    /**
+     * Create a new commit batch
+     */
+    service.openCommitBatch = function(message) {
+        return new _gitCommitBatch(message);
+    };
+
 
     /**
      * Return an object describing all branches (local and remotes) as well the current
@@ -225,19 +234,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
     }));
 
     /**
-     * Commit files to the current branch and push the commit to the
+     * Commit files to the current branch and schedule a push to the
      * remote repository. Make sure to call checkoutShadowBranch before.
-     *
-     * if a conflict occurs during the push of the commit, the returned object
-     * will have a list of resolution strategies to resolve the conflict.
-     * Call commitFiles again with an resolution strategy to resolve the conflict.
-     *
-     * Note: commitFiles will automatically rebase the local shadow branch if possible.
-     *
-     * Possible resolutionStrategy are:
-     *  - "discard": Discard the local commit and update the local repository
-     *               with the remote changes
-     *  - "revert":  Revert the remote commits and push the local changes
      *
      * argument:
      *                   files: Array of file's url, can pass null to
@@ -250,6 +248,16 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
      */
     service.commitFiles = _checkGithubError(semaphore.exclusive(function(fileUrls, message, remove, amend) {
         return this._commitFiles(fileUrls, message, remove, amend);
+    }));
+
+    /**
+     * Commit a batch to the current branch and schedule a push to the
+     * remote repository. Make sure to call checkoutShadowBranch before.
+     *
+     * return: promise
+     */
+    service.commitBatch = _checkGithubError(semaphore.exclusive(function(batch) {
+        return this._commitBatch(batch);
     }));
 
     /**
@@ -322,12 +330,12 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         if (!_info) {
             _info = _githubApi.getInfo(_owner, _repo);
         }
-
         return _info;
     };
 
     service._getRepositoryUrl = function() {
-        return service._getInfo().then(function(info) {
+        return service._getInfo()
+        .then(function(info) {
             return _git._addAccessToken(info.gitUrl);
         });
     };
@@ -618,6 +626,44 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         });
     };
 
+    service._commitBatch = function(batch) {
+        var self = this,
+            files;
+
+        if (batch._addedFiles.length) {
+            files = batch._addedFiles.map(function(url) {
+                return _convertProjectUrlToPath(url);
+            });
+            _git.add(_fsPath, files);
+        }
+        if (batch._removedFiles.length) {
+            files = batch._removedFiles.map(function(url) {
+                return _convertProjectUrlToPath(url);
+            });
+            _git.rm(_fsPath, files);
+        }
+
+        // make sure we have staged files before committing
+        return self._hasUncommittedChanges()
+        .then(function(hasUncommittedChanges) {
+            if (hasUncommittedChanges) {
+                return _git.commit(_fsPath, batch.message || "Update files")
+                .then(function() {
+                    return _git.currentBranch(_fsPath);
+                }).then(function(current) {
+                    if (_gitAutoFlushTimer[current]) {
+                        clearTimeout(_gitAutoFlushTimer[current]);
+                    }
+                    _gitAutoFlushTimer[current] = setTimeout(function() {
+                        self.flush(current).done();
+                    }, AUTO_FLUSH_TIMEOUT);
+                });
+            }
+        }).then(function() {
+            return {success: true};
+        });
+    };
+
     /**
      * Will Sync the local shadow branch with the remote shadow and sync the local shadow with the remote parent branch
      *
@@ -653,11 +699,13 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         forceFetch = (forceFetch === true);
 
         // INIT_STEP: update branches and make sure we have shadow branches
-        return self._hasUncommittedChanges()
+        return self._hasUncommittedChanges(true)
         .then(function(hasUncommittedChanges) {
             if (hasUncommittedChanges) {
-                throw new Error("Cannot update refs while there is uncommited changes");
+                return self._recoverChanges();
             }
+        })
+        .then(function() {
              // Fetch and retrieve the branches and their refs
             return self._listBranches(forceFetch);
         })
@@ -980,12 +1028,12 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         });
     };
 
-    service._hasUncommittedChanges = function() {
+    service._hasUncommittedChanges = function(checkForUntrackedFile) {
         return this._status()
         .then(function(result) {
             var uncommittedChanges = false;
             result.some(function(item) {
-                if (item.dest !== "?" && item.dest !== "!") {
+                if (item.dest !== "!" && (item.dest !== "?" || checkForUntrackedFile === true)) {
                     uncommittedChanges = true;
                     return true;
                 }
@@ -1230,7 +1278,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 return result;
             })
             .then(function () {
-                _git.command(_fsPath, "reset", ["--hard", ref]);
+                _git.command(_fsPath, "reset", ["--hard", ref ? ref : "HEAD"]);
             })
             .then(function () {
                 return self._push(currentBranchName, "--force");
@@ -1288,6 +1336,35 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
 
             _pollGithub();
         }
+    };
+
+    service._recoverChanges = function() {
+        var self = this,
+            batch = this.openCommitBatch("auto-recovery"),
+            hasChanges = false;
+
+        return self._status()
+        .then(function(result) {
+            result.forEach(function(item) {
+                // Files marked as '!' are to be ignored
+                if (item.src !== '!' && item.dest !== '!') {
+                    hasChanges = true;
+                    if (item.dest === "D") {
+                        batch.stageFilesForDeletion(item.path);
+                    } else {
+                        batch.stageFiles(item.path);
+                    }
+                }
+            });
+            return hasChanges;
+        })
+        .then(function(hasChanges) {
+            if (hasChanges) {
+                batch.commit();
+            } else {
+                batch.cancel();
+            }
+        });
     };
 
     service.close = function() {
