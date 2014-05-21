@@ -26,6 +26,12 @@
     color: hsl(0, 0%, 90%);
     font-size: .9em;
     line-height: 1.2;
+    /* FIXME: I tried to use max-height here, but that doesn't work :( */
+    height: 100%;
+}
+
+.ModalOverlay-switcher {
+    height: 100%;
 }
 
 .ModalOverlay-item {
@@ -33,6 +39,7 @@
     padding: 8px;
     border-radius: 4px;
     text-align: center;
+    height: 100%;
 }
 
 .ModalOverlay-warning {

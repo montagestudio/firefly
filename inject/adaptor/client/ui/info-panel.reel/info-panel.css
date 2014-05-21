@@ -1,0 +1,4 @@
+.InfoPanel .ModalOverlay-message {
+    max-height: 90%;
+    overflow: scroll;
+}
