@@ -31,12 +31,12 @@ var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function
     };
 };
 
-function FileService(session, fs, environment, pathname, fsPath) {
+function FileService(config, fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
 
     var convertProjectUrlToPath = makeConvertProjectUrlToPath(pathname);
-    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, session.subdomain, environment);
+    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, config.subdomain, environment);
 
     /**
      * Converts an array of (absolute) paths to an array of objects with `url`

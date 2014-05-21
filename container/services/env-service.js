@@ -1,9 +1,9 @@
 module.exports = EnvService;
-function EnvService(session, _, environment, pathname) {
+function EnvService(config, _, environment, pathname) {
     // Returned service
     var service = {};
 
-    service.projectUrl = environment.getProjectUrl(session.subdomain);
+    service.projectUrl = environment.getProjectUrl(config.subdomain);
 
     service.getEnv = function (key) {
         return environment[key];

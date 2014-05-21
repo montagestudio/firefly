@@ -3,7 +3,7 @@ var QFS = require("q-io/fs");
 var PATH = require('path');
 
 module.exports = ExtensionService;
-function ExtensionService(session, fs, environment, _, __, clientPath) {
+function ExtensionService(_, fs, environment, __, ___, clientPath) {
     var extensionsRoot = PATH.join(clientPath, "extensions");
 
     // Returned service
