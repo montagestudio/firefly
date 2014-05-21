@@ -1,5 +1,5 @@
 var URL = require("url");
-var Map = require("collections/map");
+var Set = require("collections/map");
 var routeProject = require("../route-project");
 var generateAccessCode = require("./generate-access-code");
 
@@ -9,15 +9,12 @@ module.exports = new SubdomainDetailsMap();
 module.exports.SubdomainDetailsMap = SubdomainDetailsMap;
 
 function SubdomainDetailsMap() {
-    this.map = {};
+    this.subdomainDetails = {};
+    this.detailsSubdomain = Set();
 }
 
 SubdomainDetailsMap.prototype.detailsFromSubdomain = function(subdomain) {
-    if (this.map.hasOwnProperty(subdomain)) {
-        return this.map[subdomain];
-    }
-
-    return false;
+    return this.subdomainDetails[subdomain] || false;
 };
 
 SubdomainDetailsMap.prototype.detailsFromUrl = function(url) {
@@ -33,10 +30,14 @@ SubdomainDetailsMap.prototype.detailsFromUrl = function(url) {
     var hostname = URL.parse(url).hostname;
     var subdomain = hostname.split(".")[0];
 
-    return this.getFromSubdomain(subdomain);
+    return this.detailsFromSubdomain(subdomain);
 };
 
 SubdomainDetailsMap.prototype.subdomainFromDetails = function(details) {
+    if (this.detailsSubdomain.has(details)) {
+        return this.detailsSubdomain.get(details);
+    }
+
     // get "pod" and convert to letter
     var pod = routeProject.podForUsername(details.user);
     var podLetter = String.fromCharCode(96 + pod);
@@ -45,8 +46,9 @@ SubdomainDetailsMap.prototype.subdomainFromDetails = function(details) {
     var random = generateAccessCode(5);
 
     var subdomain = podLetter + random;
-    // store in map
-    this.map[subdomain] = details;
+    // store
+    this.subdomainDetails[subdomain] = details;
+    this.detailsSubdomain.set(details, subdomain);
     // return hash
     return subdomain;
 };

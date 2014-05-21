@@ -21,7 +21,9 @@ describe("SubdomainDetailsMap", function () {
     it("gets the details for a given subdomain", function () {
         var subdomain = subdomainDetailsMap.subdomainFromDetails(details);
         var returnedDetails = subdomainDetailsMap.detailsFromSubdomain(subdomain);
-        expect(returnedDetails).toBe(details);
+        expect(returnedDetails.user).toEqual("user");
+        expect(returnedDetails.owner).toEqual("owner");
+        expect(returnedDetails.repo).toEqual("repo");
     });
 
     it("returns the same subdomain for the same details", function () {
