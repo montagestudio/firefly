@@ -13,7 +13,7 @@ var Map = require("collections/map");
 var CLIENT_ROOT = FS.join(__dirname, "preview");
 var clientFs = FS.reroot(CLIENT_ROOT);
 
-var HOST_ACCESS_CODE_MAP = Map(null, previewDetailsEquals, previewDetailsHash);
+var HOST_ACCESS_CODE_MAP = Map();
 
 function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -107,7 +107,7 @@ function maybeGrantAccessToPreview(code, previewDetails, session) {
             if (session.previewAccess) {
                 session.previewAccess.add(previewDetails);
             } else {
-                session.previewAccess = Set([previewDetails], previewDetailsEquals, previewDetailsHash);
+                session.previewAccess = Set([previewDetails]);
             }
             log("access granted ", previewDetails);
             return true;
@@ -116,12 +116,4 @@ function maybeGrantAccessToPreview(code, previewDetails, session) {
 
     log("access denied");
     return false;
-}
-
-function previewDetailsEquals(a, b) {
-    return a.user === b.user && a.owner === b.owner && a.repo === b.repo;
-}
-
-function previewDetailsHash(value) {
-    return value && "" + value.user + value.owner + value.repo;
 }
