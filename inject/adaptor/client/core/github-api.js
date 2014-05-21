@@ -371,6 +371,7 @@ GithubApi.prototype._request = function(request) {
                 deferred.resolve(message);
             }
         } else {
+            var action = "Cannot " + request.method + " " + JSON.stringify(self.API_URL + request.url + queryString);
             var error;
             // Try and give a friendly error from Github
             if (xhr.responseText) {
@@ -383,14 +384,14 @@ GithubApi.prototype._request = function(request) {
                     // ignore
                 }
                 if (errors && errors[0] && errors[0].message) {
-                    error = new Error(errors[0].message);
+                    error = new Error(action + " because " + errors[0].message);
                 } else if (message && message.length) {
-                    error = new Error(message);
+                    error = new Error(action + " because " + message);
                 }
             }
 
             if (!error) {
-                error = new Error("Cannot " + request.method + " " + JSON.stringify(self.API_URL + request.url + queryString));
+                error = new Error(action);
             }
 
             error.xhr = xhr;
