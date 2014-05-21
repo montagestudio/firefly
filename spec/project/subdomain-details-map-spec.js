@@ -5,7 +5,7 @@ describe("SubdomainDetailsMap", function () {
     beforeEach(function () {
         subdomainDetailsMap = new SubdomainDetailsMap();
         details = {
-            user: "user",
+            username: "username",
             owner: "owner",
             repo: "repo"
         };
@@ -21,7 +21,7 @@ describe("SubdomainDetailsMap", function () {
     it("gets the details for a given subdomain", function () {
         var subdomain = subdomainDetailsMap.subdomainFromDetails(details);
         var returnedDetails = subdomainDetailsMap.detailsFromSubdomain(subdomain);
-        expect(returnedDetails.user).toEqual("user");
+        expect(returnedDetails.username).toEqual("username");
         expect(returnedDetails.owner).toEqual("owner");
         expect(returnedDetails.repo).toEqual("repo");
     });

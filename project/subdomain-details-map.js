@@ -40,7 +40,7 @@ SubdomainDetailsMap.prototype.subdomainFromDetails = function(details) {
     }
 
     // get "pod" and convert to letter
-    var pod = routeProject.podForUsername(details.user);
+    var pod = routeProject.podForUsername(details.username);
     var podLetter = String.fromCharCode(96 + pod);
     // generate random code
     // 5 characters give about 4 million combinations

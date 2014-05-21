@@ -186,7 +186,7 @@ function server(options) {
 
             return Q.all(workspaceKeys.map(function (value) {
                 // delete
-                return containerManager.delete(value.user, value.owner, value.repo)
+                return containerManager.delete(value.username, value.owner, value.repo)
                 .catch(function (error) {
                     // catch error and log
                     track.error(error, request);

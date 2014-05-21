@@ -36,10 +36,10 @@ function RepositoryService(config, fs, environment, pathname, fsPath) {
     return _RepositoryService(config.username, config.owner, config.githubAccessToken, config.repo, fs, fsPath, true);
 }
 
-function _RepositoryService(user, owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
+function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
     // Returned service
 
-    var serviceUUID = user + ":" + owner + ":" + repo + ":" + fsPath;
+    var serviceUUID = username + ":" + owner + ":" + repo + ":" + fsPath;
 
     if (_cachedServices[serviceUUID]) {
         return _cachedServices[serviceUUID];
@@ -66,7 +66,7 @@ function _RepositoryService(user, owner, githubAccessToken, repo, fs, fsPath, ac
         USER_SHADOW_BRANCH_PREFIX;
 
 
-    USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + user + SHADOW_BRANCH_SUFFIX;
+    USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + username + SHADOW_BRANCH_SUFFIX;
 
     _gitFetch = function(force) {
         if (force === true || (Date.now() - _gitFetchLastTimeStamp) > GIT_FETCH_TIMEOUT) {

@@ -32,7 +32,7 @@ exports.hasAccess = function (previewDetails, session) {
         if (session && session.githubUser) {
             return session.githubUser.then(function (githubUser) {
                 // The user doesn't need to have explicit access to its own previews.
-                var access = githubUser && githubUser.login.toLowerCase() === previewDetails.user;
+                var access = githubUser && githubUser.login.toLowerCase() === previewDetails.username;
 
                 return access || has3rdPartyAccess(previewDetails, session);
             });

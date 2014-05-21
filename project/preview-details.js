@@ -3,8 +3,8 @@
 // and Maps/
 
 module.exports = PreviewDetails;
-function PreviewDetails(user, owner, repo) {
-    this.user = user.toLowerCase();
+function PreviewDetails(username, owner, repo) {
+    this.username = username.toLowerCase();
     this.owner = owner.toLowerCase();
     this.repo = repo.toLowerCase();
 }
@@ -13,18 +13,18 @@ PreviewDetails.fromObject = function (object) {
     if (object instanceof this) {
         return object;
     } else {
-        return new this(object.user, object.owner, object.repo);
+        return new this(object.username, object.owner, object.repo);
     }
 };
 
 PreviewDetails.prototype.equals = function (other) {
-    return this.user === other.user && this.owner === other.owner && this.repo === other.repo;
+    return this.username === other.username && this.owner === other.owner && this.repo === other.repo;
 };
 
 PreviewDetails.prototype.hash = function () {
-    return this.user + "/" + this.owner + "/" + this.repo;
+    return this.username + "/" + this.owner + "/" + this.repo;
 };
 
 PreviewDetails.prototype.toString = function () {
-    return "[PreviewDetails " + this.user + ", " + this.owner + ", " + this.repo + "]";
+    return "[PreviewDetails " + this.username + ", " + this.owner + ", " + this.repo + "]";
 };

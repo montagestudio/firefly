@@ -8,7 +8,7 @@ describe("preview", function () {
         var previewDetails, githubUser, session;
         beforeEach(function () {
             previewDetails = {
-                user: "owner",
+                username: "owner",
                 owner: "owner",
                 repo: "repo"
             };
