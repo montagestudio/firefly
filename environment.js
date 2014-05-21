@@ -47,18 +47,6 @@ function Env(options) {
         var pathname = URL.parse(url).pathname;
 
         var match = pathname.match(/\/?([^\/]+)\/([^\/]+)/);
-        var owner = match[1];
-        var repo = match[2];
-
-        return {
-            owner: owner.toLowerCase(),
-            repo: repo.toLowerCase()
-        };
-    };
-    env.getDetailsFromAppUrl = function (url) {
-        var pathname = URL.parse(url).pathname;
-
-        var match = pathname.match(/\/?([^\/]+)\/([^\/]+)/);
         if (!match) {
             throw new Error("Could not parse details from " + url);
         }
