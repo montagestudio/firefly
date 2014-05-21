@@ -13,7 +13,6 @@ var LOCAL_REPOSITORY_NAME = "__local__";
 var REMOTE_REPOSITORY_NAME = "origin";
 var SHADOW_BRANCH_PREFIX = "__mb__";
 var SHADOW_BRANCH_SUFFIX = "__";
-var OWNER_SHADOW_BRANCH_PREFIX;
 
 var _cachedServices = {};
 var semaphore = Git.semaphore;
@@ -34,13 +33,13 @@ var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function
 };
 
 function RepositoryService(config, fs, environment, pathname, fsPath) {
-    return _RepositoryService(config.owner, config.githubAccessToken, config.repo, fs, fsPath, true);
+    return _RepositoryService(config.username, config.owner, config.githubAccessToken, config.repo, fs, fsPath, true);
 }
 
-function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
+function _RepositoryService(user, owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
     // Returned service
 
-    var serviceUUID = owner + ":" + repo + ":" + fsPath;
+    var serviceUUID = user + ":" + owner + ":" + repo + ":" + fsPath;
 
     if (_cachedServices[serviceUUID]) {
         return _cachedServices[serviceUUID];
@@ -63,9 +62,11 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         _gitFetch,
         _gitAutoFlushTimer = [],
         _checkGithubError,
-        _gitCommitBatch = GitCommitBatchFactory(service);
+        _gitCommitBatch = GitCommitBatchFactory(service),
+        USER_SHADOW_BRANCH_PREFIX;
 
-    OWNER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _owner + SHADOW_BRANCH_SUFFIX;
+
+    USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + user + SHADOW_BRANCH_SUFFIX;
 
     _gitFetch = function(force) {
         if (force === true || (Date.now() - _gitFetchLastTimeStamp) > GIT_FETCH_TIMEOUT) {
@@ -425,8 +426,8 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                 // Checking for a shadow branch
                 if (branchName.indexOf(SHADOW_BRANCH_PREFIX) === 0) {
                     // if it's not the proper user shadow branch, just ignore it
-                    if (branchName.indexOf(OWNER_SHADOW_BRANCH_PREFIX) === 0) {
-                        branchName = branchName.substring(OWNER_SHADOW_BRANCH_PREFIX.length);
+                    if (branchName.indexOf(USER_SHADOW_BRANCH_PREFIX) === 0) {
+                        branchName = branchName.substring(USER_SHADOW_BRANCH_PREFIX.length);
                         shadowBranch = true;
                     } else {
                         return;
@@ -535,7 +536,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         .then(function() {
             // Checkout the shadow branch if needed
             if (!(branchesInfo.current === branch && branchesInfo.currentIsShadow)) {
-                return _git.checkout(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                return _git.checkout(_fsPath, USER_SHADOW_BRANCH_PREFIX + branch);
             }
         });
     };
@@ -566,7 +567,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             return Q.reject(new Error("Invalid shadowBranchStatus argument."));
         }
 
-        shadowBranch = OWNER_SHADOW_BRANCH_PREFIX + branch;
+        shadowBranch = USER_SHADOW_BRANCH_PREFIX + branch;
 
         return _gitFetch(forceFetch)
         .then(function() {
@@ -895,7 +896,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
         })
         .then(function() {
             // Make sure we have something to merge...
-            return self._branchStatus(branch, OWNER_SHADOW_BRANCH_PREFIX + branch)
+            return self._branchStatus(branch, USER_SHADOW_BRANCH_PREFIX + branch)
             .then(function(status) {
                 _gitFetchLastTimeStamp = 0;
 
@@ -903,7 +904,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     return _git.checkout(_fsPath, branch)
                     .then(function() {
                         // git merge <shadow branch> [--squash]
-                        return _git.merge(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch, squash)
+                        return _git.merge(_fsPath, USER_SHADOW_BRANCH_PREFIX + branch, squash)
                         .catch(function(error) {
                             return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
                             .thenReject(error);
@@ -924,21 +925,21 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
                     })
                     .then(function() {
                         // git checkout <shadow branch>
-                        return _git.checkout(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                        return _git.checkout(_fsPath, USER_SHADOW_BRANCH_PREFIX + branch);
                     })
                     .then(function() {
                         // reset the shadow branch after a squash
                         if (squash) {
                             return _git.command(_fsPath, "reset", ["--hard", branch])
                             .then(function() {
-                                return self._push(OWNER_SHADOW_BRANCH_PREFIX + branch, "--force");
+                                return self._push(USER_SHADOW_BRANCH_PREFIX + branch, "--force");
                             });
                         }
                     }).then(function() {
                         return true;
                     }, function(error) {
                         // checkout the shadow branch, just in case we are still on the parent branch
-                        _git.checkout(_fsPath, OWNER_SHADOW_BRANCH_PREFIX + branch);
+                        _git.checkout(_fsPath, USER_SHADOW_BRANCH_PREFIX + branch);
                         throw error;
                     });
                 } else {
@@ -1085,19 +1086,19 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             if (local.shadow) {
                 if (!remote.shadow) {
                     // Remote shadow branch missing, let's push it
-                    next = self._push(OWNER_SHADOW_BRANCH_PREFIX + currentBranch, "-u");
+                    next = self._push(USER_SHADOW_BRANCH_PREFIX + currentBranch, "-u");
                 } else {
                     next = Q();
                 }
             } else if (remote.shadow) {
                 // Create a local branch that track the remote shadow branch
-                next = _git.branch(_fsPath, ["--track", OWNER_SHADOW_BRANCH_PREFIX + currentBranch, remote.shadow.name]);
+                next = _git.branch(_fsPath, ["--track", USER_SHADOW_BRANCH_PREFIX + currentBranch, remote.shadow.name]);
             } else {
                 // Create a shadow branch both locally and remotely
-                next = _git.branch(_fsPath, ["--no-track", OWNER_SHADOW_BRANCH_PREFIX + currentBranch, remote.name])
+                next = _git.branch(_fsPath, ["--no-track", USER_SHADOW_BRANCH_PREFIX + currentBranch, remote.name])
                 .then(function() {
                     remoteModified = true;
-                    return self._push(OWNER_SHADOW_BRANCH_PREFIX + currentBranch, "-u");
+                    return self._push(USER_SHADOW_BRANCH_PREFIX + currentBranch, "-u");
                 });
             }
 
@@ -1273,7 +1274,7 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             .then(function(result) {
                 currentBranchName = result.current;
                 if (result.currentIsShadow) {
-                    currentBranchName = self.OWNER_SHADOW_BRANCH_PREFIX + currentBranchName;
+                    currentBranchName = self.USER_SHADOW_BRANCH_PREFIX + currentBranchName;
                 }
                 return result;
             })
@@ -1388,9 +1389,9 @@ function _RepositoryService(owner, githubAccessToken, repo, fs, fsPath, acceptOn
             }
         },
 
-        OWNER_SHADOW_BRANCH_PREFIX: {
+        USER_SHADOW_BRANCH_PREFIX: {
             get: function() {
-                return OWNER_SHADOW_BRANCH_PREFIX;
+                return USER_SHADOW_BRANCH_PREFIX;
             }
         }
     });

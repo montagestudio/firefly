@@ -65,7 +65,8 @@ describe("repository-service", function () {
     tmpPath = "/tmp/repository-service-spec-" + Date.now() + Math.floor(Math.random() * 999999);
 
     session = {
-        owner: "jasmine",
+        username: "jasmine",
+        owner: "owner",
         repo: "sample",
         githubAccessToken: "free-pass"
     };
@@ -84,7 +85,7 @@ describe("repository-service", function () {
         it ("should have a repo", function(done) {
             createRepo("branchRepo", tmpPath).then(function(path) {
                 serviceRepo1Path = path;
-                service1 = RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false);
+                service1 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false);
                 service1.setGithubApi(new MockGithubApi());
             })
             .then(function() {
@@ -127,7 +128,7 @@ describe("repository-service", function () {
                 expect(typeof master).toBe("object");
                 expect(typeof master.sha).toBe("string");
                 expect(typeof master.shadow).toBe("object");
-                expect(master.shadow.name).toBe(service1.REMOTE_REPOSITORY_NAME + "/" + service1.OWNER_SHADOW_BRANCH_PREFIX + "master");
+                expect(master.shadow.name).toBe(service1.REMOTE_REPOSITORY_NAME + "/" + service1.USER_SHADOW_BRANCH_PREFIX + "master");
                 expect(typeof master.shadow.sha).toBe("string");
             })
             .then(done, done);
@@ -165,7 +166,7 @@ describe("repository-service", function () {
 
         it ("can parse a local checked out shadow master branch", function(done) {
             service1._branchLineParser(
-                "* " + service1.OWNER_SHADOW_BRANCH_PREFIX +
+                "* " + service1.USER_SHADOW_BRANCH_PREFIX +
                 "master                           dccd034849028653a944d0f82842f802080657bb Update palette and matte", result);
             expect(result.current).toBe("master");
 
@@ -173,7 +174,7 @@ describe("repository-service", function () {
             expect(typeof branch).toBe("object");
             expect(branch.name).toBe("master");
             expect(typeof branch.shadow).toBe("object");
-            expect(branch.shadow.name).toBe(service1.OWNER_SHADOW_BRANCH_PREFIX + "master");
+            expect(branch.shadow.name).toBe(service1.USER_SHADOW_BRANCH_PREFIX + "master");
             expect(typeof branch.shadow.sha).toBe("string");
             done();
         });
@@ -209,11 +210,11 @@ describe("repository-service", function () {
                 service1.close(null);   // We need to close the service in order to reset it (as we use the same path)
 
                 serviceRepo1Path = PATH.join(tmpPath, "serviceRepo1");
-                service1 = RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false);
+                service1 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false);
                 service1.setGithubApi(new MockGithubApi());
 
                 serviceRepo2Path = PATH.join(tmpPath, "serviceRepo2");
-                service2 = RepositoryService(session.owner, session.githubAccessToken, session.repo, fs, serviceRepo2Path, false);
+                service2 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo2Path, false);
                 service2.setGithubApi(new MockGithubApi());
 
                 service1._getRepositoryUrl = function() {
