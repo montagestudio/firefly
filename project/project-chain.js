@@ -16,6 +16,7 @@ var preview = require("./preview");
 var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
+var PreviewDetails = require("./preview-details");
 
 module.exports = server;
 function server(options) {
@@ -96,12 +97,9 @@ function server(options) {
                 return preview.hasAccess(request.headers.host, request.session)
                 .then(function (hasAccess) {
                     var details = environment.getDetailsfromProjectUrl(request.url);
+                    details = new PreviewDetails(details.owner, details.owner, details.repo);
                     if (hasAccess) {
-                        var projectWorkspacePort = containerManager.getPort(
-                            details.owner,
-                            details.owner,
-                            details.repo
-                        );
+                        var projectWorkspacePort = containerManager.getPort(details);
                         if (!projectWorkspacePort) {
                             return preview.serveNoPreviewPage(request);
                         }
@@ -113,11 +111,7 @@ function server(options) {
                             return preview.serveNoPreviewPage(request);
                         });
                     } else {
-                        containerManager.setup(
-                            details.owner,
-                            details.owner,
-                            details.repo
-                        )
+                        containerManager.setup(details)
                         .then(function (projectWorkspacePort) {
                             if (!projectWorkspacePort) {
                                 return;
@@ -165,9 +159,11 @@ function server(options) {
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
                 return containerManager.setup(
-                    session.username,
-                    request.params.owner,
-                    request.params.repo,
+                    new PreviewDetails(
+                        session.username,
+                        request.params.owner,
+                        request.params.repo
+                    ),
                     session.githubAccessToken,
                     githubUser
                 );
@@ -200,9 +196,11 @@ function server(options) {
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
                 return containerManager.setup(
-                    session.username,
-                    request.params.owner,
-                    request.params.repo,
+                    new PreviewDetails(
+                        session.username,
+                        request.params.owner,
+                        request.params.repo
+                    ),
                     session.githubAccessToken,
                     githubUser
                 );
@@ -228,7 +226,7 @@ function server(options) {
                     if (hasAccess) {
                         log("preview websocket", request.headers.host);
                         details = environment.getDetailsfromProjectUrl(request.headers.host);
-                        details.username = details.owner;
+                        details = new PreviewDetails(details.owner, details.owner, details.repo);
                         return proxyPreviewWebsocket(request, socket, body, details);
                     } else {
                         socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
@@ -237,9 +235,9 @@ function server(options) {
                 });
             } else {
                 log("filament websocket");
-                details = environment.getDetailsFromAppUrl(request.url);
                 return sessions.getSession(request, function (session) {
-                    details.username = session.username;
+                    details = environment.getDetailsFromAppUrl(request.url);
+                    details = new PreviewDetails(session.username, details.owner, details.repo);
                     return proxyAppWebsocket(request, socket, body, details);
                 });
             }

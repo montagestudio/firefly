@@ -3,6 +3,7 @@ var track = require("../track");
 var request = require("q-io/http").request;
 var Q = require("q");
 var environment = require("../environment");
+var PreviewDetails = require("./preview-details");
 
 // TODO configure
 var IMAGE_NAME = "firefly_project";
@@ -18,21 +19,19 @@ function ContainerManager(docker, containers, _request) {
     this.request = _request || request;
 }
 
-ContainerManager.prototype.setup = function (user, owner, repo, githubAccessToken, githubUser) {
+ContainerManager.prototype.setup = function (details, githubAccessToken, githubUser) {
     var self = this;
 
-    user = user.toLowerCase();
-    owner = owner.toLowerCase();
-    repo = repo.toLowerCase();
+    if (!(details instanceof PreviewDetails)) {
+        throw new Error("Given details was not an instance of PreviewDetails");
+    }
 
-    var containerKey = {user: user, owner: owner, repo: repo};
-
-    var info = self.containers.get(containerKey);
+    var info = self.containers.get(details);
     if (!info && (!githubAccessToken || !githubUser)) {
         return Q(false);
     }
 
-    return self.getOrCreate(containerKey, user, owner, repo, githubAccessToken, githubUser)
+    return self.getOrCreate(details, githubAccessToken, githubUser)
     .then(function (info) {
         return self.start(info);
     })
@@ -40,14 +39,14 @@ ContainerManager.prototype.setup = function (user, owner, repo, githubAccessToke
         return self.waitForServer(info);
     })
     .catch(function (error) {
-        log("Removing container for", JSON.stringify(containerKey), "because", error.message);
+        log("Removing container for", details.toString(), "because", error.message);
 
-        self.delete(user, owner, repo)
+        self.delete(details)
         .catch(function (error) {
-            track.errorForUsername(error, user, {containerKey: containerKey});
+            track.errorForUsername(error, details.user, {details: details});
         });
 
-        track.errorForUsername(error, user, {containerKey: containerKey});
+        track.errorForUsername(error, details.user, {details: details});
 
         throw error;
     });
@@ -61,20 +60,18 @@ ContainerManager.prototype.setup = function (user, owner, repo, githubAccessToke
  * @param  {string} repo
  * @return {string}       The port of the container, or `undefined`
  */
-ContainerManager.prototype.getPort = function (user, owner, repo) {
-    var containerKey = {user: user, owner: owner, repo: repo};
-    var info = this.containers.get(containerKey);
+ContainerManager.prototype.getPort = function (details) {
+    var info = this.containers.get(details);
     return info && info.port;
 };
 
-ContainerManager.prototype.delete = function (user, owner, repo) {
+ContainerManager.prototype.delete = function (details) {
     var self = this;
 
-    var containerKey = {user: user, owner: owner, repo: repo};
-    var info = self.containers.get(containerKey);
+    var info = self.containers.get(details);
     var container = new self.docker.Container(self.docker.modem, info.id);
 
-    self.containers.delete(containerKey);
+    self.containers.delete(details);
 
     return container.stop()
     .then(function () {
@@ -89,24 +86,24 @@ ContainerManager.prototype.delete = function (user, owner, repo) {
  * @param  {string} repo  The name of the repo
  * @return {Promise.<Object>} An object of information about the container
  */
-ContainerManager.prototype.getOrCreate = function (containerKey, user, owner, repo, githubAccessToken, githubUser) {
+ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, githubUser) {
     var self = this;
 
-    var info = self.containers.get(containerKey);
+    var info = self.containers.get(details);
 
     if (!info) {
-        log("Creating container for", user, owner, repo, "...");
-        track.messageForUsername("create container", user, {containerKey: containerKey});
+        log("Creating container for", details.toString(), "...");
+        track.messageForUsername("create container", details.user, {details: details});
 
         var config = {
-            username: user,
-            owner: owner,
-            repo: repo,
+            username: details.user,
+            owner: details.owner,
+            repo: details.repo,
             githubAccessToken: githubAccessToken,
             githubUser: githubUser
         };
 
-        var name = generateContainerName(user, owner, repo);
+        var name = generateContainerName(details);
 
         var created = self.docker.createContainer({
             name: name,
@@ -122,13 +119,13 @@ ContainerManager.prototype.getOrCreate = function (containerKey, user, owner, re
             ]
         })
         .then(function (container) {
-            log("Created container", container.id, "for", user, owner, repo);
+            log("Created container", container.id, "for", details.toString());
             info = {id: container.id};
-            self.containers.set(containerKey, info);
+            self.containers.set(details, info);
             return info;
         });
 
-        self.containers.set(containerKey, {created: created});
+        self.containers.set(details, {created: created});
 
         return created;
     } else if (info.created && info.created.then) {
@@ -220,13 +217,13 @@ function getExposedPort(containerInfo) {
 }
 
 var REPLACE_RE = /[^a-zA-Z0-9\-]/g;
-function generateContainerName(user, owner, repo) {
+function generateContainerName(details) {
     // Remove all characters that don't match the RE at the bottom of
     // http://docs.docker.io/en/latest/reference/api/docker_remote_api_v1.10/#create-a-container
     // (excluding "_", because we use that ourselves)
-    user = user.replace(REPLACE_RE, "");
-    owner = owner.replace(REPLACE_RE, "");
-    repo = repo.replace(REPLACE_RE, "");
+    var user = details.user.replace(REPLACE_RE, "");
+    var owner = details.owner.replace(REPLACE_RE, "");
+    var repo = details.repo.replace(REPLACE_RE, "");
     // avoid collisions
     var random = Date.now() + "" + Math.floor(Math.random()*10000);
 

@@ -2,7 +2,7 @@ var Q = require("q");
 var ContainerManager = require("../../project/container-manager");
 var MockDocker = require("../mocks/docker");
 var makeContainerIndex = require("../../project/make-container-index");
-
+var PreviewDetails = require("../../project/preview-details");
 
 describe("ContainerManager", function () {
     var docker, containerIndex, containerManager;
@@ -22,7 +22,7 @@ describe("ContainerManager", function () {
 
     describe("setup", function () {
         it("returns the port", function (done) {
-            containerManager.setup("user", "owner", "repo", "xxx", {})
+            containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             .then(function (port) {
                 // Port returned by MockDocker
                 expect(port).toEqual("1234");
@@ -31,18 +31,19 @@ describe("ContainerManager", function () {
         });
 
         it("adds a new container to the index", function (done) {
-            containerManager.setup("user", "owner", "repo", "xxx", {})
+            var details = new PreviewDetails("user", "owner", "repo");
+            containerManager.setup(details, "xxx", {})
             .then(function () {
                 var entries = containerIndex.entries();
                 expect(entries.length).toEqual(1);
-                expect(entries[0][0]).toEqual({user: "user", owner: "owner", repo: "repo"});
+                expect(entries[0][0]).toEqual(details);
             })
             .then(done, done);
         });
 
         it("removes a container from the index if it fails", function (done) {
             docker.createContainer = function () { return  Q.reject(new Error()); };
-            containerManager.setup("user", "owner", "repo", "xxx", {})
+            containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             .then(function () {
                 // expect failure
                 expect(false).toBe(true);
@@ -56,8 +57,8 @@ describe("ContainerManager", function () {
         it("doesn't create two containers for one user/owner/repo", function (done) {
             spyOn(docker, "createContainer").andCallThrough();
             Q.all([
-                containerManager.setup("user", "owner", "repo", "xxx", {}),
-                containerManager.setup("user", "owner", "repo", "xxx", {})
+                containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {}),
+                containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             ])
             .then(function () {
                 expect(docker.createContainer.callCount).toEqual(1);
@@ -67,7 +68,7 @@ describe("ContainerManager", function () {
 
         it("gives the container a useful name", function (done) {
             spyOn(docker, "createContainer").andCallThrough();
-            containerManager.setup("one-one", "two&two", "three123456three", "xxx", {})
+            containerManager.setup(new PreviewDetails("one-one", "two&two", "three123456three"), "xxx", {})
             .then(function () {
                 expect(docker.createContainer.mostRecentCall.args[0].name).toContain("one-one_twotwo_three123456three");
             })
@@ -75,7 +76,7 @@ describe("ContainerManager", function () {
         });
 
         it("returns false if there's no container and no github access token or username are given", function (done) {
-            containerManager.setup("user", "owner", "repo")
+            containerManager.setup(new PreviewDetails("user", "owner", "repo"))
             .then(function (port) {
                 expect(port).toBe(false);
             })
