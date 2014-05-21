@@ -562,10 +562,16 @@ exports.EnvironmentBridge = Target.specialize({
     openHttpUrl: {
         value: function (url) {
             var deferredWindow = Promise.defer(),
-                newWindow = window.open(url);
+                newWindow = window.open();
+
+            // Prevent new window from having a reference to this window, this
+            // will put the new window in a new process.
+            // https://code.google.com/p/chromium/issues/detail?id=153363
+            newWindow.opener = null;
+            newWindow.location.href = url;
 
             if (newWindow) {
-                deferredWindow.resolve(newWindow);
+                deferredWindow.resolve();
             } else {
                 deferredWindow.reject( new Error("Failed to open window to " + url));
             }
