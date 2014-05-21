@@ -1,3 +1,4 @@
+var log = require("../logging").from(__filename);
 var URL = require("url");
 var Set = require("collections/map");
 var routeProject = require("../route-project");
@@ -49,6 +50,9 @@ SubdomainDetailsMap.prototype.subdomainFromDetails = function(details) {
     // store
     this.subdomainDetails[subdomain] = details;
     this.detailsSubdomain.set(details, subdomain);
+
+    log("generated subdomain", subdomain, "for", details.toString());
+
     // return hash
     return subdomain;
 };

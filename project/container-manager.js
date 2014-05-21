@@ -12,9 +12,10 @@ var IMAGE_PORT = "2441";
 var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
 
 module.exports = ContainerManager;
-function ContainerManager(docker, containers, _request) {
+function ContainerManager(docker, containers, subdomainDetailsMap, _request) {
     this.docker = docker;
     this.containers = containers;
+    this.subdomainDetailsMap = subdomainDetailsMap;
     // Only used for testing
     this.request = _request || request;
 }
@@ -95,12 +96,15 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
         log("Creating container for", details.toString(), "...");
         track.messageForUsername("create container", details.user, {details: details});
 
+        var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
+
         var config = {
             username: details.user,
             owner: details.owner,
             repo: details.repo,
             githubAccessToken: githubAccessToken,
-            githubUser: githubUser
+            githubUser: githubUser,
+            subdomain: subdomain
         };
 
         var name = generateContainerName(details);

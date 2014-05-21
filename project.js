@@ -12,6 +12,7 @@ var CheckSession = require("./check-session");
 var ContainerManager = require("./project/container-manager");
 var Docker = require("./project/docker");
 var containerIndex = require("./project/make-container-index")("/srv/container-index.json");
+var subdomainDetailsMap = require("./project/subdomain-details-map");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
@@ -42,7 +43,7 @@ function main(options) {
     var projectChain = projectChainFactory({
         sessions: sessions,
         checkSession: CheckSession,
-        containerManager: new ContainerManager(docker, containerIndex),
+        containerManager: new ContainerManager(docker, containerIndex, subdomainDetailsMap),
         containerIndex: containerIndex
     });
     return projectChain.listen(options.port)

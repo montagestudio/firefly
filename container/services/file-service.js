@@ -24,9 +24,9 @@ var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function
     };
 };
 
-var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, environment) {
+var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, subdomain, environment) {
     return function (path) {
-        var projectHost = environment.getProjectUrlFromAppUrl(pathname); // FIXME
+        var projectHost = environment.getProjectUrl(subdomain);
         return projectHost + path;
     };
 };
@@ -36,7 +36,7 @@ function FileService(session, fs, environment, pathname, fsPath) {
     var service = {};
 
     var convertProjectUrlToPath = makeConvertProjectUrlToPath(pathname);
-    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, environment); // FIXME
+    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, session.subdomain, environment);
 
     /**
      * Converts an array of (absolute) paths to an array of objects with `url`
