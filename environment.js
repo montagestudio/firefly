@@ -59,12 +59,7 @@ function Env(options) {
         };
     };
     env.getDetailsfromProjectUrl = function (url) {
-        throw new Error("Deprecated. Use FIXME");
-
-        return {
-            owner: owner.toLowerCase(),
-            repo: repo.toLowerCase()
-        };
+        throw new Error("Deprecated. Use subdomainDetailsMap and a PreviewDetails object");
     };
     env.getProjectUrlFromAppUrl = function (url) {
         throw new Error("Deprecated. Use FIXME");

@@ -1,5 +1,4 @@
 var log = require("../logging").from(__filename);
-var track = require("../track");
 var environment = require("../environment");
 
 var FS = require("q-io/fs");
