@@ -1,4 +1,32 @@
+.InfoPanel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    padding: 0;
+}
+
 .InfoPanel .ModalOverlay-message {
-    max-height: 90%;
+    -webkit-flex: 1;
+        -ms-flex: 1;
+            flex: 1;
+    max-width: 600px;
     overflow: scroll;
+    margin: 0 auto;
+    padding: 4em 0;
+    border-bottom: 1px solid hsl(0, 0%, 20%);
+    text-align: left;
+    -webkit-user-select: initial;
+    cursor: auto;
+}
+
+.InfoPanel .ModalOverlay-footer {
+    margin-bottom: 22px;
 }
