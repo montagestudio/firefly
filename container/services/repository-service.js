@@ -744,7 +744,11 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     reference.step === SHADOW_STEP ? resolutionStrategy : null,
                     true)
                 .then(function(result) {
-                    if (!result.success) {
+                    if (result.success) {
+                        // update the local show branch SHA
+                        branchesInfo.branches[LOCAL_SOURCE_NAME][current].shadow.sha =
+                            branchesInfo.branches[REMOTE_SOURCE_NAME][current].shadow.sha;
+                    } else {
                         returnValue = result;
                         returnValue.reference = {step: SHADOW_STEP};
                     }
@@ -757,7 +761,8 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             if (returnValue.success && reference.step <= PARENT_STEP) {
                 return self._syncBranches(branchesInfo.branches[LOCAL_SOURCE_NAME][current].shadow,
                     branchesInfo.branches[REMOTE_SOURCE_NAME][current],
-                    reference.step === PARENT_STEP ? resolutionStrategy : null)
+                    // Inherit previous state stategy resolution only if it's rebase
+                    reference.step === PARENT_STEP ? resolutionStrategy : resolutionStrategy === "rebase" ? "rebase" : null)
                 .then(function(result) {
                     if (!result.success) {
                         returnValue = result;
@@ -1429,7 +1434,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             if (hasChanges) {
                 batch.commit();
             } else {
-                batch.cancel();
+                batch.release();
             }
         });
     };
