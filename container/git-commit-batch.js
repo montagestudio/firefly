@@ -77,10 +77,12 @@ function GitCommitBatchFactory(repositoryService) {
         _commit();
     };
 
-    GitCommitBatch.prototype.commit = function() {
+    GitCommitBatch.prototype.commit = function(message) {
         if (!this._deferred) {
             this._state = BATCH_COMMIT_STATE.willCommit;
             this._deferred = Q.defer();
+
+            this.message = message || this.message;
             _commit();
         }
         return this._deferred.promise;
