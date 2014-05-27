@@ -73,7 +73,7 @@ Mop.prototype.archive = function() {
     })
     .then(function(exists) {
         if (exists) {
-            return self._fs.removePath(archiveLocation);
+            return self._fs.remove(archiveLocation);
         }
     })
     .then(function() {
