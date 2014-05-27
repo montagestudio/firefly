@@ -888,8 +888,8 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     shadowBranchStatus: {
-        value: function (branch) {
-            return this.getService("repository-service").invoke("shadowBranchStatus", branch);
+        value: function (branch, forceFetch) {
+            return this.getService("repository-service").invoke("shadowBranchStatus", branch, forceFetch);
         }
     },
 
