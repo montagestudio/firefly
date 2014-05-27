@@ -19,7 +19,7 @@ describe("project chain", function () {
         chain = projectChain({
             sessions: MockSession(sessions),
             checkSession: CheckSession,
-            setupProjectContainer: function () { return Q("1234"); },
+            containerManager: {setup: function () { return Q("1234"); }},
             containerIndex: makeContainerIndex()
         }).end();
 
@@ -49,7 +49,7 @@ describe("project chain", function () {
             chain = projectChain({
                 sessions: Session("session", "x", null, store),
                 checkSession: CheckSession,
-                setupProjectContainer: function () { return Q("1234"); },
+                containerManager: {setup: function () { return Q("1234"); }},
                 containerIndex: makeContainerIndex()
             }).end();
         });
