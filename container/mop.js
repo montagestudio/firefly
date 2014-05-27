@@ -1,4 +1,5 @@
 var log = require("logging").from(__filename);
+var track = require("../track");
 var Q = require("q");
 var exec = require("./exec");
 var cp = require("child_process");
@@ -72,7 +73,7 @@ Mop.prototype.archive = function() {
     })
     .then(function(exists) {
         if (exists) {
-            return self._fs.removePath(archiveLocation);
+            return self._fs.remove(archiveLocation);
         }
     })
     .then(function() {
@@ -84,7 +85,8 @@ Mop.prototype.archive = function() {
     .then(function () {
         return archiveLocation;
     })
-    .fail(function () {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("Creating build archive failed.");
     });
 };
