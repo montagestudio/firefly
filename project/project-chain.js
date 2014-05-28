@@ -90,7 +90,10 @@ function server(options) {
 
         POST("access")
         .log(log, function (message) { return message; })
-        .app(preview.processAccessRequest);
+        .app(function (request) {
+            var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+            return preview.processAccessRequest(request, previewDetails);
+        });
     })
     .use(function (next) {
         return function (request, response) {
@@ -121,7 +124,7 @@ function server(options) {
                             if (!projectWorkspacePort) {
                                 return;
                             }
-                            var code = preview.getAccessCode(request.headers.host);
+                            var code = preview.getAccessCode(previewDetails);
                             // Chunk into groups of 4 by adding a space after
                             // every 4th character except if it's at the end of
                             // the string

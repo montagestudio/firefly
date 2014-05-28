@@ -66,15 +66,14 @@ exports.serveNoPreviewPage = function (request) {
     });
 };
 
-exports.processAccessRequest = function (request) {
+exports.processAccessRequest = function (request, previewDetails) {
     // Get code from the body data
     return request.body.read()
     .then(function(body) {
         if (body.length > 0) {
             var query = querystring.parse(body.toString());
 
-            maybeGrantAccessToPreview(
-                query.code, request.headers.host, request.session);
+            maybeGrantAccessToPreview(query.code, previewDetails, request.session);
         }
 
         // 302 - Temporary redirect using GET
