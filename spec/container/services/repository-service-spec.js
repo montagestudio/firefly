@@ -9,27 +9,7 @@ var FS = require("fs");
 var Git = require("../../../container/git");
 var RepositoryService = require("../../../container/services/repository-service").service;
 
-var createRepo = function(repoName, destPath, repoDestName) {
-    var deferred = Q.defer(),
-        repoPath = destPath + "/" + (repoDestName ? repoDestName : repoName);
-
-    // Unzip test repo and clone it
-    if (FS.existsSync(destPath + "/" + repoName + ".git")) {
-        exec("git clone " + destPath + "/" + repoName + ".git " + repoPath, function() {
-            deferred.resolve(repoPath);
-        });
-    } else {
-        exec("unzip -d " + destPath + " ./spec/fixtures/repos/" + repoName + ".zip", function() {
-            exec("git clone " + destPath + "/" + repoName + ".git " + repoPath, function() {
-                deferred.resolve(repoPath);
-            });
-        });
-    }
-
-    return deferred.promise;
-};
-
-var executeFile = function(scriptName, destPath) {
+var executeFile = function(scriptName, destPath, onlyLastLine) {
     var deferred = Q.defer();
 
     exec("cd ./spec/fixtures/repos/; chmod +x " + scriptName + "; pwd", function(error, stdout) {
@@ -38,6 +18,19 @@ var executeFile = function(scriptName, destPath) {
             if (error) {
                 deferred.reject(error);
             } else {
+                if (onlyLastLine) {
+                    var lines = stdout.split("\n"),
+                        lineCount = lines.length,
+                        lastLine;
+
+                    while (lineCount) {
+                        lastLine = lines[-- lineCount];
+                        if (lastLine.length) {
+                            break;
+                        }
+                    }
+                    stdout = lastLine || stdout;
+                }
                 deferred.resolve(stdout);
             }
         });
@@ -83,7 +76,7 @@ describe("repository-service", function () {
 
     describe("check branch setup", function () {
         it ("should have a repo", function(done) {
-            createRepo("branchRepo", tmpPath).then(function(path) {
+            executeFile("repo-service-sample.sh", tmpPath, true).then(function(path) {
                 serviceRepo1Path = path;
                 service1 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false);
                 service1.setGithubApi(new MockGithubApi());
@@ -114,21 +107,21 @@ describe("repository-service", function () {
             .then(function(result) {
                 expect(typeof result).toBe("object");
                 expect(typeof result.branches).toBe("object");
-                expect(Object.keys(result.branches[service1.REMOTE_REPOSITORY_NAME]).length).toBe(2);
+                expect(Object.keys(result.branches[service1.REMOTE_ORIGIN_NAME]).length).toBe(2);
                 expect(result.current).toBe("master");
 
-                var master = result.branches[service1.LOCAL_REPOSITORY_NAME][result.current];
+                var master = result.branches[service1.LOCAL_ORIGIN_NAME][result.current];
                 expect(typeof master).toBe("object");
                 expect(typeof master.sha).toBe("string");
                 expect(master.shadow).toBeNull();
 
-                expect(Object.keys(result.branches[service1.REMOTE_REPOSITORY_NAME]).length).toBe(2);
+                expect(Object.keys(result.branches[service1.REMOTE_ORIGIN_NAME]).length).toBe(2);
 
-                master = result.branches[service1.REMOTE_REPOSITORY_NAME][result.current];
+                master = result.branches[service1.REMOTE_ORIGIN_NAME][result.current];
                 expect(typeof master).toBe("object");
                 expect(typeof master.sha).toBe("string");
                 expect(typeof master.shadow).toBe("object");
-                expect(master.shadow.name).toBe(service1.REMOTE_REPOSITORY_NAME + "/" + service1.USER_SHADOW_BRANCH_PREFIX + "master");
+                expect(master.shadow.name).toBe(service1.REMOTE_ORIGIN_NAME + "/" + service1.USER_SHADOW_BRANCH_PREFIX + "master");
                 expect(typeof master.shadow.sha).toBe("string");
             })
             .then(done, done);
@@ -154,9 +147,9 @@ describe("repository-service", function () {
                 "  master                                 dccd034849028653a944d0f82842f802080657bb Update palette and matte", result);
             expect(result.current).toBeNull();
             expect(Object.keys(result.branches).length).toBe(1);
-            expect(Object.keys(result.branches)[0]).toBe(service1.LOCAL_REPOSITORY_NAME);
+            expect(Object.keys(result.branches)[0]).toBe(service1.LOCAL_ORIGIN_NAME);
 
-            var branch = result.branches[service1.LOCAL_REPOSITORY_NAME].master;
+            var branch = result.branches[service1.LOCAL_ORIGIN_NAME].master;
             expect(typeof branch).toBe("object");
             expect(branch.name).toBe("master");
             expect(typeof branch.sha).toBe("string");
@@ -170,7 +163,7 @@ describe("repository-service", function () {
                 "master                           dccd034849028653a944d0f82842f802080657bb Update palette and matte", result);
             expect(result.current).toBe("master");
 
-            var branch = result.branches[service1.LOCAL_REPOSITORY_NAME].master;
+            var branch = result.branches[service1.LOCAL_ORIGIN_NAME].master;
             expect(typeof branch).toBe("object");
             expect(branch.name).toBe("master");
             expect(typeof branch.shadow).toBe("object");
@@ -246,8 +239,8 @@ describe("repository-service", function () {
                     return service1.listBranches();
                 })
                 .then(function(branches) {
-                    var localeMaster = branches.branches[service1.LOCAL_REPOSITORY_NAME].master,
-                        remoteMaster = branches.branches[service1.REMOTE_REPOSITORY_NAME].master;
+                    var localeMaster = branches.branches[service1.LOCAL_ORIGIN_NAME].master,
+                        remoteMaster = branches.branches[service1.REMOTE_ORIGIN_NAME].master;
                     expect(branches.current).toBe("master");
                     expect(branches.currentIsShadow).toBeTruthy();
                     expect(remoteMaster.shadow).toBeDefined();
@@ -341,8 +334,8 @@ describe("repository-service", function () {
                 .then(function(result) {
                     reference = result.reference;
                     expect(result.success).toBeFalsy();
-                    expect(result.local).toBe("__mb__jasmine__master");
-                    expect(result.remote).toBe("origin/__mb__jasmine__master");
+                    expect(result.local).toBe("montagestudio/jasmine/master");
+                    expect(result.remote).toBe("origin/montagestudio/jasmine/master");
                     expect(result.ahead).toBe(0);
                     expect(result.behind).toBe(1);
                     expect(result.resolutionStrategy.length).toBe(1);
@@ -500,7 +493,7 @@ describe("repository-service", function () {
                     return service1.listBranches();
                 })
                 .then(function(branchesInfo) {
-                    var remoteMaster = branchesInfo.branches[service1.REMOTE_REPOSITORY_NAME].master;
+                    var remoteMaster = branchesInfo.branches[service1.REMOTE_ORIGIN_NAME].master;
                     return service1._reset(remoteMaster.sha);
                 })
                 .then(function(result) {
@@ -536,8 +529,8 @@ describe("repository-service", function () {
                     .then(function(branchesInfo1) {
                         return service2.listBranches()
                         .then(function(branchesInfo2) {
-                            expect(branchesInfo1.branches[service1.LOCAL_REPOSITORY_NAME].master.sha)
-                                .toBe(branchesInfo2.branches[service2.LOCAL_REPOSITORY_NAME].master.sha);
+                            expect(branchesInfo1.branches[service1.LOCAL_ORIGIN_NAME].master.sha)
+                                .toBe(branchesInfo2.branches[service2.LOCAL_ORIGIN_NAME].master.sha);
                         });
                     });
                 })
