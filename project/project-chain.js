@@ -17,6 +17,7 @@ var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
 var PreviewDetails = require("./preview-details");
+var subdomainDetailsMap = require("./subdomain-details-map");
 
 module.exports = server;
 function server(options) {
@@ -89,15 +90,22 @@ function server(options) {
 
         POST("access")
         .log(log, function (message) { return message; })
-        .app(preview.processAccessRequest);
+        .app(function (request) {
+            var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+            return preview.processAccessRequest(request, previewDetails);
+        });
     })
     .use(function (next) {
         return function (request, response) {
             if (preview.isPreview(request)) {
-                return preview.hasAccess(request.headers.host, request.session)
+                var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+                if (!previewDetails) {
+                    return preview.serveAccessForm(request);
+                }
+
+                return preview.hasAccess(previewDetails, request.session)
                 .then(function (hasAccess) {
-                    var details = environment.getDetailsfromProjectUrl(request.url);
-                    details = new PreviewDetails(details.owner, details.owner, details.repo);
+                    var details = subdomainDetailsMap.detailsFromUrl(request.url);
                     if (hasAccess) {
                         var projectWorkspacePort = containerManager.getPort(details);
                         if (!projectWorkspacePort) {
@@ -116,7 +124,7 @@ function server(options) {
                             if (!projectWorkspacePort) {
                                 return;
                             }
-                            var code = preview.getAccessCode(request.headers.host);
+                            var code = preview.getAccessCode(previewDetails);
                             // Chunk into groups of 4 by adding a space after
                             // every 4th character except if it's at the end of
                             // the string
@@ -181,7 +189,7 @@ function server(options) {
 
             return Q.all(workspaceKeys.map(function (value) {
                 // delete
-                return containerManager.delete(value.user, value.owner, value.repo)
+                return containerManager.delete(value.username, value.owner, value.repo)
                 .catch(function (error) {
                     // catch error and log
                     track.error(error, request);
@@ -221,12 +229,16 @@ function server(options) {
             var details;
             if (preview.isPreview(request)) {
                 return sessions.getSession(request, function (session) {
-                    return preview.hasAccess(request.headers.host, session);
+                    var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+                    if (previewDetails) {
+                        return preview.hasAccess(previewDetails, session);
+                    } else {
+                        return false;
+                    }
                 }).then(function (hasAccess) {
                     if (hasAccess) {
                         log("preview websocket", request.headers.host);
-                        details = environment.getDetailsfromProjectUrl(request.headers.host);
-                        details = new PreviewDetails(details.owner, details.owner, details.repo);
+                        details = subdomainDetailsMap.detailsFromUrl(request.headers.host);
                         return proxyPreviewWebsocket(request, socket, body, details);
                     } else {
                         socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");

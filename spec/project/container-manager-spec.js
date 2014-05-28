@@ -2,15 +2,17 @@ var Q = require("q");
 var ContainerManager = require("../../project/container-manager");
 var MockDocker = require("../mocks/docker");
 var makeContainerIndex = require("../../project/make-container-index");
+var SubdomainDetailsMap = require("../../project/subdomain-details-map").SubdomainDetailsMap;
 var PreviewDetails = require("../../project/preview-details");
 
 describe("ContainerManager", function () {
-    var docker, containerIndex, containerManager;
+    var docker, containerIndex, subdomainDetailsMap, containerManager;
     beforeEach(function () {
         docker = new MockDocker();
         containerIndex = makeContainerIndex();
+        subdomainDetailsMap = new SubdomainDetailsMap();
 
-        containerManager = new ContainerManager(docker, containerIndex, function () {
+        containerManager = new ContainerManager(docker, containerIndex, subdomainDetailsMap, function () {
             // Shim `request` function
             return Q({
                 status: 200,
@@ -79,6 +81,15 @@ describe("ContainerManager", function () {
             containerManager.setup(new PreviewDetails("user", "owner", "repo"))
             .then(function (port) {
                 expect(port).toBe(false);
+            })
+            .then(done, done);
+        });
+
+        it("creates a subdomain for the details", function (done) {
+            var details = new PreviewDetails("user", "owner", "repo");
+            containerManager.setup(details, "xxx", {})
+            .then(function () {
+                expect(typeof subdomainDetailsMap.subdomainFromDetails(details)).toEqual("string");
             })
             .then(done, done);
         });

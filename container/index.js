@@ -64,8 +64,8 @@ function main(options) {
         throw new Error("Config must be an object, not " + options.config);
     }
     var config = options.config;
-    if (!config.githubAccessToken || !config.githubUser || !config.username || !config.owner || !config.repo) {
-        throw new Error("Config must contain properties: githubAccessToken, githubUser, username, owner, repo, given " + JSON.stringify(Object.keys(config)));
+    if (!config.githubAccessToken || !config.githubUser || !config.username || !config.owner || !config.repo || !config.subdomain) {
+        throw new Error("Config must contain properties: githubAccessToken, githubUser, username, owner, repo, subdomain, given " + JSON.stringify(Object.keys(config)));
     }
 
     var fs = options.fs || FS;

@@ -12,9 +12,10 @@ var IMAGE_PORT = "2441";
 var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
 
 module.exports = ContainerManager;
-function ContainerManager(docker, containers, _request) {
+function ContainerManager(docker, containers, subdomainDetailsMap, _request) {
     this.docker = docker;
     this.containers = containers;
+    this.subdomainDetailsMap = subdomainDetailsMap;
     // Only used for testing
     this.request = _request || request;
 }
@@ -43,10 +44,10 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
 
         self.delete(details)
         .catch(function (error) {
-            track.errorForUsername(error, details.user, {details: details});
+            track.errorForUsername(error, details.username, {details: details});
         });
 
-        track.errorForUsername(error, details.user, {details: details});
+        track.errorForUsername(error, details.username, {details: details});
 
         throw error;
     });
@@ -93,14 +94,17 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
 
     if (!info) {
         log("Creating container for", details.toString(), "...");
-        track.messageForUsername("create container", details.user, {details: details});
+        track.messageForUsername("create container", details.username, {details: details});
+
+        var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
 
         var config = {
-            username: details.user,
+            username: details.username,
             owner: details.owner,
             repo: details.repo,
             githubAccessToken: githubAccessToken,
-            githubUser: githubUser
+            githubUser: githubUser,
+            subdomain: subdomain
         };
 
         var name = generateContainerName(details);
@@ -221,11 +225,11 @@ function generateContainerName(details) {
     // Remove all characters that don't match the RE at the bottom of
     // http://docs.docker.io/en/latest/reference/api/docker_remote_api_v1.10/#create-a-container
     // (excluding "_", because we use that ourselves)
-    var user = details.user.replace(REPLACE_RE, "");
+    var username = details.username.replace(REPLACE_RE, "");
     var owner = details.owner.replace(REPLACE_RE, "");
     var repo = details.repo.replace(REPLACE_RE, "");
     // avoid collisions
     var random = Date.now() + "" + Math.floor(Math.random()*10000);
 
-    return user + "_" + owner + "_" + repo + "_" + random;
+    return username + "_" + owner + "_" + repo + "_" + random;
 }

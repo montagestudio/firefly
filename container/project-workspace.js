@@ -44,7 +44,7 @@ Object.defineProperties(ProjectWorkspace.prototype, {
     _repoService: {
         get: function() {
             if (!this.__repoService) {
-                this.__repoService = RepositoryService(this._owner, this._config.githubAccessToken, this._repo, this._fs, this._workspacePath);
+                this.__repoService = RepositoryService(this._config.username, this._owner, this._config.githubAccessToken, this._repo, this._fs, this._workspacePath);
             }
             return this.__repoService;
         }

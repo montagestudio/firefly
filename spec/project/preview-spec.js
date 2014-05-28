@@ -1,20 +1,22 @@
 var Q = require("q");
-var preview = require("../../project/preview.js");
+var preview = require("../../project/preview");
+var PreviewDetails = require("../../project/preview-details");
+
+var Set = require("collections/set");
 
 describe("preview", function () {
     describe("hasAccess", function () {
-        var url, githubUser, session;
+        var previewDetails, githubUser, session;
         beforeEach(function () {
-            url = "http://1-owner-repo.local-project.montagestudio.com:2440";
+            previewDetails = new PreviewDetails("owner", "owner", "repo");
             githubUser = {login: "owner"};
             session = {
-                githubUser: Q(githubUser),
-                previewAccess: []
+                githubUser: Q(githubUser)
             };
         });
 
         it("should grant access to the logged user to its own previews", function(done) {
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(true);
             }).then(done, done);
@@ -22,7 +24,7 @@ describe("preview", function () {
 
         it("should ignore case when granting access to the logged user", function(done) {
             githubUser.login = "Owner";
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(true);
             }).then(done, done);
@@ -30,9 +32,9 @@ describe("preview", function () {
 
         it("should grant access when a 3rd party logged in user has access", function(done) {
             githubUser.login = "other";
-            session.previewAccess.push(url);
+            session.previewAccess = Set([previewDetails]);
 
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(true);
             }).then(done, done);
@@ -40,9 +42,9 @@ describe("preview", function () {
 
         it("should grant access when a 3rd party user has access", function(done) {
             delete session.githubUser;
-            session.previewAccess.push(url);
+            session.previewAccess = Set([previewDetails]);
 
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(true);
             }).then(done, done);
@@ -51,7 +53,7 @@ describe("preview", function () {
         it("should not grant access when a 3rd party logged in user does not have access", function(done) {
             githubUser.login = "fail";
 
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(false);
             }).then(done, done);
@@ -61,7 +63,7 @@ describe("preview", function () {
             delete session.githubUser;
             delete session.previewAccess;
 
-            preview.hasAccess(url, session)
+            preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
                 expect(hasAccess).toBe(false);
             }).then(done, done);
@@ -69,15 +71,18 @@ describe("preview", function () {
     });
 
     describe("processAccessRequest", function() {
-        var host = "1-owner-repo.local-project.montagestudio.com:2440";
-        var url = "http://" + host;
         var code, session, request;
+        var previewDetails;
 
         beforeEach(function() {
-            code = preview.getAccessCode(host);
+            previewDetails = new PreviewDetails("owner", "owner", "repo");
+            code = preview.getAccessCode(previewDetails);
             session = {
                 previewAccess: []
             };
+
+            var host = "1-owner-repo.local-project.montagestudio.com:2440";
+            var url = "http://" + host;
             request = {
                 url: url,
                 headers: {host: host},
@@ -88,10 +93,10 @@ describe("preview", function () {
         it("should grant access with the correct preview access code", function(done) {
             request.body = {read: function(){return Q.resolve("code=" + code);}};
 
-            return preview.processAccessRequest(request)
+            return preview.processAccessRequest(request, previewDetails)
             .then(function(response) {
                 expect(session.previewAccess.length).toBe(1);
-                expect(session.previewAccess[0]).toBe(host);
+                expect(session.previewAccess[0]).toBe(previewDetails);
             })
             .then(done, done);
         });
@@ -100,10 +105,10 @@ describe("preview", function () {
             code = code.substr(0, 2) + " " + code.substr(2, 3) + "\t" + code.substr(5, 3);
             request.body = {read: function(){return Q.resolve("code=" + code);}};
 
-            return preview.processAccessRequest(request)
+            return preview.processAccessRequest(request, previewDetails)
             .then(function(response) {
                 expect(session.previewAccess.length).toBe(1);
-                expect(session.previewAccess[0]).toBe(host);
+                expect(session.previewAccess[0]).toBe(previewDetails);
             })
             .then(done, done);
         });
@@ -111,7 +116,7 @@ describe("preview", function () {
         it("should not grant access with the wrong preview access code", function(done) {
             request.body = {read: function(){return Q.resolve("code=leWrongCode");}};
 
-            return preview.processAccessRequest(request)
+            return preview.processAccessRequest(request, previewDetails)
             .then(function(response) {
                 expect(session.previewAccess.length).toBe(0);
             })
@@ -121,7 +126,7 @@ describe("preview", function () {
         it("should redirect to index when access is granted", function(done) {
             request.body = {read: function(){return Q.resolve("code=" + code);}};
 
-            return preview.processAccessRequest(request)
+            return preview.processAccessRequest(request, previewDetails)
             .then(function(response) {
                 expect(response.headers.Location).toBe("/index.html");
             })
@@ -131,7 +136,7 @@ describe("preview", function () {
         it("should redirect to index when access is not granted", function(done) {
             request.body = {read: function(){return Q.resolve("code=leWrongCode");}};
 
-            return preview.processAccessRequest(request)
+            return preview.processAccessRequest(request, previewDetails)
             .then(function(response) {
                 expect(response.headers.Location).toBe("/index.html");
             })

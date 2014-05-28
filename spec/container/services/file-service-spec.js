@@ -12,9 +12,9 @@ describe("file-service", function () {
             "package.json": "{}"
         });
 
-        service = FileService(null, fs, {
-            getProjectUrlFromAppUrl: function () {
-                return "http://localhost:2441";
+        service = FileService({}, fs, {
+            getProjectUrl: function () {
+                return "http://localhost:2441"; // FIXME
             }
         });
     });
@@ -94,8 +94,8 @@ describe("file-service", function () {
         if (process.env.runSlowSpecs) {
             it("returns a list of assets with urls and MIME-types", function (done) {
                 return fs.reroot(fsPath).then(function (fs) {
-                    service = FileService(null, fs, {
-                        getProjectUrlFromAppUrl: function () {
+                    service = FileService({}, fs, {
+                        getProjectUrl: function () {
                             return "http://localhost:2441";
                         }
                     }, null, fsPath);
@@ -164,7 +164,7 @@ describe("file-service", function () {
                         "bar": {}
                     }
                 });
-                service = FileService(null, fs, {
+                service = FileService({}, fs, {
                     getProjectUrlFromAppUrl: function () {
                         return "http://localhost:2441";
                     }
@@ -209,7 +209,7 @@ describe("file-service", function () {
                     "baz": "xyz"
                 }
             });
-            service = FileService(null, fs, {
+            service = FileService({}, fs, {
                 getProjectUrlFromAppUrl: function () {
                     return "http://localhost:2441";
                 }
@@ -278,7 +278,7 @@ describe("file-service", function () {
                     "qux": {}
                 }
             });
-            service = FileService(null, fs, {
+            service = FileService({}, fs, {
                 getProjectUrlFromAppUrl: function () {
                     return "http://localhost:2441";
                 }
