@@ -745,7 +745,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     true)
                 .then(function(result) {
                     if (result.success) {
-                        // update the local show branch SHA
+                        // update the local shadow branch SHA
                         branchesInfo.branches[LOCAL_SOURCE_NAME][current].shadow.sha =
                             branchesInfo.branches[REMOTE_SOURCE_NAME][current].shadow.sha;
                     } else {
