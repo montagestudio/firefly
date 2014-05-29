@@ -20,14 +20,14 @@ var guard = function (exclude) {
 module.exports = exports = FileService;
 var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function (pathname) {
     return function (url) {
-        return URL.parse(url).pathname;
+        return decodeURI(URL.parse(url).pathname);
     };
 };
 
 var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, subdomain, environment) {
     return function (path) {
         var projectHost = environment.getProjectUrl(subdomain);
-        return projectHost + path;
+        return projectHost + encodeURI(path);
     };
 };
 

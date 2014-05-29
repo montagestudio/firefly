@@ -24,10 +24,10 @@ var FileDescriptor = exports.FileDescriptor = Montage.specialize({
             var parts = url.split("/");
             if (isDirectory) {
                 // Directories have a trailing slash, and so the last part is empty
-                this.name = parts[parts.length - 2];
+                this.name = decodeURI(parts[parts.length - 2]);
                 this.children = SortedArray();
             } else {
-                this.name =  parts[parts.length - 1];
+                this.name =  decodeURI(parts[parts.length - 1]);
             }
 
             return this;
