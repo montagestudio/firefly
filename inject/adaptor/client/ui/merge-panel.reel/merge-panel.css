@@ -31,3 +31,23 @@
     width: 16em;
     resize: both;
 }
+
+/* Link --------------------------------- */
+
+.MergePanel .ViewCommit-link {
+    display: block;
+    padding-bottom: 0.8em;
+    text-decoration: none;
+    color: inherit;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.MergePanel .ViewCommit-link:hover {
+    color: hsl(0, 0%, 60%);;
+}
+
+.MergePanel .ViewCommit-linkk:active {
+    color: inherit;
+}

@@ -918,6 +918,12 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    getRepositoryInfo: {
+        value: function (branch) {
+            return this.getService("repository-service").invoke("getRepositoryInfo", branch);
+        }
+    },
+
     /**
      * Assets converter functions.
      */

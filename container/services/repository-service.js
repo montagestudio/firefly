@@ -54,6 +54,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
     }
 
     var service = _cachedServices[serviceUUID],
+        _username = username,
         _owner = owner,
         _repo = repo,
         _accessToken = githubAccessToken,
@@ -72,7 +73,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         USER_SHADOW_BRANCH_PREFIX;
 
 
-    USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + username + SHADOW_BRANCH_SUFFIX;
+    USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _username + SHADOW_BRANCH_SUFFIX;
 
     _gitFetch = function(force) {
         if (force === true || (Date.now() - _gitFetchLastTimeStamp) > GIT_FETCH_TIMEOUT) {
@@ -140,6 +141,35 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
     service.defaultBranchName = function() {
         return this._getInfo().then(function(info) {
             return info.gitBranch;
+        });
+    };
+
+    /**
+     * Retrieve information for the specified branch
+     */
+    service.getRepositoryInfo = function(branchName) {
+        var self = this,
+            info = {
+                username: _username,
+                owner: _owner,
+                repository: _repo
+            };
+
+        return this._getRepositoryUrl().then(function(url) {
+            // Trim the .git suffix
+            var suffixPos = url.indexOf(".git");
+            if (suffixPos !== -1) {
+                url = url.substring(0, suffixPos);
+            }
+            info.repositoryUrl = url;
+            return self._listBranches();
+        })
+        .then(function(result) {
+            var branch = result.branches[LOCAL_REPOSITORY_NAME][branchName];
+
+            info.branch = branch.name;
+            info.shadowBranch = branch.shadow.name;
+            return info;
         });
     };
 

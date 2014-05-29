@@ -29,6 +29,26 @@
                 }
             }
         },
+        "viewCommitLink": {
+            "prototype": "matte/ui/anchor.reel",
+            "properties": {
+                "element": {"#": "viewCommitLink"},
+                "target": "githubCommits"
+            },
+            "bindings": {
+                "href": {"<-": "@owner.gitHubCommitUrl"}
+            },
+            "localizations": {
+                "textContent": {
+                    "key": "viewCommitLink",
+                    "default": "View {count, plural, one {commit} other {commits}}",
+                    "data": {
+                        "count": {"<-": "@owner.commitCount"}
+                    }
+                }
+            }
+        },
+
         "squashLabel": {
             "prototype": "montage/ui/label.reel",
             "properties": {
@@ -116,6 +136,7 @@
 <body>
     <div data-montage-id="mergePanel" class="MergePanel">
         <p data-montage-id="messageLabel" class="ModalOverlay-message"></p>
+        <a data-montage-id="viewCommitLink" class="ViewCommit-link"></a>
         <div class="MergePanel-content">
             <input type="checkbox" data-montage-id="squashCheckbox">
             <label data-montage-id="squashLabel"></label>

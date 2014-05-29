@@ -32,6 +32,10 @@ exports.MergePanel = Component.specialize(/** @lends MergePanel# */ {
         value: "Merge"
     },
 
+    gitHubCommitUrl: {
+        value: null
+    },
+
     _deferredResponse: {
         value: null
     },
@@ -60,7 +64,7 @@ exports.MergePanel = Component.specialize(/** @lends MergePanel# */ {
     },
 
     getResponse: {
-        value: function (branch, commitCount, squash, message) {
+        value: function (branch, commitCount, url, squash, message) {
             var index;
 
             if (this._deferredResponse) {
@@ -77,6 +81,7 @@ exports.MergePanel = Component.specialize(/** @lends MergePanel# */ {
             this.squashMessage = message || this.squashMessage;
             this.branchName = branch || this.branchName;
             this.commitCount = parseInt(commitCount, 10);
+            this.gitHubCommitUrl = url;
 
             this._needsFocus = true;
             this.needsDraw = true;
