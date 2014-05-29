@@ -9,10 +9,16 @@ var log = require("../../logging").from(__filename);
 module.exports = exports = RepositoryService;   // High level access to the service
 module.exports.service = _RepositoryService;    // Low level access to the service
 
-var LOCAL_REPOSITORY_NAME = "__local__";
-var REMOTE_REPOSITORY_NAME = "origin";
-var SHADOW_BRANCH_PREFIX = "__mb__";
-var SHADOW_BRANCH_SUFFIX = "__";
+// Constants to differentiate between local and remote sources, by default the remote source is 'origin' 
+var LOCAL_SOURCE_NAME = "__local__";
+var REMOTE_SOURCE_NAME = "origin";
+
+var SHADOW_BRANCH_PREFIX = "montagestudio/";
+var SHADOW_BRANCH_SUFFIX = "/";
+
+// old shadow branch name constants for backward compatibility
+var OLD_SHADOW_BRANCH_PREFIX = "__mb__";
+var OLD_SHADOW_BRANCH_SUFFIX = "__";
 
 var _cachedServices = {};
 var semaphore = Git.semaphore;
@@ -70,7 +76,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
 
     _gitFetch = function(force) {
         if (force === true || (Date.now() - _gitFetchLastTimeStamp) > GIT_FETCH_TIMEOUT) {
-            return _git.fetch(_fsPath, service.REMOTE_REPOSITORY_NAME, ["--prune"])
+            return _git.fetch(_fsPath, service.REMOTE_SOURCE_NAME, ["--prune"])
             .then(function() {
                 _gitFetchLastTimeStamp = Date.now();
             });
@@ -163,7 +169,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
      *      current: <branch name>,
      *      currentIsShadow: <boolean>,
      *      branches: {
-     *          <LOCAL_REPOSITORY_NAME>: [
+     *          <LOCAL_SOURCE_NAME>: [
      *              <branch name>: {
      *                  branchName: <branch name>,
      *                  sha: <sha>,
@@ -174,7 +180,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
      *              },
      *              ...
      *          ],
-     *          <REMOTE_REPOSITORY_NAME>: [
+     *          <REMOTE_SOURCE_NAME>: [
      *              ...
      *          ],
      *          ...
@@ -392,11 +398,12 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         /*
             type of git branch output output this method can parse:
 
-            * (detached from origin/widgets)         5c820daeded35c004fe7c250f52265acdf956196 Filament Checkbox styles      // Will be ignored
-              master                                 dccd034849028653a944d0f82842f802080657bb Update palette and matte
-              __mb__master                           dccd034849028653a944d0f82842f802080657bb Update palette and matte      // shadow branch
-              remotes/fork/markdown-editor           799e0a2e7367bf781243ca64aa1892aae0eeaad1 Add a simple markdown editor
-              remotes/origin/HEAD                    -> origin/master                                                       // Will be ignored
+            * (detached from origin/widgets)                    5c820daeded35c004fe7c250f52265acdf956196 Filament Checkbox styles      // Will be ignored
+              master                                            dccd034849028653a944d0f82842f802080657bb Update palette and matte
+              montagestudio/{username}/master                   dccd034849028653a944d0f82842f802080657bb Update palette and matte      // local shadow branch
+              remotes/origin/montagestudio/{username}/master    dccd034849028653a944d0f82842f802080657bb Update palette and matte      // remote shadow branch
+              remotes/fork/markdown-editor                      799e0a2e7367bf781243ca64aa1892aae0eeaad1 Add a simple markdown editor
+              remotes/origin/HEAD                               -> origin/master                                                       // Will be ignored
          */
 
         var parsedLine = line.match(/([ *]+)(\([^)]+\)|[^ ]+)[ ]+([^ ]+)[ ]+(.*)/);
@@ -408,19 +415,21 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             var shadowBranch = false;
 
             if (sha !== "->" && fullPath.charAt(0) !== "(") {   // Skip alias branch (like HEAD) and detached branch
-                // Split the fullPath into path and name
-                var firstPos = fullPath.indexOf('/');
-                var lastPos = fullPath.lastIndexOf('/');
-                var branchName;
-                var repoName;
-
-                if (lastPos !== -1) {
-                    branchName = fullPath.substring(lastPos + 1);
-                    repoName = fullPath.substring(firstPos + 1, lastPos);
-                    fullPath = fullPath.substring(firstPos + 1);
+                var _REMOTES_PREFIX = "remotes/",
+                    origin,
+                    branchName,
+                    pos;
+                
+                if (fullPath.indexOf(_REMOTES_PREFIX) === 0) {
+                    // Remote branch
+                    fullPath = fullPath.substring(_REMOTES_PREFIX.length);
+                    pos = fullPath.indexOf('/');
+                    origin = fullPath.substring(0, pos);
+                    branchName = fullPath.substring(pos + 1);
                 } else {
+                    // Local branch
+                    origin = LOCAL_SOURCE_NAME;
                     branchName = fullPath;
-                    repoName = LOCAL_REPOSITORY_NAME;
                 }
 
                 // Checking for a shadow branch
@@ -434,9 +443,9 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     }
                 }
 
-                var repo = result.branches[repoName];
+                var repo = result.branches[origin];
                 if (!repo) {
-                    result.branches[repoName] = repo = {};
+                    result.branches[origin] = repo = {};
                 }
 
                 var branch = repo[branchName];
@@ -502,9 +511,9 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
 
             // Checkout the branch if needed
             if (branchesInfo.current !== branch) {
-                if (!branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch]) {
+                if (!branchesInfo.branches[LOCAL_SOURCE_NAME][branch]) {
                     // we do not have a local branch, make sure it exit remotely
-                    if (!branchesInfo.branches[REMOTE_REPOSITORY_NAME][branch]) {
+                    if (!branchesInfo.branches[REMOTE_SOURCE_NAME][branch]) {
                         throw new Error("Unknown branch " + branch);
                     }
                 }
@@ -524,7 +533,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             // Make sure we have a shadow branch
             return self._createShadowBranch(branchesInfo)
             .then(function(remoteModified) {
-                if (remoteModified || !branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].shadow) {
+                if (remoteModified || !branchesInfo.branches[LOCAL_SOURCE_NAME][branch].shadow) {
                     // we need to refresh the branchesInfo
                     return self._listBranches(remoteModified)
                     .then(function(result) {
@@ -575,11 +584,11 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         })
         .then(function(status) {
             result.localParent = status;
-            return self._branchStatus(shadowBranch, REMOTE_REPOSITORY_NAME + "/" + branch);
+            return self._branchStatus(shadowBranch, REMOTE_SOURCE_NAME + "/" + branch);
         })
         .then(function(status) {
             result.remoteParent = status;
-            return self._branchStatus(shadowBranch, REMOTE_REPOSITORY_NAME + "/" + shadowBranch);
+            return self._branchStatus(shadowBranch, REMOTE_SOURCE_NAME + "/" + shadowBranch);
         })
         .then(function(status) {
             result.remoteShadow = status;
@@ -713,8 +722,8 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         .then(function(result) {
             branchesInfo = result;
             current = branchesInfo.current;
-            local = branchesInfo.branches[LOCAL_REPOSITORY_NAME][current];
-            remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME][current];
+            local = branchesInfo.branches[LOCAL_SOURCE_NAME][current];
+            remote = branchesInfo.branches[REMOTE_SOURCE_NAME][current];
 
             if (!branchesInfo.currentIsShadow || !local.shadow || !remote.shadow) {
                 return self._checkoutShadowBranch(current)
@@ -730,8 +739,8 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         // SHADOW_STEP: Sync the local shadow branch with the remote shadow branch
         .then(function() {
             if (returnValue.success && reference.step <= SHADOW_STEP) {
-                return self._syncBranches(branchesInfo.branches[LOCAL_REPOSITORY_NAME][current].shadow,
-                    branchesInfo.branches[REMOTE_REPOSITORY_NAME][current].shadow,
+                return self._syncBranches(branchesInfo.branches[LOCAL_SOURCE_NAME][current].shadow,
+                    branchesInfo.branches[REMOTE_SOURCE_NAME][current].shadow,
                     reference.step === SHADOW_STEP ? resolutionStrategy : null,
                     true)
                 .then(function(result) {
@@ -746,8 +755,8 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         // PARENT_STEP: Sync the local shadow branch with the remote parent branch (one way only)
         .then(function() {
             if (returnValue.success && reference.step <= PARENT_STEP) {
-                return self._syncBranches(branchesInfo.branches[LOCAL_REPOSITORY_NAME][current].shadow,
-                    branchesInfo.branches[REMOTE_REPOSITORY_NAME][current],
+                return self._syncBranches(branchesInfo.branches[LOCAL_SOURCE_NAME][current].shadow,
+                    branchesInfo.branches[REMOTE_SOURCE_NAME][current],
                     reference.step === PARENT_STEP ? resolutionStrategy : null)
                 .then(function(result) {
                     if (!result.success) {
@@ -765,8 +774,8 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                 .then(function(result) {
                     branchesInfo = result;
                     current = branchesInfo.current;
-                    local = branchesInfo.branches[LOCAL_REPOSITORY_NAME][current];
-                    remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME][current];
+                    local = branchesInfo.branches[LOCAL_SOURCE_NAME][current];
+                    remote = branchesInfo.branches[REMOTE_SOURCE_NAME][current];
 
                     if (local.shadow.sha !== remote.shadow.sha) {
                         return self._push(local.shadow.name, "--force");    // TODO: We should be using --force-with-lease (git 1.8.5)
@@ -823,7 +832,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     /*
                         Revert remote changes
                      */
-                    if (REMOTE_REPOSITORY_NAME + "/" + local.name === remote.name) {
+                    if (REMOTE_SOURCE_NAME + "/" + local.name === remote.name) {
                         next = self._revertRemoteChanges(local.name, remote.name, status);
                     } else {
                         next = self._revertParentChanges(local.name, remote.name, status);
@@ -890,7 +899,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         .then(function(result) {
             branchesInfo = result;
             // Make sure we have a shadow branch
-            if (!branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch] || !branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].shadow) {
+            if (!branchesInfo.branches[LOCAL_SOURCE_NAME][branch] || !branchesInfo.branches[LOCAL_SOURCE_NAME][branch].shadow) {
                 throw new Error("Invalid branch");
             }
         })
@@ -906,7 +915,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                         // git merge <shadow branch> [--squash]
                         return _git.merge(_fsPath, USER_SHADOW_BRANCH_PREFIX + branch, squash)
                         .catch(function(error) {
-                            return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
+                            return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_SOURCE_NAME][branch].sha])
                             .thenReject(error);
                         });
                     })
@@ -919,7 +928,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     .then(function(){
                         return self._push(branch)
                         .catch(function(error) {
-                            return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_REPOSITORY_NAME][branch].sha])
+                            return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[LOCAL_SOURCE_NAME][branch].sha])
                             .thenReject(error);
                         });
                     })
@@ -979,7 +988,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
 
         return _gitFetch(true)
         .then(function(){
-            return self._rebase(branch, REMOTE_REPOSITORY_NAME + "/" + branch);
+            return self._rebase(branch, REMOTE_SOURCE_NAME + "/" + branch);
         })
         .then(function(success) {
             if (success) {
@@ -1057,8 +1066,13 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         });
     };
 
+    /*
+        _createShadowBranch will create the shadow branch either from scratch, or from a remote shadow branch or from an
+        old naming convention shadow branch (for backward compatibility)
+     */
     service._createShadowBranch = function(branchesInfo) {
         var self = this,
+            OLD_USER_SHADOW_BRANCH_PREFIX = OLD_SHADOW_BRANCH_PREFIX + _owner + OLD_SHADOW_BRANCH_SUFFIX,
             next;
 
         if (branchesInfo) {
@@ -1071,11 +1085,19 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         }
         return next
         .then(function() {
+            var currentBranch = branchesInfo.current;
+
+            // if the current branch is the old shadow branch, let's correct the intended branch name
+            if (currentBranch.indexOf(OLD_USER_SHADOW_BRANCH_PREFIX) === 0) {
+                branchesInfo.current = currentBranch.substring(OLD_USER_SHADOW_BRANCH_PREFIX.length);
+            }
+        })
+        .then(function() {
             var currentBranch = branchesInfo.current,
-                local = branchesInfo.branches[LOCAL_REPOSITORY_NAME] ?
-                    branchesInfo.branches[LOCAL_REPOSITORY_NAME][currentBranch] : null,
-                remote = branchesInfo.branches[REMOTE_REPOSITORY_NAME] ?
-                    branchesInfo.branches[REMOTE_REPOSITORY_NAME][currentBranch] : null,
+                local = branchesInfo.branches[LOCAL_SOURCE_NAME] ?
+                    branchesInfo.branches[LOCAL_SOURCE_NAME][currentBranch] : null,
+                remote = branchesInfo.branches[REMOTE_SOURCE_NAME] ?
+                    branchesInfo.branches[REMOTE_SOURCE_NAME][currentBranch] : null,
                 next,
                 remoteModified = false;
 
@@ -1094,9 +1116,53 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                 // Create a local branch that track the remote shadow branch
                 next = _git.branch(_fsPath, ["--track", USER_SHADOW_BRANCH_PREFIX + currentBranch, remote.shadow.name]);
             } else {
-                // Create a shadow branch both locally and remotely
-                next = _git.branch(_fsPath, ["--no-track", USER_SHADOW_BRANCH_PREFIX + currentBranch, remote.name])
-                .then(function() {
+                // We do not have a local or remote shadow branch yet. But before creating a new branch,
+                // let's check if we have a branch that uses the old shadow branch naming convention and recycle it
+
+                var oldShadowBranchName = OLD_SHADOW_BRANCH_PREFIX + _owner + OLD_SHADOW_BRANCH_SUFFIX + currentBranch,
+                    oldLocalShadow = branchesInfo.branches[LOCAL_SOURCE_NAME] ?
+                        branchesInfo.branches[LOCAL_SOURCE_NAME][oldShadowBranchName] : null,
+                    oldRemoteShadow = branchesInfo.branches[REMOTE_SOURCE_NAME] ?
+                        branchesInfo.branches[REMOTE_SOURCE_NAME][oldShadowBranchName] : null;
+
+                next = Q().then(function() {
+                    // <!-- backward compatibility code, can be removed in the future...
+                    if (oldRemoteShadow) {
+                        var statusPromise;
+
+                        if (!oldLocalShadow || (oldLocalShadow.sha === oldRemoteShadow.sha)) {
+                            statusPromise = Q.resolve({behind:0, ahead:0});
+                        } else {
+                            statusPromise = self._branchStatus(oldLocalShadow.name, oldRemoteShadow.name);
+                        }
+
+                        return statusPromise
+                        .then(function(status) {
+                            if (status.behind === 0) {
+                                // We can safely delete the old remote shadow branch
+                                return self._push(":" + oldShadowBranchName).then(function() {
+                                    oldRemoteShadow = null;
+                                });
+                            }
+                        });
+                    }
+                    // ...backward compatibility code, can be removed in the future -->
+                }).then(function() {
+                    // <!-- backward compatibility code, can be removed in the future...
+                    if (oldRemoteShadow && !oldLocalShadow) {
+                        // checkout the old remote using the new shadow name
+                        return _git.command(_fsPath, "checkout", [oldRemoteShadow.name, "-b", USER_SHADOW_BRANCH_PREFIX + currentBranch]);
+                    } else if (oldLocalShadow) {
+                        // Rename local branch
+                        return _git.command(_fsPath, "branch", ["-m", oldShadowBranchName, USER_SHADOW_BRANCH_PREFIX + currentBranch]);
+                    } else
+                    // ...backward compatibility code, can be removed in the future -->
+                    {
+                        // create a new shadow branch locally
+                        return _git.branch(_fsPath, ["--no-track", USER_SHADOW_BRANCH_PREFIX + currentBranch, remote.name]);
+                    }
+                }).then(function() {
+                    // Push the shadow branch to the remote and track it
                     remoteModified = true;
                     return self._push(USER_SHADOW_BRANCH_PREFIX + currentBranch, "-u");
                 });
@@ -1206,7 +1272,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         })
         .then(function() {
             // reset the local parent branch to match the remote parent
-            return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[REMOTE_REPOSITORY_NAME][parentBranch].sha]);
+            return _git.command(_fsPath, "reset", ["--hard", branchesInfo.branches[REMOTE_SOURCE_NAME][parentBranch].sha]);
         })
         .then(function() {
             // revert parent changes
@@ -1312,8 +1378,8 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                         self.listBranches(true).then(function(info) {
                             var currentBranch = info.current,
                                 branches = info.branches,
-                                localBranch = branches[LOCAL_REPOSITORY_NAME][currentBranch],
-                                remoteBranch = branches[REMOTE_REPOSITORY_NAME][currentBranch];
+                                localBranch = branches[LOCAL_SOURCE_NAME][currentBranch],
+                                remoteBranch = branches[REMOTE_SOURCE_NAME][currentBranch];
 
                             if (remoteBranch && ((localBranch.sha !== remoteBranch.sha)) ||
                                     (remoteBranch.shadow && (localBranch.shadow.sha !== remoteBranch.shadow.sha))) {
@@ -1377,15 +1443,15 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
     };
 
     Object.defineProperties(service, {
-        LOCAL_REPOSITORY_NAME: {
+        LOCAL_SOURCE_NAME: {
             get: function() {
-                return LOCAL_REPOSITORY_NAME;
+                return LOCAL_SOURCE_NAME;
             }
         },
 
-        REMOTE_REPOSITORY_NAME: {
+        REMOTE_SOURCE_NAME: {
             get: function() {
-                return REMOTE_REPOSITORY_NAME;
+                return REMOTE_SOURCE_NAME;
             }
         },
 

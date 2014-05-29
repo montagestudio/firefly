@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# setup a bare repo and make 2 clone of it
+# setup a sample repo with couple test branches
 
 dest=$1
 tempRepo="tempServiceRepo"
-bareRepo="originServiceRepo"
+sampleRepo="sampleRepo"
 
 # make sure we have a valid destination
 if [ "$dest" != "" ]; then
@@ -26,15 +26,22 @@ if [ "$dest" != "" ]; then
     echo "Are you really one of those guys who reads readme file?" > readme.txt
     git add readme.txt
     git commit -m "initial commit"
-    cd ..
+
+    // create a shadow branch for user jasmine
+    git branch montagestudio/jasmine/master
+
+    // create an a branch
+    git branch experimental
 
     # now make it a bare git repo to serve are our origin repo
-    git clone --bare $tempRepo $bareRepo
+    cd ..
+    git clone --bare $tempRepo $sampleRepo.git
     rm -Rf $tempRepo
 
-    # make two clones of it
-    git clone $bareRepo serviceRepo1
-    git clone $bareRepo serviceRepo2
+    # create a clone repo
+    git clone $sampleRepo.git $sampleRepo
+
+    echo "$dest/$sampleRepo"
 else
 	echo "Missing destination argument! You must provide a destination path." 1>&2
 	exit 1
