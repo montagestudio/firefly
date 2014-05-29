@@ -107,21 +107,21 @@ describe("repository-service", function () {
             .then(function(result) {
                 expect(typeof result).toBe("object");
                 expect(typeof result.branches).toBe("object");
-                expect(Object.keys(result.branches[service1.REMOTE_ORIGIN_NAME]).length).toBe(2);
+                expect(Object.keys(result.branches[service1.REMOTE_SOURCE_NAME]).length).toBe(2);
                 expect(result.current).toBe("master");
 
-                var master = result.branches[service1.LOCAL_ORIGIN_NAME][result.current];
+                var master = result.branches[service1.LOCAL_SOURCE_NAME][result.current];
                 expect(typeof master).toBe("object");
                 expect(typeof master.sha).toBe("string");
                 expect(master.shadow).toBeNull();
 
-                expect(Object.keys(result.branches[service1.REMOTE_ORIGIN_NAME]).length).toBe(2);
+                expect(Object.keys(result.branches[service1.REMOTE_SOURCE_NAME]).length).toBe(2);
 
-                master = result.branches[service1.REMOTE_ORIGIN_NAME][result.current];
+                master = result.branches[service1.REMOTE_SOURCE_NAME][result.current];
                 expect(typeof master).toBe("object");
                 expect(typeof master.sha).toBe("string");
                 expect(typeof master.shadow).toBe("object");
-                expect(master.shadow.name).toBe(service1.REMOTE_ORIGIN_NAME + "/" + service1.USER_SHADOW_BRANCH_PREFIX + "master");
+                expect(master.shadow.name).toBe(service1.REMOTE_SOURCE_NAME + "/" + service1.USER_SHADOW_BRANCH_PREFIX + "master");
                 expect(typeof master.shadow.sha).toBe("string");
             })
             .then(done, done);
@@ -147,9 +147,9 @@ describe("repository-service", function () {
                 "  master                                 dccd034849028653a944d0f82842f802080657bb Update palette and matte", result);
             expect(result.current).toBeNull();
             expect(Object.keys(result.branches).length).toBe(1);
-            expect(Object.keys(result.branches)[0]).toBe(service1.LOCAL_ORIGIN_NAME);
+            expect(Object.keys(result.branches)[0]).toBe(service1.LOCAL_SOURCE_NAME);
 
-            var branch = result.branches[service1.LOCAL_ORIGIN_NAME].master;
+            var branch = result.branches[service1.LOCAL_SOURCE_NAME].master;
             expect(typeof branch).toBe("object");
             expect(branch.name).toBe("master");
             expect(typeof branch.sha).toBe("string");
@@ -163,7 +163,7 @@ describe("repository-service", function () {
                 "master                           dccd034849028653a944d0f82842f802080657bb Update palette and matte", result);
             expect(result.current).toBe("master");
 
-            var branch = result.branches[service1.LOCAL_ORIGIN_NAME].master;
+            var branch = result.branches[service1.LOCAL_SOURCE_NAME].master;
             expect(typeof branch).toBe("object");
             expect(branch.name).toBe("master");
             expect(typeof branch.shadow).toBe("object");
@@ -239,8 +239,8 @@ describe("repository-service", function () {
                     return service1.listBranches();
                 })
                 .then(function(branches) {
-                    var localeMaster = branches.branches[service1.LOCAL_ORIGIN_NAME].master,
-                        remoteMaster = branches.branches[service1.REMOTE_ORIGIN_NAME].master;
+                    var localeMaster = branches.branches[service1.LOCAL_SOURCE_NAME].master,
+                        remoteMaster = branches.branches[service1.REMOTE_SOURCE_NAME].master;
                     expect(branches.current).toBe("master");
                     expect(branches.currentIsShadow).toBeTruthy();
                     expect(remoteMaster.shadow).toBeDefined();
@@ -493,7 +493,7 @@ describe("repository-service", function () {
                     return service1.listBranches();
                 })
                 .then(function(branchesInfo) {
-                    var remoteMaster = branchesInfo.branches[service1.REMOTE_ORIGIN_NAME].master;
+                    var remoteMaster = branchesInfo.branches[service1.REMOTE_SOURCE_NAME].master;
                     return service1._reset(remoteMaster.sha);
                 })
                 .then(function(result) {
@@ -529,8 +529,8 @@ describe("repository-service", function () {
                     .then(function(branchesInfo1) {
                         return service2.listBranches()
                         .then(function(branchesInfo2) {
-                            expect(branchesInfo1.branches[service1.LOCAL_ORIGIN_NAME].master.sha)
-                                .toBe(branchesInfo2.branches[service2.LOCAL_ORIGIN_NAME].master.sha);
+                            expect(branchesInfo1.branches[service1.LOCAL_SOURCE_NAME].master.sha)
+                                .toBe(branchesInfo2.branches[service2.LOCAL_SOURCE_NAME].master.sha);
                         });
                     });
                 })
