@@ -8,19 +8,24 @@ var GithubSessionStore = require("../../github-session-store");
 var makeContainerIndex = require("../../project/make-container-index");
 
 describe("project chain", function () {
-    var token, username, packed, sessions, chain, request;
+    var token, username, packed, sessions, containerManager, containerIndex, chain, request;
     beforeEach(function () {
         token = "0000000000000000";
         username = "jasmine";
         packed = "7975a23812090216eb5ded40c6c9031cc8c4ebc78291c128a0bcbf614a9e807aa6331aa0";
 
         sessions = {};
+        containerManager = {
+            setup: function () { return Q("1234"); },
+            delete: jasmine.createSpy().andReturn(Q())
+        };
+        containerIndex = makeContainerIndex();
 
         chain = projectChain({
             sessions: MockSession(sessions),
             checkSession: CheckSession,
-            containerManager: {setup: function () { return Q("1234"); }},
-            containerIndex: makeContainerIndex()
+            containerManager: containerManager,
+            containerIndex: containerIndex
         }).end();
 
         request = function (req) {
@@ -50,7 +55,7 @@ describe("project chain", function () {
                 sessions: Session("session", "x", null, store),
                 checkSession: CheckSession,
                 containerManager: {setup: function () { return Q("1234"); }},
-                containerIndex: makeContainerIndex()
+                containerIndex: containerIndex
             }).end();
         });
 
@@ -93,6 +98,32 @@ describe("project chain", function () {
             })
             .then(function (response) {
                 expect(response.status).toEqual(403);
+            }).then(done, done);
+        });
+    });
+
+    describe("DELETE api/workspaces", function () {
+        it("calls containerManager.delete with the container's details", function (done) {
+            // fake session
+            sessions.abc = {
+                username: username,
+                githubUser: Q({})
+            };
+
+            var details = {username: username, owner: username, repo: "repo"};
+            containerIndex.set(details, null);
+
+            request({
+                method: "DELETE",
+                url: "http://127.0.0.1:2440/api/workspaces",
+                headers: {
+                    cookie: "session=abc"
+                }
+            })
+            .then(function (response) {
+                expect(response.status).toEqual(200);
+                expect(response.body.join("")).toEqual('{"deleted":true}');
+                expect(containerManager.delete).toHaveBeenCalledWith(details);
             }).then(done, done);
         });
     });

@@ -187,9 +187,9 @@ function server(options) {
 
             track.message("delete containers", request, {number: workspaceKeys.length});
 
-            return Q.all(workspaceKeys.map(function (value) {
+            return Q.all(workspaceKeys.map(function (details) {
                 // delete
-                return containerManager.delete(value.username, value.owner, value.repo)
+                return containerManager.delete(details)
                 .catch(function (error) {
                     // catch error and log
                     track.error(error, request);
