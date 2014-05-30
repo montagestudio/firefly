@@ -165,7 +165,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             return self._listBranches();
         })
         .then(function(result) {
-            var branch = result.branches[LOCAL_REPOSITORY_NAME][branchName];
+            var branch = result.branches[LOCAL_SOURCE_NAME][branchName];
 
             info.branch = branch.name;
             info.shadowBranch = branch.shadow.name;
