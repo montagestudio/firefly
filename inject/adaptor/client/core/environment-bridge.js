@@ -888,8 +888,8 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     shadowBranchStatus: {
-        value: function (branch) {
-            return this.getService("repository-service").invoke("shadowBranchStatus", branch);
+        value: function (branch, forceFetch) {
+            return this.getService("repository-service").invoke("shadowBranchStatus", branch, forceFetch);
         }
     },
 
@@ -915,6 +915,12 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (branch) {
             //TODO only do this for shadow branches?
             return this.getService("repository-service").invoke("_reset", branch);
+        }
+    },
+
+    getRepositoryInfo: {
+        value: function (branch) {
+            return this.getService("repository-service").invoke("getRepositoryInfo", branch);
         }
     },
 

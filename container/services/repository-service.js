@@ -54,6 +54,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
     }
 
     var service = _cachedServices[serviceUUID],
+        _username = username,
         _owner = owner,
         _repo = repo,
         _accessToken = githubAccessToken,
@@ -72,7 +73,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         USER_SHADOW_BRANCH_PREFIX;
 
 
-    USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + username + SHADOW_BRANCH_SUFFIX;
+    USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _username + SHADOW_BRANCH_SUFFIX;
 
     _gitFetch = function(force) {
         if (force === true || (Date.now() - _gitFetchLastTimeStamp) > GIT_FETCH_TIMEOUT) {
@@ -140,6 +141,35 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
     service.defaultBranchName = function() {
         return this._getInfo().then(function(info) {
             return info.gitBranch;
+        });
+    };
+
+    /**
+     * Retrieve information for the specified branch
+     */
+    service.getRepositoryInfo = function(branchName) {
+        var self = this,
+            info = {
+                username: _username,
+                owner: _owner,
+                repository: _repo
+            };
+
+        return this._getRepositoryUrl().then(function(url) {
+            // Trim the .git suffix
+            var suffixPos = url.indexOf(".git");
+            if (suffixPos !== -1) {
+                url = url.substring(0, suffixPos);
+            }
+            info.repositoryUrl = url;
+            return self._listBranches();
+        })
+        .then(function(result) {
+            var branch = result.branches[LOCAL_SOURCE_NAME][branchName];
+
+            info.branch = branch.name;
+            info.shadowBranch = branch.shadow.name;
+            return info;
         });
     };
 
@@ -744,7 +774,11 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     reference.step === SHADOW_STEP ? resolutionStrategy : null,
                     true)
                 .then(function(result) {
-                    if (!result.success) {
+                    if (result.success) {
+                        // update the local shadow branch SHA
+                        branchesInfo.branches[LOCAL_SOURCE_NAME][current].shadow.sha =
+                            branchesInfo.branches[REMOTE_SOURCE_NAME][current].shadow.sha;
+                    } else {
                         returnValue = result;
                         returnValue.reference = {step: SHADOW_STEP};
                     }
@@ -757,7 +791,8 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             if (returnValue.success && reference.step <= PARENT_STEP) {
                 return self._syncBranches(branchesInfo.branches[LOCAL_SOURCE_NAME][current].shadow,
                     branchesInfo.branches[REMOTE_SOURCE_NAME][current],
-                    reference.step === PARENT_STEP ? resolutionStrategy : null)
+                    // Inherit previous state stategy resolution only if it's rebase
+                    reference.step === PARENT_STEP ? resolutionStrategy : resolutionStrategy === "rebase" ? "rebase" : null)
                 .then(function(result) {
                     if (!result.success) {
                         returnValue = result;
@@ -1429,7 +1464,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             if (hasChanges) {
                 batch.commit();
             } else {
-                batch.cancel();
+                batch.release();
             }
         });
     };

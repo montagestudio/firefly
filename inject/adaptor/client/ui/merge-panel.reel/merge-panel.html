@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="merge-panel.css">
+    <script type="text/montage-serialization">
+    {
+        "localizer": {
+            "object": "montage/core/localizer[defaultLocalizer]"
+        },
+        "owner": {
+            "properties": {
+                "element": {"#": "mergePanel"}
+            }
+        },
+        "messageLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "messageLabel"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergePanelMessage",
+                    "default": "Push {count, plural, one {one commit} other {# commits}} to GitHub {branch} branch.",
+                    "data": {
+                        "branch": {"<-": "@owner.branchName"},
+                        "count": {"<-": "@owner.commitCount"}
+                    }
+                }
+            }
+        },
+        "viewCommitLink": {
+            "prototype": "matte/ui/anchor.reel",
+            "properties": {
+                "element": {"#": "viewCommitLink"},
+                "target": "githubCommits"
+            },
+            "bindings": {
+                "href": {"<-": "@owner.gitHubCommitUrl"}
+            },
+            "localizations": {
+                "textContent": {
+                    "key": "viewCommitLink",
+                    "default": "View {count, plural, one {commit} other {commits}}",
+                    "data": {
+                        "count": {"<-": "@owner.commitCount"}
+                    }
+                }
+            }
+        },
+
+        "squashLabel": {
+            "prototype": "montage/ui/label.reel",
+            "properties": {
+                "element": {"#": "squashLabel"},
+                "target": {"@": "squashCheckbox"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "squashCommitsLabel",
+                    "default": "Squash commits"
+                }
+            }
+        },
+        "squashCheckbox": {
+            "prototype": "matte/ui/input-checkbox.reel",
+            "properties": {
+                "element": {"#": "squashCheckbox"},
+                "checked": true
+            },
+            "bindings": {
+                "checked": {"<->": "@owner.squashCommits"}
+            }
+        },
+        "commitMessageLabel": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "commitMessageLabel"}
+            },
+            "localizations": {
+                "value": {
+                    "key": "mergePanelMessageFieldLabel",
+                    "default": "Message:"
+                }
+            }
+        },
+        "commitMessageField": {
+            "prototype": "matte/ui/textarea.reel",
+            "properties": {
+                "element": {"#": "commitMessageField"}
+            },
+            "bindings": {
+                "value": {"<->": "@owner.squashMessage"},
+                "element.disabled": {"<-": "!@squashCheckbox.checked"}
+            }
+        },
+        "cancelButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "cancelButton"}
+            },
+            "localizations": {
+                "label": {
+                    "key": "mergePanelCancel",
+                    "default": "Cancel"
+                }
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        },
+        "submitButton": {
+            "prototype": "matte/ui/button.reel",
+            "properties": {
+                "element": {"#": "submitButton"}
+            },
+            "localizations": {
+                "label": {
+                    "key": "mergePanelCancel",
+                    "default": "Push"
+                }
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="mergePanel" class="MergePanel">
+        <p data-montage-id="messageLabel" class="ModalOverlay-message"></p>
+        <a data-montage-id="viewCommitLink" class="ViewCommit-link"></a>
+        <div class="MergePanel-content">
+            <input type="checkbox" data-montage-id="squashCheckbox">
+            <label data-montage-id="squashLabel"></label>
+
+            <label class="inputGroup">
+                <p data-montage-id="commitMessageLabel" class="ModalOverlay-prefix"></p>
+                <textarea data-montage-id="commitMessageField" class="Input"></textarea>
+            </label>
+        </div>
+
+        <footer class="ModalOverlay-footer">
+            <input type="button" data-montage-id="cancelButton" class="Button Button--dark">
+            <input type="button" data-montage-id="submitButton" class="Button Button--dark Button--action-dark">
+        </footer>
+    </div>
+</body>
+</html>

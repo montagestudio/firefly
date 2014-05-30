@@ -1,0 +1,53 @@
+.MergePanel {
+
+}
+
+.MergePanel-content {
+    margin-top: 1.2em;
+    text-align: left;
+}
+
+.MergePanel .inputGroup {
+    margin-top: -0.8em;
+    margin-left: 2.2em;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: flex-start;
+    -ms-flex-align: flex-start;
+    align-items: flex-start;
+}
+
+.MergePanel .inputGroup .ModalOverlay-prefix {
+    margin-right: 8px;
+    color: hsl(0, 0%, 60%);
+    -webkit-margin-after: 0.2em;
+}
+
+.MergePanel textarea {
+    width: 16em;
+    resize: both;
+}
+
+/* Link --------------------------------- */
+
+.MergePanel .ViewCommit-link {
+    display: block;
+    padding-bottom: 0.8em;
+    text-decoration: none;
+    color: inherit;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.MergePanel .ViewCommit-link:hover {
+    color: hsl(0, 0%, 60%);;
+}
+
+.MergePanel .ViewCommit-linkk:active {
+    color: inherit;
+}
