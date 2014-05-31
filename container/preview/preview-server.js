@@ -17,6 +17,8 @@ var CLIENT_FILES = "{$PREVIEW}";
 var CLIENT_ROOT = __dirname + "/client/";
 var PREVIEW_SCRIPTS = ["live-edit.js", "tools.js", "montage-studio.js",
                        "preview.js"];
+var fondue = require("fondue");
+var DOT_JS_RE = /\.js$/;
 
 var clientFs = FS.reroot(CLIENT_ROOT);
 
@@ -36,13 +38,33 @@ module.exports.servePreviewClientFile = servePreviewClientFile;
  * This is how firefly asks all preview clients to refresh or give other
  * commands. This webservice is also served through the project-chain connection.
  */
-function Preview(config) {
+function Preview(config, workspacePath) {
     var use = function(next) {
         return function(request, response) {
             var path = unescape(request.pathInfo);
 
             if (path.indexOf("/" + CLIENT_FILES + "/") === 0) {
                 return servePreviewClientFile(request, response);
+            }
+
+            if (path.indexOf("node_modules") === -1 && DOT_JS_RE.test(path)) {
+                log("instrumenting", path);
+                // Aboslute the path so that ".." components are removed, then
+                // strip leading slash on pathInfo so that the `join` works
+                var fullPath = FS.join(workspacePath, path.replace(/^\//, ""));
+
+                return FS.read(fullPath)
+                .then(function (contents) {
+                    contents = contents.toString("utf8");
+                    contents = fondue.instrument(contents, {
+                        path: path,
+                        include_prefix: false
+                    }).toString();
+                    return {
+                        status: 200,
+                        body: [contents]
+                    };
+                });
             }
 
             return Q.when(next(request, response), function(response) {
@@ -97,6 +119,8 @@ function injectPreviewScripts(request, response) {
         for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
         }
+
+        html = injectScriptSource(fondue.instrumentationPrefix(), html);
 
         response.body = [html];
         response.headers['content-length'] = html.length;

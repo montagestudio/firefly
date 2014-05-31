@@ -34,7 +34,7 @@ function server(options) {
     var clientServices = options.clientServices;
     //jshint +W116
 
-    var preview = Preview(config);
+    var preview = Preview(config, workspacePath);
 
     var chain = joey
     .error()
