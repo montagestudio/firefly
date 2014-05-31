@@ -57,7 +57,8 @@
     "dockerode": "~1.2.7",
     "faye-websocket": "~0.7.2",
     "rollbar": "~0.3.6",
-    "dotenv": "^0.2.8"
+    "dotenv": "^0.2.8",
+    "fondue": "^0.5.3"
   },
   "devDependencies": {
     "jasmine-node": "~1.11.0",
