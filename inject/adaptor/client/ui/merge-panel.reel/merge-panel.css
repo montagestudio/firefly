@@ -45,9 +45,9 @@
 }
 
 .MergePanel .ViewCommit-link:hover {
-    color: hsl(0, 0%, 60%);;
+    color: hsl(0, 0%, 60%);
 }
 
-.MergePanel .ViewCommit-linkk:active {
+.MergePanel .ViewCommit-link:active {
     color: inherit;
 }
