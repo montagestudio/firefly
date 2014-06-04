@@ -164,7 +164,7 @@ function FileService(config, fs, environment, pathname, fsPath) {
         return fs.makeTree(path, mode);
     };
 
-    service.makeFile = function (url, base64, mode) {
+    service.makeTreeWriteFile = function (url, base64, mode) {
         var directoryName = PATH.dirname(url),
             directoryPath = convertProjectUrlToPath(directoryName),
             filePath = convertProjectUrlToPath(url),
