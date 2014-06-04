@@ -135,16 +135,20 @@
 </head>
 <body>
     <div data-montage-id="mergePanel" class="MergePanel">
-        <p data-montage-id="messageLabel" class="ModalOverlay-message"></p>
-        <a data-montage-id="viewCommitLink" class="ViewCommit-link"></a>
+        <p class="MergePanel-message">
+            <span data-montage-id="messageLabel"></span>
+            <a data-montage-id="viewCommitLink" class="MergePanel-link"></a>
+        </p>
+        
         <div class="MergePanel-content">
-            <input type="checkbox" data-montage-id="squashCheckbox">
-            <label data-montage-id="squashLabel"></label>
-
-            <label class="inputGroup">
-                <p data-montage-id="commitMessageLabel" class="ModalOverlay-prefix"></p>
-                <textarea data-montage-id="commitMessageField" class="Input"></textarea>
-            </label>
+            <fieldset class="MergePanel-group">
+                <input data-montage-id="squashCheckbox" class="MergePanel-checkbox Checkbox Checkbox--dark" type="checkbox">
+                <label data-montage-id="squashLabel" class="MergePanel-label"></label>
+            </fieldset>
+            <fieldset class="MergePanel-group MergePanel-group--input">
+                <label data-montage-id="commitMessageLabel" class="MergePanel-label"></label>
+                <textarea data-montage-id="commitMessageField" class="MergePanel-input Input Input--dark"></textarea>
+            </fieldset>
         </div>
 
         <footer class="ModalOverlay-footer">

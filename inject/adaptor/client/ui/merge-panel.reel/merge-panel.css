@@ -1,53 +1,54 @@
 .MergePanel {
-
+    font-size: 1.2em;
 }
 
-.MergePanel-content {
-    margin-top: 1.2em;
+/* Message --------------------------------- */
+
+.MergePanel-message {
     text-align: left;
 }
 
-.MergePanel .inputGroup {
-    margin-top: -0.8em;
-    margin-left: 2.2em;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-flex-direction: column;
-    -ms-flex-direction: column;
-    flex-direction: column;
-    -webkit-align-items: flex-start;
-    -ms-flex-align: flex-start;
-    align-items: flex-start;
+.MergePanel-link {
+    color: inherit;
 }
 
-.MergePanel .inputGroup .ModalOverlay-prefix {
-    margin-right: 8px;
-    color: hsl(0, 0%, 60%);
-    -webkit-margin-after: 0.2em;
+.MergePanel-link:hover {
+    color: hsl(0, 0%, 100%);
 }
 
-.MergePanel textarea {
-    width: 16em;
-    resize: both;
+.MergePanel-link:active {
+    color: hsl(0, 0%, 50%);
 }
 
-/* Link --------------------------------- */
 
-.MergePanel .ViewCommit-link {
+/* Form --------------------------------- */
+
+.MergePanel-content {
+    text-align: left;
+}
+
+.MergePanel-group {
+    border: none;
+    padding: 0;
+    margin: 1em 0;
+}
+
+.MergePanel-group--input {
+    margin-left: 30px;
+}
+
+.MergePanel-label {
+    
+}
+
+.MergePanel-input.matte-Textarea {
     display: block;
-    padding-bottom: 0.8em;
-    text-decoration: none;
-    color: inherit;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
+    width: 44em;
+    height: 6em;
+    margin-top: 0.5em;
+    font-size: 13px;
+    font-family: monospace;
+    resize: vertical;
 }
 
-.MergePanel .ViewCommit-link:hover {
-    color: hsl(0, 0%, 60%);
-}
 
-.MergePanel .ViewCommit-link:active {
-    color: inherit;
-}
