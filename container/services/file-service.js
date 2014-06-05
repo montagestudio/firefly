@@ -164,6 +164,16 @@ function FileService(config, fs, environment, pathname, fsPath) {
         return fs.makeTree(path, mode);
     };
 
+    service.makeTreeWriteFile = function (url, base64, mode) {
+        var directoryName = PATH.dirname(url),
+            directoryPath = convertProjectUrlToPath(directoryName),
+            filePath = convertProjectUrlToPath(url),
+            buffer = new Buffer(base64, "base64");
+        return fs.makeTree(directoryPath, mode).then(function () {
+            return fs.write(filePath, buffer);
+        });
+    };
+
     service.remove = function (url) {
         var path = convertProjectUrlToPath(url);
         return fs.remove(path).catch(function () {

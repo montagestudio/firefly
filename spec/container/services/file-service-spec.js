@@ -50,6 +50,37 @@ describe("file-service", function () {
         });
     });
 
+    describe("makeTreeWriteFile", function () {
+        var dummyString = "bla-blah",
+            dummyStringBase64 = "YmxhLWJsYWg=";
+
+        it("should create file with the specified name and the sub directories", function (done) {
+            return service.makeTreeWriteFile("some-directory/some-file", dummyStringBase64).then(function() {
+                return fs.isFile("some-directory/some-file");
+            }).then(function(isFile) {
+                expect(isFile).toBe(true);
+            }).then(done, done);
+        });
+
+        it("should create write the expected content to the specified file", function (done) {
+            return service.makeTreeWriteFile("some-directory/dummy.txt", dummyStringBase64).then(function() {
+                return fs.read("some-directory/dummy.txt");
+            }).then(function(result) {
+                expect(result).toBe(dummyString);
+            }).then(done, done);
+        });
+
+        xit("should replace the content of an existing file with the new content", function (done) {
+            // q-io/fs-mock is inconsistent with q-io/fs
+            // https://github.com/kriskowal/q-io/issues/81
+            return service.makeTreeWriteFile("package.json", dummyStringBase64).then(function() {
+                return fs.read("package.json");
+            }).then(function(result) {
+                expect(result).toBe(dummyString);
+            }).then(done, done);
+        });
+    });
+
     describe("list", function () {
         it("returns an array of {url, stat} of files in the directory", function (done) {
             return service.list("/")
