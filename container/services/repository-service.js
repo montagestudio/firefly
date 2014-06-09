@@ -382,16 +382,16 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
 
         return _git.init(_fsPath)
         .then(function() {
-            return self._getInfo();
-        }).then(function(info) {
-            return _git.addRemote(_fsPath, info.gitUrl);
+            return self._getRepositoryUrl();
+        }).then(function(gitUrl) {
+            return _git.addRemote(_fsPath, gitUrl);
         });
     };
 
     service._cloneProject = function() {
-        return this._getInfo()
-        .then(function(info) {
-            return _git.clone(info.gitUrl, _fsPath);
+        return this._getRepositoryUrl()
+        .then(function(gitUrl) {
+            return _git.clone(gitUrl, _fsPath);
         });
     };
 
@@ -406,10 +406,10 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             next =_fs.copyTree(path, _fsPath);
         }
 
-        return Q.all([this._getInfo(), next])
-        .spread(function (info) {
+        return Q.all([this._getRepositoryUrl(), next])
+        .spread(function (gitUrl) {
             // Setup the remotes
-            return _git.command(_fsPath, "remote", ["add", "origin", _git._addAccessToken(info.gitUrl)]);
+            return _git.command(_fsPath, "remote", ["add", "origin", _git._addAccessToken(gitUrl)]);
         });
     };
 
