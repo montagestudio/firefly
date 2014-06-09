@@ -645,9 +645,9 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         return (remove === true ? _git.rm(_fsPath, files) : _git.add(_fsPath, files))
         .then(function() {
             // make sure we have staged files before committing
-            return self._hasUncommittedChanges()
-            .then(function(hasUncommittedChanges) {
-                if (hasUncommittedChanges) {
+            return self._hasStagedChanges()
+            .then(function(hasStagedFile) {
+                if (hasStagedFile) {
                     return _git.commit(_fsPath, message || "Update component", amend === true)
                     .then(function() {
                         return _git.currentBranch(_fsPath);
@@ -684,9 +684,9 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         }
 
         // make sure we have staged files before committing
-        return self._hasUncommittedChanges()
-        .then(function(hasUncommittedChanges) {
-            if (hasUncommittedChanges) {
+        return self._hasStagedChanges()
+        .then(function(hasStagedFile) {
+            if (hasStagedFile) {
                 return _git.commit(_fsPath, batch.message || "Update files")
                 .then(function() {
                     return _git.currentBranch(_fsPath);
@@ -1084,6 +1084,20 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                 }
             });
             return uncommittedChanges;
+        });
+    };
+
+    service._hasStagedChanges = function() {
+        return this._status()
+        .then(function(result) {
+            var hasStagedFile = false;
+            result.some(function(item) {
+                if (item.src.length === 1 && item.src !== "!" && item.src !== "?") {
+                    hasStagedFile = true;
+                    return true;
+                }
+            });
+            return hasStagedFile;
         });
     };
 
