@@ -1073,6 +1073,13 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         });
     };
 
+    /*
+        _status returns a source and destination flag for all files that are either new, modified, removed, staged,
+        untracked or to be ignored.
+        To determine is a file need to be committed (whatever it has been already staged or not), we need make sure
+        the dest status is not '!' (to be ignored), untracked (new file not yet staged) file will have a dest set to '?'
+        ('?' means untracked and '!' means ignore).
+     */
     service._hasUncommittedChanges = function(checkForUntrackedFile) {
         return this._status()
         .then(function(result) {
@@ -1087,6 +1094,12 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         });
     };
 
+    /*
+        _status returns a source and destination flag for all files that are either new, modified, removed, staged,
+        untracked or to be ignored.
+        To determine if a file has been staged, you need to make sure it has a src status and its value is neither '?'
+        nor '!' ('?' means untracked and '!' means ignore).
+     */
     service._hasStagedChanges = function() {
         return this._status()
         .then(function(result) {
