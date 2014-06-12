@@ -1,7 +1,6 @@
 var log = require("../logging").from(__filename);
 var track = require("../track");
 var Q = require("q");
-var fs = require("q-io/fs");
 var URL = require("url");
 var exec = require("./exec");
 var Semaphore = require("./semaphore").Semaphore;
@@ -196,9 +195,9 @@ Git.prototype.clone = function(cloneUrl, repoPath) {
 };
 
 Git.prototype.isCloned = function(repoPath) {
-    var dotGitPath = fs.join(repoPath, ".git");
+    var dotGitPath = this._fs.join(repoPath, ".git");
 
-    return fs.isDirectory(dotGitPath);
+    return this._fs.isDirectory(dotGitPath);
 };
 
 Git.prototype._addAccessToken = function (url) {

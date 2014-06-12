@@ -3,8 +3,8 @@ var exec = childProcess.exec;
 var execFile = childProcess.execFile;
 var PATH = require("path");
 var Q = require("q");
-var MockFs = require("q-io/fs-mock");
 var MockGithubApi = require("../../mocks/github-api");
+var fs = require("q-io/fs");
 var FS = require("fs");
 var Git = require("../../../container/git");
 var RepositoryService = require("../../../container/services/repository-service").service;
@@ -53,7 +53,7 @@ var readFile = function(repoPath, fileName, data) {
 
 
 describe("repository-service", function () {
-    var fs, tmpPath, serviceRepo1Path, serviceRepo2Path, session, git, service1, service2;
+    var tmpPath, serviceRepo1Path, serviceRepo2Path, session, git, service1, service2;
 
     tmpPath = "/tmp/repository-service-spec-" + Date.now() + Math.floor(Math.random() * 999999);
 
@@ -63,14 +63,6 @@ describe("repository-service", function () {
         repo: "sample",
         githubAccessToken: "free-pass"
     };
-
-    // Setup a mock fs
-    fs = MockFs({
-        "core": {
-            "core.js": ""
-        },
-        "package.json": "{}"
-    });
 
     git = new Git(fs, session.githubAccessToken);
 
