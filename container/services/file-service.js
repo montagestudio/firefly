@@ -65,7 +65,9 @@ function FileService(config, fs, environment, pathname, fsPath) {
 
     service.touch = function (url) {
         var localPath = convertProjectUrlToPath(url);
-        return fs.open(localPath, "w");
+        return fs.open(localPath, "w").then(function (reader) {
+            return reader.close();
+        });
     };
 
     /**
