@@ -50,6 +50,16 @@ describe("file-service", function () {
         });
     });
 
+    describe("touch", function () {
+        it("should create empty file with the specified name", function (done) {
+            return service.touch("some-file").then(function() {
+                return fs.isFile("some-file");
+            }).then(function(isFile) {
+                expect(isFile).toBe(true);
+            }).then(done, done);
+        });
+    });
+
     describe("makeTreeWriteFile", function () {
         var dummyString = "bla-blah",
             dummyStringBase64 = "YmxhLWJsYWg=";
