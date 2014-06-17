@@ -1,6 +1,6 @@
 Vagrant.configure('2') do |config|
     # This is the only variable that needs updating when new boxes are available
-    BOX_VERSION = "46"
+    BOX_VERSION = "47"
 
     BASE_BOX = "declarativ-base-#{BOX_VERSION}"
     BASE_BOX_URL = "http://107.170.60.86/base-#{BOX_VERSION}.box"
