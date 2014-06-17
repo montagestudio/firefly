@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/*global console */
 
 var Q = require("q");
 var optimist = require("optimist");
