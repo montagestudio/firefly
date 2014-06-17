@@ -781,6 +781,12 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    touch: {
+        value: function (url) {
+            return this.getService("file-service").invoke("touch", url);
+        }
+    },
+
     /**
      * Saves a file and creates a new commit for the change.
      */

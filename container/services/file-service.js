@@ -63,6 +63,13 @@ function FileService(config, fs, environment, pathname, fsPath) {
         return fs.read(localPath);
     };
 
+    service.touch = function (url) {
+        var localPath = convertProjectUrlToPath(url);
+        return fs.open(localPath, "w").then(function (reader) {
+            return reader.close();
+        });
+    };
+
     /**
      * Lists all the files in the given path except node_modules and dotfiles.
      * @param  {string} url The url to the project file.
