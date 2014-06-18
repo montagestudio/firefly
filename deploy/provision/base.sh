@@ -47,7 +47,7 @@ chown -R montage:montage /srv
 #
 apt-get install --yes zip
 pushd /tmp
-    SERF="0.5.0_linux_amd64.zip"
+    SERF="0.6.2_linux_amd64.zip"
     curl -LO https://dl.bintray.com/mitchellh/serf/${SERF}
     unzip ${SERF}
     rm -rf ${SERF}

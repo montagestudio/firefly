@@ -1,6 +1,6 @@
 Vagrant.configure('2') do |config|
     # This is the only variable that needs updating when new boxes are available
-    BOX_VERSION = "46"
+    BOX_VERSION = "48"
 
     BASE_BOX = "declarativ-base-#{BOX_VERSION}"
     BASE_BOX_URL = "http://107.170.60.86/base-#{BOX_VERSION}.box"
@@ -14,9 +14,9 @@ Vagrant.configure('2') do |config|
         config.cache.enable :apt
     end
 
-    # Disable Guest Addition install for the moment. It seems to cause more
-    # problems than it solves
-    config.vbguest.no_install = true
+    # If the automatic Guest Additions install messes things up, uncomment
+    # this line:
+    # config.vbguest.no_install = true
 
     # Configure Vagrant VM to use Host DNS, which is a lot faster than the
     # default DNS in the VM for some reason...

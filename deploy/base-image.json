@@ -24,8 +24,8 @@
     }, {
         "type": "virtualbox-iso",
         "guest_os_type": "Ubuntu_64",
-        "iso_url": "http://releases.ubuntu.com/13.10/ubuntu-13.10-server-amd64.iso",
-        "iso_checksum": "2bead0f1f451734461ff88f913f4b02ba9e873b15f097a5c231bdb3763ea42e3",
+        "iso_url": "http://releases.ubuntu.com/14.04/ubuntu-14.04-server-amd64.iso",
+        "iso_checksum": "ababb88a492e08759fddcf4f05e5ccc58ec9d47fa37550d63931d0a5fa4f7388",
         "iso_checksum_type": "sha256",
 
         "boot_command": [
