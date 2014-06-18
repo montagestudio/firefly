@@ -32,7 +32,7 @@ pushd "${BUILD}"
     fi
     mkdir packerio
 
-    PACKER="0.6.0_darwin_amd64.zip"
+    PACKER="0.5.2_darwin_amd64.zip"
     curl -LO "https://dl.bintray.com/mitchellh/packer/${PACKER}"
     unzip ${PACKER} -d packerio
     rm -rf ${PACKER}
