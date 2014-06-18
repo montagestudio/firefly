@@ -17,7 +17,8 @@ remove-image "base-image-$BUILD_RELEASE_NAME"
 # Ubuntu 12.10 x64 (id: 473123, distro: Ubuntu)
 # Ubuntu 13.04 x64 (id: 350076, distro: Ubuntu)
 # Ubuntu 13.10 x64 (id: 1505699, distro: Ubuntu)
-export BASE_IMAGE_ID=1505699
+# Ubuntu 14.04 x64 (id: 3240036, distro: Ubuntu)
+export BASE_IMAGE_ID=3240036
 
 echo "***** Building base-image-$BUILD_RELEASE_NAME *****"
 
