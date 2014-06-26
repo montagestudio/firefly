@@ -744,17 +744,22 @@ Object.defineProperties(window.Declarativ, {
         var object = this.value;
         var owner = this.owner;
         var scope = this.scope;
+        var localBindingDescriptor;
 
         if (object.getBinding(path)) {
             object.cancelBinding(path);
         }
 
-        bindingDescriptor.components = {
+        // Defining the binding modifies the bindingDescriptor which is something
+        // we want to avoid.
+        localBindingDescriptor = Object.create(bindingDescriptor);
+
+        localBindingDescriptor.components = {
             getObjectByLabel: function(label) {
                 return scope.lookupObject(label, owner);
             }
         };
-        object.defineBinding(path, bindingDescriptor);
+        object.defineBinding(path, localBindingDescriptor);
         this.scope.invalidateTemplates(owner);
     };
 
