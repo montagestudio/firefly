@@ -385,8 +385,10 @@ GithubApi.prototype._request = function(request) {
                 }
                 if (errors && errors[0] && errors[0].message) {
                     error = new Error(action + " because " + errors[0].message);
+                    error.shortMessage = errors[0].message;
                 } else if (message && message.length) {
                     error = new Error(action + " because " + message);
+                    error.shortMessage = message;
                 }
             }
 
