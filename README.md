@@ -489,7 +489,7 @@ There 6 scripts you will be interested in:
    It builds all 4 images including rebuilding the base image. It takes 40~60
    minutes to run. This script will automatically tag the firefly and filament repository.
    Adding -f in the command line will force the rebuild of the base images. It will frequently
-   fail because of issues on the Digital Ocean site.
+   fail because of issues on the Digital Ocean site. -t disable the automatic tagging, usefull to re-try a build that failed withoyt creating a new tag in Github
  * `deploy/build/load-balancer-image.sh`
    It will build the load balancer image. It will not rebuild the base image if
    it already exists.
