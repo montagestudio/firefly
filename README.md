@@ -461,8 +461,23 @@ why you run this command inside the VM).
 Deploying
 =========
 
-Deploying is managed through Jenkins at
-https://build.declarativ.com/jenkins/view/Aurora/job/Deploy%20Aurora/.
+1. Run `./deploy/build/images.sh` to build all the images, ready to put onto staging.
+2. If something fails you will see a message like:
+
+  ```
+  Build 'digitalocean' errored: Script exited with non-zero exit status: 1
+  ```
+
+  Look through the logs to find the image that failed and then run one of the following individual scripts and its successors:
+  * `deploy/build/load-balancer-image.sh`
+  * `deploy/build/web-server-image.sh`
+  * `deploy/build/login-image.sh`
+  * `deploy/build/project-image.sh`
+3. Run `./deploy/build/rebuild.sh` to put the images on the staging servers. This will fail frequently, so rerun until you see `Registered firefly staging deploy ...`
+4. After verifying on staging, deploy to production with `./deploy/build/rebuild.sh -p`
+
+Deploy background
+-----------------
 
 We currently deploy on Digital Ocean. This is done with 2 tools, Tugboat and
 Packer. They get installed in the `./build` directory as part of the images
@@ -474,12 +489,12 @@ Digital Ocean.
 
 Deploying is a three steps process. First you need to build the images,
 this is non destructive as it does not affect production. Then you will rebuild
-the staging environment (deploy/build/rebuild.sh) and do some QA. If you are satisfied
+the staging environment (`deploy/build/rebuild.sh`) and do some QA. If you are satisfied
 with the result you deploy the same images by adding the production flag to the deploy
 script.
 
 The build process will build 9 images: 5 base images and 4 pre-configured one for deployment.
-The base images are postfixed with teh release name. The pre-configured one are postfixed
+The base images are postfixed with the release name. The pre-configured one are postfixed
 with the release name and the build number. The build number is incremented from the tag in the firefly
 repository.
 
@@ -489,7 +504,7 @@ There 6 scripts you will be interested in:
    It builds all 4 images including rebuilding the base image. It takes 40~60
    minutes to run. This script will automatically tag the firefly and filament repository.
    Adding -f in the command line will force the rebuild of the base images. It will frequently
-   fail because of issues on the Digital Ocean site. -t disable the automatic tagging, usefull to re-try a build that failed withoyt creating a new tag in Github
+   fail because of issues on the Digital Ocean site. `-t` disable the automatic tagging, usefull to re-try a build that failed without creating a new tag in Github
  * `deploy/build/load-balancer-image.sh`
    It will build the load balancer image. It will not rebuild the base image if
    it already exists.
