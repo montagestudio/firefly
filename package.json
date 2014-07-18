@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "istanbul test jasmine-node -- --junitreport spec && jshint --verbose .",
-    "start": "node index.js --client=../filament",
+    "start": "nodejs index.js --client=./filament --project-dir=/var",
     "update-dependencies": "rm -rf node_modules && npm install && npm dedupe && git add --update node_modules && git add node_modules"
   },
   "repository": {

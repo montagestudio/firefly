@@ -27,7 +27,7 @@ function Session(key, secret, cookie, store) {
 
         var cookie = key + "=" + id + "; Path=/;";
         if (expiresDate) {
-            cookie += " Expires=" + expiresDate;
+            cookie += " Expires=" + expiresDate.toGMTString();
         }
 
         setCookies.push(cookie);
