@@ -1,3 +1,4 @@
+var log = require("logging").from(__filename);
 var URL = require("url");
 
 function Env(options) {
@@ -12,9 +13,13 @@ function Env(options) {
     delete env.app.host;
     delete env.app.pathname;
 
+    log("app", JSON.stringify(env.app));
+
     env.project = URL.parse(process.env.FIREFLY_PROJECT_URL || "http://local-project.127.0.0.1.xip.io:2440");
     delete env.project.host;
     delete env.project.pathname;
+
+    log("project", JSON.stringify(env.project));
 
     env.getAppHost = function() {
         return getHost(this.app.hostname, this.app.port);
