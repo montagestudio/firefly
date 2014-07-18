@@ -2,11 +2,14 @@
 
 * Checkout `firefly` and `filament` to the `sandstorm` branch.
 * Clone sandstorm next to `firefly` and `filament`:
+* 
     ```bash
     git clone git@github.com:sandstorm-io/sandstorm.git
     cd sandstorm/
     ```
+
 * Edit the Vagrant file to include:
+
     ```
     config.vm.synced_folder "../firefly", "/home/vagrant/firefly"
     config.vm.synced_folder "../filament", "/home/vagrant/firefly/filament"
@@ -20,6 +23,7 @@
     - These are owned by Stuk, you may want to create your own app
 * Sign in with GitHub
 * In the terminal
+
     ```bash
     vagrant ssh
     sudo apt-get update
@@ -28,6 +32,7 @@
     cd /home/vagrant/firefly
     sudo spk dev
     ```
+    
 * Now at http://localhost:6080/ you can create an instance of the Example app
 
 What works:
