@@ -476,7 +476,7 @@ Deploying
 3. Run `./deploy/build/rebuild.sh` to put the images on the staging servers. This will fail frequently, so rerun until you see `Registered firefly staging deploy ...`
 4. After verifying on staging, deploy to production with `./deploy/build/rebuild.sh -p`
 
-If you change anything in `authorized_keys`, `sudoers` or `provision/base.sh` then you will need to rebuild the *base image*. This is used to build each image in the above steps. To do this run `./deploy/build/images.sh -f`.
+If you change anything in `authorized_keys`, `sudoers` or `provision/base.sh` then you will need to rebuild the *base image*. This is used to build each image in the above steps. To do this update the release name in `deploy/build/env.sh` (currently going in alphabetical order though [Firefly planets and moons](http://en.wikipedia.org/wiki/List_of_Firefly_planets_and_moons)), and run `./deploy/build/images.sh -f`.
 
 Deploy background
 -----------------
