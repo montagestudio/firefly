@@ -6,6 +6,7 @@ var env = require("./environment");
 var serveFile = require("./serve-file");
 var parseCookies = require("./parse-cookies");
 var GithubAuth = require("./auth/github");
+var AccessTokenAuth = require("./auth/access-token");
 var websocket = require("./websocket");
 var JsonApps = require("q-io/http-apps/json");
 var sanitize = require("./sanitize");
@@ -74,6 +75,7 @@ function server(options) {
 
             route("auth/...").route(function (route) {
                 route("github/...").route(GithubAuth);
+                route("access-token/...").route(AccessTokenAuth);
             });
         })
         //////////////////////////////////////////////////////////////////////
