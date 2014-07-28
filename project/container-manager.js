@@ -213,8 +213,8 @@ ContainerManager.prototype.waitForServer = function (port, timeout, error) {
 };
 
 function getExposedPort(containerInfo) {
-    if (containerInfo && containerInfo.HostConfig && containerInfo.HostConfig.PortBindings) {
-        return containerInfo.HostConfig.PortBindings[IMAGE_PORT_TCP][0].HostPort;
+    if (containerInfo && containerInfo.NetworkSettings && containerInfo.NetworkSettings.Ports) {
+        return containerInfo.NetworkSettings.Ports[IMAGE_PORT_TCP][0].HostPort;
     } else {
         throw new Error("Cannot get exposed port, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
     }
