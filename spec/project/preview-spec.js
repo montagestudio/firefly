@@ -59,13 +59,13 @@ describe("preview", function () {
             }).then(done, done);
         });
 
-        it("should not grant access when a 3rd party user does not have access", function(done) {
+        it("should grant access when an anonymous 3rd party user tries to access", function(done) {
             delete session.githubUser;
             delete session.previewAccess;
 
             preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
-                expect(hasAccess).toBe(false);
+                expect(hasAccess).toBe(true);
             }).then(done, done);
         });
     });

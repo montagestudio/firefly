@@ -37,7 +37,7 @@ exports.hasAccess = function (previewDetails, session) {
                 return access || has3rdPartyAccess(previewDetails, session);
             });
         } else {
-            return has3rdPartyAccess(previewDetails, session);
+            return true
         }
     });
 };
