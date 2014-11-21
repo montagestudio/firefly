@@ -20,6 +20,13 @@ describe("ContainerManager", function () {
                 body: []
             });
         });
+        containerManager._GithubService = function() {
+            this.getRepo = function() {
+                return Q.resolve({
+                    private: false
+                });
+            };
+        };
     });
 
     describe("setup", function () {
