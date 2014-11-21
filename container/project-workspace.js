@@ -158,7 +158,7 @@ ProjectWorkspace.prototype.saveFile = function(filename, contents) {
         throw new Error("Filename missing.");
     }
 
-    if (!contents) {
+    if (contents === undefined) {
         throw new Error("Contents missing.");
     }
 

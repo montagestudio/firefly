@@ -172,7 +172,7 @@ describe("ProjectWorkspace", function () {
     });
 
     describe("file operations", function() {
-        it("should save a file", function(done) {
+        it("should save a file with a non empty content", function(done) {
             return createWorkspace(tmpPath, owner, repo)
             .then(function() {
                 return projectWorkspace.saveFile("index.js", "content");
@@ -183,6 +183,30 @@ describe("ProjectWorkspace", function () {
             .then(function(data) {
                 expect(data.toString()).toBe("content");
             }).then(done, done);
+        });
+
+        it("should save a file with an empty content", function(done) {
+            return createWorkspace(tmpPath, owner, repo)
+                .then(function() {
+                    return projectWorkspace.saveFile("index.js", "");
+                })
+                .then(function() {
+                    return fs.read(fs.join(projectWorkspace._workspacePath, "index.js"));
+                })
+                .then(function(data) {
+                    expect(data.toString()).toBe("");
+                }).then(done, done);
+        });
+
+        it("should not save a file with no content", function(done) {
+            return createWorkspace(tmpPath, owner, repo)
+                .then(function() {
+                    return projectWorkspace.saveFile("index.js");
+                })
+                .fail(function(err) {
+                    expect(err.message).toBe("Contents missing.");
+                })
+                .then(done, done);
         });
     });
 
