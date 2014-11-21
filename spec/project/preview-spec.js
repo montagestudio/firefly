@@ -30,9 +30,10 @@ describe("preview", function () {
             }).then(done, done);
         });
 
-        it("should grant access when a 3rd party logged in user has access", function(done) {
+        it("should grant access when a 3rd party logged in user has access to a private project preview", function(done) {
             githubUser.login = "other";
             session.previewAccess = Set([previewDetails]);
+            previewDetails.setPrivate(true);
 
             preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
@@ -40,9 +41,10 @@ describe("preview", function () {
             }).then(done, done);
         });
 
-        it("should grant access when a 3rd party user has access", function(done) {
+        it("should grant access when a 3rd party user has access to a private project preview", function(done) {
             delete session.githubUser;
             session.previewAccess = Set([previewDetails]);
+            previewDetails.setPrivate(true);
 
             preview.hasAccess(previewDetails, session)
             .then(function (hasAccess) {
@@ -59,14 +61,25 @@ describe("preview", function () {
             }).then(done, done);
         });
 
-        it("should grant access when an anonymous 3rd party user tries to access", function(done) {
+        it("should grant access when an anonymous 3rd party user tries to access a public project preview", function(done) {
             delete session.githubUser;
             delete session.previewAccess;
 
             preview.hasAccess(previewDetails, session)
-            .then(function (hasAccess) {
-                expect(hasAccess).toBe(true);
-            }).then(done, done);
+                .then(function (hasAccess) {
+                    expect(hasAccess).toBe(true);
+                }).then(done, done);
+        });
+
+        it("should not grant access when an anonymous 3rd party user has not access to a private project preview", function(done) {
+            delete session.githubUser;
+            delete session.previewAccess;
+            previewDetails.setPrivate(true);
+
+            preview.hasAccess(previewDetails, session)
+                .then(function (hasAccess) {
+                    expect(hasAccess).toBe(false);
+                }).then(done, done);
         });
     });
 

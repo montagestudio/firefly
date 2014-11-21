@@ -54,11 +54,11 @@ function MockContainer(_, id) {
         },
         // "Image": "b750fe79269d2ec9a3c593ef05b4332b1d1a02a62b4accb2c21d589ff2f5f2dc",
         "NetworkSettings": {
-             "IpAddress": "",
-             "IpPrefixLen": 0,
-             "Gateway": "",
-             "Bridge": "",
-             "PortMapping": null,
+            "IpAddress": "",
+            "IpPrefixLen": 0,
+            "Gateway": "",
+            "Bridge": "",
+            "PortMapping": null,
             "Ports": null
         },
         // "SysInitPath": "/home/kitty/go/src/github.com/dotcloud/docker/bin/docker",

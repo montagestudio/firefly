@@ -36,8 +36,10 @@ exports.hasAccess = function (previewDetails, session) {
 
                 return access || has3rdPartyAccess(previewDetails, session);
             });
+        } else if (previewDetails.private) {
+            return has3rdPartyAccess(previewDetails, session);
         } else {
-            return true
+            return true;
         }
     });
 };
