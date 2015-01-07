@@ -44,7 +44,7 @@ get ()
         rm -rf spec
     popd
     pushd "${BUILD}"
-        tar --disable-copyfile -czf "$1.tgz" "$1"
+        bsdtar --disable-copyfile -czf "$1.tgz" "$1"
     popd
   else
       echo "Cannot clone git repository: "${BUILD}/$1
@@ -67,7 +67,7 @@ tag ()
     # $1 is directory
     # $2 is tag name
     # $3 is branch name
- 
+
     TAG=
     if [ "$2" ]; then
       TAG="$2"
@@ -76,7 +76,7 @@ tag ()
     if [ "$3" ]; then
       BRANCH="$3"
     fi
-    
+
     rm -rf "${BUILD}/$1"
     git clone git@$GITHUBDECLARATIV:declarativ/$1.git "${BUILD}/$1"
     if [[ -e "${BUILD}/$1" ]]; then
@@ -99,7 +99,7 @@ tag ()
         echo "Cannot clone git repository: "${BUILD}/$1
         exit -1
     fi
-    
+
 }
 
 get-image-id ()

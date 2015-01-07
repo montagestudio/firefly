@@ -66,7 +66,7 @@ mkdir -p -- "$FIREFLY_PATH/.deploy"
 (
     cd -- "${FILAMENT_BUILDS_PATH}/filament";
     find . -print0 \
-        | xargs -0 tar --disable-copyfile -czf "$FILAMENT_ARCHIVE"
+        | xargs -0 bsdtar --disable-copyfile -czf "$FILAMENT_ARCHIVE"
         # --disable-copyfile is a little-known, hard to find directive that
         # tells tar not to use the underlying copyfile C lib function, which
         # causes Mac OS extended attributes (formerly resource forks) as "._"

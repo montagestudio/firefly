@@ -19,7 +19,7 @@ pushd "${BUILD}"
         cp "firefly/deploy/files/production.env" "firefly/.env"
         cp "firefly/deploy/files/staging.env" "firefly/staging.env"
         rm -rf "firefly/deploy"
-        tar --disable-copyfile -czf "firefly.tgz" "firefly"
+        bsdtar --disable-copyfile -czf "firefly.tgz" "firefly"
     fi
 popd
 
