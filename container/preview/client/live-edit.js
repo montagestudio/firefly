@@ -8,12 +8,13 @@ if (typeof window.Declarativ === "undefined") {
 
 function waitForApplicationLoad() {
     var deferred = Promise.defer();
-    var intervalId = setInterval(function() {
-        if (global.montageRequire || global.mr) {
-            clearInterval(intervalId);
-            deferred.resolve();
+    var oldMontageDidLoad = global.montageDidLoad;
+    global.montageDidLoad = function() {
+        if (typeof oldMontageDidLoad === "function") {
+            oldMontageDidLoad();
         }
-    }, 100);
+        deferred.resolve();
+    };
     return deferred.promise;
 }
 
