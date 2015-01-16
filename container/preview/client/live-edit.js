@@ -6,134 +6,173 @@ if (typeof window.Declarativ === "undefined") {
     window.Declarativ = {};
 }
 
-Object.defineProperties(window.Declarativ, {
-    _Montage: {
-        value: null,
-        writable: true
-    },
-
-    Montage: {
-        get: function() {
-            if (!this._Montage) {
-                this._Montage = montageRequire("core/core").Montage;
-            }
-
-            return this._Montage;
+function waitForApplicationLoad() {
+    var deferred = Promise.defer();
+    var oldMontageDidLoad = global.montageDidLoad;
+    global.montageDidLoad = function() {
+        if (typeof oldMontageDidLoad === "function") {
+            oldMontageDidLoad();
         }
-    },
+        deferred.resolve();
+    };
+    return deferred.promise;
+}
 
-    _Deserializer: {
-        value: null,
-        writable: true
-    },
-
-    Deserializer: {
-        get: function() {
-            if (!this._Deserializer) {
-                this._Deserializer = montageRequire("core/serialization").Deserializer;
-            }
-
-            return this._Deserializer;
-        }
-    },
-
-    _Template: {
-        value: null,
-        writable: true
-    },
-
-    Template: {
-        get: function() {
-            if (!this._Template) {
-                this._Template = montageRequire("core/template").Template;
-            }
-
-            return this._Template;
-        }
-    },
-
-    _Promise: {
-        value: null,
-        writable: true
-    },
-
-    Promise: {
-        get: function() {
-            if (!this._Promise) {
-                this._Promise = montageRequire("core/promise").Promise;
-            }
-
-            return this._Promise;
-        }
-    },
-
-    _Alias: {
-        value: null,
-        writable: true
-    },
-
-    Alias: {
-        get: function() {
-            if (!this._Alias) {
-                this._Alias = montageRequire("core/serialization/alias").Alias;
-            }
-
-            return this._Alias;
-        }
-    },
-
-    _applicationReady: {
-        value: null,
-        writable: true
-    },
-    /**
-     * This function returns a promise for the application ready.
-     * The application is considered ready when the root component is available
-     * and the main component has completely loaded its component tree.
-     */
-    applicationReady: {
-        value: function() {
-            if (!this._applicationReady) {
-                var phases = [this._checkRootComponentAvailability,
-                              this._checkMainComponentOnScreen];
-                var phaseNr = 0;
-                var deferred = this._applicationReady = this.Promise.defer();
-                var checkApplicationReady = function() {
-                    var isPhaseReady = phases[phaseNr].call(this);
-
-                    if (isPhaseReady) {
-                        phaseNr++;
-                    }
-
-                    if (phaseNr === phases.length) {
-                        deferred.resolve();
-                    } else {
-                        setTimeout(checkApplicationReady, 250);
-                    }
-                };
-                checkApplicationReady();
-            }
-            return this._applicationReady.promise;
-        }
-    },
-
-    _checkRootComponentAvailability: {
-        value: function() {
-            return montageRequire.getModuleDescriptor("ui/component").exports;
-        }
-    },
-
-    _checkMainComponentOnScreen: {
-        value: function() {
-            var main = Declarativ.LiveEdit.MontageComponent.findAll("ui/main.reel")[0];
-
-            if (main && main.value.element.parentNode) {
-                return true;
-            } else {
-                return false;
-            }
-        }
+function loadRequireMethod() {
+    if (global.montageRequire) {
+        return Promise.resolve(global.montageRequire);
     }
+    if (global.mr) {
+        return global.mr.loadPackage({
+            location: '/node_modules/montage'
+        });
+    }
+}
+
+waitForApplicationLoad()
+.then(loadRequireMethod)
+.then(function(montageRequire) {
+    Object.defineProperties(window.Declarativ, {
+        _Montage: {
+            value: null,
+            writable: true
+        },
+
+        Montage: {
+            get: function() {
+                if (!this._Montage) {
+                    this._Montage = montageRequire("core/core").Montage;
+                }
+
+                return this._Montage;
+            }
+        },
+
+        _Deserializer: {
+            value: null,
+            writable: true
+        },
+
+        Deserializer: {
+            get: function() {
+                if (!this._Deserializer) {
+                    this._Deserializer = montageRequire("core/serialization").Deserializer;
+                }
+
+                return this._Deserializer;
+            }
+        },
+
+        _Template: {
+            value: null,
+            writable: true
+        },
+
+        Template: {
+            get: function() {
+                if (!this._Template) {
+                    this._Template = montageRequire("core/template").Template;
+                }
+
+                return this._Template;
+            }
+        },
+
+        _Promise: {
+            value: null,
+            writable: true
+        },
+
+        Promise: {
+            get: function() {
+                if (!this._Promise) {
+                    this._Promise = montageRequire("core/promise").Promise;
+                }
+
+                return this._Promise;
+            }
+        },
+
+        _Alias: {
+            value: null,
+            writable: true
+        },
+
+        Alias: {
+            get: function() {
+                if (!this._Alias) {
+                    this._Alias = montageRequire("core/serialization/alias").Alias;
+                }
+
+                return this._Alias;
+            }
+        },
+
+        _applicationReady: {
+            value: null,
+            writable: true
+        },
+        /**
+         * This function returns a promise for the application ready.
+         * The application is considered ready when the root component is available
+         * and the main component has completely loaded its component tree.
+         */
+        applicationReady: {
+            value: function() {
+                if (!this._applicationReady) {
+                    var phases = [this._checkRootComponentAvailability,
+                        this._checkMainComponentOnScreen];
+                    var phaseNr = 0;
+                    var deferred = this._applicationReady = this.Promise.defer();
+                    var checkApplicationReady = function() {
+                        var isPhaseReady = phases[phaseNr].call(this);
+
+                        if (isPhaseReady) {
+                            phaseNr++;
+                        }
+
+                        if (phaseNr === phases.length) {
+                            deferred.resolve();
+                        } else {
+                            setTimeout(checkApplicationReady, 250);
+                        }
+                    };
+                    checkApplicationReady();
+                }
+                return this._applicationReady.promise;
+            }
+        },
+
+        _checkRootComponentAvailability: {
+            value: function() {
+                return montageRequire.getModuleDescriptor("ui/component").exports;
+            }
+        },
+
+        _checkMainComponentOnScreen: {
+            value: function() {
+                var main = Declarativ.LiveEdit.MontageComponent.findAll("ui/main.reel")[0];
+
+                if (main && main.value.element.parentNode) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+    });
+
+    Object.defineProperties(window.Declarativ.LiveEdit.MontageComponent, {
+        _rootComponent: {value: null, writable: true},
+        rootComponent: {
+            get: function() {
+                if (!this._rootComponent) {
+                    this._rootComponent = montageRequire("ui/component").__root__;
+                }
+                return this._rootComponent;
+            }
+        }
+    });
 });
 
 //jshint -W030
@@ -233,35 +272,35 @@ Object.defineProperties(window.Declarativ, {
                 // _updateLiveEditArgumentAttribute
                 if (propertyType === "element") {
                     return montageTemplatePromise
-                    .then(function(montageTemplate) {
-                        // Add to the owner template
-                        montageTemplate.setObjectPropertyWithElement(label, propertyName, propertyValue.elementId);
-                        // Update the live application
-                        return self._setObjectPropertyWithElement(ownerModuleId,
-                            label, propertyName, propertyValue);
-                    });
+                        .then(function(montageTemplate) {
+                            // Add to the owner template
+                            montageTemplate.setObjectPropertyWithElement(label, propertyName, propertyValue.elementId);
+                            // Update the live application
+                            return self._setObjectPropertyWithElement(ownerModuleId,
+                                label, propertyName, propertyValue);
+                        });
                 } else if (propertyType === "object") {
                     return montageTemplatePromise
-                    .then(function(montageTemplate) {
-                        // Add to the owner template
-                        montageTemplate.setObjectPropertyWithObject(label, propertyName, propertyValue.label);
-                        // Update the live application
-                        return self._setObjectPropertyWithObject(ownerModuleId,
-                            label, propertyName, propertyValue.label);
-                    });
+                        .then(function(montageTemplate) {
+                            // Add to the owner template
+                            montageTemplate.setObjectPropertyWithObject(label, propertyName, propertyValue.label);
+                            // Update the live application
+                            return self._setObjectPropertyWithObject(ownerModuleId,
+                                label, propertyName, propertyValue.label);
+                        });
                 } else {
                     return montageTemplatePromise
-                    .then(function(montageTemplate) {
-                        // Add to the owner template
-                        montageTemplate.setObjectProperty(label, propertyName, propertyValue);
+                        .then(function(montageTemplate) {
+                            // Add to the owner template
+                            montageTemplate.setObjectProperty(label, propertyName, propertyValue);
 
-                        // Update the live application
-                        montageObjects = MontageObject.findAll(ownerModuleId, label);
+                            // Update the live application
+                            montageObjects = MontageObject.findAll(ownerModuleId, label);
 
-                        for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                            montageObject.setProperty(propertyName, propertyValue);
-                        }
-                    });
+                            for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
+                                montageObject.setProperty(propertyName, propertyValue);
+                            }
+                        });
                 }
             }
         },
@@ -338,16 +377,16 @@ Object.defineProperties(window.Declarativ, {
                 var montageObject;
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Add to the owner template
-                    montageTemplate.setObjectLabel(label, newLabel);
+                    .then(function(montageTemplate) {
+                        // Add to the owner template
+                        montageTemplate.setObjectLabel(label, newLabel);
 
-                    // Update the live application
-                    montageObjects = MontageObject.findAll(ownerModuleId, label);
-                    for (var i = 0; (montageObject = montageObjects[i]); i++) {
-                        montageObject.setLabel(newLabel);
-                    }
-                });
+                        // Update the live application
+                        montageObjects = MontageObject.findAll(ownerModuleId, label);
+                        for (var i = 0; (montageObject = montageObjects[i]); i++) {
+                            montageObject.setLabel(newLabel);
+                        }
+                    });
             }
         },
 
@@ -356,19 +395,19 @@ Object.defineProperties(window.Declarativ, {
                 var montageObjects;
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Add to the owner template
-                    montageTemplate.addObjectBinding(label, binding.propertyName,
-                        binding.propertyDescriptor);
-
-                    // Update the live application
-                    montageObjects = MontageObject.findAll(ownerModuleId, label);
-
-                    for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                        montageObject.defineBinding(binding.propertyName,
+                    .then(function(montageTemplate) {
+                        // Add to the owner template
+                        montageTemplate.addObjectBinding(label, binding.propertyName,
                             binding.propertyDescriptor);
-                    }
-                });
+
+                        // Update the live application
+                        montageObjects = MontageObject.findAll(ownerModuleId, label);
+
+                        for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
+                            montageObject.defineBinding(binding.propertyName,
+                                binding.propertyDescriptor);
+                        }
+                    });
             }
         },
 
@@ -377,16 +416,16 @@ Object.defineProperties(window.Declarativ, {
                 var montageObjects;
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Add to the owner template
-                    montageTemplate.cancelObjectBinding(label, path);
+                    .then(function(montageTemplate) {
+                        // Add to the owner template
+                        montageTemplate.cancelObjectBinding(label, path);
 
-                    // Update the live application
-                    montageObjects = MontageObject.findAll(ownerModuleId, label);
-                    for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                        montageObject.cancelBinding(path);
-                    }
-                });
+                        // Update the live application
+                        montageObjects = MontageObject.findAll(ownerModuleId, label);
+                        for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
+                            montageObject.cancelBinding(path);
+                        }
+                    });
             }
         },
 
@@ -398,25 +437,25 @@ Object.defineProperties(window.Declarativ, {
 
                 // Add to the owner template
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    montageTemplate.addTemplateFragment(templateFragment,
-                        elementLocation, how);
+                    .then(function(montageTemplate) {
+                        montageTemplate.addTemplateFragment(templateFragment,
+                            elementLocation, how);
 
-                    // Update the live application
-                    montageElements = MontageElement.findAll(ownerModuleId,
-                        elementLocation.label, elementLocation.argumentName,
-                        elementLocation.cssSelector);
-                    template = new Template(templateFragment.serialization,
-                        templateFragment.html);
+                        // Update the live application
+                        montageElements = MontageElement.findAll(ownerModuleId,
+                            elementLocation.label, elementLocation.argumentName,
+                            elementLocation.cssSelector);
+                        template = new Template(templateFragment.serialization,
+                            templateFragment.html);
 
-                    for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
-                        promises.push(
-                            montageElement.addTemplate(template, how)
-                        );
-                    }
+                        for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
+                            promises.push(
+                                montageElement.addTemplate(template, how)
+                            );
+                        }
 
-                    return Declarativ.Promise.all(promises);
-                });
+                        return Declarativ.Promise.all(promises);
+                    });
             }
         },
 
@@ -427,22 +466,22 @@ Object.defineProperties(window.Declarativ, {
                 var promises = [];
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Add to the owner template
-                    montageTemplate.addTemplateFragmentObjects(templateFragment);
+                    .then(function(montageTemplate) {
+                        // Add to the owner template
+                        montageTemplate.addTemplateFragmentObjects(templateFragment);
 
-                    // Update the live application
-                    montageComponents = MontageComponent.findAll(ownerModuleId);
-                    template = new Template(templateFragment.serialization);
-                    template.removeComponentElementReferences();
-                    for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
-                        promises.push(
-                            montageComponent.addTemplateObjects(template)
-                        );
-                    }
+                        // Update the live application
+                        montageComponents = MontageComponent.findAll(ownerModuleId);
+                        template = new Template(templateFragment.serialization);
+                        template.removeComponentElementReferences();
+                        for (var i = 0, montageComponent; (montageComponent = montageComponents[i]); i++) {
+                            promises.push(
+                                montageComponent.addTemplateObjects(template)
+                            );
+                        }
 
-                    return Declarativ.Promise.all(promises);
-                });
+                        return Declarativ.Promise.all(promises);
+                    });
             }
         },
 
@@ -452,20 +491,20 @@ Object.defineProperties(window.Declarativ, {
                 var promises = [];
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Delete from the owner template
-                    montageTemplate.deleteObject(label);
+                    .then(function(montageTemplate) {
+                        // Delete from the owner template
+                        montageTemplate.deleteObject(label);
 
-                    // Update the live application
-                    montageObjects = MontageObject.findAll(ownerModuleId, label);
-                    for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                        promises.push(
-                            montageObject.destroy()
-                        );
-                    }
+                        // Update the live application
+                        montageObjects = MontageObject.findAll(ownerModuleId, label);
+                        for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
+                            promises.push(
+                                montageObject.destroy()
+                            );
+                        }
 
-                    return Declarativ.Promise.all(promises);
-                });
+                        return Declarativ.Promise.all(promises);
+                    });
             }
         },
 
@@ -476,20 +515,20 @@ Object.defineProperties(window.Declarativ, {
                 var promises = [];
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Delete from the owner template
-                    montageTemplate.deleteElement(elementLocation);
+                    .then(function(montageTemplate) {
+                        // Delete from the owner template
+                        montageTemplate.deleteElement(elementLocation);
 
-                    // Update the live application
-                    montageElements = MontageElement.findAll(ownerModuleId, elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
-                    for (var i = 0; (montageElement = montageElements[i]); i++) {
-                        promises.push(
-                            montageElement.destroy()
-                        );
-                    }
+                        // Update the live application
+                        montageElements = MontageElement.findAll(ownerModuleId, elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
+                        for (var i = 0; (montageElement = montageElements[i]); i++) {
+                            promises.push(
+                                montageElement.destroy()
+                            );
+                        }
 
-                    return Declarativ.Promise.all(promises);
-                });
+                        return Declarativ.Promise.all(promises);
+                    });
             }
         },
 
@@ -498,19 +537,19 @@ Object.defineProperties(window.Declarativ, {
                 var montageElements;
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Add to the owner template
-                    montageTemplate.setElementAttribute(elementLocation, attributeName, attributeValue);
+                    .then(function(montageTemplate) {
+                        // Add to the owner template
+                        montageTemplate.setElementAttribute(elementLocation, attributeName, attributeValue);
 
-                    // Update the live application
-                    montageElements = MontageElement.findAll(ownerModuleId,
-                        elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
+                        // Update the live application
+                        montageElements = MontageElement.findAll(ownerModuleId,
+                            elementLocation.label, elementLocation.argumentName, elementLocation.cssSelector);
 
-                    for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
-                        montageElement.value.setAttribute(attributeName,
-                            attributeValue);
-                    }
-                });
+                        for (var i = 0, montageElement; montageElement = montageElements[i]; i++) {
+                            montageElement.value.setAttribute(attributeName,
+                                attributeValue);
+                        }
+                    });
             }
         },
 
@@ -519,18 +558,18 @@ Object.defineProperties(window.Declarativ, {
                 var montageObjects;
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Add to the owner template
-                    montageTemplate.addObjectEventListener(label, type, listenerLabel,
-                        useCapture);
-
-                    // Update the live application
-                    montageObjects = MontageObject.findAll(ownerModuleId, label);
-                    for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                        montageObject.addEventListener(type, listenerLabel,
+                    .then(function(montageTemplate) {
+                        // Add to the owner template
+                        montageTemplate.addObjectEventListener(label, type, listenerLabel,
                             useCapture);
-                    }
-                });
+
+                        // Update the live application
+                        montageObjects = MontageObject.findAll(ownerModuleId, label);
+                        for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
+                            montageObject.addEventListener(type, listenerLabel,
+                                useCapture);
+                        }
+                    });
             }
         },
 
@@ -539,18 +578,18 @@ Object.defineProperties(window.Declarativ, {
                 var montageObjects;
 
                 return MontageTemplate.load(ownerModuleId)
-                .then(function(montageTemplate) {
-                    // Add to the owner template
-                    montageTemplate.removeObjectEventListener(label, type, listenerLabel,
-                        useCapture);
-
-                    // Update the live application
-                    montageObjects = MontageObject.findAll(ownerModuleId, label);
-                    for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
-                        montageObject.removeEventListener(type, listenerLabel,
+                    .then(function(montageTemplate) {
+                        // Add to the owner template
+                        montageTemplate.removeObjectEventListener(label, type, listenerLabel,
                             useCapture);
-                    }
-                });
+
+                        // Update the live application
+                        montageObjects = MontageObject.findAll(ownerModuleId, label);
+                        for (var i = 0, montageObject; (montageObject = montageObjects[i]); i++) {
+                            montageObject.removeEventListener(type, listenerLabel,
+                                useCapture);
+                        }
+                    });
             }
         },
 
@@ -1072,6 +1111,7 @@ Object.defineProperties(window.Declarativ, {
         }
     };
 
+/*
     Object.defineProperties(MontageComponent, {
         _rootComponent: {value: null, writable: true},
         rootComponent: {
@@ -1083,6 +1123,7 @@ Object.defineProperties(window.Declarativ, {
             }
         }
     });
+*/
 
     /// MONTAGE ELEMENT
 
@@ -1201,7 +1242,7 @@ Object.defineProperties(window.Declarativ, {
         }
 
         leArgRangeValue = this.owner._montage_metadata.moduleId + "," +
-            this.label;
+        this.label;
         this._updateLiveEditRangeAttributes(ATTR_LE_ARG_BEGIN, leArgRangeValue, nextSibling);
         this._updateLiveEditRangeAttributes(ATTR_LE_ARG_END, leArgRangeValue, previousSibling);
     };
@@ -1502,7 +1543,7 @@ Object.defineProperties(window.Declarativ, {
         do {
             object = scope.getObject(label, owner);
         } while (!object && scope.documentPart !== ownerDocumentPart &&
-            (scope = /*assign*/scope.parentScope));
+        (scope = /*assign*/scope.parentScope));
 
         return object;
     };
@@ -1768,9 +1809,9 @@ Object.defineProperties(window.Declarativ, {
         var templateModuleId = this.getTemplateModuleIdForComponent(moduleId);
 
         return Declarativ.Template.getTemplateWithModuleId(templateModuleId, require)
-        .then(function(template) {
-            return new MontageTemplate(template, moduleId);
-        });
+            .then(function(template) {
+                return new MontageTemplate(template, moduleId);
+            });
     };
 
     MontageTemplate.prototype.addTemplateFragment = function(templateFragment, anchorLocation, how) {
@@ -1963,24 +2004,24 @@ Object.defineProperties(window.Declarativ, {
             // each one to find out the one directly under the "label"
             // component.
             elementsLoop:
-            for (var i = 0; element =/*assign*/ elements[i]; i++) {
-                node = element;
-                while (node = node.parentNode) {
-                    elementId = template.getElementId(node);
-                    if (elementId) {
-                        if (elementId === componentElementId) {
-                            // Our work here is done, we found the one we're
-                            // looking for so we exit the search immediately.
-                            break elementsLoop;
-                        } else {
-                            // This argument belongs to a different component,
-                            // no need to continue up the DOM tree, we go for
-                            // the next element.
-                            break;
+                for (var i = 0; element =/*assign*/ elements[i]; i++) {
+                    node = element;
+                    while (node = node.parentNode) {
+                        elementId = template.getElementId(node);
+                        if (elementId) {
+                            if (elementId === componentElementId) {
+                                // Our work here is done, we found the one we're
+                                // looking for so we exit the search immediately.
+                                break elementsLoop;
+                            } else {
+                                // This argument belongs to a different component,
+                                // no need to continue up the DOM tree, we go for
+                                // the next element.
+                                break;
+                            }
                         }
                     }
                 }
-            }
 
             return element;
         } else {
@@ -2087,7 +2128,7 @@ Object.defineProperties(window.Declarativ, {
         for (var i = 0; listener =/*assign*/ listeners[i]; i++) {
             if (listener.type === type &&
                 listener.listener["@"] === listenerLabel &&
-                //jshint -W116
+                    //jshint -W116
                 listener.useCapture == useCapture) {
                 //jshint +W116
                 break;
@@ -2182,5 +2223,5 @@ Object.defineProperties(window.Declarativ, {
     ns.LiveEdit.MontageElement = MontageElement;
 })(window.Declarativ);
 //jshint +W030
-//jshint +W106
 //jshint +W089
+//jshint +W106
