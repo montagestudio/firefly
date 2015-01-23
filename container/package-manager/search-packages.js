@@ -5,7 +5,7 @@ var joey = require('joey'),
     htmlparser = require("htmlparser2"),
 
     searchConfig = {
-        host: 'www.npmjs.org',
+        host: 'www.npmjs.com',
         ssl: true,
         method: 'GET',
         path: "/search?q=",
@@ -27,7 +27,7 @@ module.exports = function searchPackages (packages) {
         return request(options).then(function (response) {
             if (response.status !== 200) {
                 //Todo improve this error message
-                throw new Error("Error HTTP status code: " + response.statusCode);
+                throw new Error("Error HTTP status code: " + response.status);
             }
 
             return response.body.read().then(_formatResultSearchRequest);
@@ -35,66 +35,51 @@ module.exports = function searchPackages (packages) {
     }
 
     function _formatResultSearchRequest(resultSearch) {
-        var details = false,
-            description = false,
-            version = true,
-            results = [],
-            curResult = null,
-            openLiCount = 0;
+        var inResultEntry = false,
+            inName = false,
+            inDescription = false,
+            inVersion = false,
+            results = [];
 
         var parser = new htmlparser.Parser({
-            onopentag: function (name, attribs) {
-                if (curResult) {
-                    if (name === "li") {
-                        openLiCount++;
+            onopentag: function(name, attrs) {
+                if (attrs.class === 'package-details') {
+                    inResultEntry = true;
+                    results.push({});
+                } else if(inResultEntry) {
+                    if (attrs.class === 'name') {
+                        inName = true;
+                    } else if (attrs.class === 'description') {
+                        inDescription = true;
+                    } else if (attrs.class === 'version') {
+                        inVersion = true;
                     }
-
-                    if (name === "a" && /^\/package\//.test(attribs.href)) {
-                        curResult.name = attribs.title;
-
-                    } else if (name === "div" && attribs.class === "details") {
-                        details = true;
-
-                    } else if (name === "p" && attribs.class === "description") {
-                        description = true;
-
-                    } else if (name === "span" && attribs.class === "version") {
-                        version = true;
-                    }
-                }
-
-                if (name === "li" && attribs.class === "search-result package") {
-                    openLiCount++;
-                    curResult = {};
                 }
             },
-            ontext: function (text) {
-                text = text.trim();
 
-                if (curResult) {
-                    if (description) {
-                        curResult.description = text;
-                        description = false;
-
-                    } else if (curResult.version && details && text.length > 0) {
-                        curResult.author = text.trim();
-
-                    } else if (version && text.length > 0 && /([0-9]+\.[0-9]+\.[0-9]+)/.test(text)) {
+            ontext: function(text) {
+                if (inResultEntry) {
+                    var curResult = results[results.length - 1];
+                    if (inName) {
+                        curResult.name = text.trim();
+                    } else if (inDescription) {
+                        curResult.description = text.trim();
+                    } else if(inVersion) {
                         curResult.version = /([0-9]+\.[0-9]+\.[0-9]+)/.exec(text)[0];
                     }
                 }
             },
-            onclosetag: function (tagname) {
-                if (curResult) {
-                    if (tagname === "li") {
-                        openLiCount--;
 
-                        if (openLiCount === 0) {
-                            results.push(curResult);
-                            curResult = null;
-                        }
-                    } else if (tagname === "p" && details) {
-                        details = false;
+            onclosetag: function(name) {
+                if (inResultEntry) {
+                    if (inName) {
+                        inName = false;
+                    } else if (inDescription) {
+                        inDescription = false;
+                    } else if (inVersion) {
+                        inVersion = false;
+                    } else if (name === 'div') {
+                        inResultEntry = false;
                     }
                 }
             }
