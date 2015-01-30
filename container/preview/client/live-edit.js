@@ -7,15 +7,18 @@ if (typeof window.Declarativ === "undefined") {
 }
 
 function waitForApplicationLoad() {
-    var deferred = Promise.defer();
     var oldMontageDidLoad = global.montageDidLoad;
-    global.montageDidLoad = function() {
-        if (typeof oldMontageDidLoad === "function") {
-            oldMontageDidLoad();
-        }
-        deferred.resolve();
-    };
-    return deferred.promise;
+
+    var applicationLoadedPromise = new Promise(function(resolve, reject) {
+        global.montageDidLoad = function() {
+            if (typeof oldMontageDidLoad === "function") {
+                oldMontageDidLoad();
+            }
+            resolve();
+        };
+
+    });
+    return applicationLoadedPromise;
 }
 
 function loadRequireMethod() {
