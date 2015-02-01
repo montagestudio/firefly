@@ -6,10 +6,37 @@ if (typeof window.Declarativ === "undefined") {
     window.Declarativ = {};
 }
 
+// Let's create our own poor man's Promise implementation for live-edit loading time
+var myPromise = function(fn, depth) {
+    this.depth = depth || 0;
+    this.then = function(thenFn) {
+        this.next = new myPromise(thenFn, this.depth+1);
+        return this.next;
+    };
+
+    this.run = function(value) {
+        fn(this.getResolve(), value);
+    };
+
+    this.getResolve = function() {
+        var self = this;
+        return function(value) {
+            if (self.next) {
+                self.next.run(value);
+            }
+        };
+    };
+
+    if (this.depth === 0) {
+        this.run();
+    }
+    return this;
+};
+
 function waitForApplicationLoad() {
     var oldMontageDidLoad = global.montageDidLoad;
 
-    var applicationLoadedPromise = new Promise(function(resolve, reject) {
+    var applicationLoadedPromise = new myPromise(function(resolve) {
         global.montageDidLoad = function() {
             if (typeof oldMontageDidLoad === "function") {
                 oldMontageDidLoad();
@@ -21,20 +48,22 @@ function waitForApplicationLoad() {
     return applicationLoadedPromise;
 }
 
-function loadRequireMethod() {
+function loadRequireMethod(resolve) {
     if (global.montageRequire) {
-        return Promise.resolve(global.montageRequire);
+        resolve(global.montageRequire);
     }
     if (global.mr) {
-        return global.mr.loadPackage({
+        global.mr.loadPackage({
             location: '/node_modules/montage'
+        }).then(function(montageRequire) {
+            resolve(montageRequire);
         });
     }
 }
 
 waitForApplicationLoad()
 .then(loadRequireMethod)
-.then(function(montageRequire) {
+.then(function(resolve, montageRequire) {
     Object.defineProperties(window.Declarativ, {
         _Montage: {
             value: null,
