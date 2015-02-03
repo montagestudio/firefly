@@ -12,7 +12,8 @@ check-refs
 
 remove-image "base-image-$BUILD_RELEASE_NAME"
 
-export BASE_IMAGE_ID=6918990
+export UBUNTU_VERSION=14.04
+export BASE_IMAGE_ID=$(tugboat images --global |grep x64 |grep Ubuntu |grep "^$UBUNTU_VERSION" |awk -F'id: ' '{ print $2 }' |awk -F',' '{ print $1 }')
 
 echo "***** Building base-image-$BUILD_RELEASE_NAME *****"
 
