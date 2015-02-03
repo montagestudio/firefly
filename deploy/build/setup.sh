@@ -41,3 +41,10 @@ pushd "${BUILD}"
 popd
 
 popd
+
+# Ensure tugboat is correctly configured
+tugboat verify
+if [ "$?" != "0" ]; then
+  echo "Unable to connect to digital ocean. Please check your tugboat config is correct and referenced by TUGBOAT_CONFIG_PATH environment variable."
+  exit 255
+fi
