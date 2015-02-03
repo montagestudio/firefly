@@ -65,6 +65,7 @@ Vagrant.configure('2') do |config|
     # scripts should already be doing that for the production servers.
 
     config.vm.define "load-balancer" do |lb|
+        lb.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         lb.vm.hostname = "load-balancer"
         lb.vm.network "private_network", ip: "10.0.0.2"
         lb.vm.network "forwarded_port", guest: 80, host: 8182
@@ -110,6 +111,7 @@ Vagrant.configure('2') do |config|
     end
 
     config.vm.define "web-server" do |web|
+        web.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         web.vm.hostname = "web-server"
         web.vm.network "private_network", ip: "10.0.0.3"
         web.vm.network "forwarded_port", guest: 80, host: 8183
@@ -132,6 +134,7 @@ Vagrant.configure('2') do |config|
     end
 
     config.vm.define "login" do |login|
+        login.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         # base login image
         login.vm.provision :shell, path: "deploy/provision/base-additions.sh"
         login.vm.provision :shell, path: "deploy/provision/base-login.sh"
@@ -163,6 +166,7 @@ Vagrant.configure('2') do |config|
     end
 
     config.vm.define "project" do |project|
+        project.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         # base login image
         project.vm.provision :shell, path: "deploy/provision/base-additions.sh"
         project.vm.provision :shell, path: "deploy/provision/base-project.sh"

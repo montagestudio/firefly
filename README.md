@@ -22,8 +22,11 @@ Initial setup
     ```
 
  2. Install VirtualBox from https://www.virtualbox.org/wiki/Downloads if you
-    don't have it installed already. You may need to add
+    don't have it installed already. Mac OS X users, you must add
     `/Applications/VirtualBox.app/Contents/MacOS/VBoxManage` to your `PATH`.
+    ```
+    export PATH=$PATH:/Applications/VirtualBox.app/Contents/MacOS/VBoxManage
+    ```
  3. Install Vagrant from http://www.vagrantup.com/downloads.html
  4. Run `vagrant plugin install vagrant-cachier`. This will cache apt packages
     to speed up the initialization of the VMs.
