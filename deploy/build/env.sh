@@ -15,18 +15,17 @@ export GEM_CACHE="${BUILD}/digitalocean/cache"
 export PATH="${PATH}:${BUILD}/digitalocean/bin:${BUILD}/packerio"
 
 if [[ -z $DEFAULTS_HAVE_BEEN_SET ]]; then
-
     # BUILD_RELEASE_NAME is used to define the root tag for the build
     # BUILD_REVISION_NUMBER is used to define the root tag for the build
     # The tag name will be $BUILD_RELEASE_NAME/$BUILD_REVISION_NUMBER
     #
     if [[ -z $BUILD_RELEASE_NAME ]]; then
         # To simplify manual build this should be set to the current release cycle
-        export BUILD_RELEASE_NAME="kerry"
+        export BUILD_RELEASE_NAME="lilac"
     fi
 
     if [[ -z $BUILD_REVISION_NUMBER  ]]; then
-        export BUILD_REVISION_NUMBER=1
+        export BUILD_REVISION_NUMBER=0
     fi
 
     export LAST_BUILD_NUMER=-1
@@ -36,4 +35,3 @@ if [[ -z $DEFAULTS_HAVE_BEEN_SET ]]; then
     export DEFAULTS_HAVE_BEEN_SET="TRUE"
 
 fi
-
