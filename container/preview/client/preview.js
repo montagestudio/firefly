@@ -211,19 +211,21 @@ if (!window.performance) {
     }
 
     function setup() {
-        if (timer) {
-            clearTimeout(timer);
-        }
+        if (Declarativ.applicationReady) {
+            if (timer) {
+                clearTimeout(timer);
+            }
 
-        if (typeof(WebSocket) === "function" || typeof(WebSocket) === "object") {
-            websocketRefresh();
-        }
+            if (typeof(WebSocket) === "function" || typeof(WebSocket) === "object") {
+                websocketRefresh();
+            }
 
-        if (typeof _montageWillLoad === "function") {
-            _montageWillLoad();
-        }
+            if (typeof _montageWillLoad === "function") {
+                _montageWillLoad();
+            }
 
-        disconnectionMessageElement = createReconnectionMessageElement();
+            disconnectionMessageElement = createReconnectionMessageElement();
+        }
     }
 
     function createReconnectionMessageElement() {
