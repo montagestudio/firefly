@@ -60,11 +60,17 @@ function Preview(config) {
 }
 
 function injectScriptInHtml(src, html) {
-    var index = html.toLowerCase().indexOf("</head>");
+    var srcIndex = html.toLowerCase().indexOf('src="node_modules/montage/montage.js"');
+    var closingIndex = html.toLowerCase().indexOf('</script>', srcIndex) + '</script>'.length;
+    var selfClosingIndex = html.toLowerCase().indexOf('/>', srcIndex) + '/>'.length;
+    if (selfClosingIndex === 1) {
+        selfClosingIndex = Infinity;
+    }
+    var index = Math.min(closingIndex, selfClosingIndex);
 
     if (index !== -1) {
         html = html.substring(0, index) +
-            '<script type="text/javascript" src="' + src + '"></script>\n' +
+            '\n<script type="text/javascript" src="' + src + '"></script>' +
             html.substring(index);
     }
 
@@ -72,11 +78,17 @@ function injectScriptInHtml(src, html) {
 }
 
 function injectScriptSource(source, html) {
-    var index = html.toLowerCase().indexOf("</head>");
+    var srcIndex = html.toLowerCase().indexOf('src="node_modules/montage/montage.js"');
+    var closingIndex = html.toLowerCase().indexOf('</script>', srcIndex) + '</script>'.length;
+    var selfClosingIndex = html.toLowerCase().indexOf('/>', srcIndex) + '/>'.length;
+    if (selfClosingIndex === 1) {
+        selfClosingIndex = Infinity;
+    }
+    var index = Math.min(closingIndex, selfClosingIndex);
 
     if (index !== -1) {
         html = html.substring(0, index) +
-            '<script type="text/javascript">' + source + '</script>\n' +
+            '\n<script type="text/javascript">' + source + '</script>' +
             html.substring(index);
     }
 
@@ -91,11 +103,11 @@ function injectPreviewScripts(request, response) {
         var html = body.toString();
         var scriptBaseSrc = "/" + CLIENT_FILES + "/";
 
-        if (!Env.production) {
-            html = injectScriptSource("var Declarativ = {DEVELOPMENT: true};", html);
-        }
         for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
+        }
+        if (!Env.production) {
+            html = injectScriptSource("var Declarativ = {DEVELOPMENT: true};", html);
         }
 
         response.body = [html];
