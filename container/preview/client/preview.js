@@ -1,5 +1,5 @@
 /*jshint browser:true */
-/*global Declarativ, console */
+/*global MontageStudio, console */
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
@@ -10,15 +10,15 @@ if (!window.performance) {
 }
 
 (function() {
-    var DEBUG_OPSS = Declarativ.DEVELOPMENT && false;
-    var DEBUG_SPEED = Declarativ.DEVELOPMENT && true;
-    var DEBUG_CONNECTION = Declarativ.DEVELOPMENT && true;
+    var DEBUG_OPSS = MontageStudio.DEVELOPMENT && false;
+    var DEBUG_SPEED = MontageStudio.DEVELOPMENT && true;
+    var DEBUG_CONNECTION = MontageStudio.DEVELOPMENT && true;
     var PING_INTERVAL = 20000;
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
-        LiveEdit = Declarativ.LiveEdit,
-        Tools = Declarativ.Tools,
+        LiveEdit = MontageStudio.LiveEdit,
+        Tools = MontageStudio.Tools,
         dataProcessingPromise,
         previousTime = window.performance.now(),
         operations = 0,
@@ -42,7 +42,7 @@ if (!window.performance) {
         var startTime;
 
         if (!dataProcessingPromise) {
-            dataProcessingPromise = Declarativ.applicationReady();
+            dataProcessingPromise = MontageStudio.applicationReady();
         }
 
         if (command === "refresh") {
@@ -154,7 +154,7 @@ if (!window.performance) {
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
             websocketStartPing(PING_INTERVAL);
-            Declarativ.MontageStudio.init(ws);
+            MontageStudio.MontageStudio.init(ws);
 
             if (callback) {
                 callback();

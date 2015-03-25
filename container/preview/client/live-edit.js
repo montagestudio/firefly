@@ -1,9 +1,9 @@
-/*global window, montageRequire, document, Declarativ */
+/*global window, montageRequire, document, MontageStudio */
 //jshint -W106
 //jshint -W089
 Object.defineProperty(window, "_montage_le_flag", { value: true });
-if (typeof window.Declarativ === "undefined") {
-    window.Declarativ = {};
+if (typeof window.MontageStudio === "undefined") {
+    window.MontageStudio = {};
 }
 
 // Let's create our own poor man's Promise implementation for live-edit loading time
@@ -64,7 +64,7 @@ function loadRequireMethod(resolve) {
 waitForApplicationLoad()
 .then(loadRequireMethod)
 .then(function(resolve, montageRequire) {
-    Object.defineProperties(window.Declarativ, {
+    Object.defineProperties(window.MontageStudio, {
         _Montage: {
             value: null,
             writable: true
@@ -183,7 +183,7 @@ waitForApplicationLoad()
 
         _checkMainComponentOnScreen: {
             value: function() {
-                var main = Declarativ.LiveEdit.MontageComponent.findAll("ui/main.reel")[0];
+                var main = MontageStudio.LiveEdit.MontageComponent.findAll("ui/main.reel")[0];
 
                 if (main && main.value.element.parentNode) {
                     return true;
@@ -194,7 +194,7 @@ waitForApplicationLoad()
         }
     });
 
-    Object.defineProperties(window.Declarativ.LiveEdit.MontageComponent, {
+    Object.defineProperties(window.MontageStudio.LiveEdit.MontageComponent, {
         _rootComponent: {value: null, writable: true},
         rootComponent: {
             get: function() {
@@ -384,7 +384,7 @@ waitForApplicationLoad()
                     }
                 }
 
-                return Declarativ.Promise.all(promises);
+                return MontageStudio.Promise.all(promises);
             }
         },
 
@@ -486,7 +486,7 @@ waitForApplicationLoad()
                             );
                         }
 
-                        return Declarativ.Promise.all(promises);
+                        return MontageStudio.Promise.all(promises);
                     });
             }
         },
@@ -512,7 +512,7 @@ waitForApplicationLoad()
                             );
                         }
 
-                        return Declarativ.Promise.all(promises);
+                        return MontageStudio.Promise.all(promises);
                     });
             }
         },
@@ -535,7 +535,7 @@ waitForApplicationLoad()
                             );
                         }
 
-                        return Declarativ.Promise.all(promises);
+                        return MontageStudio.Promise.all(promises);
                     });
             }
         },
@@ -559,7 +559,7 @@ waitForApplicationLoad()
                             );
                         }
 
-                        return Declarativ.Promise.all(promises);
+                        return MontageStudio.Promise.all(promises);
                     });
             }
         },
@@ -698,13 +698,13 @@ waitForApplicationLoad()
                 });
         } else {
             this._removeElementWrapper(element);
-            return Declarativ.Promise.resolve(result);
+            return MontageStudio.Promise.resolve(result);
         }
     };
 
     Template.prototype.instantiate = function(owner, element, documentPart) {
         var self = this;
-        var deserializer = new Declarativ.Deserializer();
+        var deserializer = new MontageStudio.Deserializer();
         var instances;
 
         documentPart = documentPart || owner._templateDocumentPart;
@@ -801,7 +801,7 @@ waitForApplicationLoad()
     }
 
     MontageObject.prototype.setLabel = function(label) {
-        Declarativ.Montage.getInfoForObject(this.value).label = label;
+        MontageStudio.Montage.getInfoForObject(this.value).label = label;
         this.label = label;
         this.scope.invalidateTemplates(this.owner);
     };
@@ -1225,12 +1225,12 @@ waitForApplicationLoad()
                     // This ensures that the next changes will be able to see
                     // the new components created by this template adition.
                     if (object.parentComponent === parentComponent) {
-                        deferred = Declarativ.Promise.defer();
+                        deferred = MontageStudio.Promise.defer();
                         object.addEventListener("firstDraw", deferred.resolve, false);
                         promises.push(deferred.promise);
                     }
                 }
-                return Declarativ.Promise.all(promises);
+                return MontageStudio.Promise.all(promises);
             });
     };
 
@@ -1308,7 +1308,7 @@ waitForApplicationLoad()
                 promises.push(childComponent.loadComponentTree());
             }
 
-            return Declarativ.Promise.all(promises);
+            return MontageStudio.Promise.all(promises);
         });
     };
 
@@ -1603,7 +1603,7 @@ waitForApplicationLoad()
             alias = objectDocumentPart.objects[propertyLabel];
         }
 
-        if (alias instanceof Declarativ.Alias) {
+        if (alias instanceof MontageStudio.Alias) {
             // Strip the @ prefix
             label = alias.value.substr(1);
             return this.lookupTemplatePropertyLabel(label, object);
@@ -1840,7 +1840,7 @@ waitForApplicationLoad()
     MontageTemplate.load = function(moduleId) {
         var templateModuleId = this.getTemplateModuleIdForComponent(moduleId);
 
-        return Declarativ.Template.getTemplateWithModuleId(templateModuleId, require)
+        return MontageStudio.Template.getTemplateWithModuleId(templateModuleId, require)
             .then(function(template) {
                 return new MontageTemplate(template, moduleId);
             });
@@ -2253,7 +2253,7 @@ waitForApplicationLoad()
 
     ns.LiveEdit.MontageComponent = MontageComponent;
     ns.LiveEdit.MontageElement = MontageElement;
-})(window.Declarativ);
+})(window.MontageStudio);
 //jshint +W030
 //jshint +W089
 //jshint +W106

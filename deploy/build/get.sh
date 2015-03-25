@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script to clone a Declarativ repository
+# Script to clone a MontageStudio repository
 
 if [[ $GITHUBDECLARATIV == "" ]]; then
     export GITHUBDECLARATIV="github.com"
@@ -19,7 +19,7 @@ get ()
   git clone git@$GITHUBDECLARATIV:declarativ/$1.git "${BUILD}/$1"
   if [[ -e "${BUILD}/$1" ]]; then
     pushd "${BUILD}/$1"
-        git config user.name "Declarativ Bot"
+        git config user.name "MontageStudio Bot"
         git config user.email dev@declarativ.com
 
         # if branch is set then check it out
@@ -81,7 +81,7 @@ tag ()
     git clone git@$GITHUBDECLARATIV:declarativ/$1.git "${BUILD}/$1"
     if [[ -e "${BUILD}/$1" ]]; then
       pushd "${BUILD}/$1"
-          git config user.name "Declarativ Bot"
+          git config user.name "MontageStudio Bot"
           git config user.email dev@declarativ.com
 
           # if branch is set then check it out

@@ -1,11 +1,11 @@
-/* global Declarativ */
+/* global MontageStudio */
 var Promise = require("montage/core/promise").Promise;
 var findObject = require("core/spec-helper").findObject;
 var findObjects = require("core/spec-helper").findObjects;
 var hasEventListener = require("core/spec-helper").hasEventListener;
 
 module.exports = function() {
-    var LiveEdit = Declarativ.LiveEdit;
+    var LiveEdit = MontageStudio.LiveEdit;
     var mainModuleId = "components/ui/main.reel";
     var result;
 

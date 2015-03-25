@@ -1,8 +1,8 @@
 var findOwner = require("core/spec-helper").findOwner;
 
-/* global describe, document, Declarativ */
+/* global describe, document, MontageStudio */
 module.exports = function() {
-    var MontageElement = Declarativ.LiveEdit.MontageElement;
+    var MontageElement = MontageStudio.LiveEdit.MontageElement;
     var mainModuleId = "components/ui/main.reel";
     var owner = findOwner(mainModuleId);
 

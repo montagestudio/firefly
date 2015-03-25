@@ -3,9 +3,9 @@ var Template = require("montage/core/template").Template;
 var findOwner = require("core/spec-helper").findOwner;
 var getMontageId = require("core/spec-helper").getMontageId;
 
-/* global describe, window, Declarativ */
+/* global describe, window, MontageStudio */
 module.exports = function() {
-    var LiveEdit = Declarativ.LiveEdit;
+    var LiveEdit = MontageStudio.LiveEdit;
     var mainModuleId = "components/ui/main.reel";
     var result;
 

@@ -111,7 +111,7 @@ function injectPreviewScripts(request, response) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
         }
         if (!Env.production) {
-            html = injectScriptSource("var Declarativ = {DEVELOPMENT: true};", html);
+            html = injectScriptSource("var MontageStudio = {DEVELOPMENT: true};", html);
         }
 
         response.body = [html];
