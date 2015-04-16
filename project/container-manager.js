@@ -4,6 +4,7 @@ var request = require("q-io/http").request;
 var Q = require("q");
 var environment = require("../environment");
 var PreviewDetails = require("./preview-details");
+var GithubService = require("../services/repository/github").GithubService;
 
 // TODO configure
 var IMAGE_NAME = "firefly_project";
@@ -16,6 +17,7 @@ function ContainerManager(docker, containers, subdomainDetailsMap, _request) {
     this.docker = docker;
     this.containers = containers;
     this.subdomainDetailsMap = subdomainDetailsMap;
+    this.GithubService = GithubService;
     // Only used for testing
     this.request = _request || request;
 }
@@ -80,6 +82,17 @@ ContainerManager.prototype.delete = function (details) {
     });
 };
 
+ContainerManager.prototype._getRepoPrivacy = function(details, githubAccessToken) {
+    if (typeof details.private === 'undefined' && githubAccessToken) {
+        var githubService = new this.GithubService(githubAccessToken);
+        return githubService.getRepo(details.owner, details.repo).then(function(repoInfo) {
+            return Q.resolve(repoInfo.private);
+        });
+    } else {
+        return Q.resolve(details.private);
+    }
+}
+
 /**
  * Gets or creates an container for the given user/owner/repo combo
  * @param  {string} user  The currently logged in username
@@ -89,45 +102,48 @@ ContainerManager.prototype.delete = function (details) {
  */
 ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, githubUser) {
     var self = this;
-
     var info = self.containers.get(details);
-
     if (!info) {
-        log("Creating container for", details.toString(), "...");
-        track.messageForUsername("create container", details.username, {details: details});
+        var created = this._getRepoPrivacy(details, githubAccessToken)
+            .then(function (isPrivate) {
+                if (isPrivate) {
+                    details.setPrivate(true);
+                }
 
-        var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
+                log("Creating container for", details.toString(), "...");
+                track.messageForUsername("create container", details.username, {details: details});
 
-        var config = {
-            username: details.username,
-            owner: details.owner,
-            repo: details.repo,
-            githubAccessToken: githubAccessToken,
-            githubUser: githubUser,
-            subdomain: subdomain
-        };
+                var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
 
-        var name = generateContainerName(details);
+                var config = {
+                    username: details.username,
+                    owner: details.owner,
+                    repo: details.repo,
+                    githubAccessToken: githubAccessToken,
+                    githubUser: githubUser,
+                    subdomain: subdomain
+                };
 
-        var created = self.docker.createContainer({
-            name: name,
-            Image: IMAGE_NAME,
-            Memory: 256 * 1024 * 1024,
-            MemorySwap: 256 * 1024 * 1024,
-            Cmd: ['-c', JSON.stringify(config)],
-            Env: [
-                "NODE_ENV=" + (process.env.NODE_ENV || "development"),
-                "FIREFLY_APP_URL=" + environment.app.href,
-                "FIREFLY_PROJECT_URL=" + environment.project.href,
-                "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
-            ]
-        })
-        .then(function (container) {
-            log("Created container", container.id, "for", details.toString());
-            info = {id: container.id};
-            self.containers.set(details, info);
-            return info;
-        });
+                return self.docker.createContainer({
+                    name: generateContainerName(details),
+                    Image: IMAGE_NAME,
+                    Memory: 256 * 1024 * 1024,
+                    MemorySwap: 256 * 1024 * 1024,
+                    Cmd: ['-c', JSON.stringify(config)],
+                    Env: [
+                        "NODE_ENV=" + (process.env.NODE_ENV || "development"),
+                        "FIREFLY_APP_URL=" + environment.app.href,
+                        "FIREFLY_PROJECT_URL=" + environment.project.href,
+                        "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
+                    ]
+                })
+                    .then(function (container) {
+                        log("Created container", container.id, "for", details.toString());
+                        info = {id: container.id};
+                        self.containers.set(details, info);
+                        return info;
+                    });
+            });
 
         self.containers.set(details, {created: created});
 

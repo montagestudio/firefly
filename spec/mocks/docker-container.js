@@ -31,6 +31,20 @@ function MockContainer(_, id) {
         //     "WorkingDir": ""
 
         // },
+        "HostConfig": {
+            // "Binds": null,
+            // "ContainerIDFile": "",
+            // "LxcConf": [],
+            // "Privileged": false,
+            "PortBindings": {
+                "2441/tcp": [{
+                    "HostIp": "127.0.0.1",
+                    "HostPort": "1234"
+                }]
+            },
+        },
+        // "Links": null,
+        // "PublishAllPorts": false
         "State": {
             "Running": false,
             // "Pid": 0,
@@ -39,13 +53,14 @@ function MockContainer(_, id) {
             // "Ghost": false
         },
         // "Image": "b750fe79269d2ec9a3c593ef05b4332b1d1a02a62b4accb2c21d589ff2f5f2dc",
-        // "NetworkSettings": {
-        //     "IpAddress": "",
-        //     "IpPrefixLen": 0,
-        //     "Gateway": "",
-        //     "Bridge": "",
-        //     "PortMapping": null
-        // },
+        "NetworkSettings": {
+            "IpAddress": "",
+            "IpPrefixLen": 0,
+            "Gateway": "",
+            "Bridge": "",
+            "PortMapping": null,
+            "Ports": null
+        },
         // "SysInitPath": "/home/kitty/go/src/github.com/dotcloud/docker/bin/docker",
         // "ResolvConfPath": "/etc/resolv.conf",
         // "Volumes": {}
@@ -54,19 +69,20 @@ function MockContainer(_, id) {
 
 MockContainer.prototype.start = function () {
     this.info.State.running = true;
-    this.info.HostConfig = {
-        // "Binds": null,
-        // "ContainerIDFile": "",
-        // "LxcConf": [],
-        // "Privileged": false,
-        "PortBindings": {
-            "2441/tcp": [{
-                "HostIp": "127.0.0.1",
-                "HostPort": "1234"
-            }]
-        },
-        // "Links": null,
-        // "PublishAllPorts": false
+    this.info.NetworkSettings = {
+        "IpAddress": "172.17.100.100",
+        "IpPrefixLen": 16,
+        "Gateway": "172.17.42.1",
+        "Bridge": "docker0",
+        "PortMapping": null,
+        "Ports": {
+            "2441/tcp": [
+                {
+                    "HostIp": "127.0.0.1",
+                    "HostPort": "1234"
+                }
+            ]
+        }
     };
     return Q();
 };
