@@ -249,23 +249,33 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    _extractDependenciesFromPackage: {
+        value: function (packageUrl, packageInfo) {
+            var dependencyNames = Object.keys(packageInfo.dependencies);
+
+            //TODO implement mapping in addition to just dependencies
+            //TODO also report the version of the dependency
+            return dependencyNames.map(function (dependencyName) {
+                return {
+                    "dependency": dependencyName,
+                    "url": packageUrl + "/node_modules/" + dependencyName,
+                    "version": packageInfo.dependencies[dependencyName]
+                };
+            });
+        }
+    },
+
     dependenciesInPackage: {
         value: function (packageUrl) {
+            var self = this;
 
             return this.getService("file-service").invoke("read", packageUrl + "/package.json")
                 .then(function (content) {
                     var packageInfo = JSON.parse(content),
-                        dependencyNames,
                         dependencies;
 
                     if (packageInfo.dependencies) {
-                        dependencyNames = Object.keys(packageInfo.dependencies);
-
-                        //TODO implement mapping in addition to just dependencies
-                        //TODO also report the version of the dependency
-                        dependencies = dependencyNames.map(function (dependencyName) {
-                            return {"dependency": dependencyName, "url": packageUrl + "/node_modules/" + dependencyName};
-                        });
+                        dependencies = self._extractDependenciesFromPackage(packageUrl, packageInfo);
                     } else {
                         dependencies = [];
                     }
