@@ -211,7 +211,7 @@ if (!window.performance) {
     }
 
     function setup() {
-        if (Declarativ.applicationReady) {
+        if (MontageStudio.applicationReady) {
             if (timer) {
                 clearTimeout(timer);
             }
