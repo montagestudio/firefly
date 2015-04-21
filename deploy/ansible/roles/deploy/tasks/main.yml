@@ -1,0 +1,16 @@
+-   name: Clone firefly repository
+    git:
+        repo:   git@github.com:declarativ/firefly.git
+        dest:   /root/firefly
+-   name: Launch images generation shell script
+    shell: >
+        ./deploy/build/images.sh
+        chdir=/root/firefly
+    environment:
+        TUGBOAT_CONFIG_PATH:    /root/.tugboat
+# -   name: Launch deploy shell script
+#     shell: >
+#         ./deploy/build/rebuild.sh
+#         chdir=/root/firefly
+#     environment:
+#         TUGBOAT_CONFIG_PATH:    /root/.tugboat

@@ -1,20 +1,27 @@
-- hosts: localhost
-  gather_facts: False
-  sudo: yes
+-   hosts:      127.0.0.1
+    connection: local
+    tasks:
+    -   name: Create deploy server droplet
+        digital_ocean:
+            command:            droplet
+            name:               montagestudio-deploy
+            state:              active
+            unique_name:        yes
+            size_id:            66
+            region_id:          4
+            image_id:           9801950
+            private_networking: yes
+            ssh_key_ids:        [166706, 609440]
+        environment:
+            DO_CLIENT_ID:   383c8164d4bdd95d8b1bfbf4f540d754
+            DO_API_KEY:     3b6311afca5bd8aac647b316704e9c6d
+        register: deploy_server_ip
+    - add_host:
+        name:   "{{ deploy_server_ip.droplet.ip_address }}"
+        group:  montagestudio-deploy
 
-  vars_files:
-    - vars/digitalocean.yml
-
-  tasks:
-    - include: tasks/setup_do.yml
-    - include: tasks/build_droplet.yml droplet_name=deploy-server
-
-- hosts: deploy-server
-  remote_user: admin
-  sudo: yes
-
-  vars_files:
-    - vars/deploy_server.yml
-
-  tasks:
-    - include: tasks/deploy_server.yml
+-   hosts:          montagestudio-deploy
+    remote_user:    root
+    roles:
+    -   deploy_server
+    -   deploy

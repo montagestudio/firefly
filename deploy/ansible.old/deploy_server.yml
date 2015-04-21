@@ -1,0 +1,20 @@
+- hosts: localhost
+  gather_facts: False
+  sudo: yes
+
+  vars_files:
+    - vars/digitalocean.yml
+
+  tasks:
+    - include: tasks/setup_do.yml
+    - include: tasks/build_droplet.yml droplet_name=deploy-server
+
+- hosts: deploy-server
+  remote_user: admin
+  sudo: yes
+
+  vars_files:
+    - vars/deploy_server.yml
+
+  tasks:
+    - include: tasks/deploy_server.yml
