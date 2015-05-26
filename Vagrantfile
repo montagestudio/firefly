@@ -187,7 +187,7 @@ Vagrant.configure('2') do |config|
         project.vm.synced_folder "../filament", "/srv/filament"
         project.vm.synced_folder ".", "/srv/firefly"
 
-        project.vm.provision :shell, :inline => "ln -sf /srv/firefly/Dockerfile /srv/Dockerfile"
+#        project.vm.provision :shell, :inline => "ln -sf /srv/firefly/Dockerfile /srv/Dockerfile"
 
         project.vm.provision :shell, path: "deploy/provision/project.sh"
 

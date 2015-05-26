@@ -1,33 +1,24 @@
 # Firefly Project
 #
-# VERSION 1.0
+# VERSION 1.1
 
-# This file needs to me moved up as a sibling of firefly and filament
-
-FROM ubuntu:13.10
-MAINTAINER Stuart Knightley, stuart@stuartk.com
+FROM ubuntu:14.04
+MAINTAINER Pierre Chaussalet <pchaussalet@montagestudio.com>
 
 # Updates
-RUN echo "deb http://archive.ubuntu.com/ubuntu saucy main universe" > /etc/apt/sources.list
 RUN apt-get update
 
-# Sudo
-RUN apt-get install -y sudo
-
-# Curl
-RUN apt-get install -y curl
-
-# Git
-RUN apt-get install -y git
-
-# Zip
-RUN apt-get install -y zip
+# System tools
+RUN apt-get install -y sudo curl git zip && \
+    apt-get clean
 
 # Node
-RUN apt-get install -y python-software-properties python g++ make software-properties-common
+RUN apt-get install -y python-software-properties python g++ make software-properties-common && \
+    apt-get clean
 RUN add-apt-repository ppa:chris-lea/node.js
 RUN apt-get update
-RUN apt-get install -y nodejs
+RUN apt-get install -y nodejs&& \
+    apt-get clean
 
 RUN adduser --disabled-password --gecos "" montage
 ENV HOME /home/montage
@@ -45,7 +36,8 @@ RUN git clone https://github.com/montagejs/popcorn.git /home/montage/popcorn
 RUN git --git-dir /home/montage/popcorn/.git remote rm origin
 
 # Install glTFConverter converter
-RUN apt-get install -y libxml2-dev libpng12-dev libpcre3-dev cmake
+RUN apt-get install -y libxml2-dev libpng12-dev libpcre3-dev cmake&& \
+    apt-get clean
 RUN git clone --recurse-submodules https://github.com/KhronosGroup/glTF.git /home/montage/glTF
 RUN cd /home/montage/glTF/ && git checkout 63e932907e3f0c834c8668d04f03ddb6eabf78d1 && git submodule update
 RUN cd /home/montage/glTF/converter/COLLADA2GLTF && cmake . && make
@@ -62,4 +54,3 @@ ADD filament /srv/filament
 
 EXPOSE 2441
 ENTRYPOINT ["node", "/srv/firefly/container/index.js"]
-
