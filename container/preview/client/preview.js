@@ -225,6 +225,10 @@ if (!window.performance) {
             }
 
             disconnectionMessageElement = createReconnectionMessageElement();
+        } else {
+            timer = setTimeout(function() {  // in case something went wrong with Montage
+                setup();
+            }, 5000);
         }
     }
 
@@ -296,11 +300,6 @@ if (!window.performance) {
         disconnectionMessageElement.style.left = ((document.body.offsetWidth - disconnectionMessageElement.offsetWidth) / 2) + "px";
         disconnectionMessageElement.style.visibility = "visible";
     }
-
-    timer = setTimeout(function() {  // in case something went wrong with Montage
-        _montageWillLoad = null;
-        setup();
-    }, 5000);
 
     window.montageWillLoad = function() {
         setup();
