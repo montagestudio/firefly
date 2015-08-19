@@ -10,7 +10,7 @@ describe("environment", function () {
 
         describe("getAppUrl", function () {
             it("returns a url", function () {
-                expect(environment.getAppUrl()).toEqual("http://local-firefly.declarativ.net:2440");
+                expect(environment.getAppUrl()).toEqual("http://local-aurora.montagestudio.com:2440");
             });
         });
 
@@ -22,7 +22,7 @@ describe("environment", function () {
 
         describe("getAppHost", function () {
             it("returns a host", function () {
-                expect(environment.getAppHost()).toEqual("local-firefly.declarativ.net:2440");
+                expect(environment.getAppHost()).toEqual("local-aurora.montagestudio.com:2440");
             });
         });
 

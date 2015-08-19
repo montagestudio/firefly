@@ -51,7 +51,7 @@ from scratch, however the result is a local setup that's very similar to the
 production setup. This means that we should be able to avoid causing problems
 that would usually only be seen in production.
 
-You can then access the server at http://local-firefly.declarativ.net:2440/
+You can then access the server at http://local-aurora.montagestudio.com:2440/
 
 ### Expected warnings
 
@@ -280,7 +280,7 @@ vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
 ```
 
 You can also see the state of the load-balancer (HAProxy) and the servers at
-http://local-firefly.declarativ.net:2440/admin?stats and logging in with
+http://local-aurora.montagestudio.com:2440/admin?stats and logging in with
 user `montage`, password `Mont@ge1789`.
 
 Viewing the files inside the container
@@ -363,7 +363,7 @@ Common errors
 -------------
 
 ```
-XMLHttpRequest cannot load http://local-firefly.declarativ.net:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
+XMLHttpRequest cannot load http://local-aurora.montagestudio.com:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
 ```
 
 This happens when the project subdomain doesn't have the session cookie.
