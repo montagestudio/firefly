@@ -85,11 +85,22 @@ GithubApi.prototype.listRepositories = function(options) {
     });
 };
 
-// http://developer.github.com/v3/repos/#list-user-repositories
-GithubApi.prototype.listUserRepositories = function(username) {
+GithubApi.prototype.listOwnRepositories = function(options) {
+    options.affiliation = 'owner,collaborator';
     return this._request({
         method: "GET",
-        url: "/users/" + username + "/repos"
+        url: "/user/repos",
+        query: options
+    });
+};
+
+// http://developer.github.com/v3/repos/#list-user-repositories
+GithubApi.prototype.listUserRepositories = function(username, options) {
+    options = options || {};
+    return this._request({
+        method: "GET",
+        url: "/users/" + username + "/repos",
+        query: options
     });
 };
 
@@ -312,6 +323,21 @@ GithubApi.prototype.getInfo = function(username, repository) {
             gitBranch: repository.default_branch
             //jshint +W106
         };
+    });
+};
+
+GithubApi.prototype.listUserOrganizations = function() {
+    return this._request({
+        method: 'GET',
+        url: '/user/orgs'
+    });
+};
+
+GithubApi.prototype.listOrganizationRepositories = function(organizationName, options) {
+    return this._request({
+        method: 'GET',
+        url: '/orgs/' + organizationName + '/repos',
+        query: options
     });
 };
 

@@ -25,6 +25,10 @@ exports.RepositoryController = Montage.specialize({
         value: null
     },
 
+    _isNonEmptyRepository: {
+        value: null
+    },
+
     constructor: {
         value: function RepositoryController() {
 
@@ -74,33 +78,38 @@ exports.RepositoryController = Montage.specialize({
 
     isRepositoryEmpty: {
         value: function() {
-            var self = this;
+            var self = this,
+                emptynessPromise;
 
-            return github.githubApi()
-            .then(function(githubApi) {
-                return githubApi.isRepositoryEmpty(self.owner, self.repo);
-            });
+            if (this._isNonEmptyRepository) {
+                emptynessPromise = Promise.resolve(false);
+            } else {
+                emptynessPromise = github.githubApi()
+                    .then(function(githubApi) {
+                        return githubApi.isRepositoryEmpty(self.owner, self.repo);
+                    });
+            }
+
+            return emptynessPromise;
         }
     },
 
     isMontageRepository: {
         value: function() {
+            var self = this;
+
             return github.githubFs(this.owner, this.repo)
             .then(function(githubFs) {
                 return githubFs.exists("/package.json").then(function(exists) {
                     if (exists) {
+                        self._isNonEmptyRepository = true;
                         return githubFs.read("/package.json").then(function(content) {
                             var packageDescription;
                             try {
                                 packageDescription = JSON.parse(content);
+                                return packageDescription.dependencies && "montage" in packageDescription.dependencies;
                             } catch(ex) {
                                 // not a JSON file
-                                return false;
-                            }
-                            if (packageDescription.dependencies &&
-                                "montage" in packageDescription.dependencies) {
-                                return true;
-                            } else {
                                 return false;
                             }
                         });
