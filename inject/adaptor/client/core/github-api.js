@@ -197,6 +197,15 @@ GithubApi.prototype.createRepositoryInOrganization = function(name, organization
     });
 };
 
+// https://developer.github.com/v3/repos/contents/#get-contents
+GithubApi.prototype.getContents = function(owner, name, path, param) {
+    return this._request({
+        method: 'GET',
+        url: ('/repos/' + owner + '/' + name + '/contents/' + path).replace('//', '/'),
+        param: param
+    });
+};
+
 // http://developer.github.com/v3/repos/#get
 GithubApi.prototype.getRepository = function(username, repository) {
     return this._request({
