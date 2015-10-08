@@ -3,6 +3,7 @@ var GithubServiceModule = rewire("../../../services/repository/github"),
     GithubService = GithubServiceModule.GithubService;
 
 describe("services/repository/github-spec", function() {
+
     describe("initialization", function() {
         it("should create a Github API client using correct version and defined user-agent header", function(done) {
             var GithubApiMock = function (config) {
@@ -62,5 +63,41 @@ describe("services/repository/github-spec", function() {
                 });
         });
 
+    });
+
+    describe('get organizations', function() {
+        it('should return a promise that resolve to organization list', function(done) {
+            var providedUsername,
+                GithubApiMock = function () {
+                this.authenticate = function () {};
+
+                this.orgs = {
+                    getFromUser: function(username, callback) {
+                        providedUsername = username.user;
+                        callback(null, [
+                            {login: 'foo', id: 1},
+                            {login: 'bar', id: 233}
+                        ]);
+                    }
+                };
+            };
+            GithubServiceModule.__set__('GithubApi', GithubApiMock);
+            var service = new GithubService('42');
+
+            service.getOrganizations('BAZ')
+                .then(function(organizations) {
+                    expect(providedUsername).toBeDefined();
+                    expect(providedUsername).toEqual('BAZ');
+                    expect(organizations).not.toBeNull();
+                    expect(organizations.length).toEqual(2);
+                    var organization0 = organizations[0];
+                    expect(organization0.login).toEqual('foo');
+                    expect(organization0.id).toEqual(1);
+                    var organization1 = organizations[1];
+                    expect(organization1.login).toEqual('bar');
+                    expect(organization1.id).toEqual(233);
+                })
+                .finally(done);
+        });
     });
 });

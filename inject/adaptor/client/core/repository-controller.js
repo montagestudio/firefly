@@ -97,27 +97,26 @@ exports.RepositoryController = Montage.specialize({
     isMontageRepository: {
         value: function() {
             var self = this;
-
             return github.githubFs(this.owner, this.repo)
-            .then(function(githubFs) {
-                return githubFs.exists("/package.json").then(function(exists) {
-                    if (exists) {
-                        self._isNonEmptyRepository = true;
-                        return githubFs.read("/package.json").then(function(content) {
-                            var packageDescription;
-                            try {
-                                packageDescription = JSON.parse(content);
-                                return packageDescription.dependencies && "montage" in packageDescription.dependencies;
-                            } catch(ex) {
-                                // not a JSON file
+                .then(function(githubFs) {
+                    return githubFs.readFromDefaultBranch('/package.json')
+                        .then(function(content) {
+                            self._isNonEmptyRepository = true;
+                            if (content) {
+                                try {
+                                    var packageDescription = JSON.parse(content);
+                                    return packageDescription.dependencies && "montage" in packageDescription.dependencies;
+                                } catch(ex) {
+                                    // not a JSON file
+                                    return false;
+                                }
+                            } else {
                                 return false;
                             }
+                        }, function() {
+                            return false;
                         });
-                    } else {
-                        return false;
-                    }
                 });
-            });
         }
     },
 
