@@ -85,8 +85,17 @@ GithubApi.prototype.listRepositories = function(options) {
     });
 };
 
-GithubApi.prototype.listOwnRepositories = function(options) {
-    options.affiliation = 'owner,collaborator';
+GithubApi.prototype.listOwnedRepositories = function(options) {
+    options.affiliation = 'owner';
+    return this._request({
+        method: "GET",
+        url: "/user/repos",
+        query: options
+    });
+};
+
+GithubApi.prototype.listContributingRepositories = function(options) {
+    options.affiliation = 'collaborator';
     return this._request({
         method: "GET",
         url: "/user/repos",
