@@ -120,6 +120,20 @@ exports.RepositoryController = Montage.specialize({
         }
     },
 
+    getParent: {
+        value: function() {
+            var self = this;
+
+            return github.githubApi()
+                .then(function(githubApi) {
+                    return githubApi.getRepository(self.owner, self.repo);
+                })
+                .then(function(repository) {
+                    return repository.parent;
+                });
+        }
+    },
+
     repositoryExists: {
         value: function() {
             var self = this;
