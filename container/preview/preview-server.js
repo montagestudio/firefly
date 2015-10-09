@@ -49,12 +49,11 @@ function Preview(config) {
                 return servePreviewClientFile(request, response);
             }
 
-            return Q.when(next(request, response), function(response) {
+            return Q.when(next(request, response), function (response) {
                 if (response.body && path === "/index.html") {
-                    return injectPreviewScripts(request, response);
-                } else {
-                    return response;
+                    response = injectPreviewScripts(request, response);
                 }
+                return response;
             });
         };
     };
@@ -115,7 +114,7 @@ function injectPreviewScripts(request, response) {
         }
 
         response.body = [html];
-        response.headers['content-length'] = html.length;
+        response.headers['content-length'] = Buffer.byteLength(html);
         return response;
     });
 }
