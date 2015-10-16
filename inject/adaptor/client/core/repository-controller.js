@@ -25,6 +25,10 @@ exports.RepositoryController = Montage.specialize({
         value: null
     },
 
+    _isNonEmptyRepository: {
+        value: null
+    },
+
     constructor: {
         value: function RepositoryController() {
 
@@ -74,41 +78,59 @@ exports.RepositoryController = Montage.specialize({
 
     isRepositoryEmpty: {
         value: function() {
-            var self = this;
+            var self = this,
+                emptynessPromise;
 
-            return github.githubApi()
-            .then(function(githubApi) {
-                return githubApi.isRepositoryEmpty(self.owner, self.repo);
-            });
+            if (this._isNonEmptyRepository) {
+                emptynessPromise = Promise.resolve(false);
+            } else {
+                emptynessPromise = github.githubApi()
+                    .then(function(githubApi) {
+                        return githubApi.isRepositoryEmpty(self.owner, self.repo);
+                    });
+            }
+
+            return emptynessPromise;
         }
     },
 
     isMontageRepository: {
         value: function() {
+            var self = this;
             return github.githubFs(this.owner, this.repo)
-            .then(function(githubFs) {
-                return githubFs.exists("/package.json").then(function(exists) {
-                    if (exists) {
-                        return githubFs.read("/package.json").then(function(content) {
-                            var packageDescription;
-                            try {
-                                packageDescription = JSON.parse(content);
-                            } catch(ex) {
-                                // not a JSON file
-                                return false;
-                            }
-                            if (packageDescription.dependencies &&
-                                "montage" in packageDescription.dependencies) {
-                                return true;
+                .then(function(githubFs) {
+                    return githubFs.readFromDefaultBranch('/package.json')
+                        .then(function(content) {
+                            self._isNonEmptyRepository = true;
+                            if (content) {
+                                try {
+                                    var packageDescription = JSON.parse(content);
+                                    return packageDescription.dependencies && "montage" in packageDescription.dependencies;
+                                } catch(ex) {
+                                    // not a JSON file
+                                    return false;
+                                }
                             } else {
                                 return false;
                             }
+                        }, function() {
+                            return false;
                         });
-                    } else {
-                        return false;
-                    }
                 });
-            });
+        }
+    },
+
+    getParent: {
+        value: function() {
+            var self = this;
+
+            return github.githubApi()
+                .then(function(githubApi) {
+                    return githubApi.getRepository(self.owner, self.repo);
+                })
+                .then(function(repository) {
+                    return repository.parent;
+                });
         }
     },
 

@@ -31,7 +31,7 @@ GithubFs.prototype.read = function(path, options) {
 
     return this._getFile(path).then(function(file) {
         if (file === null) {
-            throw new Error("File " + path + " does not exist on " + self.username + "/" + self.repository);
+            return null;
         } else {
             return self._api.getBlob(self.username, self.repository, file.sha, param)
             .then(function(blob) {
@@ -43,6 +43,12 @@ GithubFs.prototype.read = function(path, options) {
             });
         }
     });
+};
+
+GithubFs.prototype.readFromDefaultBranch = function(path) {
+    var param = "raw";
+
+    return this._api.getContents(this.username, this.repository, path, param);
 };
 
 /**

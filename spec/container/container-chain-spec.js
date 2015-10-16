@@ -72,7 +72,7 @@ describe("container chain", function () {
             request("http://127.0.0.1:2440/static/index.html")
             .then(function (response) {
                 expect(response.status).toEqual(200);
-                expect(response.body).toEqual(["pass"]);
+                expect(response.body[0]).toContain("pass");
             }).then(done, done);
         });
 

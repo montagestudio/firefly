@@ -85,11 +85,31 @@ GithubApi.prototype.listRepositories = function(options) {
     });
 };
 
-// http://developer.github.com/v3/repos/#list-user-repositories
-GithubApi.prototype.listUserRepositories = function(username) {
+GithubApi.prototype.listOwnedRepositories = function(options) {
+    options.affiliation = 'owner';
     return this._request({
         method: "GET",
-        url: "/users/" + username + "/repos"
+        url: "/user/repos",
+        query: options
+    });
+};
+
+GithubApi.prototype.listContributingRepositories = function(options) {
+    options.affiliation = 'collaborator';
+    return this._request({
+        method: "GET",
+        url: "/user/repos",
+        query: options
+    });
+};
+
+// http://developer.github.com/v3/repos/#list-user-repositories
+GithubApi.prototype.listUserRepositories = function(username, options) {
+    options = options || {};
+    return this._request({
+        method: "GET",
+        url: "/users/" + username + "/repos",
+        query: options
     });
 };
 
@@ -183,6 +203,15 @@ GithubApi.prototype.createRepositoryInOrganization = function(name, organization
         method: "POST",
         url: "/orgs/" + organization + "/repos",
         data: options
+    });
+};
+
+// https://developer.github.com/v3/repos/contents/#get-contents
+GithubApi.prototype.getContents = function(owner, name, path, param) {
+    return this._request({
+        method: 'GET',
+        url: ('/repos/' + owner + '/' + name + '/contents/' + path).replace('//', '/'),
+        param: param
     });
 };
 
@@ -312,6 +341,21 @@ GithubApi.prototype.getInfo = function(username, repository) {
             gitBranch: repository.default_branch
             //jshint +W106
         };
+    });
+};
+
+GithubApi.prototype.listUserOrganizations = function() {
+    return this._request({
+        method: 'GET',
+        url: '/user/orgs'
+    });
+};
+
+GithubApi.prototype.listOrganizationRepositories = function(organizationName, options) {
+    return this._request({
+        method: 'GET',
+        url: '/orgs/' + organizationName + '/repos',
+        query: options
     });
 };
 
