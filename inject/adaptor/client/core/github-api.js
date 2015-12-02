@@ -141,23 +141,48 @@ GithubApi.prototype.listUserRepositories = function(username, options) {
 /**
  * Create a new repository for the authenticated user. Requires OAuth user.
  *
- * @param {string} name The name of the repository.
+ * @param {string} repositoryName The name of the repository.
  * @param {CreateRepositoryOptions=} options
  *
  * http://developer.github.com/v3/repos/#create
  */
-GithubApi.prototype.createRepository = function(name, options) {
+GithubApi.prototype.createUserRepository = function(repositoryName, options) {
     options = options || {};
-    options.name = name;
+    options.name = repositoryName;
 
-    // sanity check on repo name
-    if (/^[A-Za-z0-9_].+$/.test(name) !== true) {
+    // sanity check on repositoryName
+    if (/^[A-Za-z0-9_].+$/.test(repositoryName) !== true) {
         throw new Error("Invalid project name");
     }
 
     return this._request({
         method: "POST",
         url: "/user/repos",
+        data: options
+    });
+};
+
+/**
+ * Create a new repository for the given organization. Requires OAuth user.
+ *
+ * @param {string} organizationName The name of the organization.
+ * @param {string} repositoryName The name of the repository.
+ * @param {CreateRepositoryOptions=} options
+ *
+ * http://developer.github.com/v3/repos/#create
+ */
+GithubApi.prototype.createOrganizationRepository = function(organizationName, repositoryName, options) {
+    options = options || {};
+    options.name = repositoryName;
+
+    // sanity check on repo name
+    if (/^[A-Za-z0-9_].+$/.test(repositoryName) !== true) {
+        throw new Error("Invalid project name");
+    }
+
+    return this._request({
+        method: "POST",
+        url: "/orgs/" + organizationName + "/repos",
         data: options
     });
 };
