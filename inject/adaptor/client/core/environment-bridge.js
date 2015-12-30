@@ -320,7 +320,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url, exclude) {
             return this.getService("file-service").invoke("listTree", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    return new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                 });
             });
         }
@@ -330,7 +330,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url) {
             return this.getService("file-service").invoke("list", url).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    return new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                 });
             });
         }
@@ -340,7 +340,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url, exclude) {
             return this.getService("file-service").invoke("listAsset", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    var fileDescriptor = FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    var fileDescriptor = new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                     fileDescriptor.mimeType = fd.mimeType;
 
                     return fileDescriptor;
