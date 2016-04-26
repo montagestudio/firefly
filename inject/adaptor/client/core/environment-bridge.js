@@ -358,8 +358,8 @@ exports.EnvironmentBridge = Target.specialize({
     watch: {
         value: function (url, ignoreSubPaths, changeHandler, errorHandler) {
             var handlers = {
-                handleChange: Promise.master(changeHandler),
-                handleError: Promise.master(errorHandler)
+                handleChange: changeHandler,
+                handleError: errorHandler
             };
 
             var result = this.getService("file-service").invoke("watch", url, ignoreSubPaths, handlers);
