@@ -6,23 +6,17 @@ var GithubApi = require("./github-api");
 var token;
 
 exports.githubFs = function(username, repository) {
-    var deferred = Promise.defer();
-
-    AuthToken().then(function (token) {
-        deferred.resolve(new GithubFs(username, repository, token));
-    }).fail(deferred.reject).done();
-
-    return deferred.promise;
+    return AuthToken().then(function (token) {
+        return new GithubFs(username, repository, token);
+    });
 };
 
 var githubApiPromise;
 exports.githubApi = function() {
     if (!githubApiPromise) {
-        var deferred = Promise.defer();
-        githubApiPromise = deferred.promise;
-        AuthToken().then(function (token) {
-            deferred.resolve(new GithubApi(token));
-        }).fail(deferred.reject).done();
+        githubApiPromise = AuthToken().then(function (token) {
+            return new GithubApi(token);
+        });
     }
 
     return githubApiPromise;
@@ -31,27 +25,28 @@ exports.githubApi = function() {
 function AuthToken() {
     var pendingTimeout;
     var timeout = 5000;
-    var response = Promise.defer();
-    if (!token) {
-        var request = new XMLHttpRequest();
-        request.open("GET", "/auth/github/token", true);
-        request.onreadystatechange = function () {
-            if (request.readyState === 4) {
-                if (request.status === 200) {
-                    if(pendingTimeout) {
-                        clearTimeout(pendingTimeout);
+
+    return new Promise(function (resolve, reject) {
+        if (!token) {
+            var request = new XMLHttpRequest();
+            request.open("GET", "/auth/github/token", true);
+            request.onreadystatechange = function () {
+                if (request.readyState === 4) {
+                    if (request.status === 200) {
+                        if(pendingTimeout) {
+                            clearTimeout(pendingTimeout);
+                        }
+                        token = request.responseText;
+                        resolve(request.responseText);
+                    } else {
+                        reject("HTTP " + request.status + " for /auth/token");
                     }
-                    token = request.responseText;
-                    response.resolve(request.responseText);
-                } else {
-                    response.reject("HTTP " + request.status + " for /auth/token");
                 }
-            }
-        };
-        pendingTimeout = setTimeout(response.reject, timeout - 50);
-        request.send();
-    } else {
-        response.resolve(token);
-    }
-    return response.promise.timeout(timeout);
+            };
+            pendingTimeout = setTimeout(reject, timeout - 50);
+            request.send();
+        } else {
+            resolve(token);
+        }
+    }).timeout(timeout);
 }

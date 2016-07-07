@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var Boot = require("./fs-boot");
 var GithubApi = require("./github-api");
 
@@ -114,20 +114,23 @@ GithubFs.prototype.listTree = function(basePath, guard) {
         return true;
     };
     var stat = self.stat(basePath);
-    return Q.when(stat, function (stat) {
+    return Promise.resolve(stat)
+    .then(function (stat) {
         var paths = [];
         var include;
         try {
             include = guard(basePath, stat);
         } catch (exception) {
-            return Q.reject(exception);
+            return Promise.reject(exception);
         }
-        return Q.when(include, function (include) {
+        return Promise.resolve(include)
+        .then(function (include) {
             if (include) {
                 paths.push([basePath]);
             }
             if (include !== null && stat.isDirectory()) {
-                return Q.when(self.list(basePath), function (children) {
+                return Promise.resolve(self.list(basePath))
+                .then(function (children) {
                     paths.push.apply(paths, children.map(function (child) {
                         var path = self.join(basePath, child);
                         return self.listTree(path, guard);
@@ -140,7 +143,7 @@ GithubFs.prototype.listTree = function(basePath, guard) {
         });
     }, function noSuchFile(reason) {
         return [];
-    }).then(Q.all).then(concat);
+    }).then(Promise.all).then(concat);
 };
 
 /**
@@ -203,7 +206,7 @@ GithubFs.prototype._getFile = function(path) {
 
 GithubFs.prototype._getBranchTree = function() {
     if (!this._branchTree) {
-        this._branchTree = Q.defer();
+        this._branchTree = Promise.defer();
 
         var user = this.username,
             repo = this.repository,
