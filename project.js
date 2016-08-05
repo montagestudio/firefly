@@ -89,11 +89,21 @@ function mountVolume(docker, shouldMountWorkspaces, workspacePath) {
     docker.createContainer = function (options) {
         // Create the volume on the container base image
         options.Volumes = {"/srv/firefly": {}, "/srv/filament": {}};
+        // Map the volume to the server location inside the VM, and mark it
+        // read-only (ro)
+        options.Binds = ["/srv/firefly:/srv/firefly:ro", "/srv/filament:/srv/filament:ro"];
         if (shouldMountWorkspaces) {
-            log("Mounting container workspace");
             options.Volumes[workspacePath] = {};
+            var hostPath = FS.join("/srv/workspaces", this.id);
+            options.Binds.push(hostPath + ":" + workspacePath + ":rw");
+            var self = this;
+            return FS.makeTree(hostPath)
+            .then(function () {
+                return originalCreateContainer.call(self, options);
+            });
+        } else {
+            return originalCreateContainer.call(this, options);
         }
-        return originalCreateContainer.call(this, options);
     };
 
     var originalContainer = docker.Container;
@@ -101,23 +111,6 @@ function mountVolume(docker, shouldMountWorkspaces, workspacePath) {
         originalContainer.apply(this, arguments);
     };
     docker.Container.prototype = Object.create(originalContainer.prototype);
-    docker.Container.prototype.start = function (options) {
-        // Map the volume to the server location inside the VM, and mark it
-        // read-only (ro)
-        options.Binds = ["/srv/firefly:/srv/firefly:ro", "/srv/filament:/srv/filament:ro"];
-
-        if (shouldMountWorkspaces) {
-            var hostPath = FS.join("/srv/workspaces", this.id);
-            options.Binds.push(hostPath + ":" + workspacePath + ":rw");
-            var self = this;
-            return FS.makeTree(hostPath)
-            .then(function () {
-                return originalContainer.prototype.start.call(self, options);
-            });
-        } else {
-            return originalContainer.prototype.start.call(this, options);
-        }
-    };
 
     return docker;
 }
