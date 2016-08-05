@@ -239,7 +239,7 @@ GithubFs.prototype._getBranchTree = function() {
                     self._branchTree.resolve([]);
                 }
             }).done();
-        }).fail(this._branchTree.reject).done();
+        }).catch(this._branchTree.reject).done();
     }
 
     return this._branchTree.promise;
