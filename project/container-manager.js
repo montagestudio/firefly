@@ -124,7 +124,7 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                     subdomain: subdomain
                 };
 
-                return self.docker.createContainer({
+                var options = {
                     name: generateContainerName(details),
                     Image: IMAGE_NAME,
                     Memory: 256 * 1024 * 1024,
@@ -135,8 +135,13 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                         "FIREFLY_APP_URL=" + environment.app.href,
                         "FIREFLY_PROJECT_URL=" + environment.project.href,
                         "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
-                    ]
-                })
+                    ],
+                    PortBindings: {}
+                };
+                // only bind to the local IP
+                options.PortBindings[IMAGE_PORT_TCP] = [{HostIp: "127.0.0.1"}];
+
+                return self.docker.createContainer(options)
                     .then(function (container) {
                         log("Created container", container.id, "for", details.toString());
                         info = {id: container.id};
@@ -174,9 +179,6 @@ ContainerManager.prototype.start = function (info) {
         } else {
             log("Starting container", container.id);
             var options = {};
-            options.PortBindings = {};
-            // only bind to the local IP
-            options.PortBindings[IMAGE_PORT_TCP] = [{HostIp: "127.0.0.1"}];
 
             info.started = container.start(options)
             .then(function () {

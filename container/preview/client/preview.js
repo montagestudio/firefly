@@ -132,7 +132,7 @@ if (!window.performance) {
             if (command === "updateCssFileContent") {
                 return LiveEdit.updateCssFileContent(args.url, args.content);
             }
-        }).fail(function(reason) {
+        }).catch(function(reason) {
             console.log("fail: ", reason);
         });
         //jshint +W074
