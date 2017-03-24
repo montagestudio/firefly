@@ -10,7 +10,7 @@ apt-get install --yes git
 # For Node
 add-apt-repository --yes ppa:chris-lea/node.js
 # For Redis
-add-apt-repository --yes ppa:rwky/redis
+add-apt-repository --yes ppa:chris-lea/redis-server
 # And be sure we are up to date
 apt-get update --fix-missing
 
