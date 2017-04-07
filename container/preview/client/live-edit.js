@@ -88,7 +88,7 @@ waitForApplicationLoad()
         Deserializer: {
             get: function() {
                 if (!this._Deserializer) {
-                    this._Deserializer = montageRequire("core/serialization").Deserializer;
+                    this._Deserializer = montageRequire("core/serialization/deserializer/montage-deserializer").MontageDeserializer;
                 }
 
                 return this._Deserializer;
@@ -1209,8 +1209,9 @@ waitForApplicationLoad()
         this.scope.invalidateTemplates(owner);
         return template.instantiateIntoDocument(this, how)
             .then(function(result) {
-                var deferred;
-                var promises = [];
+                var promise,
+                    resolve,
+                    promises = [];
 
                 self.scope.addObjects(result.objects, owner);
                 if (self.label !== "owner") {
@@ -1225,9 +1226,11 @@ waitForApplicationLoad()
                     // This ensures that the next changes will be able to see
                     // the new components created by this template adition.
                     if (object.parentComponent === parentComponent) {
-                        deferred = MontageStudio.Promise.defer();
-                        object.addEventListener("firstDraw", deferred.resolve, false);
-                        promises.push(deferred.promise);
+                        promise = new MontageStudio.Promise(function (r) {
+                            resolve = r;
+                        });
+                        object.addEventListener("firstDraw", resolve, false);
+                        promises.push(promise);
                     }
                 }
                 return MontageStudio.Promise.all(promises);
@@ -1746,7 +1749,7 @@ waitForApplicationLoad()
 
         // TODO: Should we update the owner template objects if the
         // scope was an iteration? We do need to update the templateObjects.
-        owner._addTemplateObjects(objects);
+        owner._setupTemplateObjects(objects);
     };
 
     MontageScope.prototype.deleteObject = function(label, owner) {
