@@ -1559,7 +1559,6 @@ waitForApplicationLoad()
 
         leArgRangeValue = this.owner._montage_metadata.moduleId + "," +
         this.label;
-        debugger;
         this._updateLiveEditRangeAttributes(ATTR_LE_ARG_BEGIN, leArgRangeValue, nextSibling);
         this._updateLiveEditRangeAttributes(ATTR_LE_ARG_END, leArgRangeValue, previousSibling);
     };
@@ -2270,7 +2269,6 @@ waitForApplicationLoad()
      * @param {String} how
      */
     MontageTemplate.prototype.addTemplateFragment = function(templateFragment, anchorLocation, how) {
-        debugger;
         var container = document.createElement("div");
         var range = MontageTemplate._range;
 
