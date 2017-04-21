@@ -218,6 +218,9 @@ waitForApplicationLoad()
     var ATTR_LE_ARG_END = "data-montage-le-arg-end";
     var UPDATE_TEMPLATE_TIMEOUT = 500;
 
+    /**
+     * @class LiveEdit
+     */
     ns.LiveEdit = Object.create(Object.prototype, {
         _bufferedTemplateChanges: {
             value: {}
@@ -230,6 +233,9 @@ waitForApplicationLoad()
          * time. This way we make sure this heavy operation never interfears
          * with the processing of a long stream of setObjectProperties
          * operations.
+         *
+         * @private
+         * @function
          */
         _scheduleSetObjectPropertiesUpdateTemplate: {
             value: function(label, ownerModuleId, properties) {
@@ -272,6 +278,14 @@ waitForApplicationLoad()
                 });
             }
         },
+
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} label
+         * @param {String} ownerModuleId
+         * @param {Object} properties
+         */
         setObjectProperties: {
             value: function(label, ownerModuleId, properties) {
                 var montageObjects = MontageObject.findAll(ownerModuleId, label);
@@ -292,6 +306,16 @@ waitForApplicationLoad()
 
         // Note to self: This function is bad and you should feel bad!
         // (\/) (;,,;) (\/)
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {String} label
+         * @param {String} propertyName
+         * @param {Any} propertyValue
+         * @param {Any} propertyType
+         * @return {Promise}
+         */
         setObjectProperty: {
             value: function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
                 var self = this,
@@ -343,6 +367,9 @@ waitForApplicationLoad()
          * us the wrong elements in the case of self nested components.
          * We might also need to clone the object if the element is part of a
          * repetition and the property is the component's element.
+         *
+         * @function
+         * @private
          */
         _setObjectPropertyWithElement: {
             value: function(ownerModuleId, label, propertyName, elementValue) {
@@ -403,6 +430,14 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {String} label
+         * @param {String} newLabel
+         * @return {Promise}
+         */
         setObjectLabel: {
             value: function(ownerModuleId, label, newLabel) {
                 var montageObjects;
@@ -422,6 +457,14 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {String} label
+         * @param {Object} binding
+         * @return {Promise}
+         */
         setObjectBinding: {
             value: function(ownerModuleId, label, binding) {
                 var montageObjects;
@@ -443,6 +486,14 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {String} label
+         * @param {String} path
+         * @return {Promise}
+         */
         deleteObjectBinding: {
             value: function(ownerModuleId, label, path) {
                 var montageObjects;
@@ -461,6 +512,14 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {Object} elementLocation
+         * @param {String} how
+         * @return {Promise}
+         */
         addTemplateFragment: {
             value: function(ownerModuleId, elementLocation, how, templateFragment) {
                 var promises = [];
@@ -491,6 +550,13 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {String} templateFragment
+         * @return {Promise}
+         */
         addTemplateFragmentObjects: {
             value: function(ownerModuleId, templateFragment) {
                 var montageComponents;
@@ -517,6 +583,13 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {String} label
+         * @return {Promise}
+         */
         deleteObject: {
             value: function(ownerModuleId, label) {
                 var montageObjects;
@@ -540,6 +613,13 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {Object} elementLocation
+         * @return {Promise}
+         */
         deleteElement: {
             value: function(ownerModuleId, elementLocation) {
                 var montageElements;
@@ -564,6 +644,15 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {Object} elementLocation
+         * @param {String} attributeName
+         * @param {Any} attributeValue
+         * @return {Promise}
+         */
         setElementAttribute: {
             value: function(ownerModuleId, elementLocation, attributeName, attributeValue) {
                 var montageElements;
@@ -585,6 +674,16 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {String} label
+         * @param {String} type
+         * @param {String} listenerLabel
+         * @param {Boolean} useCapture
+         * @return {Promise}
+         */
         addObjectEventListener: {
             value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
                 var montageObjects;
@@ -605,6 +704,16 @@ waitForApplicationLoad()
             }
         },
 
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} ownerModuleId
+         * @param {String} label
+         * @param {String} type
+         * @param {String} listenerLabel
+         * @param {Boolean} useCapture
+         * @return {Promise}
+         */
         removeObjectEventListener: {
             value: function(ownerModuleId, label, type, listenerLabel, useCapture) {
                 var montageObjects;
@@ -628,6 +737,12 @@ waitForApplicationLoad()
         _updatedCssFiles: {
             value: {}
         },
+        /**
+         * @function
+         * @memberOf LiveEdit.prototype
+         * @param {String} url
+         * @param {String} content
+         */
         updateCssFileContent: {
             value: function(url, content) {
 
@@ -657,11 +772,23 @@ waitForApplicationLoad()
         }
     });
 
+    /**
+     * @class Template
+     * @param {String} serializationString
+     * @param {String} html
+     */
     function Template(serializationString, html) {
         this.html = html;
         this.serializationString = serializationString;
     }
 
+    /**
+     * @function
+     * @memberOf Template.prototype
+     * @param {Object} anchor
+     * @param {String} how
+     * @return {Promise}
+     */
     Template.prototype.instantiateIntoDocument = function(anchor, how) {
         var self = this,
             element,
@@ -702,6 +829,14 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf Template.prototype
+     * @param {Object} owner
+     * @param {Object} element
+     * @param {Any} documentPart
+     * @return {Promise}
+     */
     Template.prototype.instantiate = function(owner, element, documentPart) {
         var self = this;
         var deserializer = new MontageStudio.Deserializer();
@@ -720,6 +855,10 @@ waitForApplicationLoad()
             });
     };
 
+    /**
+     * @function
+     * @memberOf Template.prototype
+     */
     Template.prototype.removeComponentElementReferences = function() {
         var serialization = JSON.parse(this.serializationString);
         var object;
@@ -774,6 +913,13 @@ waitForApplicationLoad()
 
     Template._range = document.createRange();
 
+    /**
+     * @function
+     * @memberOf Template.prototype
+     * @param {Object} template
+     * @param {String} label
+     * @return {Template}
+     */
     Template.createTemplateWithObject = function(template, label) {
         var sourceSerialization = template.getSerialization().getSerializationObject();
         var destinationSerialization = {};
@@ -793,6 +939,13 @@ waitForApplicationLoad()
 
     /// MONTAGE OBJECT
 
+    /**
+     * @class MontageObject
+     * @param {Any} value
+     * @param {String} label
+     * @param {Object} owner
+     * @param {Object} documentPart
+     */
     function MontageObject(value, label, owner, documentPart) {
         this.value = value;
         this.label = label;
@@ -800,17 +953,34 @@ waitForApplicationLoad()
         this.documentPart = documentPart;
     }
 
+    /**
+     * @function
+     * @memberOf MontageObject.prototype
+     * @param {String} label
+     */
     MontageObject.prototype.setLabel = function(label) {
         MontageStudio.Montage.getInfoForObject(this.value).label = label;
         this.label = label;
         this.scope.invalidateTemplates(this.owner);
     };
 
+    /**
+     * @function
+     * @memberOf MontageObject.prototype
+     * @param {String} propertyName
+     * @param {Any} propertyValue
+     */
     MontageObject.prototype.setProperty = function(propertyName, propertyValue) {
         this.value[propertyName] = propertyValue;
         this.scope.invalidateTemplates(this.owner);
     };
 
+    /**
+     * @function
+     * @memberOf MontageObject.prototype
+     * @param {String} path
+     * @param {Object} bindingDescriptor
+     */
     MontageObject.prototype.defineBinding = function(path, bindingDescriptor) {
         var object = this.value;
         var owner = this.owner;
@@ -834,6 +1004,11 @@ waitForApplicationLoad()
         this.scope.invalidateTemplates(owner);
     };
 
+    /**
+     * @function
+     * @memberOf MontageObject.prototype
+     * @param {String} path
+     */
     MontageObject.prototype.cancelBinding = function(path) {
         if (this.value.getBinding(path)) {
             this.value.cancelBinding(path);
@@ -841,12 +1016,26 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf MontageObject.prototype
+     * @param {String} type
+     * @param {String} listenerLabel
+     * @param {Boolean} useCapture
+     */
     MontageObject.prototype.addEventListener = function(type, listenerLabel, useCapture) {
         var listener = this.scope.lookupObject(listenerLabel, this.owner);
         this.value.addEventListener(type, listener, useCapture);
         this.scope.invalidateTemplates(this.owner);
     };
 
+    /**
+     * @function
+     * @memberOf MontageObject.prototype
+     * @param {String} type
+     * @param {String} listenerLabel
+     * @param {Boolean} useCapture
+     */
     MontageObject.prototype.removeEventListener = function(type, listenerLabel, useCapture) {
         var listener = this.scope.lookupObject(listenerLabel, this.owner);
         this.value.removeEventListener(type, listener, useCapture);
@@ -860,6 +1049,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageObject.prototype, {
         _scope: {value: false, writable: true},
+        /**
+         * @memberOf MontageObject.prototype
+         * @type {MontageScope}
+         */
         scope: {
             get: function() {
                 if (this._scope === false) {
@@ -871,6 +1064,13 @@ waitForApplicationLoad()
         }
     });
 
+    /**
+     * @function
+     * @memberOf MontageObject
+     * @param {String} ownerModuleId
+     * @param {String} label
+     * @return {Array.<MontageObject>}
+     */
     MontageObject.findAll = function(ownerModuleId, label) {
         if (label === "owner") {
             return MontageComponent.findAll(ownerModuleId);
@@ -879,6 +1079,13 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf MontageObject
+     * @param {String} ownerModuleId
+     * @param {String} label
+     * @return {Array.<MontageObject>}
+     */
     MontageObject.findAllByLabel = function(ownerModuleId, label) {
         var montageObjects = [];
         var findObjects = function(component) {
@@ -913,6 +1120,12 @@ waitForApplicationLoad()
 
     /// MONTAGE COMPONENT
 
+    /**
+     * @class MontageComponent
+     * @extends MontageObject
+     * @param {Any} value
+     * @param {String} label
+     */
     function MontageComponent(value, label) {
         this.value = value;
         this.label = label;
@@ -927,6 +1140,12 @@ waitForApplicationLoad()
     MontageComponent.prototype = Object.create(MontageObject.prototype);
     MontageComponent.prototype.constructor = MontageComponent;
 
+    /**
+     * @function
+     * @memberOf MontageComponent
+     * @param {String} moduleId
+     * @return {Array.<MontageComponent>}
+     */
     MontageComponent.findAll = function(moduleId) {
         var montageComponents = [];
         var findObjects = function(component) {
@@ -947,6 +1166,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageComponent.prototype, {
         _montageElement: {value: false, writable: true},
+        /**
+         * @type {MontageElement}
+         * @memberOf MontageComponent.prototype
+         */
         montageElement: {
             get: function() {
                 if (this._montageElement === false) {
@@ -958,6 +1181,11 @@ waitForApplicationLoad()
         }
     });
 
+    /**
+     * @function
+     * @memberOf MontageComponent.prototype
+     * @return {Array.<MontageComponent>}
+     */
     MontageComponent.prototype.findCloners = function() {
         var montageComponents = [];
         var findObjects = function(component) {
@@ -979,7 +1207,12 @@ waitForApplicationLoad()
 
     /**
      * Instantiates the template and adds all objects to the component's
-     * template
+     * template.
+     *
+     * @function
+     * @memberOf MontageComponent.prototype
+     * @param {Template} template
+     * @return {Promise}
      */
     MontageComponent.prototype.addTemplateObjects = function(template) {
         var scope = this.scope;
@@ -991,6 +1224,12 @@ waitForApplicationLoad()
             });
     };
 
+    /**
+     * @function
+     * @memberOf MontageComponent.prototype
+     * @param {MontageElement} montageElement
+     * @return {Promise}
+     */
     MontageComponent.prototype.setElement = function(montageElement) {
         var documentPart = montageElement.documentPart;
         var element = montageElement.value;
@@ -1022,6 +1261,11 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf MontageComponent.prototype
+     * @param {String} label
+     */
     MontageComponent.prototype.setLabel = function(label) {
         var originalLabel = this.label;
 
@@ -1032,6 +1276,11 @@ waitForApplicationLoad()
         this._updateLiveEditAttributes(originalLabel);
     };
 
+    /**
+     * @function
+     * @memberOf MontageComponent.prototype
+     * @return {Promise}
+     */
     MontageComponent.prototype.destroy = function() {
         this.scope.deleteObject(this.label);
         return this.montageElement.rebuild();
@@ -1039,6 +1288,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageComponent.prototype, {
         _inIteration: {value: null, writable: true},
+        /**
+         * @type {Boolean}
+         * @memberOf MontageComponent.prototype
+         */
         inIteration: {
             get: function() {
                 if (this._inIteration === null) {
@@ -1159,12 +1412,27 @@ waitForApplicationLoad()
 
     /// MONTAGE ELEMENT
 
+    /**
+     * @class MontageElement
+     * @param {Any} value
+     * @param {String} ownerModuleId
+     * @param {String} label
+     */
     function MontageElement(value, ownerModuleId, label) {
         this.value = value;
         this.ownerModuleId = ownerModuleId;
         this.label = label;
     }
 
+    /**
+     * @function
+     * @memberOf MontageElement
+     * @param {String} ownerModuleId
+     * @param {String} label
+     * @param {String} argumentName
+     * @param {String} cssSelector
+     * @return {Array.<MontageElement>}
+     */
     MontageElement.findAll = function(ownerModuleId, label, argumentName, cssSelector) {
         var moduleIdSelector;
         var elements;
@@ -1192,8 +1460,12 @@ waitForApplicationLoad()
 
     /**
      * Instantiates and adds the template using this element as an anchor point.
+     *
+     * @function
+     * @memberOf MontageElement.prototype
      * @param template Template The template to add.
      * @param how string How to add: "before", "after" or "append" to this node.
+     * @return {Promise}
      */
     MontageElement.prototype.addTemplate = function(template, how) {
         var self = this;
@@ -1237,6 +1509,11 @@ waitForApplicationLoad()
             });
     };
 
+    /**
+     * @function
+     * @memberOf MontageElement.prototype
+     * @return {Array.<MontageComponent>}
+     */
     MontageElement.prototype.findChildComponents = function() {
         var childComponents,
             searchChildComponents;
@@ -1260,6 +1537,10 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf MontageElement.prototype
+     */
     MontageElement.prototype.destroy = function() {
         var element = this.value;
         var childComponents;
@@ -1278,10 +1559,16 @@ waitForApplicationLoad()
 
         leArgRangeValue = this.owner._montage_metadata.moduleId + "," +
         this.label;
+        debugger;
         this._updateLiveEditRangeAttributes(ATTR_LE_ARG_BEGIN, leArgRangeValue, nextSibling);
         this._updateLiveEditRangeAttributes(ATTR_LE_ARG_END, leArgRangeValue, previousSibling);
     };
 
+    /**
+     * @function
+     * @memberOf MontageElement.prototype
+     * @return {Promise}
+     */
     MontageElement.prototype.rebuild = function() {
         var element = this.value;
         var parentNode = element.parentNode;
@@ -1322,6 +1609,10 @@ waitForApplicationLoad()
     // We'll solve it when we get there.
     Object.defineProperties(MontageElement.prototype, {
         _owner: {value: false, writable: true},
+        /**
+         * @type {MontageComponent}
+         * @memberOf MontageElement.prototype
+         */
         owner: {
             get: function() {
                 if (this._owner === false) {
@@ -1358,6 +1649,10 @@ waitForApplicationLoad()
     // We'll solve it when we get there.
     Object.defineProperties(MontageElement.prototype, {
         _documentPart: {value: false, writable: true},
+        /**
+         * @type {Object}
+         * @memberOf MontageElement.prototype
+         */
         documentPart: {
             get: function() {
                 if (this._documentPart === false) {
@@ -1393,6 +1688,10 @@ waitForApplicationLoad()
     });
 
     Object.defineProperties(MontageElement.prototype, {
+        /**
+         * @type {Object}
+         * @memberOf MontageElement.prototype
+         */
         component: {
             get: function() {
                 return this.value.component;
@@ -1402,6 +1701,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageElement.prototype, {
         _parentComponent: {value: false, writable: true},
+        /**
+         * @type {Object}
+         * @memberOf MontageElement.prototype
+         */
         parentComponent: {
             get: function() {
                 if (this._parentComponent === false) {
@@ -1427,6 +1730,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageElement.prototype, {
         _iteration: {value: false, writable: true},
+        /**
+         * @type {Object}
+         * @memberOf MontageElement.prototype
+         */
         iteration: {
             get: function() {
                 if (this._iteration === false) {
@@ -1453,6 +1760,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageElement.prototype, {
         _scope: {value: false, writable: true},
+        /**
+         * @type {MontageScope}
+         * @memberOf MontageElement.prototype
+         */
         scope: {
             get: function() {
                 if (this._scope === false) {
@@ -1466,6 +1777,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageElement.prototype, {
         _montageId: {value: false, writable: true},
+        /**
+         * @type {String}
+         * @memberOf MontageElement.prototype
+         */
         montageId: {
             get: function() {
                 if (this._montageId === false) {
@@ -1482,6 +1797,10 @@ waitForApplicationLoad()
      */
     Object.defineProperties(MontageElement.prototype, {
         _montageTemplate: {value: false, writable: true},
+        /**
+         * @type {MontageTemplate}
+         * @memberOf MontageElement.prototype
+         */
         montageTemplate: {
             get: function() {
                 if (this._montageTemplate === false) {
@@ -1499,6 +1818,11 @@ waitForApplicationLoad()
      * the arg-begin or arg-end that the element might have.
      * This is the case when this element is the beginning or the end of a DOM
      * argument star range.
+     *
+     * @function
+     * @memberOf MontageElement.prototype
+     * @param {MontageElement} siblingFirstElement
+     * @param {MontageElement} siblingLastElement
      */
     MontageElement.prototype.updateLiveEditAttributes = function(siblingFirstElement, siblingLastElement) {
         var element = this.value;
@@ -1520,6 +1844,9 @@ waitForApplicationLoad()
      * The new content needs to be tagged with the argument range attributes
      * if it expanded the argument from the sides. This means that it is
      * now the new firstElement or the new lastElement of the star argument.
+     *
+     * @function
+     * @private
      */
     MontageElement.prototype._updateLiveEditRangeAttributes = function(fringeAttrName, fringeAttrValue, newFringe) {
         var element = this.value;
@@ -1543,6 +1870,10 @@ waitForApplicationLoad()
 
     /// MONTAGE SCOPE
 
+    /**
+     * @class MontageScope
+     * @param {Object} documentPart
+     */
     function MontageScope(documentPart) {
         if (!documentPart) {
             throw new Error("DocumentPart is needed");
@@ -1550,6 +1881,13 @@ waitForApplicationLoad()
         this.documentPart = documentPart;
     }
 
+    /**
+     * @function
+     * @memberOf MontageScope.prototype
+     * @param {String} label
+     * @param {Object} owner
+     * @return {MontageObject}
+     */
     MontageScope.prototype.lookupObject = function(label, owner) {
         var templateProperty;
 
@@ -1583,6 +1921,13 @@ waitForApplicationLoad()
         return object;
     };
 
+    /**
+     * @function
+     * @memberOf MontageScope.prototype
+     * @param {String} label
+     * @param {Object} owner
+     * @return {Object}
+     */
     MontageScope.prototype.lookupTemplatePropertyLabel = function(label, owner) {
         var ix = label.indexOf(":");
         var objectLabel = label.substr(0, ix);
@@ -1618,6 +1963,13 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf MontageScope.prototype
+     * @param {String} label
+     * @param {Object} owner
+     * @return {MontageObject}
+     */
     MontageScope.prototype.getObject = function(label, owner) {
         var objects = this.documentPart.objects;
         var scopeLabel = this.getObjectScopeLabel(label, owner);
@@ -1629,6 +1981,13 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf MontageScope.prototype.getObjectScopeLabel
+     * @param {String} label
+     * @param {Object} owner
+     * @return {String}
+     */
     MontageScope.prototype.getObjectScopeLabel = function(label, owner) {
         var objects = this.documentPart.objects;
         var scopeOwner = objects.owner;
@@ -1668,6 +2027,11 @@ waitForApplicationLoad()
         return null;
     };
 
+    /**
+     * @function
+     * @memberOf MontageScope.prototype
+     * @param {Object} documentPart
+     */
     MontageScope.prototype.mergeDocumentPart = function(documentPart) {
         var srcObjects = documentPart.objects;
         var objects = this.documentPart.objects;
@@ -1679,6 +2043,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageScope.prototype, {
         _parentScope: {value: false, writable: true},
+        /**
+         * @type {MontageScope}
+         * @memberOf MontageScope.prototype
+         */
         parentScope: {
             get: function() {
                 if (this._parentScope === false) {
@@ -1696,6 +2064,10 @@ waitForApplicationLoad()
 
     Object.defineProperties(MontageScope.prototype, {
         _iteration: {value: false, writable: true},
+        /**
+         * @type {Object}
+         * @memberOf MontageScope.prototype
+         */
         iteration: {
             get: function() {
                 if (this._iteration === false) {
@@ -1728,6 +2100,12 @@ waitForApplicationLoad()
         }
     });
 
+    /**
+     * @function
+     * @memberOf MontageScope.prototype
+     * @param {Object} objects
+     * @param {Object} owner
+     */
     MontageScope.prototype.addObjects = function(objects, owner) {
         var object,
             ownerDocumentPart = owner._templateDocumentPart,
@@ -1752,6 +2130,13 @@ waitForApplicationLoad()
         owner._setupTemplateObjects(objects);
     };
 
+    /**
+     * @function
+     * @memberOf MontageScope.prototype
+     * @param {String} label
+     * @param {Object} owner
+     * @return {MontageObject} The deleted object.
+     */
     MontageScope.prototype.deleteObject = function(label, owner) {
         var scopeLabel,
             objects = this.documentPart.objects,
@@ -1764,6 +2149,11 @@ waitForApplicationLoad()
         return object;
     };
 
+    /**
+     * @function
+     * @memberOf MontageScope.prototype
+     * @param {Object} owner
+     */
     MontageScope.prototype.invalidateTemplates = function(owner) {
         var scope = this;
         var iteration;
@@ -1820,11 +2210,22 @@ waitForApplicationLoad()
 
     /// MONTAGE TEMPLATE
 
+    /**
+     * @class MontageTemplate
+     * @param {String} template
+     * @param {String} moduleId
+     */
     function MontageTemplate(template, moduleId) {
         this.value = template;
         this.moduleId = moduleId;
     }
 
+    /**
+     * @function
+     * @memberOf MontageTemplate
+     * @param {String} moduleId
+     * @return {MontageTemplate}
+     */
     MontageTemplate.find = function(moduleId) {
         var cssSelector = "*[" + ATTR_LE_COMPONENT + "='" + moduleId + "']";
         var element;
@@ -1836,10 +2237,22 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate
+     * @param {String} moduleId
+     * @return {String}
+     */
     MontageTemplate.getTemplateModuleIdForComponent = function(moduleId) {
         return moduleId.replace(/([^\/]+)\.reel$/, "$1.reel/$1.html");
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate
+     * @param {String} moduleId
+     * @return {Promise}
+     */
     MontageTemplate.load = function(moduleId) {
         var templateModuleId = this.getTemplateModuleIdForComponent(moduleId);
 
@@ -1849,7 +2262,15 @@ waitForApplicationLoad()
             });
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {Object} templateFragment
+     * @param {Object} anchorLocation
+     * @param {String} how
+     */
     MontageTemplate.prototype.addTemplateFragment = function(templateFragment, anchorLocation, how) {
+        debugger;
         var container = document.createElement("div");
         var range = MontageTemplate._range;
 
@@ -1863,15 +2284,34 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} templateFragment
+     */
     MontageTemplate.prototype.addTemplateFragmentObjects = function(templateFragment) {
         this._insertSerialization(JSON.parse(templateFragment.serialization));
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} elementId
+     * @param {MontageScope} scope
+     * @return {MontageTemplate}
+     */
     MontageTemplate.prototype.instantiateFromElementId = function(elementId, scope) {
         return this._instantiateFromElement(
             this.value.getElementById(elementId), scope);
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {Object} elementLocation
+     * @param {MontageScope} scope
+     * @return {MontageTemplate}
+     */
     MontageTemplate.prototype.instantiateFromElementLocation = function(elementLocation, scope) {
         var element = this.getElementByElement(elementLocation);
         return this._instantiateFromElement(element, scope);
@@ -2024,6 +2464,13 @@ waitForApplicationLoad()
 
     // TODO: We need to move the logic from Component._getTemplateDomArgument
     // to Template in Montage so we can reuse it here.
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} argumentName
+     * @return {MontageElement}
+     */
     MontageTemplate.prototype.getComponentArgumentElement = function(label, argumentName) {
         var componentElementId = this.getComponentElementId(label);
         var template = this.value;
@@ -2064,18 +2511,35 @@ waitForApplicationLoad()
         }
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @return {String}
+     */
     MontageTemplate.prototype.getComponentElementId = function(label) {
         var serialization = this.value.getSerialization().getSerializationObject();
 
         return serialization[label].properties.element["#"];
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @return {MontageElement}
+     */
     MontageTemplate.prototype.getComponentElement = function(label) {
         var elementId = this.getComponentElementId(label);
 
         return this.value.getElementById(elementId);
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     */
     MontageTemplate.prototype.deleteObject = function(label) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2086,6 +2550,11 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {Object} elementLocation
+     */
     MontageTemplate.prototype.deleteElement = function(elementLocation) {
         var template = this.value;
         var element;
@@ -2099,6 +2568,13 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {Object} elementLocation
+     * @param {String} attributeName
+     * @param {Any} attributeValue
+     */
     MontageTemplate.prototype.setElementAttribute = function(elementLocation, attributeName, attributeValue) {
         var element;
 
@@ -2108,6 +2584,13 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} path
+     * @param {Object} descriptor
+     */
     MontageTemplate.prototype.addObjectBinding = function(label, path, descriptor) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2123,6 +2606,12 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} path
+     */
     MontageTemplate.prototype.cancelObjectBinding = function(label, path) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2134,6 +2623,14 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} type
+     * @param {String} listenerLabel
+     * @param {Boolean} useCapture
+     */
     MontageTemplate.prototype.addObjectEventListener = function(label, type, listenerLabel, useCapture) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2153,6 +2650,14 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} type
+     * @param {String} listenerLabel
+     * @param {Boolean} useCapture
+     */
     MontageTemplate.prototype.removeObjectEventListener = function(label, type, listenerLabel, useCapture) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2176,6 +2681,13 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} propertyName
+     * @param {Any} propertyValue
+     */
     MontageTemplate.prototype.setObjectProperty = function(label, propertyName, propertyValue) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2191,6 +2703,12 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {Object} properties
+     */
     MontageTemplate.prototype.setObjectProperties = function(label, properties) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2210,6 +2728,13 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} propertyName
+     * @param {String} elementId
+     */
     MontageTemplate.prototype.setObjectPropertyWithElement = function(label, propertyName, elementId) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2225,6 +2750,13 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} propertyName
+     * @param {String} objectLabel
+     */
     MontageTemplate.prototype.setObjectPropertyWithObject = function(label, propertyName, objectLabel) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
@@ -2240,6 +2772,12 @@ waitForApplicationLoad()
         this._clearCaches();
     };
 
+    /**
+     * @function
+     * @memberOf MontageTemplate.prototype
+     * @param {String} label
+     * @param {String} newLabel
+     */
     MontageTemplate.prototype.setObjectLabel = function(label, newLabel) {
         var template = this.value;
         var serializationObject = template.getSerialization().getSerializationObject();
