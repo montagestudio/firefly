@@ -1449,6 +1449,15 @@ waitForApplicationLoad()
         cssSelector = cssSelector.replace(":scope", moduleIdSelector);
         elements = document.querySelectorAll(cssSelector);
 
+        if (elements.length < 1 && label !== "owner" && !argumentName) {
+            // We are trying to find an achor for the element with the
+            // given label, but no results were found because the element has
+            // no children. Return the element itself instead.
+            cssSelector = cssSelector.replace(moduleIdSelector,
+                "*[data-montage-id=" + label + "]");
+            elements = document.querySelectorAll(cssSelector);
+        }
+
         for (var i = 0, element; element = elements[i]; i++) {
             montageElements.push(
                 new MontageElement(element, ownerModuleId, label)
