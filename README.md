@@ -1,12 +1,10 @@
 Firefly
 =======
 
-Firefly parallels the Beacon née Lumieres project as another host for the
-Filament application.
+Firefly serves as the host for the Filament application.
 
 Firefly will serve Filament itself for use inside a browser and also provide
-services access to services for consumption in Filament much like Beacon does
-through its associated Environment Bridge.
+access to services for consumption in Filament through an Environment Bridge.
 
 Running
 =======
@@ -52,6 +50,10 @@ production setup. This means that we should be able to avoid causing problems
 that would usually only be seen in production.
 
 You can then access the server at http://local-aurora.montagestudio.com:2440/
+
+If the page fails to load, try the following: `vagrant reload load-balancer`.
+This may happen after setting up Firefly for the first time, but should not be
+an issue after that.
 
 ### Expected warnings
 
@@ -374,6 +376,13 @@ app domain. This is blocked because there are no cross-domain headers on the
 app domain (despite the request now really being non-cross domain). Hence the
 error showing the app domain in the message, and the `Origin` being null
 because it comes from a redirect.
+
+```
+local-aurora.montagestudio.com didn't send any data
+```
+
+This error may occur after setting up Firefly for the first time.
+Run `vagrant reload load-balancer` to fix it.
 
 Provisioning
 ------------
