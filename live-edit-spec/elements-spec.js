@@ -157,6 +157,54 @@ module.exports = function() {
                     });
                 });
             });
+
+            it("should append new elements to a nested element with no children", function () {
+                var templateFragment = {
+                    html: '<div class="nestedAppendAnchor"></div>'
+                };
+                result = LiveEdit.addTemplateFragment(
+                    mainModuleId,
+                    {
+                        label: "appendLast",
+                        argumentName: "",
+                        cssSelector: ":scope"
+                    },
+                    "append",
+                    templateFragment);
+
+                return Promise.resolve(result).then(function() {
+                    var newElements = document.getElementsByClassName("nestedAppendAnchor");
+
+                    expect(newElements.length).toBe(1);
+                    expect(getMontageId(newElements[0].parentElement)).toBe("appendLast");
+                    expect(newElements[0].previousElementSibling).toBe(null);
+                });
+            });
+
+            it("should set attributes on all nested children of the template", function () {
+                var templateFragment = {
+                    html: '<div class="nestedAppendAnchor"><div class="nestedAppendAnchor2"></div></div>'
+                };
+                result = LiveEdit.addTemplateFragment(
+                    mainModuleId,
+                    {
+                        label: "appendLast",
+                        argumentName: "",
+                        cssSelector: ":scope"
+                    },
+                    "append",
+                    templateFragment);
+
+                return Promise.resolve(result).then(function () {
+                    debugger;
+                    var firstChild = document.querySelector(
+                            "*[data-montage-le-arg-begin~='" + mainModuleId + ",appendAfter']"),
+                        secondChild = document.querySelector(
+                            "*[data-montage-le-arg-begin~='" + mainModuleId + ",nestedAppendAnchor']");
+                    expect(firstChild).toBeSomething();
+                    expect(secondChild).toBeSomething();
+                });
+            });
         });
 
         it("should set an attribute", function() {

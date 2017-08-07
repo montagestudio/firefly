@@ -8,7 +8,8 @@ var Reporter = require("core/reporter").Reporter;
 var Suite = require("jasminum");
 var Expectation = require("jasminum/expectation");
 
-var LIVE_EDIT_SRC = "../../container/preview/client/live-edit.js";
+// Initializes the MontageStudio global
+require("core/live-edit.js");
 
 exports.run = function() {
     var spec = "";
@@ -20,10 +21,7 @@ exports.run = function() {
         }
     });
 
-    var liveEditScript = document.createElement("script");
-    liveEditScript.src = LIVE_EDIT_SRC;
-    document.head.appendChild(liveEditScript);
-
+    global.montageDidLoad();
     var reporter = new Reporter();
     return require.async(spec).then(function(exports) {
         return new Suite().describe(function() {
