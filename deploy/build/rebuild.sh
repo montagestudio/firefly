@@ -52,7 +52,7 @@ export FIREFLY_SSH_OPTIONS="-o IdentitiesOnly=yes -o LogLevel=ERROR -o StrictHos
 
 get_ip () {
     # The argument is teh droplet name
-    echo `tugboat info -n $1  | grep "IP" | sed 's/IP:[ ]*\([0-9\.]*\)/\1/'`
+    echo `tugboat info -n $1  | grep "IP" | sed 's/IP4:[ ]*\([0-9\.]*\)/\1/'`
 }
 
 get_status () {
