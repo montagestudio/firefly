@@ -35,3 +35,6 @@ if [[ -z $DEFAULTS_HAVE_BEEN_SET ]]; then
     export DEFAULTS_HAVE_BEEN_SET="TRUE"
 
 fi
+
+export DIGITALOCEAN_API_TOKEN='11f8fc42b98421167a95aef59235fce9c5c43ce3d4e3c8779655ed43fba9116a'
+export REGION='nyc2'
