@@ -4,7 +4,7 @@ var FS = require("q-io/fs");
 
 /* Catch possible hidden error */
 process.on('uncaughtException', function (err) {
-  log("*uncaughtException*", err);
+  log("*uncaughtException*", err, err.stack);
 });
 
 var loginChainFactory = require("./login/login-chain");

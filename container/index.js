@@ -31,7 +31,7 @@ var Mop = require("./mop");
 
 /* Catch possible hidden error */
 process.on('uncaughtException', function (err) {
-  log("*uncaughtException*", err);
+  log("*uncaughtException*", err, err.stack);
 });
 
 var containerChainFactory = require("./container-chain");

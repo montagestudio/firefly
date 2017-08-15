@@ -5,7 +5,7 @@ var FS = require("q-io/fs");
 
 /* Catch possible hidden error */
 process.on('uncaughtException', function (err) {
-  log("*uncaughtException*", err);
+  log("*uncaughtException*", err, err.stack);
 });
 
 var projectChainFactory = require("./project/project-chain");
