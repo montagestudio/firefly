@@ -3,7 +3,7 @@
 # VERSION 1.1
 
 FROM ubuntu:14.04
-MAINTAINER Pierre Chaussalet <pchaussalet@montagestudio.com>
+MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
 
 # Updates
 RUN apt-get update
@@ -13,11 +13,9 @@ RUN apt-get install -y sudo curl git zip && \
     apt-get clean
 
 # Node
-RUN apt-get install -y python-software-properties python g++ make software-properties-common && \
-    apt-get clean
-RUN add-apt-repository ppa:chris-lea/node.js
-RUN apt-get update
-RUN apt-get install -y nodejs&& \
+RUN curl -sL https://deb.nodesource.com/setup_4.x -o nodesource_setup.sh
+RUN sudo bash nodesource_setup.sh
+RUN apt-get install -y nodejs build-essential && \
     apt-get clean
 
 RUN adduser --disabled-password --gecos "" montage
@@ -36,6 +34,7 @@ RUN git clone https://github.com/montagejs/popcorn.git /home/montage/popcorn
 RUN git --git-dir /home/montage/popcorn/.git remote rm origin
 
 # Install glTFConverter converter
+## TODO ubuntu 16.10 https://askubuntu.com/questions/840257/e-package-libpng12-0-has-no-installation-candidate-ubuntu-16-10-gnome/840268
 RUN apt-get install -y libxml2-dev libpng12-dev libpcre3-dev cmake&& \
     apt-get clean
 RUN git clone https://github.com/KhronosGroup/glTF.git /home/montage/glTF
