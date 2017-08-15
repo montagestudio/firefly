@@ -3,6 +3,11 @@ var Env = require("./environment");
 var log = require("./logging").from(__filename);
 var FS = require("q-io/fs");
 
+/* Catch possible hidden error */
+process.on('uncaughtException', function (err) {
+  log("*uncaughtException*", err);
+});
+
 var projectChainFactory = require("./project/project-chain");
 
 var GithubSessionStore = require("./github-session-store");
@@ -30,6 +35,7 @@ var commandOptions = {
         describe: "Show this help",
     }
 };
+
 
 module.exports = main;
 function main(options) {
