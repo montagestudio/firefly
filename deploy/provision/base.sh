@@ -13,8 +13,7 @@ apt-get update
 apt-get install --yes python-software-properties python g++ make software-properties-common
 
 # Create the montage user that the server will run under
-adduser --disabled-password --gecos "" admin
-adduser admin sudo
+adduser --disabled-password --gecos "" admin --ingroup sudo
 mkdir -p /home/admin/.ssh
 if [[ -e "/tmp/authorized_keys" ]]; then
     cp /tmp/authorized_keys /home/admin/.ssh/authorized_keys
