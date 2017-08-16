@@ -522,12 +522,12 @@ Deployment Scripts
                 Specify which branch of firefly should be pulled.
 
         -n build_number
-                Use the build_number when creating a new release. E.g. the '21' part of 'lilac/21'.
-                Defaults to one more than the last release if not specified.
+                Use the build_number when creating a new release. E.g. the '21' part of 'miranda/21'.
+                Defaults to one more than the last build number if not specified.
 
         -r build_revision
-                The name to use when creating a new release. E.g. the 'lilac' part of 'lilac/21'.
-                Defaults to the last used release name if not specified.
+                The name to use when creating a new release. E.g. the 'miranda' part of 'miranda/21'.
+                Defaults to the revision defined in deploy/build/env.sh if not specified.
 
 
 `deploy/build/rebuild.sh`:
