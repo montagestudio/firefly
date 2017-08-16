@@ -46,8 +46,8 @@ Vagrant.configure('2') do |config|
     # `synced_folder` so that as the developer updates their files they are
     # updated in the VMs as well
     #
-    #   NAME.vm.synced_folder ".", "/srv/firefly"
-    #   NAME.vm.synced_folder "../filament", "/srv/filament"
+    #   NAME.vm.synced_folder ".", "/srv/firefly", type: "rsync", rsync__exclude: [".git/", "node_modules"]
+    #   NAME.vm.synced_folder "../filament", "/srv/filament", type: "rsync", rsync__exclude: [".git/"]
     #
     # Config files
     #
@@ -120,7 +120,7 @@ Vagrant.configure('2') do |config|
         web.vm.provision :shell, path: "deploy/provision/base-web-server.sh"
 
         # web server image
-        web.vm.synced_folder "../filament", "/srv/app"
+        web.vm.synced_folder "../filament", "/srv/app", type: "rsync", rsync__exclude: [".git/"]
         web.vm.synced_folder "inject/adaptor", "/srv/app/adaptor"
         web.vm.provision :shell, path: "deploy/provision/web-server.sh"
         web.vm.provision :shell, :inline => "cp /vagrant/deploy/files/nginx.conf /etc/nginx/nginx.conf"
@@ -152,8 +152,8 @@ Vagrant.configure('2') do |config|
         login.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
 
         # TODO don't mount filament when server is split
-        login.vm.synced_folder "../filament", "/srv/filament"
-        login.vm.synced_folder ".", "/srv/firefly"
+        login.vm.synced_folder "../filament", "/srv/filament", type: "rsync", rsync__exclude: [".git/"]
+        login.vm.synced_folder ".", "/srv/firefly" , type: "rsync", rsync__exclude: [".git/", "node_modules"]
 
         login.vm.provision :shell, path: "deploy/provision/login.sh"
 
@@ -184,8 +184,8 @@ Vagrant.configure('2') do |config|
         project.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
 
         # TODO don't mount filament when server is split
-        project.vm.synced_folder "../filament", "/srv/filament"
-        project.vm.synced_folder ".", "/srv/firefly"
+        project.vm.synced_folder "../filament", "/srv/filament" , type: "rsync", rsync__exclude: [".git/"]
+        project.vm.synced_folder ".", "/srv/firefly" , type: "rsync", rsync__exclude: [".git/", "node_modules"]
 
 #        project.vm.provision :shell, :inline => "ln -sf /srv/firefly/Dockerfile /srv/Dockerfile"
 
