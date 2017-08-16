@@ -6,8 +6,8 @@ Firefly serves as the host for the Filament application.
 Firefly will serve Filament itself for use inside a browser and also provide
 access to services for consumption in Filament through an Environment Bridge.
 
-Running
-=======
+Running Locally
+===============
 
 Initial setup
 -------------
@@ -473,90 +473,108 @@ why you run this command inside the VM).
 Deploying
 =========
 
-1. Run `./deploy/build/images.sh` to build all the images, ready to put onto staging.
-2. If something fails you will see a message like:
+Overview
+--------
 
-  ```
-  Build 'digitalocean' errored: Script exited with non-zero exit status: 1
-  ```
+The deployment process mainly relies on two third-party tools: `packer` and `tugboat`.
 
-  Look through the logs to find the image that failed and then run one of the following individual scripts and its successors:
-  * `deploy/build/load-balancer-image.sh`
-  * `deploy/build/web-server-image.sh`
-  * `deploy/build/login-image.sh`
-  * `deploy/build/project-image.sh`
-3. Run `./deploy/build/rebuild.sh` to put the images on the staging servers. This will fail frequently, so rerun until you see `Registered firefly staging deploy ...`
-4. After verifying on staging, deploy to production with `./deploy/build/rebuild.sh -p`
+`packer` is used to create images through Digital Ocean. It uses the `build/*-image.sh` scripts to set up default values and perform pre-build steps, then reads the `./*-image.json` configuration files to walk through its image creation process. These .json files are used to describe the properties of DO droplets (using the standard DO API), to copy configuration files from `files` and `services`, and to execute scripts from `provision` on the droplets and initialize them for use. Finally packer takes a snapshot of the droplet to produce an image (`.iso`) which will be used when deploying.
 
-If you change anything in `authorized_keys`, `sudoers` or `provision/base.sh` then you will need to rebuild the *base image*. This is used to build each image in the above steps. To do this update the release name in `deploy/build/env.sh` (currently going in alphabetical order though [Firefly planets and moons](http://en.wikipedia.org/wiki/List_of_Firefly_planets_and_moons)), and run `./deploy/build/images.sh -f`.
+`tugboat` is used to actually interact with the existing droplets, while `packer` creates intermediate temporary droplets just for the purpose of snapshotting. It allows us to flash the new images onto existing droplets, ssh into them by name, check their statuses, etc. Note: When this deployment process was first created there was no equivalent to `tugboat`, but now there is an official tool maintained by DigitalOcean, `doctl`, which we should migrate to instead.
 
-Deploy background
------------------
+Setup
+-----
 
-We currently deploy on Digital Ocean. This is done with 2 tools, Tugboat and
-Packer. They get installed in the `./build` directory as part of the images
-build process.
+* Run `deploy/build/setup.sh`. This will install packer and tugboat. Packer is used for images generation, Tugboat is used to interact with DigitalOcean droplets. You will likely get a message about needing to run `tugboat authorize`, ignore this for now.
+* Run `source deploy/build/env.sh` to set up your shell's environment. This adds packer and tugboat to your path and defines several useful environment variables for debugging the deployment process.
+* Run `echo $DIGITALOCEAN\_API\_TOKEN` after setting the environment up above to print out the api token to use in the next step.
+* Run `tugboat authorize`. Use the API token from the previous step, and when it asks make sure to set the default ssh username to admin.
+* Add your public key to `deploy/files/authorized\_keys`. You will not be able to ssh into the droplets without it.
 
-It is very useful to have Tugboat installed on your machine so run
-`gem install tugboat` This will give a nice command line tool to access
-Digital Ocean.
+Deployment Scripts
+------------------
 
-Deploying is a three steps process. First you need to build the images,
-this is non destructive as it does not affect production. Then you will rebuild
-the staging environment (`deploy/build/rebuild.sh`) and do some QA. If you are satisfied
-with the result you deploy the same images by adding the production flag to the deploy
-script.
+`deploy/build/images.sh`:
 
-The build process will build 9 images: 5 base images and 4 pre-configured one for deployment.
-The base images are postfixed with the release name. The pre-configured one are postfixed
-with the release name and the build number. The build number is incremented from the tag in the firefly
-repository.
+    SYNOPSIS
+        deploy/build/images.sh [-ftx] [-b <branch>] [-c <branch>] [-n <build-number>] [-r <build revision>]
 
-There 6 scripts you will be interested in:
+    DESCRIPTION
+        Uses packer to generate the `.iso` images. There are several images that can be built using this script: the base image, which is the base for all other images and only needs to be rebuilt when upgrading the OS; individual base images which install the required software for each VM; specific images which install application-specific configuration. For most deployments only the specific (non-base) images need to be rebuilt, unless something at the OS level or underlying software level is changed.
 
- * `deploy/build/images.sh`
-   It builds all 4 images including rebuilding the base image. It takes 40~60
-   minutes to run. This script will automatically tag the firefly and filament repository.
-   Adding -f in the command line will force the rebuild of the base images. It will frequently
-   fail because of issues on the Digital Ocean site. `-t` disable the automatic tagging, usefull to re-try a build that failed without creating a new tag in Github
- * `deploy/build/load-balancer-image.sh`
-   It will build the load balancer image. It will not rebuild the base image if
-   it already exists.
- * `deploy/build/web-server-image.sh`
-   It will build the web server image. It will not rebuild the base image if it
-   already exists.
- * `deploy/build/login-image.sh`
-   It will build the login image. It will not rebuild the base image if it
-   already exists.
- * `deploy/build/project-image.sh`
-   It will build the project image. It will not rebuild the base image if it
-   already exists.
+        Building images will automatically tag the `firefly` and `filament` repositories with a new release version unless specified otherwise. The two repositories will be cloned temporarily while doing the deployment, so any local application changes that have not been pushed upstream will not be included in the deployment (except the `deploy/` directory, which is only used locally).
 
-Those 5 scripts accept 2 command line parameters: `-b firefly_branch` and
-`-c filament_branch`.
+    OPTIONS
+        -f      Force base image rebuild. Rebuilds the `base-image` and `\*-base-image`.
+                Only needed when upgrading the OS or making a change in the base software needed
+                on a machine.
 
-There are two important environment variables, `$LAST_BUILD_NUMER` and
-`$BUILD_REVISION_NUMBER`.
+        -t      Do not tag repositories. Prevents the step from automatically creating a new
+                release on `firefly` and `filament`. Useful when debugging and trying out many
+                deployments, but all published deployments should be given a release.
 
-When the build system is invoked through `build/images.sh` new base images are
-created and `BUILD_REVISION_NUMBER` is set to `$LAST_BUILD_NUMER + 1` (see
-`tag-repositories`). When invoked through, for example,
-`build/base-load-balancer-image.json`, the image will be recreated. This
-feature allows us to rebuild individual images, which is necessary because of
-the (frustratingly) high rate of failure when provisioning the images (usually
-failed DNS lookups).
+        -x      BASh debug mode.
 
-**Danger**
+        -b filament_branch
+                Specify which branch of filament should be pulled.
 
- * deploy/build/rebuild.sh
-   This script rebuild the droplet from the existing images. By default it will
-   rebuild the staging system. It will rebuild production with the `-p` argument.
+        -c firefly_branch
+                Specify which branch of firefly should be pulled.
 
-**Danger**
+        -n build_number
+                Use the build_number when creating a new release. E.g. the '21' part of 'lilac/21'.
+                Defaults to one more than the last release if not specified.
 
-In order to be able to login the droplets you will need to have your public key
-added to `deploy/files/authorized_keys`. The only user on the production/
-staging machines is admin and it is a sudoer.
+        -r build_revision
+                The name to use when creating a new release. E.g. the 'lilac' part of 'lilac/21'.
+                Defaults to the last used release name if not specified.
+
+
+`deploy/build/rebuild.sh`:
+
+    SYNOPSIS
+        deploy/build/rebuild.sh [-p] [-n build_number] [-r build_revision]
+
+    DESCRIPTION
+        Once the images are built, this script actually resets the Digital Ocean droplets with
+        the new images. Each of the droplets in the selected working set will be shut down,
+        the corresponding image will eb written over their file system, and they will be rebooted.
+        Deploys staging unless specified for production.
+
+    OPTIONS
+        -p      Deploys to production droplets instead of staging.
+
+        -n build_number
+                Use the build_number when creating a new release. E.g. the '21' part of 'lilac/21'.
+                Defaults to one more than the last release if not specified.
+                Unclear how this differs from specifying build_number when calling images.sh.
+
+        -r build_revision
+                The name to use when creating a new release. E.g. the 'lilac' part of 'lilac/21'.
+                Defaults to the last used release name if not specified.
+                Unclear how this differs from specifying build_revision when calling images.sh.
+
+## Directories
+
+### build/
+
+Run one of these scripts to start the build of an image.
+
+### files/
+
+Configuration files to be copied into the images.
+
+### provision/
+
+Scripts that are run inside of a new VM to set up all the packages and code that are needed.
+
+### services/
+
+These are configuration files for [Upstart](http://upstart.ubuntu.com/), to launch services when a machine boots. See the [manual](http://upstart.ubuntu.com/cookbook/).
+
+### ../.deploy/
+
+This directory is created in the root of firefly to store the `packer` and `tugboat` binaries
 
 Posting status updates
 ======================
