@@ -1,16 +1,51 @@
-Firefly
-=======
+# Firefly
 
 Firefly serves as the host for the Filament application.
 
 Firefly will serve Filament itself for use inside a browser and also provide
 access to services for consumption in Filament through an Environment Bridge.
 
-Running Locally
-===============
+## Architecture overview
 
-Initial setup
--------------
+                                                Request
+                                                   v
+                                        +-----------------------+
+                .com/app/*   +----------+Load balancer (HAProxy)+-------+  .com/api/*
+                .com/assets/*|          +----------+------------+       | *.net/*
+                             |                     |                    |  websocket
+                             v                     v                    v
+                +-------------------------+ +------------+ +-----------------------+
+                |Web Server               | |Login server| |Project server         |
+                |static files (Nginx)     | +------------+ |+----------------+     |
+                |filament + firefly/inject|                ||Container server| ... |
+                +-------------------------+                |+----------------+     |
+                                                           +-----------------------+
+
+                .com is short for the main app domain
+                        local-aurora.montagestudio.com
+                        staging-aurora.montagestudio.com
+                        work.montagestudio.com
+                .net is short for the project/preview domain
+                        *.local-project.montagestudio.net
+                        *.staging-project.montagestudio.net
+                        *.project.montagestudio.net
+
+                Created with http://www.asciiflow.com/
+
+Firefly consists of four machines managed by Vagrant: Load Balancer
+(frontend entrypoint), Web Server (the filament application itself),
+Login, and Project. The # of machines is scalable, as defined by `.env` files:
+a local environment has one of each machine, staging has two login and project
+servers, production has four.
+
+The Project machine is just a host for Docker containers. Actual user projects
+are stored in these containers. These are where we perform git checkouts and
+npm installs, server the app for the live preview, and use other backend tools
+like glTF conversion. Each Docker container contains exactly one user project.
+
+## Local Development
+
+### Initial setup
 
  1. You must check out Filament next to Firefly, so that it looks like this:
 
@@ -31,16 +66,7 @@ Initial setup
  5. Run `vagrant plugin install vagrant-vbguest`. This will keep the
     VirtualBox Guest additions up to date.
 
-### Updating
-
- 1. Run `vagrant destroy` and remove all of your VMs
- 2. Download Vagrant >1.5.x
- 3. Download the latest version of Virtualbox (4.3.8)
- 4. Run `vagrant plugin install vagrant-vbguest`
- 5. Run `vagrant up`
-
-Starting
---------
+### Starting
 
 Run `npm start`
 
@@ -55,7 +81,7 @@ If the page fails to load, try the following: `vagrant reload load-balancer`.
 This may happen after setting up Firefly for the first time, but should not be
 an issue after that.
 
-### Expected warnings
+#### Expected warnings
 
 There is a lot of output when provisioning, and a number of warnings. The ones
 below are expected:
@@ -78,21 +104,7 @@ chown: invalid user: `admin:admin'
 stdin: is not a tty
 ```
 
-### Resuming after sleep
-
-Sometimes the VMs will not resume correctly after your laptop has gone to sleep
-and been woken up again (it seems this happens most frequently with
-`load-balancer`). You can force them to shutdown and boot again with:
-
-```bash
-vagrant halt -f load-balancer  # or replace `load-balancer` with another name
-# The following warning is expected:
-# vagrant-cachier was unable to SSH into the VM to remove symlinks!
-vagrant up load-balancer
-```
-
-Stopping
---------
+### Stopping
 
 Run `npm stop`
 
@@ -104,39 +116,12 @@ disk space. Instead of `npm stop` you can run `vagrant destroy` to remove the
 VMs from disk. You can use `npm start` to bring them back, but this will take
 almost the same amount of time as the initial setup.
 
-Developing
-==========
-
-Architecture overview
----------------------
-
-```
-                                Request
-                                   v
-                        +-----------------------+
-.com/app/*   +----------+Load balancer (HAProxy)+-------+  .com/api/*
-.com/assets/*|          +----------+------------+       | *.net/*
-             |                     |                    |  websocket
-             v                     v                    v
- +-------------------------+ +------------+ +-----------------------+
- |Static files (Nginx)     | |Login server| |Project server         |
- |filament + firefly/inject| +------------+ |+----------------+     |
- +-------------------------+                ||Container server| ... |
-                                            |+----------------+     |
-                                            +-----------------------+
-
- .com is short for the main app domain
- .net is short for the project/preview domain
-```
-
-Created with http://www.asciiflow.com/
-
-Refreshing the server
----------------------
+### Refreshing the server
 
 Run `npm run deploy`
 
-You will need to run this whenever you make changes to Firefly.
+You will need to run this whenever you make changes to Firefly only. Changes to
+Filament do not need a server refresh, simply reload the page to see UI changes.
 
 This will restart the `login` and `project` servers, and stop all running
 containers so on the next request they will be restarted with the updated code.
@@ -150,13 +135,12 @@ Run `npm run container-rm-all` to remove all containers from the project server.
 Run `npm run container-rebuild` if you make changes to the `Dockerfile`. This
 will rebuid the base container image.
 
-Debugging Node
---------------
+### Debugging Node
 
 Run
 
- * `npm run login-debug` or
- * `npm run project-debug`
+* `npm run login-debug` or
+* `npm run project-debug`
 
 This sends a signal to the server process to enable debug mode, and then starts
 `node-inspector`. Sometimes the command exits with a weird error but running it
@@ -165,18 +149,16 @@ again works.
 The port that `node-inspector` is exposed on is defined in the package.json and
 forwarded in the Vagrantfile.
 
-Remote debugging Node
----------------------
+### Remote debugging Node
 
 Run
 
- * `npm run login-remote-debug` and use 10.0.0.4:5858 as the connection point or
- * `npm run project-remote-debug` and use 10.0.0.5:5858 as the connection point
+* `npm run login-remote-debug` and use 10.0.0.4:5858 as the connection point or
+* `npm run project-remote-debug` and use 10.0.0.5:5858 as the connection point
 
 You can connect using the node-inspector running on the host machine or any other client that supports node.js remote debugging such as WebStorm.
 
-Logging
--------
+### Logging
 
 ```javascript
 var log = require("./logging").from(__filename);
@@ -188,7 +170,7 @@ Only use `console.log` while developing.
 
 Some special characters will change the output:
 
-### `*` Errors
+#### `*` Errors
 
 Wrapping a string in `*`s will make it appear red in the logs, this is useful
 when you need to log an error:
@@ -197,7 +179,7 @@ when you need to log an error:
 log("*some error*", error.stack)
 ```
 
-### Tracking errors and events
+#### Tracking errors and events
 
 ```javascript
 var track = require("./track");
@@ -233,14 +215,37 @@ Messages should be written in the present tense without "-ing", e.g.
 "create container", **not** "creating container" or "created container" (unless
 the action really was in the past).
 
-Accessing logs
---------------
+### Common errors
+
+```
+XMLHttpRequest cannot load http://local-aurora.montagestudio.com:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
+```
+
+This happens when the project subdomain doesn't have the session cookie.
+
+Why? This is caused by a cross-domain request to the project domain. When the
+project server doesn't find a valid session it does a 304 redirect back to the
+app domain. This is blocked because there are no cross-domain headers on the
+app domain (despite the request now really being non-cross domain). Hence the
+error showing the app domain in the message, and the `Origin` being null
+because it comes from a redirect.
+
+```
+local-aurora.montagestudio.com didn't send any data
+```
+
+This error may occur after setting up Firefly for the first time.
+Run `vagrant reload load-balancer` to fix it.
+
+## Administration
+
+### Accessing logs
 
 You can `ssh` into the different machines with `vagrant ssh $NAME`. Files are
 generally located at `/srv`. You can run the commands below to directly follow
 the logs for the different servers:
 
-### Login
+#### Login
 
 Run `npm run login-logs`
 
@@ -251,7 +256,7 @@ vagrant ssh login -c "tail -f /home/montage/stderr.log"
 vagrant ssh login -c "sudo tail -n 30 /var/log/upstart/firefly-login.log"
 ```
 
-### Project
+#### Project
 
 Run `npm run project-logs`
 
@@ -262,20 +267,20 @@ vagrant ssh project -c "tail -f /home/montage/stderr.log"
 vagrant ssh project -c "sudo tail -n 30 /var/log/upstart/firefly-project.log"
 ```
 
-### Container
+#### Container
 
 Run `npm run container-logs`
 
 This will find the most recently launched container and start following the
 logs.
 
-### Static file server (Filament)
+#### Static file server (Filament)
 
 ```bash
 vagrant ssh web-server -c "tail -f /var/log/nginx/filament.access.log"
 ```
 
-### Load balancer
+#### Load balancer
 
 ```bash
 vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
@@ -285,8 +290,7 @@ You can also see the state of the load-balancer (HAProxy) and the servers at
 http://local-aurora.montagestudio.com:2440/admin?stats and logging in with
 user `montage`, password `Mont@ge1789`.
 
-Viewing the files inside the container
---------------------------------------
+### Viewing the files inside the container
 
 Run `npm run container-files`
 
@@ -346,8 +350,7 @@ docker diff $ID
 docker cp $ID:/workspace /tmp
 ```
 
-Session
--------
+### Session
 
 The session is available as `request.session`. After a Github auth it has a
 `githubAccessToken` property, containing the token.
@@ -361,36 +364,12 @@ This scheme isn't perfect as sessions can't be revoked (although the user can
 revoke their Github token on Github, killing the session on our end as well),
 but it allows all the servers to be relatively stateless.
 
-Common errors
--------------
-
-```
-XMLHttpRequest cannot load http://local-aurora.montagestudio.com:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
-```
-
-This happens when the project subdomain doesn't have the session cookie.
-
-Why? This is caused by a cross-domain request to the project domain. When the
-project server doesn't find a valid session it does a 304 redirect back to the
-app domain. This is blocked because there are no cross-domain headers on the
-app domain (despite the request now really being non-cross domain). Hence the
-error showing the app domain in the message, and the `Origin` being null
-because it comes from a redirect.
-
-```
-local-aurora.montagestudio.com didn't send any data
-```
-
-This error may occur after setting up Firefly for the first time.
-Run `vagrant reload load-balancer` to fix it.
-
-Provisioning
-------------
+### Provisioning
 
 Here are some more useful commands if you change any config files or other
 aspects of the provisioning.
 
-### Upstart services
+#### Upstart services
 
 If you need to change the Upstart config files you need to restart the service:
 
@@ -402,7 +381,7 @@ vagrant ssh project -c "sudo cp /vagrant/deploy/services/firefly-project.conf /e
 vagrant ssh project -c "sudo service firefly-project restart"
 ```
 
-### HAProxy config file
+#### HAProxy config file
 
 The new config needs to be copied across and certain values replaced. (This
 command is adapted from the Vagrantfile).
@@ -421,9 +400,9 @@ sudo sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg;\
 sudo service haproxy reload"
 ```
 
-Contributing
-============
-- Run the specs (`npm test`) at the project's root and make sure there are no
+## Contributing
+
+* Run the specs (`npm test`) at the project's root and make sure there are no
   `jshint` errors and all specs pass successfully.
 
   Note: the binary dependencies are compiled for Linux instead of OS X so
@@ -436,76 +415,89 @@ Contributing
   If you need to see the logs then comment out the lines in it. It also adds
   the `SlowSpecReporter`...
 
-- If a spec takes more than 100ms then it is a "slow" spec and a message
+* If a spec takes more than 100ms then it is a "slow" spec and a message
   telling you this will be logged. Make it faster, or wrap the `it` in an
   `if (process.env.runSlowSpecs)` block. Run `npm run slow-tests` to run the
   slow tests.
 
-- Make sure all commit messages follow the 50 character subject/72 character
-body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
+* Make sure all commit messages follow the 50 character subject/72 character
+  body [formatting used throughout git](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
 
-- Make sure commit messages start with uppercase present tense commands
-e.g. Prefer "Clear selection when clicking templateExplorer" over
-"Cleared selection when clicking templateExplorer"
+* Make sure commit messages start with uppercase present tense commands
+  e.g. Prefer "Clear selection when clicking templateExplorer" over
+  "Cleared selection when clicking templateExplorer"
 
-- Turn on "strip trailing whitespace on save" or equivalent in your editor
+* Turn on "strip trailing whitespace on save" or equivalent in your editor
 
-- Indent by 4 spaces, not tabs
+* Indent by 4 spaces, not tabs
 
-Updating dependencies
----------------------
+## Deploying
 
-The dependencies are checked in [as recommendedd](http://www.futurealoof.com/posts/nodemodules-in-git.html)
-by members of the community. To update them login into a VM
-(`vagrant ssh login`), `cd /srv/firefly` and run:
-
-```bash
-npm run update-dependencies
-```
-
-This will remove all the existing dependencies, install and dedupe, and stage
-the node_modules. At this point you should test and rollback any dependencies
-that you don't want to update.
-
-Any checked in binary modules **must** be added and compiled for Linux (that's
-why you run this command inside the VM).
-
-Deploying
-=========
-
-Overview
---------
+### Overview
 
 The deployment process mainly relies on two third-party tools: `packer` and `tugboat`.
 
-`packer` is used to create images through Digital Ocean. It uses the `build/*-image.sh` scripts to set up default values and perform pre-build steps, then reads the `./*-image.json` configuration files to walk through its image creation process. These .json files are used to describe the properties of DO droplets (using the standard DO API), to copy configuration files from `files` and `services`, and to execute scripts from `provision` on the droplets and initialize them for use. Finally packer takes a snapshot of the droplet to produce an image (`.iso`) which will be used when deploying.
+`packer` is used to create images through Digital Ocean. It uses the
+`build/*-image.sh` scripts to set up default values and perform pre-build
+steps, then reads the `./*-image.json` configuration files to walk through its
+image creation process. These .json files are used to describe the properties
+of DigitalOcean droplets (using the standard DO API), to copy configuration
+files from `files` and `services`, and to execute scripts from `provision` on
+the droplets that initialize them for use. Finally packer takes a snapshot of
+the droplet to produce an image (`.iso`) which will be used when deploying.
 
-`tugboat` is used to actually interact with the existing droplets, while `packer` creates intermediate temporary droplets just for the purpose of snapshotting. It allows us to flash the new images onto existing droplets, ssh into them by name, check their statuses, etc. Note: When this deployment process was first created there was no equivalent to `tugboat`, but now there is an official tool maintained by DigitalOcean, `doctl`, which we should migrate to instead.
+`tugboat` is used to actually interact with the existing droplets, while
+`packer` creates intermediate temporary droplets just for the purpose of
+snapshotting. It allows us to flash the new images onto existing droplets, ssh
+into them by name, check their statuses, etc. Note: When this deployment
+process was first created there was no equivalent to `tugboat`, but now there
+is an official tool maintained by DigitalOcean, `doctl`, which we should
+migrate to instead.
 
-Setup
------
+### Setup
 
-* Run `deploy/build/setup.sh`. This will install packer and tugboat. Packer is used for images generation, Tugboat is used to interact with DigitalOcean droplets. You will likely get a message about needing to run `tugboat authorize`, ignore this for now.
-* Run `source deploy/build/env.sh` to set up your shell's environment. This adds packer and tugboat to your path and defines several useful environment variables for debugging the deployment process.
-* Run `echo $DIGITALOCEAN\_API\_TOKEN` after setting the environment up above to print out the api token to use in the next step.
-* Run `tugboat authorize`. Use the API token from the previous step, and when it asks make sure to set the default ssh username to admin.
-* Add your public key to `deploy/files/authorized\_keys`. You will not be able to ssh into the droplets without it.
+* Run `deploy/build/setup.sh`. This will install packer and tugboat. You will
+  likely get a message about needing to run `tugboat authorize`, ignore this
+  for now.
 
-Deployment Scripts
-------------------
+* Run `source deploy/build/env.sh` to set up your shell's environment. This
+  adds packer and tugboat to your path and defines several useful environment
+  variables for debugging the deployment process.
+
+* Run `echo $DIGITALOCEAN_API_TOKEN` after setting the environment up above to
+  print out the api token to use in the next step.
+
+* Run `tugboat authorize`. Use the API token from the previous step, and when
+  it asks, set the default ssh username to admin and give the absolute path to
+  your ssh public key (e.g. /home/username/.ssh/id_rsa.pub on Linux or
+  /Users/username/.ssh/id_rsa.pub on MacOS).
+
+* Add your public key to `deploy/files/authorized_keys`. You will not be able
+  to ssh into the droplets without it.
+
+### Deployment Scripts
 
 `deploy/build/images.sh`:
 
     SYNOPSIS
-        deploy/build/images.sh [-ftx] [-b <branch>] [-c <branch>] [-n <build-number>] [-r <build revision>]
+        deploy/build/images.sh [-ftx] [-b branch] [-c branch] [-n build_number] [-r build_revision]
 
     DESCRIPTION
-        Uses packer to generate the `.iso` images. There are several images that can be built using this script: the base image, which is the base for all other images and only needs to be rebuilt when upgrading the OS; individual base images which install the required software for each VM; specific images which install application-specific configuration. For most deployments only the specific (non-base) images need to be rebuilt, unless something at the OS level or underlying software level is changed.
+        Uses packer to generate the `.iso` images. There are several images that can be built
+        using this script: the base image, which is the base for all other images and only needs
+        to be rebuilt when upgrading the OS; individual base images which install the required
+        software for each VM; specific images which install application-specific configuration.
+        For most deployments only the specific (non-base) images need to be rebuilt, unless
+        something at the OS level or underlying software level is changed.
 
-        Building images will automatically tag the `firefly` and `filament` repositories with a new release version unless specified otherwise. The two repositories will be cloned temporarily while doing the deployment, so any local application changes that have not been pushed upstream will not be included in the deployment (except the `deploy/` directory, which is only used locally).
+        Building images will automatically tag the `firefly` and `filament` repositories with a new
+        release version unless specified otherwise. The two repositories will be cloned temporarily
+        while doing the deployment, so any local application changes that have not been pushed
+        upstream will not be included in the deployment (except the `deploy/` directory, which
+        is only used locally).
 
     OPTIONS
-        -f      Force base image rebuild. Rebuilds the `base-image` and `\*-base-image`.
+        -f      Force base image rebuild. Rebuilds the `base-image` and `*-base-image`.
                 Only needed when upgrading the OS or making a change in the base software needed
                 on a machine.
 
@@ -538,46 +530,43 @@ Deployment Scripts
     DESCRIPTION
         Once the images are built, this script actually resets the Digital Ocean droplets with
         the new images. Each of the droplets in the selected working set will be shut down,
-        the corresponding image will eb written over their file system, and they will be rebooted.
+        the corresponding image will be written over their file system, and they will be rebooted.
         Deploys staging unless specified for production.
 
     OPTIONS
         -p      Deploys to production droplets instead of staging.
 
         -n build_number
-                Use the build_number when creating a new release. E.g. the '21' part of 'lilac/21'.
-                Defaults to one more than the last release if not specified.
-                Unclear how this differs from specifying build_number when calling images.sh.
+                Use the image with the given build_number. Defaults to the latest build of the
+                current revision if not specified.
 
         -r build_revision
-                The name to use when creating a new release. E.g. the 'lilac' part of 'lilac/21'.
-                Defaults to the last used release name if not specified.
-                Unclear how this differs from specifying build_revision when calling images.sh.
+                Use the image with the given build_revision. Defaults to the revision defined
+                in deploy/build/env.sh if not specified.
 
-## Directories
+### Directories
 
-### build/
+#### build/
 
 Run one of these scripts to start the build of an image.
 
-### files/
+#### files/
 
 Configuration files to be copied into the images.
 
-### provision/
+#### provision/
 
 Scripts that are run inside of a new VM to set up all the packages and code that are needed.
 
-### services/
+#### services/
 
 These are configuration files for [Upstart](http://upstart.ubuntu.com/), to launch services when a machine boots. See the [manual](http://upstart.ubuntu.com/cookbook/).
 
-### ../.deploy/
+#### ../.deploy/
 
 This directory is created in the root of firefly to store the `packer` and `tugboat` binaries
 
-Posting status updates
-======================
+## Posting status updates
 
 Email qmhaxgmmxepk4@tumblr.com with the update in the subject and a body of `#minor` or `#major` to indicate the severity, or `#good` if everything is okay again. Minor or major statuses will appear in the tool (good ones won't) and all posts appear on http://status.montagestudio.com/
 
