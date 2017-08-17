@@ -29,6 +29,11 @@ var track = require("../track");
 var FS = require("q-io/fs");
 var Mop = require("./mop");
 
+/* Catch possible hidden error */
+process.on('uncaughtException', function (err) {
+  log("*uncaughtException*", err, err.stack);
+});
+
 var containerChainFactory = require("./container-chain");
 var SetupProjectWorkspace = require("./setup-project-workspace");
 
