@@ -1,5 +1,4 @@
 /*jshint browser:true */
-/*global URL:true */
 var Target = require("montage/core/target").Target,
     Promise = require("montage/core/promise").Promise,
     Connection = require("q-connection"),
@@ -10,7 +9,7 @@ var Target = require("montage/core/target").Target,
     userMenu = require("core/menu").userMenu,
     RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
     UserController = require("adaptor/client/core/user-controller").UserController,
-    URL = require("core/url"),
+    URL = require("core/url"), // jshint ignore:line
     track = require("track");
 
 // TODO we should only inject the base prototype of generic services this environment provides

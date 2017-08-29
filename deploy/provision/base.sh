@@ -13,8 +13,7 @@ apt-get update
 apt-get install --yes python-software-properties python g++ make software-properties-common
 
 # Create the montage user that the server will run under
-adduser --disabled-password --gecos "" admin
-adduser admin sudo
+adduser --disabled-password --gecos "" admin --ingroup sudo
 mkdir -p /home/admin/.ssh
 if [[ -e "/tmp/authorized_keys" ]]; then
     cp /tmp/authorized_keys /home/admin/.ssh/authorized_keys
@@ -47,11 +46,12 @@ chown -R montage:montage /srv
 #
 apt-get install --yes zip
 pushd /tmp
-    SERF="0.6.2_linux_amd64.zip"
-    curl -LO https://dl.bintray.com/mitchellh/serf/${SERF}
+    SERF_V="0.6.2"
+    SERF="serf_${SERF_V}_linux_amd64.zip"
+    curl -LO "https://releases.hashicorp.com/serf/${SERF_V}/${SERF}"
     unzip ${SERF}
     rm -rf ${SERF}
-    mv serf /usr/bin/.
+    mv serf /usr/bin/
 popd
 
 # Install and configure new relic agent

@@ -44,6 +44,7 @@
     "github": "^0.2.3",
     "htmlparser2": "3.4.0",
     "joey": "~1.3.1",
+    "jshint": "^2.9.5",
     "logging": "git+ssh://git@github.com:Stuk/logging.git#4dbe3884056c0deab8ca409c81461948d911aff0",
     "minimatch": "~0.2.12",
     "minit": "0.5.7",
