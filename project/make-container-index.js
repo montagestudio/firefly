@@ -25,7 +25,7 @@ function makeContainerIndex(filename) {
 
             var containersIdex = [];
             containers.forEach(function (key, value) {
-                containersIdex.push([value, key])
+                containersIdex.push([value, key]);
             });
 
             fs.writeFileSync(filename, JSON.stringify(containersIdex));
