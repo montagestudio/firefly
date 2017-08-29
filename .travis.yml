@@ -29,14 +29,16 @@ install:
   - sudo update-ca-certificates --verbose
 addons:
   hosts:
-    - rest-accelerator.example.com
+    - local-aurora.montagestudio.com
 before_script:
 #  - export DISPLAY=:99.0
 #  - sh -e /etc/init.d/xvfb start
-  - docker build -t firefly-container:0.1 -f Dockerfile .
-  - docker run -t --name firefly-container firefly-container:0.1
-  - sleep 25
+#  - docker build -t firefly-container:0.1 -f Dockerfile .
+#  - docker run -t --name firefly-container firefly-container:0.1
+#  - sleep 25
 script:
-  - npm run test
+  - npm run lint
+# TODO provide server to run test
+#  - npm run test
 after_script:
   - docker stop firefly-container
