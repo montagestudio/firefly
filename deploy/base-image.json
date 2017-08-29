@@ -1,22 +1,19 @@
 {
     "variables": {
-        "do_api_key": null,
-        "do_client_id": null,
         "snapshot_name": null,
         "home": "{{env `HOME`}}",
         "build": "{{env `BUILD`}}",
         "base_image_id": null,
-        "region_id": "{{env `REGION_ID`}}"
+        "do_region": "{{env `REGION`}}"
     },
 
     "builders": [{
         "type": "digitalocean",
-        "api_key": "{{user `do_api_key`}}",
-        "client_id": "{{user `do_client_id`}}",
-        "image_id": "{{user `base_image_id`}}",
-        "region_id": "{{user `region_id`}}",
-        "size_id": 66,
+        "image": "{{user `base_image_id`}}",
+        "region": "{{user `do_region`}}",
+        "size": "512mb",
         "private_networking": false,
+        "ssh_username": "root",
         "ssh_timeout": "12m",
         "state_timeout": "12m",
         "snapshot_name": "{{user `snapshot_name`}}",
@@ -24,8 +21,8 @@
     }, {
         "type": "virtualbox-iso",
         "guest_os_type": "Ubuntu_64",
-        "iso_url": "http://releases.ubuntu.com/13.10/ubuntu-13.10-server-amd64.iso",
-        "iso_checksum": "2bead0f1f451734461ff88f913f4b02ba9e873b15f097a5c231bdb3763ea42e3",
+        "iso_url": "http://releases.ubuntu.com/14.04/ubuntu-14.04-server-amd64.iso",
+        "iso_checksum": "ababb88a492e08759fddcf4f05e5ccc58ec9d47fa37550d63931d0a5fa4f7388",
         "iso_checksum_type": "sha256",
 
         "boot_command": [
@@ -83,16 +80,12 @@
     {
         "type": "shell",
         "inline": ["sleep 30"]
-    },
-
-    {
+    }, {
         "type": "shell",
         "only": ["virtualbox-iso"],
         "override": { "virtualbox-iso": { "execute_command": "echo 'vagrant'|{{.Vars}} sudo -S -E bash '{{.Path}}'" } },
         "script": "{{user `home`}}/deploy/vagrant/setup.sh"
-    },
-
-    {
+    }, {
         "type": "file",
         "source": "{{user `home`}}/deploy/files/authorized_keys",
         "destination": "/tmp/authorized_keys"
@@ -102,7 +95,11 @@
         "destination": "/tmp/sudoers"
     }, {
         "type": "shell",
-        "override": { "virtualbox-iso": { "execute_command": "echo 'vagrant'|{{.Vars}} sudo -S -E bash '{{.Path}}'" } },
+        "override": {
+            "virtualbox-iso": {
+                "execute_command": "echo 'vagrant'|{{.Vars}} sudo -S -E bash '{{.Path}}'"
+            }
+        },
         "script": "{{user `home`}}/deploy/provision/base.sh"
     }],
 

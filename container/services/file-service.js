@@ -20,23 +20,23 @@ var guard = function (exclude) {
 module.exports = exports = FileService;
 var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function (pathname) {
     return function (url) {
-        return URL.parse(url).pathname;
+        return decodeURI(URL.parse(url).pathname);
     };
 };
 
-var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, environment) {
+var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, subdomain, environment) {
     return function (path) {
-        var projectHost = environment.getProjectUrlFromAppUrl(pathname);
-        return projectHost + path;
+        var projectHost = environment.getProjectUrl(subdomain);
+        return projectHost + encodeURI(path);
     };
 };
 
-function FileService(session, fs, environment, pathname, fsPath) {
+function FileService(config, fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
 
     var convertProjectUrlToPath = makeConvertProjectUrlToPath(pathname);
-    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, environment);
+    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, config.subdomain, environment);
 
     /**
      * Converts an array of (absolute) paths to an array of objects with `url`
@@ -61,6 +61,13 @@ function FileService(session, fs, environment, pathname, fsPath) {
     service.read = function (url) {
         var localPath = convertProjectUrlToPath(url);
         return fs.read(localPath);
+    };
+
+    service.touch = function (url) {
+        var localPath = convertProjectUrlToPath(url);
+        return fs.open(localPath, "w").then(function (reader) {
+            return reader.close();
+        });
     };
 
     /**
@@ -164,6 +171,16 @@ function FileService(session, fs, environment, pathname, fsPath) {
         return fs.makeTree(path, mode);
     };
 
+    service.makeTreeWriteFile = function (url, base64, mode) {
+        var directoryName = PATH.dirname(url),
+            directoryPath = convertProjectUrlToPath(directoryName),
+            filePath = convertProjectUrlToPath(url),
+            buffer = new Buffer(base64, "base64");
+        return fs.makeTree(directoryPath, mode).then(function () {
+            return fs.write(filePath, buffer);
+        });
+    };
+
     service.remove = function (url) {
         var path = convertProjectUrlToPath(url);
         return fs.remove(path).catch(function () {
@@ -224,27 +241,32 @@ function FileService(session, fs, environment, pathname, fsPath) {
             ignoreCustomPatterns: /\.git/,
             listeners: {
                 change: function(changeType, filePath, fileCurrentStat, filePreviousStat) {
+                    // Errors that happen in this callback don't appear
+                    // anywhere, so let's capture them
+                    try {
+                        //The client expects directories to have a trailing slash
+                        var fileStat = fileCurrentStat || filePreviousStat;
+                        if (fileStat.isDirectory() && !/\/$/.test(filePath)) {
+                            filePath += "/";
+                        }
 
-                    //The client expects directories to have a trailing slash
-                    var fileStat = fileCurrentStat || filePreviousStat;
-                    if (fileStat.isDirectory() && !/\/$/.test(filePath)) {
-                        filePath += "/";
+                        filePath = filePath.replace(fsPath, "");
+                        var url = convertPathToProjectUrl(filePath);
+                        
+                        // Pass in a reduced stat object, with just the mode. This
+                        // is the only used client side, to check if the file is
+                        // a directory. See inject/adaptor/client/core/file-descriptor.js
+                        fileStat = {mode: fileStat.mode};
+                        handlers.handleChange(changeType, url, fileStat)
+                        .catch(function (error) {
+                            log("handleChange", "*" + error.stack + "*");
+                        });
+                    } catch (error) {
+                        log("watchr change error", "*" + error.stack + "*");
                     }
-
-                    filePath = filePath.replace(fsPath, "");
-                    var url = convertPathToProjectUrl(filePath);
-
-                    // Pass in a reduced stat object, with just the mode. This
-                    // is the only used client side, to check if the file is
-                    // a directory. See inject/adaptor/client/core/file-descriptor.js
-                    fileStat = {mode: fileStat.mode};
-                    handlers.handleChange.fcall(changeType, url, fileStat)
-                    .catch(function (error) {
-                        log("handleChange", "*" + error.stack + "*");
-                    });
                 },
                 error: function(err) {
-                    handlers.handleChange.fcall(err)
+                    handlers.handleChange(err)
                     .catch(function (error) {
                         log("handleError", "*" + error.stack + "*");
                     });

@@ -1,6 +1,6 @@
 var log = require("../logging").from(__filename);
+var track = require("../track");
 var Q = require("q");
-var fs = require("q-io/fs");
 var URL = require("url");
 var exec = require("./exec");
 var Semaphore = require("./semaphore").Semaphore;
@@ -15,15 +15,17 @@ module.exports = Git;
  */
 module.exports.semaphore = new Semaphore();
 
-function Git(fs, accessToken, acceptOnlyHttpsRemote) {
+function Git(_fs, accessToken, acceptOnlyHttpsRemote) {
     this._accessToken = accessToken;
     this._acceptOnlyHttpsRemote = (acceptOnlyHttpsRemote !== false);
+    this._fs = _fs;
 }
 
 Git.prototype.init = function(repoPath) {
     log("init " + repoPath);
     return exec("git", ["init", repoPath], "/")
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git init failed.");
     });
 };
@@ -31,7 +33,8 @@ Git.prototype.init = function(repoPath) {
 Git.prototype.config = function(repoPath, option, value) {
     log("config " + option + " " + value);
     return exec("git", ["config", "--file", ".git/config", option, value], repoPath)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git config failed.");
     });
 };
@@ -39,7 +42,8 @@ Git.prototype.config = function(repoPath, option, value) {
 Git.prototype.addRemote = function (repoPath, url) {
     log("remote add origin " + url);
     return exec("git", ["remote", "add", "origin", url], repoPath)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git add origin failed.");
     });
 };
@@ -52,7 +56,8 @@ Git.prototype.fetch = function(repoPath, remoteRepoNames, options) {
     }
     args.push(remoteRepoNames || "--all");
     return exec("git", args, repoPath)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git fetch failed.");
     });
 };
@@ -63,8 +68,21 @@ Git.prototype.branch = function(repoPath, option) {
         option = [option];
     }
     return exec("git", ["branch"].concat(option), repoPath, true)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git branch failed.");
+    });
+};
+
+Git.prototype.currentBranch = function(repoPath) {
+    log("head");
+    return this.command(repoPath, "rev-parse", ["--abbrev-ref", "HEAD"], true)
+    .then(function(result) {
+        if (result && result.length > 1) {
+            return result.slice(0, -1);
+        } else {
+            return result;
+        }
     });
 };
 
@@ -74,11 +92,30 @@ Git.prototype.status = function(repoPath, options) {
 };
 
 Git.prototype.add = function(repoPath, paths) {
-    log("add " + paths);
+    log("add", paths);
     var args = ["add"].concat(paths);
     return exec("git", args, repoPath)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git add failed.");
+    });
+};
+
+Git.prototype.rm = function(repoPath, paths) {
+    log("rm", paths);
+    var self = this;
+
+    // We need to process each path one by one as we need to use the -r option when removing a directory
+    return Q.allSettled(paths.map(function (path) {
+        if ((path.slice(-1) === self._fs.SEPARATOR)) {
+            return exec("git", ["rm", "-r", path], repoPath);
+        } else {
+            return exec("git", ["rm", path], repoPath);
+        }
+    }))
+    .fail(function (error) {
+        track.error(error);
+        throw new Error("git rm failed.");
     });
 };
 
@@ -94,7 +131,8 @@ Git.prototype.checkout = function (repoPath, branch, create, merge) {
     }
 
     return exec("git", args, repoPath)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git checkout failed.");
     });
 };
@@ -103,16 +141,18 @@ Git.prototype.merge = function (repoPath, branch, squash) {
     var args = (squash === true) ? ["merge", "-q", "--squash", branch] : ["merge", "-q", branch];
     log("merge ", branch, squash === true ? "squash" : "");
     return exec("git", args, repoPath)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git merge failed.");
     });
 };
 
-Git.prototype.commit = function (repoPath, message) {
-    var args = ["commit", "-m", message];
+Git.prototype.commit = function (repoPath, message, amend) {
+    var args = amend === true ? ["commit", "--amend", "-m", message] : ["commit", "-m", message];
     log("commit ", args);
     return exec("git", args, repoPath)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git commit failed.");
     });
 };
@@ -132,7 +172,8 @@ Git.prototype.push = function(repoPath, repositoryUrl, branch, options) {
     }
     // The remote has already been set with the accessToken in Git#clone
     return exec("git", args, repoPath)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git push failed.");
     });
 };
@@ -147,15 +188,16 @@ Git.prototype.clone = function(cloneUrl, repoPath) {
         return Q.reject(new Error("Clone url must be https://, not " + cloneUrl));
     }
     return exec("git", ["clone", this._addAccessToken(cloneUrl), repoPath], "/")
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git clone failed.");
     });
 };
 
 Git.prototype.isCloned = function(repoPath) {
-    var dotGitPath = fs.join(repoPath, ".git");
+    var dotGitPath = this._fs.join(repoPath, ".git");
 
-    return fs.isDirectory(dotGitPath);
+    return this._fs.isDirectory(dotGitPath);
 };
 
 Git.prototype._addAccessToken = function (url) {
@@ -170,7 +212,8 @@ Git.prototype.command = function(repoPath, command, options, shouldReturnOutput)
         args = args.concat(options);
     }
     return exec("git", args, repoPath, shouldReturnOutput)
-    .fail(function() {
+    .fail(function (error) {
+        track.error(error);
         throw new Error("git " + command + " failed.");
     });
 };

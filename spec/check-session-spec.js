@@ -15,7 +15,7 @@ describe("CheckSession", function () {
         checkSession({})
         .then(function (response) {
             expect(response.status).toEqual(302);
-            expect(response.headers.Location).toEqual("http://local-firefly.declarativ.net:2440");
+            expect(response.headers.Location).toEqual("http://local-aurora.montagestudio.com:2440");
         })
         .done(done, done);
     });

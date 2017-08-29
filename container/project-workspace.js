@@ -1,4 +1,5 @@
 var log = require("../logging").from(__filename);
+var track = require("../track");
 var PATH = require("path");
 var Minit = require("./minit");
 var RepositoryService = require("./services/repository-service").service;
@@ -44,7 +45,7 @@ Object.defineProperties(ProjectWorkspace.prototype, {
     _repoService: {
         get: function() {
             if (!this.__repoService) {
-                this.__repoService = RepositoryService(this._owner, this._config.githubAccessToken, this._repo, this._fs, this._workspacePath);
+                this.__repoService = RepositoryService(this._config.username, this._owner, this._config.githubAccessToken, this._repo, this._fs, this._workspacePath);
             }
             return this.__repoService;
         }
@@ -98,6 +99,9 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
         return self._repoService.commitFiles(null, INITIAL_COMMIT_MSG);
     })
     .then(function() {
+        return self._repoService._flush();
+    })
+    .then(function() {
         return self._repoService.defaultBranchName()
         .then(function(branch) {
             return self._repoService.checkoutShadowBranch(branch);
@@ -123,6 +127,9 @@ ProjectWorkspace.prototype.initializeWithRepository = function() {
     })
     .then(function() {
         return self._repoService.commitFiles(null, UPDATE_DEPENDENCIES_MSG);
+    })
+    .then(function() {
+        return self._repoService._flush();
     });
 };
 
@@ -160,7 +167,8 @@ ProjectWorkspace.prototype.saveFile = function(filename, contents) {
     .then(function(fs) {
         return fs.write(filename, contents);
     })
-    .fail(function() {
+    .fail(function(error) {
+        track.error(error);
         throw new Error("Save file failed.");
     });
 };
@@ -207,7 +215,12 @@ ProjectWorkspace.prototype.createModule = function(name, extendsModuleId, extend
  * the default remote.
  */
 ProjectWorkspace.prototype.flushWorkspace = function(message) {
-    return this._repoService.commitFiles(null, message);
+    var self = this;
+
+    return this._repoService.commitFiles(null, message)
+    .then(function() {
+        return self._repoService._flush();
+    });
 };
 
 /**

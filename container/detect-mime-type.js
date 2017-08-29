@@ -76,20 +76,20 @@ function detectMimeType (fs, path, fsPath) {
         mimeType = mimeType.toLowerCase();
 
         if (mimeType === supportedMimeTypes.APPLICATION_XML.value && supportedMimeTypes.COLLADA.enabled &&
-            /\.dae$/.test(fileName)) {
+            /\.dae$/i.test(fileName)) {
 
             return isColladaMimeType(fs, path).then(function (response) {
                 return response ? supportedMimeTypes.COLLADA.value : mimeType;
             });
 
         } else if (mimeType === supportedMimeTypes.TEXT_HTML.value && supportedMimeTypes.MONTAGE_TEMPLATE.enabled &&
-            /^(?!index\.html$)(?=(.+\.html)$)/.test(fileName)) {
+            /^(?!index\.html$)(?=(.+\.html)$)/i.test(fileName)) {
 
             return isMontageTemplateMimeType(fs, path).then(function (response) {
                 return response ? supportedMimeTypes.MONTAGE_TEMPLATE.value : mimeType;
             });
 
-        } else if (mimeType === supportedMimeTypes.TEXT_PLAIN.value && /^(?!package\.json)(?=(.+\.json)$)/.test(fileName)) {
+        } else if (mimeType === supportedMimeTypes.TEXT_PLAIN.value && /^(?!package\.json)(?=(.+\.json)$)/i.test(fileName)) {
 
             if (supportedMimeTypes.MONTAGE_SERIALIZATION.enabled || supportedMimeTypes.GLTF.enabled) {
 
@@ -99,7 +99,7 @@ function detectMimeType (fs, path, fsPath) {
                             mimeType = supportedMimeTypes.MONTAGE_SERIALIZATION.value;
 
                         } else if (result.asset && result.asset.generator &&
-                            /^collada2gltf/.test(result.asset.generator) && supportedMimeTypes.GLTF.enabled) { // gltf json
+                            /^collada2gltf/i.test(result.asset.generator) && supportedMimeTypes.GLTF.enabled) { // gltf json
                             //fixme support just the gltf files which have been generate by the collada2gltf converter
 
                             mimeType = supportedMimeTypes.GLTF.value ;
@@ -111,7 +111,7 @@ function detectMimeType (fs, path, fsPath) {
             }
 
         } else if (mimeType === supportedMimeTypes.INODE_DIRECTORY.value && supportedMimeTypes.GLTF_BUNDLE.enabled &&
-            /\.glTF$/.test(fileName)) {
+            /\.gltf$/i.test(fileName)) {
 
             return supportedMimeTypes.GLTF_BUNDLE.value;
         }

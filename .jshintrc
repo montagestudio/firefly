@@ -29,7 +29,7 @@
         "xit": false,
         "expect": false,
         "spyOn": false,
-
+        "URL": true,
         "WeakMap": true,
         "Map": true,
         "Set": true,

@@ -14,8 +14,8 @@ if [ "$dest" != "" ]; then
     cd $dest
 
     # configure git properly to avoid annoying warnings
-    git config --global user.name "jasmine"
-    git config --global user.email jasmine@example.com
+    git config user.name "jasmine"
+    git config user.email jasmine@example.com
 
     # create a temporary git repo
     mkdir $tempRepo

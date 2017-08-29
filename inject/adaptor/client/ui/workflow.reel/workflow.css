@@ -14,21 +14,18 @@
     align-items: center;
 }
 
-.Workflow {
-    color: hsl(0, 0%, 84%);
-}
-
 .Workflow-branchName {
     font-size: 16px;
-    line-height: 1;
+    line-height: 32px;
 }
 
 .Workflow-segment {
-    padding: 0 0.5em;
+    margin: 0;
+    padding: 0 0.5rem;
+    font-weight: normal;
 }
 
 .Workflow-shadowDelta {
-    font-size: 14px;
     line-height: 1.5;
     color: #fff;
     border-radius: 4px;
@@ -36,8 +33,9 @@
 }
 
 .Workflow-status {
-    font-size: 13px;
+    margin: 0;
     color: hsl(0, 0%, 64%);
+    white-space: nowrap;
 }
 
 .Workflow-status-count {

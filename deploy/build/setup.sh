@@ -32,11 +32,19 @@ pushd "${BUILD}"
     fi
     mkdir packerio
 
-    PACKER="0.5.2_darwin_amd64.zip"
+    KERNELNAME=$(uname -s| tr '[:upper:]' '[:lower:]')
+
+    PACKER="0.5.2_${KERNELNAME}_amd64.zip"
     curl -LO "https://dl.bintray.com/mitchellh/packer/${PACKER}"
     unzip ${PACKER} -d packerio
     rm -rf ${PACKER}
-
 popd
 
 popd
+
+# Ensure tugboat is correctly configured
+tugboat verify
+if [ "$?" != "0" ]; then
+  echo "Unable to connect to digital ocean. Please check your tugboat config is correct and referenced by TUGBOAT_CONFIG_PATH environment variable."
+  exit 255
+fi

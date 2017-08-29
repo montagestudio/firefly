@@ -3,7 +3,7 @@ var Map = require("collections/map");
 
 module.exports = makeContainerIndex;
 function makeContainerIndex(filename) {
-    var containers = new Map(undefined, equals, hash);
+    var containers = new Map();
 
     // Repopulate the map with the saved files
     if (filename) {
@@ -27,11 +27,11 @@ function makeContainerIndex(filename) {
         // At the time of writing Map.prototype.filter is broken
         // When collections is fixed, replace with:
         // return this.filter(function (value, key) {
-        //     return key.user === username;
+        //     return key.username === username;
         // });
         var result = this.constructClone();
         this.reduce(function (undefined, value, key) {
-            if (key.user === username) {
+            if (key.username === username) {
                 result.set(key, value);
             }
         }, undefined);
@@ -40,16 +40,4 @@ function makeContainerIndex(filename) {
     };
 
     return containers;
-}
-
-function equals(a, b) {
-    return (
-        a.user === b.user &&
-        a.owner === b.owner &&
-        a.repo === b.repo
-    );
-}
-
-function hash(value) {
-    return [value.user, value.owner, value.repo].join("/");
 }

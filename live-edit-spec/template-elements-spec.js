@@ -2,9 +2,9 @@ var Promise = require("montage/core/promise").Promise;
 var findOwner = require("core/spec-helper").findOwner;
 var getMontageId = require("core/spec-helper").getMontageId;
 
-/* global describe, Declarativ */
+/* global describe, MontageStudio */
 module.exports = function() {
-    var LiveEdit = Declarativ.LiveEdit;
+    var LiveEdit = MontageStudio.LiveEdit;
     var mainModuleId = "elements/ui/main.reel";
     var result;
 

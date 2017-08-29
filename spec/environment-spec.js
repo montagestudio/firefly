@@ -10,7 +10,7 @@ describe("environment", function () {
 
         describe("getAppUrl", function () {
             it("returns a url", function () {
-                expect(environment.getAppUrl()).toEqual("http://local-firefly.declarativ.net:2440");
+                expect(environment.getAppUrl()).toEqual("http://local-aurora.montagestudio.com:2440");
             });
         });
 
@@ -20,17 +20,9 @@ describe("environment", function () {
             });
         });
 
-        describe("getProjectUrlFromAppUrl", function () {
-            it("returns a url", function () {
-                expect(environment.getProjectUrlFromAppUrl("owner/repo")).toEqual("http://1-owner-repo.local-project.montagestudio.com:2440");
-                expect(environment.getProjectUrlFromAppUrl("/owner/repo")).toEqual("http://1-owner-repo.local-project.montagestudio.com:2440");
-                expect(environment.getProjectUrlFromAppUrl("/owner/repo/fail")).toEqual("http://1-owner-repo.local-project.montagestudio.com:2440");
-            });
-        });
-
         describe("getAppHost", function () {
             it("returns a host", function () {
-                expect(environment.getAppHost()).toEqual("local-firefly.declarativ.net:2440");
+                expect(environment.getAppHost()).toEqual("local-aurora.montagestudio.com:2440");
             });
         });
 

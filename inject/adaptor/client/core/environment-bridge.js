@@ -1,5 +1,4 @@
 /*jshint browser:true */
-/*global URL:true */
 var Target = require("montage/core/target").Target,
     Promise = require("montage/core/promise").Promise,
     Connection = require("q-connection"),
@@ -10,7 +9,7 @@ var Target = require("montage/core/target").Target,
     userMenu = require("core/menu").userMenu,
     RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
     UserController = require("adaptor/client/core/user-controller").UserController,
-    URL = require("core/url"),
+    URL = require("core/url"), // jshint ignore:line
     track = require("track");
 
 // TODO we should only inject the base prototype of generic services this environment provides
@@ -58,6 +57,10 @@ exports.EnvironmentBridge = Target.specialize({
         value: null
     },
 
+    _connection: {
+        value: null
+    },
+
     _backend: {
         value: null
     },
@@ -68,9 +71,10 @@ exports.EnvironmentBridge = Target.specialize({
 
             if (!self._backend) {
                 var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-                var connection = adaptConnection(new WebSocket(protocol + "//" + window.location.host + window.location.pathname));
+                var connection = self._connection = adaptConnection(new WebSocket(protocol + "//" + window.location.host + window.location.pathname));
 
                 connection.closed.then(function () {
+                    self._connection = null;
                     self.dispatchBeforeOwnPropertyChange("backend", self._backend);
                     self._backend = null;
                     self._serviceCache.clear();
@@ -111,8 +115,8 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
-    _pingStarted: {
-        value: false
+    _pingTimeout: {
+        value: null
     },
     _startPing: {
         value: function (delay) {
@@ -124,16 +128,30 @@ exports.EnvironmentBridge = Target.specialize({
                     // (through the "visibilitychange" event)
                     // Note 2: Using .get because it's more efficient than .invoke
                     self.backend.get("ping")
+                    .timeout(5000)
                     .then(function () {
-                        setTimeout(ping, delay);
-                    })
-                    .done();
+                        clearTimeout(self._pingTimeout);
+                        self._pingTimeout = setTimeout(ping, delay);
+                    }, function (error) {
+                        track.error(error);
+                        // If the ping fails but we still have a connection
+                        // then something has gone wrong. Best we just close
+                        // this connection, stop pinging and let the backend
+                        // getter recover
+                        clearTimeout(self._pingTimeout);
+                        self._pingTimeout = null;
+                        if (self._connection) {
+                            self._connection.close();
+                        }
+                    });
                 }
             };
 
             // If pinging has already been setup, then don't kick it off again
-            if (!this._pingStarted) {
-                this._pingStarted = true;
+            if (!this._pingTimeout) {
+                // Set to true to make sure we don't start two pings before
+                // the first one has responded to set the timeout handle
+                this._pingTimeout = true;
                 var visibilitychange = document.webkitVisibilityState ? "webkitvisibilitychange" : "visibilitychange";
                 document.addEventListener(visibilitychange, ping, false);
                 ping();
@@ -230,23 +248,33 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    _extractDependenciesFromPackage: {
+        value: function (packageUrl, packageInfo) {
+            var dependencyNames = Object.keys(packageInfo.dependencies);
+
+            //TODO implement mapping in addition to just dependencies
+            //TODO also report the version of the dependency
+            return dependencyNames.map(function (dependencyName) {
+                return {
+                    "dependency": dependencyName,
+                    "url": packageUrl + "/node_modules/" + dependencyName,
+                    "version": packageInfo.dependencies[dependencyName]
+                };
+            });
+        }
+    },
+
     dependenciesInPackage: {
         value: function (packageUrl) {
+            var self = this;
 
             return this.getService("file-service").invoke("read", packageUrl + "/package.json")
                 .then(function (content) {
                     var packageInfo = JSON.parse(content),
-                        dependencyNames,
                         dependencies;
 
                     if (packageInfo.dependencies) {
-                        dependencyNames = Object.keys(packageInfo.dependencies);
-
-                        //TODO implement mapping in addition to just dependencies
-                        //TODO also report the version of the dependency
-                        dependencies = dependencyNames.map(function (dependencyName) {
-                            return {"dependency": dependencyName, "url": packageUrl + "/node_modules/" + dependencyName};
-                        });
+                        dependencies = self._extractDependenciesFromPackage(packageUrl, packageInfo);
                     } else {
                         dependencies = [];
                     }
@@ -291,7 +319,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url, exclude) {
             return this.getService("file-service").invoke("listTree", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    return new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                 });
             });
         }
@@ -301,7 +329,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url) {
             return this.getService("file-service").invoke("list", url).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    return new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                 });
             });
         }
@@ -311,7 +339,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url, exclude) {
             return this.getService("file-service").invoke("listAsset", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    var fileDescriptor = FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    var fileDescriptor = new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                     fileDescriptor.mimeType = fd.mimeType;
 
                     return fileDescriptor;
@@ -329,8 +357,8 @@ exports.EnvironmentBridge = Target.specialize({
     watch: {
         value: function (url, ignoreSubPaths, changeHandler, errorHandler) {
             var handlers = {
-                handleChange: Promise.master(changeHandler),
-                handleError: Promise.master(errorHandler)
+                handleChange: changeHandler,
+                handleError: errorHandler
             };
 
             var result = this.getService("file-service").invoke("watch", url, ignoreSubPaths, handlers);
@@ -347,8 +375,14 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     getExtensionsAt: {
-        value: function () {
-            return [];
+        value: function (url) {
+            return this.getService("file-service").invoke("listPackage", url, true).then(function (fileDescriptors) {
+                return fileDescriptors.filter(function (fd) {
+                    return (/\.filament-extension\/$/).test(fd.url);
+                }).map(function (fd) {
+                    return fd.url;
+                });
+            });
         }
     },
 
@@ -512,6 +546,12 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    loadLibraryItemJson: {
+        value: function(libraryItemJsonUrl) {
+            return this.getService("extension-service").invoke("loadLibraryItemJson", libraryItemJsonUrl);
+        }
+    },
+
     promptForSave: {
         value: function (options) {
             var self = this;
@@ -543,10 +583,16 @@ exports.EnvironmentBridge = Target.specialize({
     openHttpUrl: {
         value: function (url) {
             var deferredWindow = Promise.defer(),
-                newWindow = window.open(url);
+                newWindow = window.open();
+
+            // Prevent new window from having a reference to this window, this
+            // will put the new window in a new process.
+            // https://code.google.com/p/chromium/issues/detail?id=153363
+            newWindow.opener = null;
+            newWindow.location.href = url;
 
             if (newWindow) {
-                deferredWindow.resolve(newWindow);
+                deferredWindow.resolve();
             } else {
                 deferredWindow.reject( new Error("Failed to open window to " + url));
             }
@@ -661,6 +707,51 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     /**
+     * open a new commit batch
+     */
+    openCommitBatch: {
+        value: function(message) {
+            return this.getService("repository-service").invoke("openCommitBatch", message);
+        }
+    },
+
+    /**
+     * stage files on specified commit batch
+     */
+    stageFiles: {
+        value: function(commitBatch, urls) {
+            return commitBatch.invoke("stageFiles", urls);
+        }
+    },
+
+    /**
+     * stage files for deletion on specified commit batch
+     */
+    stageFilesForDeletion: {
+        value: function(commitBatch, urls) {
+            return commitBatch.invoke("stageFilesForDeletion", urls);
+        }
+    },
+
+    /**
+     * close a commit batch and commit all staged files
+     */
+    closeCommitBatch: {
+        value: function(commitBatch, message) {
+            return commitBatch.invoke("commit", message);
+        }
+    },
+
+    /**
+     * delete a commit batch without commiting
+     */
+    releaseCommitBatch: {
+        value: function(commitBatch) {
+            return commitBatch.invoke("release");
+        }
+    },
+
+    /**
      * Pushes all commits to remote repository.
      */
     flushProject: {
@@ -671,16 +762,7 @@ exports.EnvironmentBridge = Target.specialize({
 
     writeFile: {
         value: function(url, data) {
-            var self = this;
-
-            return this.getService("file-service").invoke("writeFile", url, data)
-                .then(function () {
-                    var path = URL.parse(url).pathname.slice(1);
-                    return self.commitFiles([path]);
-                })
-                .then(function() {
-                    return self.flushProject("Add file " + URL.parse(url).pathname);
-                });
+            return this.getService("file-service").invoke("writeFile", url, data);
         }
     },
 
@@ -696,9 +778,21 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    makeTreeWriteFile: {
+        value: function (url, data) {
+            return this.getService("file-service").invoke("makeTreeWriteFile", url, data);
+        }
+    },
+
     removeTree: {
         value: function (url) {
             return this.getService("file-service").invoke("removeTree", url);
+        }
+    },
+
+    touch: {
+        value: function (url) {
+            return this.getService("file-service").invoke("touch", url);
         }
     },
 
@@ -718,13 +812,7 @@ exports.EnvironmentBridge = Target.specialize({
 
     save: {
         value: function (editingDocument, location) {
-            var self = this;
-            var name = URL.parse(editingDocument.url).pathname;
-
-            return editingDocument.save(location)
-            .then(function() {
-                return self.flushProject("Update component " + name);
-            });
+            return editingDocument.save(location);
         }
     },
 
@@ -821,14 +909,14 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     shadowBranchStatus: {
-        value: function (branch) {
-            return this.getService("repository-service").invoke("shadowBranchStatus", branch);
+        value: function (branch, forceFetch) {
+            return this.getService("repository-service").invoke("shadowBranchStatus", branch, forceFetch);
         }
     },
 
     commitFiles: {
-        value: function (files, message, resolutionStrategy) {
-            return this.getService("repository-service").invoke("commitFiles", files, message, resolutionStrategy);
+        value: function (fileUrls, message, remove, amend) {
+            return this.getService("repository-service").invoke("commitFiles", fileUrls, message, remove, amend);
         }
     },
 
@@ -848,6 +936,12 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (branch) {
             //TODO only do this for shadow branches?
             return this.getService("repository-service").invoke("_reset", branch);
+        }
+    },
+
+    getRepositoryInfo: {
+        value: function (branch) {
+            return this.getService("repository-service").invoke("getRepositoryInfo", branch);
         }
     },
 

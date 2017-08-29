@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var Boot = require("./fs-boot");
 var GithubApi = require("./github-api");
 
@@ -31,7 +31,7 @@ GithubFs.prototype.read = function(path, options) {
 
     return this._getFile(path).then(function(file) {
         if (file === null) {
-            throw new Error("File " + path + " does not exist on " + self.username + "/" + self.repository);
+            return null;
         } else {
             return self._api.getBlob(self.username, self.repository, file.sha, param)
             .then(function(blob) {
@@ -43,6 +43,12 @@ GithubFs.prototype.read = function(path, options) {
             });
         }
     });
+};
+
+GithubFs.prototype.readFromDefaultBranch = function(path) {
+    var param = "raw";
+
+    return this._api.getContents(this.username, this.repository, path, param);
 };
 
 /**
@@ -108,20 +114,23 @@ GithubFs.prototype.listTree = function(basePath, guard) {
         return true;
     };
     var stat = self.stat(basePath);
-    return Q.when(stat, function (stat) {
+    return Promise.resolve(stat)
+    .then(function (stat) {
         var paths = [];
         var include;
         try {
             include = guard(basePath, stat);
         } catch (exception) {
-            return Q.reject(exception);
+            return Promise.reject(exception);
         }
-        return Q.when(include, function (include) {
+        return Promise.resolve(include)
+        .then(function (include) {
             if (include) {
                 paths.push([basePath]);
             }
             if (include !== null && stat.isDirectory()) {
-                return Q.when(self.list(basePath), function (children) {
+                return Promise.resolve(self.list(basePath))
+                .then(function (children) {
                     paths.push.apply(paths, children.map(function (child) {
                         var path = self.join(basePath, child);
                         return self.listTree(path, guard);
@@ -134,7 +143,7 @@ GithubFs.prototype.listTree = function(basePath, guard) {
         });
     }, function noSuchFile(reason) {
         return [];
-    }).then(Q.all).then(concat);
+    }).then(Promise.all).then(concat);
 };
 
 /**
@@ -197,7 +206,7 @@ GithubFs.prototype._getFile = function(path) {
 
 GithubFs.prototype._getBranchTree = function() {
     if (!this._branchTree) {
-        this._branchTree = Q.defer();
+        this._branchTree = Promise.defer();
 
         var user = this.username,
             repo = this.repository,
@@ -230,7 +239,7 @@ GithubFs.prototype._getBranchTree = function() {
                     self._branchTree.resolve([]);
                 }
             }).done();
-        }).fail(this._branchTree.reject).done();
+        }).catch(this._branchTree.reject).done();
     }
 
     return this._branchTree.promise;

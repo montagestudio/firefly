@@ -1,7 +1,7 @@
-/*global window, document, Declarativ */
+/*global window, document, MontageStudio */
 //jshint -W106
-if (typeof window.Declarativ === "undefined") {
-    window.Declarativ = {};
+if (typeof window.MontageStudio === "undefined") {
+    window.MontageStudio = {};
 }
 
 (function(ns) {
@@ -27,7 +27,7 @@ if (typeof window.Declarativ === "undefined") {
                         ownerModuleId = self.getComponentModuleId(component);
                     }
 
-                    Declarativ.MontageStudio.inspectComponent(ownerModuleId, label);
+                    MontageStudio.MontageStudio.inspectComponent(ownerModuleId, label);
                 });
             }
         },
@@ -163,8 +163,8 @@ if (typeof window.Declarativ === "undefined") {
             value: function(component) {
                 var ownerModuleId = this.getOwnerComponentModuleId(component);
 
-                Declarativ.Highlighter.hideHighlights("main");
-                Declarativ.Highlighter.highlightElement(component.element, "main",
+                MontageStudio.Highlighter.hideHighlights("main");
+                MontageStudio.Highlighter.highlightElement(component.element, "main",
                     this.getComponentLabel(component),
                     ownerModuleId ? "(" + ownerModuleId + ")" : "");
             }
@@ -172,7 +172,7 @@ if (typeof window.Declarativ === "undefined") {
 
         _hideComponentHighlight: {
             value: function() {
-                Declarativ.Highlighter.hideHighlights("main");
+                MontageStudio.Highlighter.hideHighlights("main");
             }
         },
 
@@ -357,6 +357,6 @@ if (typeof window.Declarativ === "undefined") {
             "1px -1px " + shadowColor + "";
     };
 
-    Declarativ.Highlighter.addType("main", "white", "black");
-})(window.Declarativ);
+    MontageStudio.Highlighter.addType("main", "white", "black");
+})(window.MontageStudio);
 //jshint +W106

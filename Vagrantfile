@@ -1,6 +1,6 @@
 Vagrant.configure('2') do |config|
     # This is the only variable that needs updating when new boxes are available
-    BOX_VERSION = "46"
+    BOX_VERSION = "48"
 
     BASE_BOX = "declarativ-base-#{BOX_VERSION}"
     BASE_BOX_URL = "http://107.170.60.86/base-#{BOX_VERSION}.box"
@@ -14,9 +14,9 @@ Vagrant.configure('2') do |config|
         config.cache.enable :apt
     end
 
-    # Disable Guest Addition install for the moment. It seems to cause more
-    # problems than it solves
-    config.vbguest.no_install = true
+    # If the automatic Guest Additions install messes things up, uncomment
+    # this line:
+    # config.vbguest.no_install = true
 
     # Configure Vagrant VM to use Host DNS, which is a lot faster than the
     # default DNS in the VM for some reason...
@@ -65,6 +65,7 @@ Vagrant.configure('2') do |config|
     # scripts should already be doing that for the production servers.
 
     config.vm.define "load-balancer" do |lb|
+        lb.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         lb.vm.hostname = "load-balancer"
         lb.vm.network "private_network", ip: "10.0.0.2"
         lb.vm.network "forwarded_port", guest: 80, host: 8182
@@ -110,6 +111,7 @@ Vagrant.configure('2') do |config|
     end
 
     config.vm.define "web-server" do |web|
+        web.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         web.vm.hostname = "web-server"
         web.vm.network "private_network", ip: "10.0.0.3"
         web.vm.network "forwarded_port", guest: 80, host: 8183
@@ -132,6 +134,7 @@ Vagrant.configure('2') do |config|
     end
 
     config.vm.define "login" do |login|
+        login.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         # base login image
         login.vm.provision :shell, path: "deploy/provision/base-additions.sh"
         login.vm.provision :shell, path: "deploy/provision/base-login.sh"
@@ -154,7 +157,7 @@ Vagrant.configure('2') do |config|
 
         login.vm.provision :shell, path: "deploy/provision/login.sh"
 
-        login.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
+        login.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
         # Needed because upstart doesn't reload when symlinks get added
         login.vm.provision :shell, :inline => "initctl reload-configuration"
 
@@ -163,6 +166,7 @@ Vagrant.configure('2') do |config|
     end
 
     config.vm.define "project" do |project|
+        project.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         # base login image
         project.vm.provision :shell, path: "deploy/provision/base-additions.sh"
         project.vm.provision :shell, path: "deploy/provision/base-project.sh"
@@ -183,11 +187,11 @@ Vagrant.configure('2') do |config|
         project.vm.synced_folder "../filament", "/srv/filament"
         project.vm.synced_folder ".", "/srv/firefly"
 
-        project.vm.provision :shell, :inline => "ln -sf /srv/firefly/Dockerfile /srv/Dockerfile"
+#        project.vm.provision :shell, :inline => "ln -sf /srv/firefly/Dockerfile /srv/Dockerfile"
 
         project.vm.provision :shell, path: "deploy/provision/project.sh"
 
-        project.vm.provision :shell, :inline => "ln -sf /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
+        project.vm.provision :shell, :inline => "cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
         # Needed because upstart doesn't reload when symlinks get added
         project.vm.provision :shell, :inline => "initctl reload-configuration"
 

@@ -1,5 +1,5 @@
 /*jshint browser:true */
-/*global Declarativ, console */
+/*global MontageStudio, console */
 /**
  * Script getting injected during preview in order to instrument from the tool.
  */
@@ -10,15 +10,15 @@ if (!window.performance) {
 }
 
 (function() {
-    var DEBUG_OPSS = Declarativ.DEVELOPMENT && false;
-    var DEBUG_SPEED = Declarativ.DEVELOPMENT && true;
-    var DEBUG_CONNECTION = Declarativ.DEVELOPMENT && true;
+    var DEBUG_OPSS = MontageStudio.DEVELOPMENT && false;
+    var DEBUG_SPEED = MontageStudio.DEVELOPMENT && true;
+    var DEBUG_CONNECTION = MontageStudio.DEVELOPMENT && true;
     var PING_INTERVAL = 20000;
     var _montageWillLoad = window.montageWillLoad,
         timer = null,
         disconnectionMessageElement,
-        LiveEdit = Declarativ.LiveEdit,
-        Tools = Declarativ.Tools,
+        LiveEdit = MontageStudio.LiveEdit,
+        Tools = MontageStudio.Tools,
         dataProcessingPromise,
         previousTime = window.performance.now(),
         operations = 0,
@@ -42,7 +42,7 @@ if (!window.performance) {
         var startTime;
 
         if (!dataProcessingPromise) {
-            dataProcessingPromise = Declarativ.applicationReady();
+            dataProcessingPromise = MontageStudio.applicationReady();
         }
 
         if (command === "refresh") {
@@ -132,7 +132,7 @@ if (!window.performance) {
             if (command === "updateCssFileContent") {
                 return LiveEdit.updateCssFileContent(args.url, args.content);
             }
-        }).fail(function(reason) {
+        }).catch(function(reason) {
             console.log("fail: ", reason);
         });
         //jshint +W074
@@ -154,7 +154,7 @@ if (!window.performance) {
         ws = new WebSocket(protocol + "//" + document.location.host);
         ws.onopen = function() {
             websocketStartPing(PING_INTERVAL);
-            Declarativ.MontageStudio.init(ws);
+            MontageStudio.MontageStudio.init(ws);
 
             if (callback) {
                 callback();
@@ -211,19 +211,25 @@ if (!window.performance) {
     }
 
     function setup() {
-        if (timer) {
-            clearTimeout(timer);
-        }
+        if (MontageStudio.applicationReady) {
+            if (timer) {
+                clearTimeout(timer);
+            }
 
-        if (typeof(WebSocket) === "function" || typeof(WebSocket) === "object") {
-            websocketRefresh();
-        }
+            if (typeof(WebSocket) === "function" || typeof(WebSocket) === "object") {
+                websocketRefresh();
+            }
 
-        if (typeof _montageWillLoad === "function") {
-            _montageWillLoad();
-        }
+            if (typeof _montageWillLoad === "function") {
+                _montageWillLoad();
+            }
 
-        disconnectionMessageElement = createReconnectionMessageElement();
+            disconnectionMessageElement = createReconnectionMessageElement();
+        } else {
+            timer = setTimeout(function() {  // in case something went wrong with Montage
+                setup();
+            }, 5000);
+        }
     }
 
     function createReconnectionMessageElement() {
@@ -294,11 +300,6 @@ if (!window.performance) {
         disconnectionMessageElement.style.left = ((document.body.offsetWidth - disconnectionMessageElement.offsetWidth) / 2) + "px";
         disconnectionMessageElement.style.visibility = "visible";
     }
-
-    timer = setTimeout(function() {  // in case something went wrong with Montage
-        _montageWillLoad = null;
-        setup();
-    }, 5000);
 
     window.montageWillLoad = function() {
         setup();

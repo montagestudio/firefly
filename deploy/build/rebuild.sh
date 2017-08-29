@@ -52,7 +52,7 @@ export FIREFLY_SSH_OPTIONS="-o IdentitiesOnly=yes -o LogLevel=ERROR -o StrictHos
 
 get_ip () {
     # The argument is teh droplet name
-    echo `tugboat info -n $1  | grep "IP" | sed 's/IP:[ ]*\([0-9\.]*\)/\1/'`
+    echo `tugboat info -n $1  | grep "IP" | sed 's/IP4:[ ]*\([0-9\.]*\)/\1/'`
 }
 
 get_status () {
@@ -76,18 +76,19 @@ wait_for_droplet ()
         tugboat wait -n $1
         DROPLET_STATUS=$(get_status $1)
         echo "$1 is [$DROPLET_STATUS]."
-        # We need to wait for the service to come on line
-        IP=$(get_ip $1)
-        declare SSH_STATUS=$(get_ssh_status $IP)
-        if [[ "$SSH_STATUS" != "Up" ]]; then
-            echo -n "SSH connection for $1 is down waiting"
-            while [[ "$SSH_STATUS" != "Up" ]]; do
-                echo -n "."
-                sleep 5
-                SSH_STATUS=$(get_ssh_status $IP)
-            done
-            echo ""
-        fi
+    fi
+
+    # We need to wait for the service to come on line
+    IP=$(get_ip $1)
+    declare SSH_STATUS=$(get_ssh_status $IP)
+    if [[ "$SSH_STATUS" != "Up" ]]; then
+        echo -n "SSH connection for $1 is down waiting"
+        while [[ "$SSH_STATUS" != "Up" ]]; do
+            echo -n "."
+            sleep 5
+            SSH_STATUS=$(get_ssh_status $IP)
+        done
+        echo ""
     fi
 }
 
@@ -157,7 +158,7 @@ else
     staging StagingLogin2
     staging StagingProject1
     staging StagingProject2
-    
+
     rollbar "staging" "StagingLogin1" "filament" "dccb9acdbffd4c8bbd21247e51a0619e"
     rollbar "staging" "StagingLogin1" "firefly" "80c8078968bf4f9a92aee1af74e46b57"
 fi

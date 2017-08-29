@@ -50,7 +50,7 @@ function server(options) {
         var serveProject = preview(function (request) {
             // Aboslute the path so that ".." components are removed, then
             // strip leading slash on pathInfo so that the `join` works
-            var path = fs.absolute(request.pathInfo).replace(/^\//, "");
+            var path = fs.absolute(decodeURI(request.pathInfo)).replace(/^\//, "");
             path = fs.join(workspacePath, path);
 
             return fs.isFile(path).then(function(isFile) {

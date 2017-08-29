@@ -82,9 +82,13 @@ function server(options) {
         })
         .redirect("/auth/next");
 
-        // TODO Remove this:
-        // Redirect the old /projects URL for the moment
-        route("projects").redirect(env.getAppUrl(), 301);
+        // We don't have anything to show directly on the user page at the
+        // moment, so just redirect them to the root.
+        // At the time of writing, if we don't redirect then the app tries to
+        // load a project with an empty name "", which causes all kinds of
+        // errors.
+        route(":owner").redirect("/");
+        route(":owner/").redirect("/");
 
         var index = fs.join(client, "firefly-index.html");
         var serveApp = serveFile(index, "text/html", fs);

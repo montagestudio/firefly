@@ -8,14 +8,14 @@ describe("makeContainerIndex", function () {
 
     describe("forUsername", function () {
         it("returns only the containers for that username", function () {
-            containerIndex.set({user: "a", owner: "b", repo: "c"}, "aaa");
-            containerIndex.set({user: "z", owner: "d", repo: "e"}, "bbb");
-            containerIndex.set({user: "a", owner: "f", repo: "g"}, "ccc");
-            containerIndex.set({user: "n", owner: "h", repo: "i"}, "ddd");
+            containerIndex.set({username: "a", owner: "b", repo: "c"}, "aaa");
+            containerIndex.set({username: "z", owner: "d", repo: "e"}, "bbb");
+            containerIndex.set({username: "a", owner: "f", repo: "g"}, "ccc");
+            containerIndex.set({username: "n", owner: "h", repo: "i"}, "ddd");
 
             var containers = containerIndex.forUsername("a");
             expect(containers.length).toEqual(2);
-            expect(containers.keys()).toEqual([{user: "a", owner: "b", repo: "c"}, {user: "a", owner: "f", repo: "g"}]);
+            expect(containers.keys()).toEqual([{username: "a", owner: "b", repo: "c"}, {username: "a", owner: "f", repo: "g"}]);
         });
     });
 

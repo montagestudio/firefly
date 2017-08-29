@@ -1,5 +1,4 @@
 var log = require("../logging").from(__filename);
-var track = require("../track");
 var environment = require("../environment");
 
 var FS = require("q-io/fs");
@@ -7,11 +6,13 @@ var Q = require("q");
 var HttpApps = require("q-io/http-apps/fs");
 var querystring = require("querystring");
 var generateAccessCode = require("./generate-access-code");
+var Set = require("collections/set");
+var Map = require("collections/map");
 
 var CLIENT_ROOT = FS.join(__dirname, "preview");
 var clientFs = FS.reroot(CLIENT_ROOT);
 
-var HOST_ACCESS_CODE_MAP = {};
+var HOST_ACCESS_CODE_MAP = new Map();
 
 function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -26,32 +27,26 @@ exports.isPreview = function (request) {
  * All other users will only have access if they have been authenticated to see
  * this preview and the owner has it open in the tool.
  */
-exports.hasAccess = function (url, session) {
+exports.hasAccess = function (previewDetails, session) {
     return Q.try(function () {
         if (session && session.githubUser) {
             return session.githubUser.then(function (githubUser) {
-                var details;
-                try {
-                    details = environment.getDetailsfromProjectUrl(url);
-                } catch (error) {
-                    track.messageForUsername("invalid project url", session.username, {url: url}, "warning");
-                    return false;
-                }
                 // The user doesn't need to have explicit access to its own previews.
-                var access = githubUser && githubUser.login.toLowerCase() === details.owner;
+                var access = githubUser && githubUser.login.toLowerCase() === previewDetails.username;
 
-                return access || has3rdPartyAccess(url, session);
+                return access || has3rdPartyAccess(previewDetails, session);
             });
+        } else if (previewDetails.private) {
+            return has3rdPartyAccess(previewDetails, session);
         } else {
-            return has3rdPartyAccess(url, session);
+            return true;
         }
     });
 };
 
-function has3rdPartyAccess(url, session) {
+function has3rdPartyAccess(previewDetails, session) {
     if (session && session.previewAccess) {
-        var previewAccess = session.previewAccess;
-        return previewAccess && previewAccess.indexOf(url) >= 0;
+        return session.previewAccess.has(previewDetails);
     } else {
         return false;
     }
@@ -73,15 +68,14 @@ exports.serveNoPreviewPage = function (request) {
     });
 };
 
-exports.processAccessRequest = function (request) {
+exports.processAccessRequest = function (request, previewDetails) {
     // Get code from the body data
     return request.body.read()
     .then(function(body) {
         if (body.length > 0) {
             var query = querystring.parse(body.toString());
 
-            maybeGrantAccessToPreview(
-                query.code, request.headers.host, request.session);
+            maybeGrantAccessToPreview(query.code, previewDetails, request.session);
         }
 
         // 302 - Temporary redirect using GET
@@ -94,30 +88,28 @@ exports.processAccessRequest = function (request) {
     });
 };
 
-exports.getAccessCode = function (host) {
-    var code = HOST_ACCESS_CODE_MAP[host];
+exports.getAccessCode = function (previewDetails) {
+    var code = HOST_ACCESS_CODE_MAP.get(previewDetails);
     if (!code) {
         code = generateAccessCode();
-        HOST_ACCESS_CODE_MAP[host] = code;
+        HOST_ACCESS_CODE_MAP.set(previewDetails, code);
     }
     return code;
 };
 
-function maybeGrantAccessToPreview(code, previewHost, session) {
+function maybeGrantAccessToPreview(code, previewDetails, session) {
     if (code) {
         // strip whitespace and make lowercase
         code = code.replace(/\s/g, "").toLowerCase();
-        var accessCode = exports.getAccessCode(previewHost);
+        var accessCode = exports.getAccessCode(previewDetails);
 
         if (code === accessCode) {
             if (session.previewAccess) {
-                if (session.previewAccess.indexOf(previewHost) === -1) {
-                    session.previewAccess.push(previewHost);
-                }
+                session.previewAccess.add(previewDetails);
             } else {
-                session.previewAccess = [previewHost];
+                session.previewAccess = Set([previewDetails]);
             }
-            log("access granted ", previewHost);
+            log("access granted ", previewDetails);
             return true;
         }
     }

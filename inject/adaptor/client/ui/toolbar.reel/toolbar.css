@@ -1,5 +1,6 @@
 .Toolbar {
     position: relative;
+    min-width: 950px; /* Min width depends on the content - don't forget the "unsaved" message */
     z-index: 50;
     display: -webkit-flex;
     display: -moz-flex;
@@ -14,12 +15,12 @@
     -ms-align-items: center;
     align-items: center;
     height: 34px;
-    color: hsl(0, 0%, 84%);
+    font-size: 13px;
+    color: hsl(0, 0%, 70%);
     padding-bottom: 1px; /* Fixes vertical centering */
     border-top: 1px solid hsla(0, 0%, 100%, .1);
     border-bottom: 1px solid hsla(0, 0%, 0%, .2);
-    background-color: hsl(0, 0%, 25%);
-    -webkit-font-smoothing: antialiased;
+    background-color: hsl(0, 0%, 20%);
 }
 
 .Toolbar-group {
@@ -41,8 +42,8 @@
 .Toolbar-link {
     text-decoration: none;
     color: inherit;
-    font-size: 13px;
     padding: 0 1em;
+    white-space: nowrap;
 }
 
 .Toolbar-link:hover {
@@ -61,7 +62,6 @@
 }
 
 .Toolbar-avatar {
-    margin-right: 8px;
     width: 24px;
     height: 24px;
     border-radius: 4px;
@@ -69,8 +69,7 @@
 }
 
 .Toolbar .Toolbar-username {
-    font-size: 13px;
-    margin: 0 8px 0 8px;
+    margin: 0 8px 0 0;
     vertical-align: middle;
 }
 
@@ -104,15 +103,15 @@
     height: 33px;
     margin: 0;
     font-family: inherit;
-    font-size: 13px;
-    color: hsl(0, 0%, 84%);
+    font-size: inherit;
+    color: hsl(0, 0%, 70%);
     text-shadow: none;
     box-shadow: none;
     border-radius: 0;
     border: none;
     border-left: 1px solid hsla(0, 0%, 0%, 0.2);
     background: hsla(0,0%,0%,0);
-    -webkit-font-smoothing: antialiased;
+    white-space: nowrap;
 }
 
 .MenuItem-button.matte-Button:hover {

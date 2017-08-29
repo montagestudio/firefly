@@ -11,14 +11,14 @@ var GITHUB_PAGES_MESSAGE = "Publish build";
 var DEFAULT_GIT_EMAIL = "noreply";
 var semaphore = Git.semaphore;
 
-function BuildService(session, fs, environment, pathname, fsPath) {
+function BuildService(config, fs, environment, pathname, fsPath) {
     // Returned service
     var service = {};
-    var _owner = session.owner;
-    var _repo = session.repo;
-    var _git = new Git(fs, session.githubAccessToken, true);
-    var _githubApi = new GithubApi(session.githubAccessToken);
-    var _githubUser = session.githubUser;
+    var _owner = config.owner;
+    var _repo = config.repo;
+    var _git = new Git(fs, config.githubAccessToken, true);
+    var _githubApi = new GithubApi(config.githubAccessToken);
+    var _githubUser = config.githubUser;
 
     service.optimize = function (options) {
         var config = {};

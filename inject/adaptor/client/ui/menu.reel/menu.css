@@ -1,13 +1,12 @@
 .Menu {
     display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flex;
     display: flex;
     margin: 0 0;
     line-height: 0;
 }
 
 .Menu-repetition {
+    display: -webkit-flex;
     display: flex;
 }
 
