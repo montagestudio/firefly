@@ -3,32 +3,21 @@ var Map = require("collections/map");
 
 module.exports = makeContainerIndex;
 function makeContainerIndex(filename) {
-    
     var containers = new Map();
 
     // Repopulate the map with the saved files
     if (filename) {
         var entries;
         try {
-            entries = JSON.parse(fs.readFileSync(filename, {
-                encoding: "utf8"
-            }));
-
+            entries = JSON.parse(fs.readFileSync(filename, {encoding: "utf8"}));
         } catch (e) {}
         if (entries) {
-            entries.map(function (entry) { 
-                containers.set(entry[0], entry[1]); 
-            });
+            entries.map(function (entry) { containers.set(entry[0], entry[1]); });
         }
 
         containers.addMapChangeListener(function () {
-
-            var containersIdex = [];
-            containers.forEach(function (key, value) {
-                containersIdex.push([value, key]);
-            });
-
-            fs.writeFileSync(filename, JSON.stringify(containersIdex));
+            var entries = containers.entries();
+            fs.writeFileSync(filename, JSON.stringify(entries));
         });
     }
 
