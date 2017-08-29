@@ -2,6 +2,11 @@ var Env = require("./environment");
 var log = require("./logging").from(__filename);
 var FS = require("q-io/fs");
 
+/* Catch possible hidden error */
+process.on('uncaughtException', function (err) {
+  log("*uncaughtException*", err, err.stack);
+});
+
 var loginChainFactory = require("./login/login-chain");
 
 var GithubSessionStore = require("./github-session-store");

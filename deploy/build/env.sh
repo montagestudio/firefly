@@ -21,7 +21,7 @@ if [[ -z $DEFAULTS_HAVE_BEEN_SET ]]; then
     #
     if [[ -z $BUILD_RELEASE_NAME ]]; then
         # To simplify manual build this should be set to the current release cycle
-        export BUILD_RELEASE_NAME="lilac"
+        export BUILD_RELEASE_NAME="miranda"
     fi
 
     if [[ -z $BUILD_REVISION_NUMBER  ]]; then
