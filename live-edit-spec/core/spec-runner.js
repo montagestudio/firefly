@@ -1,4 +1,4 @@
-/* global window, document */
+/* global window */
 /**
  * This module is meant to be executed by the montage application part of a
  * test. It should be called when the montage application decides it is ready

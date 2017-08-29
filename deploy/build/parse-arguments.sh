@@ -59,9 +59,6 @@ while getopts ":b:c:fn:r:tx" opt; do
     esac
 done
 
-# This should be a parameter
-export REGION_ID=4
-
 if [[ -z $TAG_NAME ]]; then
     export TAG_NAME="$BUILD_RELEASE_NAME/$BUILD_REVISION_NUMBER"
 fi
