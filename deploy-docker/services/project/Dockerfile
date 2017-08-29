@@ -31,9 +31,6 @@ RUN sudo pip install --upgrade pip
 RUN sudo pip install docker-compose
 RUN docker-compose version
 
-RUN adduser --disabled-password --gecos "" montage
-ENV HOME /home/montage
-
 VOLUME ['/srv/firefly/']
 
 EXPOSE 2441

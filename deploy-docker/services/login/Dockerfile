@@ -19,9 +19,6 @@ RUN sudo bash nodesource_setup.sh
 RUN apt-get install -y nodejs build-essential && \
     apt-get clean
 
-RUN adduser --disabled-password --gecos "" montage
-ENV HOME /home/montage
-
 VOLUME ['/srv/firefly/']
 
 EXPOSE 2441

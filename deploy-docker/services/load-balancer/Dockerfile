@@ -17,7 +17,6 @@ RUN apt-get install -y sudo curl git zip && \
 RUN apt-get install -y haproxy && \
     apt-get clean
 
-
 ADD /etc/haproxy/haproxy.cfg etc/haproxy/haproxy.cfg
 ADD /etc/haproxy/errors etc/haproxy/errors
 
