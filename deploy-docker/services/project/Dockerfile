@@ -23,9 +23,9 @@ RUN apt-get install -y nodejs build-essential && \
 RUN curl -sSL "https://get.docker.com/gpg" | sudo -E apt-key add -
 RUN echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" | sudo tee -a /etc/apt/sources.list
 RUN sudo apt-get update
-RUN sudo apt-get -o Dpkg::Options::="--force-confdef" \
-     -o Dpkg::Options::="--force-confold" --assume-yes --allow-unauthenticated install docker-engine
-RUN  docker version
+RUN sudo sudo apt-get install python-pip docker-engine --assume-yes --allow-unauthenticated
+# Update Pip
+RUN sudo pip install --upgrade pip
 
 # Update docker-compose via pip
 RUN sudo pip install docker-compose

@@ -18,8 +18,8 @@ RUN apt-get install -y haproxy && \
     apt-get clean
 
 
-ADD etc/haproxy/haproxy.conf etc/haproxy/haproxy.conf
-ADD etc/haproxy/errors etc/haproxy/errors
+ADD /etc/haproxy/haproxy.cfg etc/haproxy/haproxy.cfg
+ADD /etc/haproxy/errors etc/haproxy/errors
 
 EXPOSE 8182
 EXPOSE 2440
