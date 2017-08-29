@@ -13,5 +13,10 @@ RUN apt-get update
 RUN apt-get install -y sudo curl git zip && \
     apt-get clean
 
-# TODO
 # nginx
+RUN apt-get install -y nginx && \
+    apt-get clean
+
+ADD etc/nginx/nginx.conf etc/nginx/nginx.conf
+
+# TODO entrypoint ngninx 

@@ -19,6 +19,18 @@ RUN sudo bash nodesource_setup.sh
 RUN apt-get install -y nodejs build-essential && \
     apt-get clean
 
+# Docker
+RUN curl -sSL "https://get.docker.com/gpg" | sudo -E apt-key add -
+RUN echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" | sudo tee -a /etc/apt/sources.list
+RUN sudo apt-get update
+RUN sudo apt-get -o Dpkg::Options::="--force-confdef" \
+     -o Dpkg::Options::="--force-confold" --assume-yes --allow-unauthenticated install docker-engine
+RUN  docker version
+
+# Update docker-compose via pip
+RUN sudo pip install docker-compose
+RUN docker-compose version
+
 RUN adduser --disabled-password --gecos "" montage
 ENV HOME /home/montage
 

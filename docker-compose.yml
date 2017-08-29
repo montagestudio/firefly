@@ -1,29 +1,50 @@
 version: "3.1"
 
 services:
-  web:
+  load-balancer:
+    build:
+      context: ./deploy-docker/services/load-balancer/
     networks:
       - frontend
+      - backend
+    ports:
+      - "80:8182"
+      - "80:2440"
+    depends_on:
+      - static
+      - login
+      - project
+  static:
     build:
-      context: ./deploy-docker/web/
+      context: ./deploy-docker/services/static/
+    networks:
+      - frontend
+    ports:
+      - "8183:80"
     volumes:
       - firefly-src:/srv/filament/
   login:
+    build:
+      context: ./deploy-docker/services/login/
     networks:
       - backend
+    ports:
+      - "8184:2440"
+      - "8104:8104"
     depends_on:
-      - web
-    build:
-      context: ./deploy-docker/login/
+      - static
     volumes:
       - ./:/srv/firefly/
   project:
+    build:
+      context: ./deploy-docker/services/project/
     networks:
       - backend
+    ports:
+      - "8185:2440"
+      - "8105:8105"
     depends_on:
-      - web
-    build:
-      context: ./deploy-docker/project/
+      - static
     volumes:
       - ./:/srv/firefly/
 
