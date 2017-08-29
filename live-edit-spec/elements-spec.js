@@ -33,7 +33,7 @@ module.exports = function() {
                 });
             });
 
-            it("should add new elements to an owner after each instance of the anchor node", function() {
+            it("should add new elements to an owner after eachf instance of the anchor node", function() {
                 var templateFragment = {
                     html: '<div class="itemBeforeAnchor"></div>'
                 };
@@ -196,7 +196,6 @@ module.exports = function() {
                     templateFragment);
 
                 return Promise.resolve(result).then(function () {
-                    debugger;
                     var firstChild = document.querySelector(
                             "*[data-montage-le-arg-begin~='" + mainModuleId + ",appendAfter']"),
                         secondChild = document.querySelector(
