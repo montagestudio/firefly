@@ -1,0 +1,36 @@
+version: "3.1"
+
+services:
+  web:
+    networks:
+      - frontend
+    build:
+      context: ./deploy-docker/web/
+    volumes:
+      - firefly-src:/srv/filament/
+  login:
+    networks:
+      - backend
+    depends_on:
+      - web
+    build:
+      context: ./deploy-docker/login/
+    volumes:
+      - ./:/srv/firefly/
+  project:
+    networks:
+      - backend
+    depends_on:
+      - web
+    build:
+      context: ./deploy-docker/project/
+    volumes:
+      - ./:/srv/firefly/
+
+networks:
+    frontend:
+    backend:
+
+volumes:
+  firefly-src: 
+  filament-src:
