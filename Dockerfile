@@ -2,6 +2,7 @@
 #
 # VERSION 1.1
 
+# TODO move to 16.04 LTS
 FROM ubuntu:14.04
 MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
 
@@ -34,7 +35,7 @@ RUN git clone https://github.com/montagejs/popcorn.git /home/montage/popcorn
 RUN git --git-dir /home/montage/popcorn/.git remote rm origin
 
 # Install glTFConverter converter
-## TODO ubuntu 16.10 https://askubuntu.com/questions/840257/e-package-libpng12-0-has-no-installation-candidate-ubuntu-16-10-gnome/840268
+## TODO fix libpng12 on ubuntu 16+ https://askubuntu.com/questions/840257/e-package-libpng12-0-has-no-installation-candidate-ubuntu-16-10-gnome/840268
 RUN apt-get install -y libxml2-dev libpng12-dev libpcre3-dev cmake&& \
     apt-get clean
 RUN git clone https://github.com/KhronosGroup/glTF.git /home/montage/glTF
