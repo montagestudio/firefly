@@ -40,6 +40,48 @@
                 }
             }
         },
+
+        "viewLocalChangeLink": {
+            "prototype": "matte/ui/anchor.reel",
+            "properties": {
+                "element": {"#": "viewLocalChangeLink"},
+                "target": "localCommits"
+            },
+            "bindings": {
+                "href": {"<-": "@owner.localCompareUrl"},
+                "classList.has('ViewCommit-link-noDisplay')": {"<-": "!@owner.localCompareUrl"}
+            },
+            "localizations": {
+                "textContent": {
+                    "key": "localCompareLink",
+                    "default": "View local {count, plural, one {change} other {changes}}",
+                    "data": {
+                        "count": {"<-": "@owner.aheadCount"}
+                    }
+                }
+            }
+        },
+
+        "viewRemoteChangeLink": {
+            "prototype": "matte/ui/anchor.reel",
+            "properties": {
+                "element": {"#": "viewRemoteChangeLink"},
+                "target": "githubCommits"
+            },
+            "bindings": {
+                "href": {"<-": "@owner.remoteCompareUrl"}
+            },
+            "localizations": {
+                "textContent": {
+                    "key": "remoteCompareLink",
+                    "default": "View GitHub {count, plural, one {change} other {changes}}",
+                    "data": {
+                        "count": {"<-": "@owner.behindCount"}
+                    }
+                }
+            }
+        },
+
         "actionLabel": {
             "prototype": "montage/ui/text.reel",
             "properties": {
@@ -182,6 +224,10 @@
         <p data-montage-id="messageLabel" class="ModalOverlay-message"></p>
         <div class="MergeConflictPanel-content">
             <p data-montage-id="detailLabel" class="ModalOverlay-message"></p>
+            <p class="ViewCommit-link-container">
+               <a data-montage-id="viewLocalChangeLink" class="ViewCommit-link"></a>
+               <a data-montage-id="viewRemoteChangeLink" class="ViewCommit-link"></a>
+           </p>
             <p data-montage-id="actionLabel" class="ModalOverlay-message"></p>
             <ul>
                 <li>

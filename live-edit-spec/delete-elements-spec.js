@@ -1,8 +1,8 @@
-/* global document, describe, Declarativ */
+/* global document, describe, MontageStudio */
 var Promise = require("montage/core/promise").Promise;
 
 module.exports = function() {
-    var LiveEdit = Declarativ.LiveEdit;
+    var LiveEdit = MontageStudio.LiveEdit;
     var mainModuleId = "elements/ui/main.reel";
     var result;
 

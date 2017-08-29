@@ -1,6 +1,6 @@
 /*global window */
-if (typeof window.Declarativ === "undefined") {
-    window.Declarativ = {};
+if (typeof window.MontageStudio === "undefined") {
+    window.MontageStudio = {};
 }
 
 (function(ns) {
@@ -35,4 +35,4 @@ if (typeof window.Declarativ === "undefined") {
             }
         }
     });
-})(window.Declarativ);
+})(window.MontageStudio);

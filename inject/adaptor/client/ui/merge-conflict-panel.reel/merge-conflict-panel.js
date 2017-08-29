@@ -40,6 +40,14 @@ exports.MergeConflictPanel = Component.specialize(/** @lends MergeConflictPanel#
         value: 0
     },
 
+    localCompareUrl: {
+        value: null
+    },
+
+    remoteCompareUrl: {
+        value: null
+    },
+
     _deferredResponse: {
         value: null
     },
@@ -67,7 +75,7 @@ exports.MergeConflictPanel = Component.specialize(/** @lends MergeConflictPanel#
     },
 
     getResponse: {
-        value: function (message, local, remote, ahead, behind, resolutions) {
+        value: function (message, local, remote, ahead, behind, localUrl, remoteUrl, resolutions) {
             var index;
 
             if (this._deferredResponse) {
@@ -85,6 +93,9 @@ exports.MergeConflictPanel = Component.specialize(/** @lends MergeConflictPanel#
             this.remoteBranchName = remote;
             this.aheadCount = parseInt(ahead, 10);
             this.behindCount = parseInt(behind, 10);
+            this.localCompareUrl = localUrl;
+            this.remoteCompareUrl = remoteUrl;
+
             this.resolutions = resolutions;
             this.resolution = null;     // reset the resolution to force the user to make a selection
 

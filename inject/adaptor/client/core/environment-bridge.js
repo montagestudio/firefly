@@ -1,5 +1,4 @@
 /*jshint browser:true */
-/*global URL:true */
 var Target = require("montage/core/target").Target,
     Promise = require("montage/core/promise").Promise,
     Connection = require("q-connection"),
@@ -10,7 +9,7 @@ var Target = require("montage/core/target").Target,
     userMenu = require("core/menu").userMenu,
     RepositoryController = require("adaptor/client/core/repository-controller").RepositoryController,
     UserController = require("adaptor/client/core/user-controller").UserController,
-    URL = require("core/url"),
+    URL = require("core/url"), // jshint ignore:line
     track = require("track");
 
 // TODO we should only inject the base prototype of generic services this environment provides
@@ -249,23 +248,33 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    _extractDependenciesFromPackage: {
+        value: function (packageUrl, packageInfo) {
+            var dependencyNames = Object.keys(packageInfo.dependencies);
+
+            //TODO implement mapping in addition to just dependencies
+            //TODO also report the version of the dependency
+            return dependencyNames.map(function (dependencyName) {
+                return {
+                    "dependency": dependencyName,
+                    "url": packageUrl + "/node_modules/" + dependencyName,
+                    "version": packageInfo.dependencies[dependencyName]
+                };
+            });
+        }
+    },
+
     dependenciesInPackage: {
         value: function (packageUrl) {
+            var self = this;
 
             return this.getService("file-service").invoke("read", packageUrl + "/package.json")
                 .then(function (content) {
                     var packageInfo = JSON.parse(content),
-                        dependencyNames,
                         dependencies;
 
                     if (packageInfo.dependencies) {
-                        dependencyNames = Object.keys(packageInfo.dependencies);
-
-                        //TODO implement mapping in addition to just dependencies
-                        //TODO also report the version of the dependency
-                        dependencies = dependencyNames.map(function (dependencyName) {
-                            return {"dependency": dependencyName, "url": packageUrl + "/node_modules/" + dependencyName};
-                        });
+                        dependencies = self._extractDependenciesFromPackage(packageUrl, packageInfo);
                     } else {
                         dependencies = [];
                     }
@@ -310,7 +319,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url, exclude) {
             return this.getService("file-service").invoke("listTree", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    return new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                 });
             });
         }
@@ -320,7 +329,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url) {
             return this.getService("file-service").invoke("list", url).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    return FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    return new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                 });
             });
         }
@@ -330,7 +339,7 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (url, exclude) {
             return this.getService("file-service").invoke("listAsset", url, exclude).then(function (fileDescriptors) {
                 return fileDescriptors.map(function (fd) {
-                    var fileDescriptor = FileDescriptor.create().initWithUrlAndStat(fd.url, fd.stat);
+                    var fileDescriptor = new FileDescriptor().initWithUrlAndStat(fd.url, fd.stat);
                     fileDescriptor.mimeType = fd.mimeType;
 
                     return fileDescriptor;
@@ -348,8 +357,8 @@ exports.EnvironmentBridge = Target.specialize({
     watch: {
         value: function (url, ignoreSubPaths, changeHandler, errorHandler) {
             var handlers = {
-                handleChange: Promise.master(changeHandler),
-                handleError: Promise.master(errorHandler)
+                handleChange: changeHandler,
+                handleError: errorHandler
             };
 
             var result = this.getService("file-service").invoke("watch", url, ignoreSubPaths, handlers);
@@ -366,8 +375,14 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     getExtensionsAt: {
-        value: function () {
-            return [];
+        value: function (url) {
+            return this.getService("file-service").invoke("listPackage", url, true).then(function (fileDescriptors) {
+                return fileDescriptors.filter(function (fd) {
+                    return (/\.filament-extension\/$/).test(fd.url);
+                }).map(function (fd) {
+                    return fd.url;
+                });
+            });
         }
     },
 
@@ -531,6 +546,12 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    loadLibraryItemJson: {
+        value: function(libraryItemJsonUrl) {
+            return this.getService("extension-service").invoke("loadLibraryItemJson", libraryItemJsonUrl);
+        }
+    },
+
     promptForSave: {
         value: function (options) {
             var self = this;
@@ -562,10 +583,16 @@ exports.EnvironmentBridge = Target.specialize({
     openHttpUrl: {
         value: function (url) {
             var deferredWindow = Promise.defer(),
-                newWindow = window.open(url);
+                newWindow = window.open();
+
+            // Prevent new window from having a reference to this window, this
+            // will put the new window in a new process.
+            // https://code.google.com/p/chromium/issues/detail?id=153363
+            newWindow.opener = null;
+            newWindow.location.href = url;
 
             if (newWindow) {
-                deferredWindow.resolve(newWindow);
+                deferredWindow.resolve();
             } else {
                 deferredWindow.reject( new Error("Failed to open window to " + url));
             }
@@ -680,6 +707,51 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     /**
+     * open a new commit batch
+     */
+    openCommitBatch: {
+        value: function(message) {
+            return this.getService("repository-service").invoke("openCommitBatch", message);
+        }
+    },
+
+    /**
+     * stage files on specified commit batch
+     */
+    stageFiles: {
+        value: function(commitBatch, urls) {
+            return commitBatch.invoke("stageFiles", urls);
+        }
+    },
+
+    /**
+     * stage files for deletion on specified commit batch
+     */
+    stageFilesForDeletion: {
+        value: function(commitBatch, urls) {
+            return commitBatch.invoke("stageFilesForDeletion", urls);
+        }
+    },
+
+    /**
+     * close a commit batch and commit all staged files
+     */
+    closeCommitBatch: {
+        value: function(commitBatch, message) {
+            return commitBatch.invoke("commit", message);
+        }
+    },
+
+    /**
+     * delete a commit batch without commiting
+     */
+    releaseCommitBatch: {
+        value: function(commitBatch) {
+            return commitBatch.invoke("release");
+        }
+    },
+
+    /**
      * Pushes all commits to remote repository.
      */
     flushProject: {
@@ -690,22 +762,13 @@ exports.EnvironmentBridge = Target.specialize({
 
     writeFile: {
         value: function(url, data) {
-            var self = this;
-
-            return this.getService("file-service").invoke("writeFile", url, data)
-                .then(function () {
-                    return self.commitFiles([url], "Add file " + URL.parse(url).pathname);
-                });
+            return this.getService("file-service").invoke("writeFile", url, data);
         }
     },
 
     remove: {
         value: function (url) {
-            var self = this;
-            return this.getService("file-service").invoke("remove", url)
-                .then(function () {
-                    return self.commitFiles([url], "Remove file " + URL.parse(url).pathname, true);
-                });
+            return this.getService("file-service").invoke("remove", url);
         }
     },
 
@@ -715,16 +778,21 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
+    makeTreeWriteFile: {
+        value: function (url, data) {
+            return this.getService("file-service").invoke("makeTreeWriteFile", url, data);
+        }
+    },
+
     removeTree: {
         value: function (url) {
-            var self = this;
-            var path = URL.parse(url).path;
+            return this.getService("file-service").invoke("removeTree", url);
+        }
+    },
 
-            return this.getService("file-service").invoke("removeTree", url)
-                .then(function () {
-                    var message = path.slice(-1) === "/" ? "Remove directory " : "Remove file ";
-                    return self.commitFiles([url], message + URL.parse(url).pathname, true);
-                });
+    touch: {
+        value: function (url) {
+            return this.getService("file-service").invoke("touch", url);
         }
     },
 
@@ -841,8 +909,8 @@ exports.EnvironmentBridge = Target.specialize({
     },
 
     shadowBranchStatus: {
-        value: function (branch) {
-            return this.getService("repository-service").invoke("shadowBranchStatus", branch);
+        value: function (branch, forceFetch) {
+            return this.getService("repository-service").invoke("shadowBranchStatus", branch, forceFetch);
         }
     },
 
@@ -868,6 +936,12 @@ exports.EnvironmentBridge = Target.specialize({
         value: function (branch) {
             //TODO only do this for shadow branches?
             return this.getService("repository-service").invoke("_reset", branch);
+        }
+    },
+
+    getRepositoryInfo: {
+        value: function (branch) {
+            return this.getService("repository-service").invoke("getRepositoryInfo", branch);
         }
     },
 

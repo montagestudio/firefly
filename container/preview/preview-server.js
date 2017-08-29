@@ -15,8 +15,12 @@ var Frontend = require("../frontend");
 var CLIENT_FILES = "{$PREVIEW}";
 
 var CLIENT_ROOT = __dirname + "/client/";
-var PREVIEW_SCRIPTS = ["live-edit.js", "tools.js", "montage-studio.js",
-                       "preview.js"];
+var PREVIEW_SCRIPTS = [
+    "preview.js",
+    "montage-studio.js",
+    "tools.js",
+    "live-edit.js"
+];
 
 var clientFs = FS.reroot(CLIENT_ROOT);
 
@@ -45,12 +49,11 @@ function Preview(config) {
                 return servePreviewClientFile(request, response);
             }
 
-            return Q.when(next(request, response), function(response) {
+            return Q.when(next(request, response), function (response) {
                 if (response.body && path === "/index.html") {
-                    return injectPreviewScripts(request, response);
-                } else {
-                    return response;
+                    response = injectPreviewScripts(request, response);
                 }
+                return response;
             });
         };
     };
@@ -60,11 +63,17 @@ function Preview(config) {
 }
 
 function injectScriptInHtml(src, html) {
-    var index = html.toLowerCase().indexOf("</head>");
+    var srcIndex = html.toLowerCase().indexOf('src="node_modules/montage/montage.js"');
+    var closingIndex = html.toLowerCase().indexOf('</script>', srcIndex) + '</script>'.length;
+    var selfClosingIndex = html.toLowerCase().indexOf('/>', srcIndex) + '/>'.length;
+    if (selfClosingIndex === 1) {
+        selfClosingIndex = Infinity;
+    }
+    var index = Math.min(closingIndex, selfClosingIndex);
 
     if (index !== -1) {
         html = html.substring(0, index) +
-            '<script type="text/javascript" src="' + src + '"></script>\n' +
+            '\n<script type="text/javascript" src="' + src + '"></script>' +
             html.substring(index);
     }
 
@@ -72,11 +81,17 @@ function injectScriptInHtml(src, html) {
 }
 
 function injectScriptSource(source, html) {
-    var index = html.toLowerCase().indexOf("</head>");
+    var srcIndex = html.toLowerCase().indexOf('src="node_modules/montage/montage.js"');
+    var closingIndex = html.toLowerCase().indexOf('</script>', srcIndex) + '</script>'.length;
+    var selfClosingIndex = html.toLowerCase().indexOf('/>', srcIndex) + '/>'.length;
+    if (selfClosingIndex === 1) {
+        selfClosingIndex = Infinity;
+    }
+    var index = Math.min(closingIndex, selfClosingIndex);
 
     if (index !== -1) {
         html = html.substring(0, index) +
-            '<script type="text/javascript">' + source + '</script>\n' +
+            '\n<script type="text/javascript">' + source + '</script>' +
             html.substring(index);
     }
 
@@ -91,15 +106,15 @@ function injectPreviewScripts(request, response) {
         var html = body.toString();
         var scriptBaseSrc = "/" + CLIENT_FILES + "/";
 
-        if (!Env.production) {
-            html = injectScriptSource("var Declarativ = {DEVELOPMENT: true};", html);
-        }
         for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
         }
+        if (!Env.production) {
+            html = injectScriptSource("var MontageStudio = {DEVELOPMENT: true};", html);
+        }
 
         response.body = [html];
-        response.headers['content-length'] = html.length;
+        response.headers['content-length'] = Buffer.byteLength(html);
         return response;
     });
 }

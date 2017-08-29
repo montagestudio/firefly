@@ -12,7 +12,9 @@ if (typeof jasmine !== "undefined") {
                 return next(request, response);
             };
         },
-        shutdown: NOOP
+        shutdown: NOOP,
+        scrubError: scrubError,
+        scrubHeaders: scrubHeaders
     };
     return;
 }
@@ -42,6 +44,7 @@ rollbar.handleUncaughtExceptions();
 exports.error = function(error, request, data) {
     request = request || {};
     request.payloadData = data;
+    error = scrubError(error);
     rollbar.handleError(error, request, logErrorCallback);
 };
 
@@ -50,6 +53,7 @@ exports.errorForUsername = function(error, username, data) {
         session: {username: username},
         payloadData: data
     };
+    error = scrubError(error);
     rollbar.handleError(error, request, logErrorCallback);
 };
 
@@ -120,6 +124,17 @@ function addRequestData(data, joeyRequest) {
         }
     }
     //jshint +W089
+}
+
+function scrubError(error) {
+    if (error && error.message) {
+        var message = error.message.replace(/[0-9a-f]+:x-oauth-basic/gi, "SCRUBBED:x-oauth-basic");
+        if (message !== error.message) {
+            error = Object.create(error);
+            error.message = message;
+        }
+    }
+    return error;
 }
 
 function scrubHeaders(givenHeaders) {

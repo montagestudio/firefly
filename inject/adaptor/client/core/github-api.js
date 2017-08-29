@@ -1,5 +1,5 @@
 /* global XMLHttpRequest, console */
-var Q = require("q");
+var Promise = require("bluebird");
 
 var XHR;
 if (typeof XMLHttpRequest === "undefined") {
@@ -85,11 +85,31 @@ GithubApi.prototype.listRepositories = function(options) {
     });
 };
 
-// http://developer.github.com/v3/repos/#list-user-repositories
-GithubApi.prototype.listUserRepositories = function(username) {
+GithubApi.prototype.listOwnedRepositories = function(options) {
+    options.affiliation = 'owner';
     return this._request({
         method: "GET",
-        url: "/users/" + username + "/repos"
+        url: "/user/repos",
+        query: options
+    });
+};
+
+GithubApi.prototype.listContributingRepositories = function(options) {
+    options.affiliation = 'collaborator';
+    return this._request({
+        method: "GET",
+        url: "/user/repos",
+        query: options
+    });
+};
+
+// http://developer.github.com/v3/repos/#list-user-repositories
+GithubApi.prototype.listUserRepositories = function(username, options) {
+    options = options || {};
+    return this._request({
+        method: "GET",
+        url: "/users/" + username + "/repos",
+        query: options
     });
 };
 
@@ -121,23 +141,48 @@ GithubApi.prototype.listUserRepositories = function(username) {
 /**
  * Create a new repository for the authenticated user. Requires OAuth user.
  *
- * @param {string} name The name of the repository.
+ * @param {string} repositoryName The name of the repository.
  * @param {CreateRepositoryOptions=} options
  *
  * http://developer.github.com/v3/repos/#create
  */
-GithubApi.prototype.createRepository = function(name, options) {
+GithubApi.prototype.createUserRepository = function(repositoryName, options) {
     options = options || {};
-    options.name = name;
+    options.name = repositoryName;
 
-    // sanity check on repo name
-    if (/^[A-Za-z0-9_].+$/.test(name) !== true) {
+    // sanity check on repositoryName
+    if (/^[A-Za-z0-9_].+$/.test(repositoryName) !== true) {
         throw new Error("Invalid project name");
     }
 
     return this._request({
         method: "POST",
         url: "/user/repos",
+        data: options
+    });
+};
+
+/**
+ * Create a new repository for the given organization. Requires OAuth user.
+ *
+ * @param {string} organizationName The name of the organization.
+ * @param {string} repositoryName The name of the repository.
+ * @param {CreateRepositoryOptions=} options
+ *
+ * http://developer.github.com/v3/repos/#create
+ */
+GithubApi.prototype.createOrganizationRepository = function(organizationName, repositoryName, options) {
+    options = options || {};
+    options.name = repositoryName;
+
+    // sanity check on repo name
+    if (/^[A-Za-z0-9_].+$/.test(repositoryName) !== true) {
+        throw new Error("Invalid project name");
+    }
+
+    return this._request({
+        method: "POST",
+        url: "/orgs/" + organizationName + "/repos",
         data: options
     });
 };
@@ -183,6 +228,15 @@ GithubApi.prototype.createRepositoryInOrganization = function(name, organization
         method: "POST",
         url: "/orgs/" + organization + "/repos",
         data: options
+    });
+};
+
+// https://developer.github.com/v3/repos/contents/#get-contents
+GithubApi.prototype.getContents = function(owner, name, path, param) {
+    return this._request({
+        method: 'GET',
+        url: ('/repos/' + owner + '/' + name + '/contents/' + path).replace('//', '/'),
+        param: param
     });
 };
 
@@ -315,6 +369,21 @@ GithubApi.prototype.getInfo = function(username, repository) {
     });
 };
 
+GithubApi.prototype.listUserOrganizations = function() {
+    return this._request({
+        method: 'GET',
+        url: '/user/orgs'
+    });
+};
+
+GithubApi.prototype.listOrganizationRepositories = function(organizationName, options) {
+    return this._request({
+        method: 'GET',
+        url: '/orgs/' + organizationName + '/repos',
+        query: options
+    });
+};
+
 /**
  * @typeof RequestOptions
  * @type {object}
@@ -337,7 +406,6 @@ GithubApi.prototype.getInfo = function(username, repository) {
 GithubApi.prototype._request = function(request) {
     var xhr = new XHR(),
         self = this,
-        deferred = Q.defer(),
         param = request.param ? "." + request.param : "",
         queryString = "",
         responseHeaders = request.responseHeaders;
@@ -346,79 +414,82 @@ GithubApi.prototype._request = function(request) {
         queryString = "?" + this._createQueryString(request.query);
     }
 
-    xhr.open(request.method, this.API_URL + request.url + queryString);
-    xhr.addEventListener("load", function() {
-        var message,
-            response;
+    return new Promise(function(resolve, reject) {
+        xhr.open(request.method, self.API_URL + request.url + queryString);
+        xhr.addEventListener("load", function() {
+            var message,
+                response;
 
-        if (xhr.status >= 200 && xhr.status < 300) {
-            if (xhr.responseText) {
-                if (request.param === "raw") {
-                    message = xhr.responseText;
-                } else {
-                    message = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300) {
+                if (xhr.responseText) {
+                    if (request.param === "raw") {
+                        message = xhr.responseText;
+                    } else {
+                        message = JSON.parse(xhr.responseText);
+                    }
                 }
-            }
-            if (responseHeaders && responseHeaders.length) {
-                response = {response: message};
+                if (responseHeaders && responseHeaders.length) {
+                    response = {response: message};
 
-                responseHeaders.forEach(function(header) {
-                    response[header] = xhr.getResponseHeader(header);
-                });
-                deferred.resolve(response);
-            }
-            else {
-                deferred.resolve(message);
-            }
-        } else {
-            var error;
-            // Try and give a friendly error from Github
-            if (xhr.responseText) {
-                var errors;
-                try {
-                    response = JSON.parse(xhr.responseText);
-                    errors = response.errors;
-                    message = response.message;
-                } catch (e) {
-                    // ignore
+                    responseHeaders.forEach(function(header) {
+                        response[header] = xhr.getResponseHeader(header);
+                    });
+                    resolve(response);
                 }
-                if (errors && errors[0] && errors[0].message) {
-                    error = new Error(errors[0].message);
-                } else if (message && message.length) {
-                    error = new Error(message);
+                else {
+                    resolve(message);
                 }
-            }
+            } else {
+                var action = "Cannot " + request.method + " " + JSON.stringify(self.API_URL + request.url + queryString);
+                var error;
+                // Try and give a friendly error from Github
+                if (xhr.responseText) {
+                    var errors;
+                    try {
+                        response = JSON.parse(xhr.responseText);
+                        errors = response.errors;
+                        message = response.message;
+                    } catch (e) {
+                        // ignore
+                    }
+                    if (errors && errors[0] && errors[0].message) {
+                        error = new Error(action + " because " + errors[0].message);
+                        error.shortMessage = errors[0].message;
+                    } else if (message && message.length) {
+                        error = new Error(action + " because " + message);
+                        error.shortMessage = message;
+                    }
+                }
 
-            if (!error) {
-                error = new Error("Cannot " + request.method + " " + JSON.stringify(self.API_URL + request.url + queryString));
-            }
+                if (!error) {
+                    error = new Error(action);
+                }
 
+                error.xhr = xhr;
+                reject(error);
+            }
+        }, false);
+        xhr.addEventListener("error", function() {
+            var error = new Error("Cannot " + request.method + " " + JSON.stringify(self.API_URL + request.url + queryString));
             error.xhr = xhr;
-            deferred.reject(error);
+            reject(error);
+        }, false);
+
+        xhr.setRequestHeader("Accept", "application/vnd.github.v3" + param + "+json");
+        if (self._accessToken) {
+            xhr.setRequestHeader("Authorization", "token " + self._accessToken);
         }
-    }, false);
-    xhr.addEventListener("error", function() {
-        var error = new Error("Cannot " + request.method + " " + JSON.stringify(self.API_URL + request.url + queryString));
-        error.xhr = xhr;
-        deferred.reject(error);
-    }, false);
+        if (request.headers) {
+            Object.keys(request.headers).forEach(function(header) {
+                xhr.setRequestHeader(header, request.headers[header]);
+            });
+        }
 
-    xhr.setRequestHeader("Accept", "application/vnd.github.v3" + param + "+json");
-    if (this._accessToken) {
-        xhr.setRequestHeader("Authorization", "token " + this._accessToken);
-    }
-    if (request.headers) {
-        Object.keys(request.headers).forEach(function(header) {
-            xhr.setRequestHeader(header, request.headers[header]);
-        });
-    }
-
-    if (request.data) {
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.send(JSON.stringify(request.data));
-    } else {
-        xhr.send();
-    }
-
-    return deferred.promise;
+        if (request.data) {
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send(JSON.stringify(request.data));
+        } else {
+            xhr.send();
+        }
+    });
 };

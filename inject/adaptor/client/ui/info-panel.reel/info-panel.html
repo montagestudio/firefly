@@ -21,7 +21,7 @@
             "prototype": "matte/ui/dynamic-element.reel",
             "properties": {
                 "element": {"#": "messageLabel"},
-                "allowedTagNames": ["a", "br"]
+                "allowedTagNames": ["a", "br", "pre", "h2"]
             },
             "bindings": {
                 "innerHTML": {"<-": "@owner.message"}
@@ -48,7 +48,7 @@
 </head>
 <body>
     <div data-montage-id="infoPanel" class="InfoPanel">
-        <p data-montage-id="messageLabel" class="ModalOverlay-message"></p>
+        <div data-montage-id="messageLabel" class="ModalOverlay-message"></div>
         <footer class="ModalOverlay-footer">
             <input type="button" data-montage-id="okButton" class="Button Button--dark Button--action-dark">
         </footer>

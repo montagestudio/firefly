@@ -16,6 +16,8 @@ var preview = require("./preview");
 var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
+var PreviewDetails = require("./preview-details");
+var subdomainDetailsMap = require("./subdomain-details-map");
 
 module.exports = server;
 function server(options) {
@@ -26,8 +28,8 @@ function server(options) {
     var sessions = options.sessions;
     if (!options.checkSession) throw new Error("options.checkSession required");
     var checkSession = options.checkSession;
-    if (!options.setupProjectContainer) throw new Error("options.setupProjectContainer required");
-    var setupProjectContainer = options.setupProjectContainer;
+    if (!options.containerManager) throw new Error("options.containerManager required");
+    var containerManager = options.containerManager;
     if (!options.containerIndex) throw new Error("options.containerIndex required");
     var containerIndex = options.containerIndex;
     //jshint +W116
@@ -88,20 +90,24 @@ function server(options) {
 
         POST("access")
         .log(log, function (message) { return message; })
-        .app(preview.processAccessRequest);
+        .app(function (request) {
+            var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+            return preview.processAccessRequest(request, previewDetails);
+        });
     })
     .use(function (next) {
         return function (request, response) {
             if (preview.isPreview(request)) {
-                return preview.hasAccess(request.headers.host, request.session)
+                var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+                if (!previewDetails) {
+                    return preview.serveAccessForm(request);
+                }
+
+                return preview.hasAccess(previewDetails, request.session)
                 .then(function (hasAccess) {
-                    var details = environment.getDetailsfromProjectUrl(request.url);
+                    var details = subdomainDetailsMap.detailsFromUrl(request.url);
                     if (hasAccess) {
-                        var projectWorkspacePort = setupProjectContainer.getPort(
-                            details.owner,
-                            details.owner,
-                            details.repo
-                        );
+                        var projectWorkspacePort = containerManager.getPort(details);
                         if (!projectWorkspacePort) {
                             return preview.serveNoPreviewPage(request);
                         }
@@ -113,16 +119,12 @@ function server(options) {
                             return preview.serveNoPreviewPage(request);
                         });
                     } else {
-                        setupProjectContainer(
-                            details.owner,
-                            details.owner,
-                            details.repo
-                        )
+                        containerManager.setup(details)
                         .then(function (projectWorkspacePort) {
                             if (!projectWorkspacePort) {
                                 return;
                             }
-                            var code = preview.getAccessCode(request.headers.host);
+                            var code = preview.getAccessCode(previewDetails);
                             // Chunk into groups of 4 by adding a space after
                             // every 4th character except if it's at the end of
                             // the string
@@ -164,10 +166,12 @@ function server(options) {
             log("build");
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
-                return setupProjectContainer(
-                    session.username,
-                    request.params.owner,
-                    request.params.repo,
+                return containerManager.setup(
+                    new PreviewDetails(
+                        session.username,
+                        request.params.owner,
+                        request.params.repo
+                    ),
                     session.githubAccessToken,
                     githubUser
                 );
@@ -183,16 +187,12 @@ function server(options) {
 
             track.message("delete containers", request, {number: workspaceKeys.length});
 
-            return Q.all(workspaceKeys.map(function (value) {
+            return Q.all(workspaceKeys.map(function (details) {
                 // delete
-                return setupProjectContainer.delete(value.user, value.owner, value.repo)
+                return containerManager.delete(details)
                 .catch(function (error) {
                     // catch error and log
                     track.error(error, request);
-                })
-                .then(function () {
-                    // remove from containerIndex
-                    containerIndex.delete(value);
                 });
             }))
             .then(function () {
@@ -203,10 +203,12 @@ function server(options) {
         any("api/:owner/:repo/...").app(function (request) {
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
-                return setupProjectContainer(
-                    session.username,
-                    request.params.owner,
-                    request.params.repo,
+                return containerManager.setup(
+                    new PreviewDetails(
+                        session.username,
+                        request.params.owner,
+                        request.params.repo
+                    ),
                     session.githubAccessToken,
                     githubUser
                 );
@@ -217,8 +219,8 @@ function server(options) {
         });
     });
 
-    var proxyAppWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-app");
-    var proxyPreviewWebsocket = ProxyWebsocket(setupProjectContainer, sessions, "firefly-preview");
+    var proxyAppWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-app");
+    var proxyPreviewWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-preview");
     chain.upgrade = function (request, socket, body) {
         Q.try(function () {
             if (!WebSocket.isWebSocket(request)) {
@@ -227,12 +229,16 @@ function server(options) {
             var details;
             if (preview.isPreview(request)) {
                 return sessions.getSession(request, function (session) {
-                    return preview.hasAccess(request.headers.host, session);
+                    var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
+                    if (previewDetails) {
+                        return preview.hasAccess(previewDetails, session);
+                    } else {
+                        return false;
+                    }
                 }).then(function (hasAccess) {
                     if (hasAccess) {
                         log("preview websocket", request.headers.host);
-                        details = environment.getDetailsfromProjectUrl(request.headers.host);
-                        details.username = details.owner;
+                        details = subdomainDetailsMap.detailsFromUrl(request.headers.host);
                         return proxyPreviewWebsocket(request, socket, body, details);
                     } else {
                         socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
@@ -241,9 +247,9 @@ function server(options) {
                 });
             } else {
                 log("filament websocket");
-                details = environment.getDetailsFromAppUrl(request.url);
                 return sessions.getSession(request, function (session) {
-                    details.username = session.username;
+                    details = environment.getDetailsFromAppUrl(request.url);
+                    details = new PreviewDetails(session.username, details.owner, details.repo);
                     return proxyAppWebsocket(request, socket, body, details);
                 });
             }

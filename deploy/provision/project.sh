@@ -23,5 +23,5 @@ popd
 
 #Create the container image
 pushd /srv
-	docker build -t firefly_project --rm .
+	docker build -f /srv/firefly/Dockerfile -t firefly_project --rm .
 popd

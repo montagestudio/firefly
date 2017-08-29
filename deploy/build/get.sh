@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script to clone a Declarativ repository
+# Script to clone a MontageStudio repository
 
 if [[ $GITHUBDECLARATIV == "" ]]; then
     export GITHUBDECLARATIV="github.com"
@@ -19,7 +19,7 @@ get ()
   git clone git@$GITHUBDECLARATIV:declarativ/$1.git "${BUILD}/$1"
   if [[ -e "${BUILD}/$1" ]]; then
     pushd "${BUILD}/$1"
-        git config user.name "Declarativ Bot"
+        git config user.name "MontageStudio Bot"
         git config user.email dev@declarativ.com
 
         # if branch is set then check it out
@@ -44,7 +44,7 @@ get ()
         rm -rf spec
     popd
     pushd "${BUILD}"
-        tar --disable-copyfile -czf "$1.tgz" "$1"
+        bsdtar --disable-copyfile -czf "$1.tgz" "$1"
     popd
   else
       echo "Cannot clone git repository: "${BUILD}/$1
@@ -67,7 +67,7 @@ tag ()
     # $1 is directory
     # $2 is tag name
     # $3 is branch name
- 
+
     TAG=
     if [ "$2" ]; then
       TAG="$2"
@@ -76,12 +76,12 @@ tag ()
     if [ "$3" ]; then
       BRANCH="$3"
     fi
-    
+
     rm -rf "${BUILD}/$1"
     git clone git@$GITHUBDECLARATIV:declarativ/$1.git "${BUILD}/$1"
     if [[ -e "${BUILD}/$1" ]]; then
       pushd "${BUILD}/$1"
-          git config user.name "Declarativ Bot"
+          git config user.name "MontageStudio Bot"
           git config user.email dev@declarativ.com
 
           # if branch is set then check it out
@@ -99,7 +99,7 @@ tag ()
         echo "Cannot clone git repository: "${BUILD}/$1
         exit -1
     fi
-    
+
 }
 
 get-image-id ()

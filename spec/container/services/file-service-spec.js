@@ -12,9 +12,9 @@ describe("file-service", function () {
             "package.json": "{}"
         });
 
-        service = FileService(null, fs, {
-            getProjectUrlFromAppUrl: function () {
-                return "http://localhost:2441";
+        service = FileService({}, fs, {
+            getProjectUrl: function () {
+                return "http://localhost:2441"; // FIXME
             }
         });
     });
@@ -43,6 +43,47 @@ describe("file-service", function () {
             // q-io/fs-mock is inconsistent with q-io/fs
             // https://github.com/kriskowal/q-io/issues/81
             return service.writeFile("package.json", dummyStringBase64).then(function() {
+                return fs.read("package.json");
+            }).then(function(result) {
+                expect(result).toBe(dummyString);
+            }).then(done, done);
+        });
+    });
+
+    describe("touch", function () {
+        it("should create empty file with the specified name", function (done) {
+            return service.touch("some-file").then(function() {
+                return fs.isFile("some-file");
+            }).then(function(isFile) {
+                expect(isFile).toBe(true);
+            }).then(done, done);
+        });
+    });
+
+    describe("makeTreeWriteFile", function () {
+        var dummyString = "bla-blah",
+            dummyStringBase64 = "YmxhLWJsYWg=";
+
+        it("should create file with the specified name and the sub directories", function (done) {
+            return service.makeTreeWriteFile("some-directory/some-file", dummyStringBase64).then(function() {
+                return fs.isFile("some-directory/some-file");
+            }).then(function(isFile) {
+                expect(isFile).toBe(true);
+            }).then(done, done);
+        });
+
+        it("should create write the expected content to the specified file", function (done) {
+            return service.makeTreeWriteFile("some-directory/dummy.txt", dummyStringBase64).then(function() {
+                return fs.read("some-directory/dummy.txt");
+            }).then(function(result) {
+                expect(result).toBe(dummyString);
+            }).then(done, done);
+        });
+
+        xit("should replace the content of an existing file with the new content", function (done) {
+            // q-io/fs-mock is inconsistent with q-io/fs
+            // https://github.com/kriskowal/q-io/issues/81
+            return service.makeTreeWriteFile("package.json", dummyStringBase64).then(function() {
                 return fs.read("package.json");
             }).then(function(result) {
                 expect(result).toBe(dummyString);
@@ -94,8 +135,8 @@ describe("file-service", function () {
         if (process.env.runSlowSpecs) {
             it("returns a list of assets with urls and MIME-types", function (done) {
                 return fs.reroot(fsPath).then(function (fs) {
-                    service = FileService(null, fs, {
-                        getProjectUrlFromAppUrl: function () {
+                    service = FileService({}, fs, {
+                        getProjectUrl: function () {
                             return "http://localhost:2441";
                         }
                     }, null, fsPath);
@@ -164,7 +205,7 @@ describe("file-service", function () {
                         "bar": {}
                     }
                 });
-                service = FileService(null, fs, {
+                service = FileService({}, fs, {
                     getProjectUrlFromAppUrl: function () {
                         return "http://localhost:2441";
                     }
@@ -209,7 +250,7 @@ describe("file-service", function () {
                     "baz": "xyz"
                 }
             });
-            service = FileService(null, fs, {
+            service = FileService({}, fs, {
                 getProjectUrlFromAppUrl: function () {
                     return "http://localhost:2441";
                 }
@@ -278,7 +319,7 @@ describe("file-service", function () {
                     "qux": {}
                 }
             });
-            service = FileService(null, fs, {
+            service = FileService({}, fs, {
                 getProjectUrlFromAppUrl: function () {
                     return "http://localhost:2441";
                 }

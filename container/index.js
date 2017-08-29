@@ -29,6 +29,11 @@ var track = require("../track");
 var FS = require("q-io/fs");
 var Mop = require("./mop");
 
+/* Catch possible hidden error */
+process.on('uncaughtException', function (err) {
+  log("*uncaughtException*", err, err.stack);
+});
+
 var containerChainFactory = require("./container-chain");
 var SetupProjectWorkspace = require("./setup-project-workspace");
 
@@ -64,8 +69,8 @@ function main(options) {
         throw new Error("Config must be an object, not " + options.config);
     }
     var config = options.config;
-    if (!config.githubAccessToken || !config.githubUser || !config.username || !config.owner || !config.repo) {
-        throw new Error("Config must contain properties: githubAccessToken, githubUser, username, owner, repo, given " + JSON.stringify(Object.keys(config)));
+    if (!config.githubAccessToken || !config.githubUser || !config.username || !config.owner || !config.repo || !config.subdomain) {
+        throw new Error("Config must contain properties: githubAccessToken, githubUser, username, owner, repo, subdomain, given " + JSON.stringify(Object.keys(config)));
     }
 
     var fs = options.fs || FS;

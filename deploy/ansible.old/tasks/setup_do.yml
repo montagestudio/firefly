@@ -1,0 +1,3 @@
+---
+- name: ensure dopy is installed
+  pip: name=dopy

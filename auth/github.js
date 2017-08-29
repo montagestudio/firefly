@@ -26,11 +26,11 @@ var requestAuth = function (request, scopes) {
 
 module.exports = function ($) {
     $("").app(function (request) {
-        return requestAuth(request, ["user:email", "public_repo"]);
+        return requestAuth(request, ["user:email", "public_repo", "read:org"]);
     });
 
     $("private").app(function (request) {
-        return requestAuth(request, ["user:email", "repo"]);
+        return requestAuth(request, ["user:email", "repo", "read:org"]);
     });
 
     $("callback").app(function (request) {

@@ -6,7 +6,6 @@ require("dotenv").load();
 
 var log = require("./logging").from(__filename);
 var URL = require("url");
-var routeProject; // Circular dependency, and so required once just before it's needed
 
 function Env(options) {
     var env = options || {  production: process.env.NODE_ENV === "production" };
@@ -48,18 +47,6 @@ function Env(options) {
         var pathname = URL.parse(url).pathname;
 
         var match = pathname.match(/\/?([^\/]+)\/([^\/]+)/);
-        var owner = match[1];
-        var repo = match[2];
-
-        return {
-            owner: owner.toLowerCase(),
-            repo: repo.toLowerCase()
-        };
-    };
-    env.getDetailsFromAppUrl = function (url) {
-        var pathname = URL.parse(url).pathname;
-
-        var match = pathname.match(/\/?([^\/]+)\/([^\/]+)/);
         if (!match) {
             throw new Error("Could not parse details from " + url);
         }
@@ -72,40 +59,10 @@ function Env(options) {
         };
     };
     env.getDetailsfromProjectUrl = function (url) {
-        // Needed because node's URL.parse interprets
-        // a.b.c.com:1234
-        // as
-        // protocol: "a.b.c.d.com"
-        // hostname: "2440"
-        if (!/^https?:\/\//.test(url)) {
-            url = "http://" + url;
-        }
-        var hostname = URL.parse(url).hostname;
-
-        var match = hostname.match(/[0-9]-([0-9a-z]+)-([0-9a-z\-]+)\./i);
-        if (!match) {
-            throw new Error("Could not parse details from " + url);
-        }
-        var owner = match[1];
-        var repo = match[2];
-
-        return {
-            owner: owner.toLowerCase(),
-            repo: repo.toLowerCase()
-        };
+        throw new Error("Deprecated. Use subdomainDetailsMap and a PreviewDetails object");
     };
     env.getProjectUrlFromAppUrl = function (url) {
-        // see note at top of file
-        if (!routeProject) {
-            routeProject = require("./route-project");
-        }
-
-        var details = this.getDetailsFromAppUrl(url);
-        var pod = routeProject.podForUsername(details.owner);
-
-        var subdomain = pod + "-" + details.owner + "-" + details.repo;
-
-        return this.getProjectUrl(subdomain);
+        throw new Error("Deprecated. Use FIXME");
     };
 
     env.getProjectUrl = function (subdomain) {
