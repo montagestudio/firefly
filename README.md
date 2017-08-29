@@ -1,5 +1,7 @@
 # Firefly
 
+[![Build Status](https://travis-ci.com/montagestudio/firefly.svg?token=DkxazY7pbviHZyy38ZZb&branch=master)](https://travis-ci.com/montagestudio/firefly)
+
 Firefly serves as the host for the Filament application.
 
 Firefly will serve Filament itself for use inside a browser and also provide
