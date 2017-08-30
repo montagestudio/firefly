@@ -8,8 +8,8 @@ services:
       - frontend
       - backend
     ports:
-      - "80:8182"
-      - "80:2440"
+      - "80:80"
+      - "443:443"
     depends_on:
       - static
       - login

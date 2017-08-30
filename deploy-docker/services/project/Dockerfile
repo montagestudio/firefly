@@ -24,6 +24,7 @@ RUN curl -sSL "https://get.docker.com/gpg" | sudo -E apt-key add -
 RUN echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" | sudo tee -a /etc/apt/sources.list
 RUN sudo apt-get update
 RUN sudo sudo apt-get install python-pip docker-engine --assume-yes --allow-unauthenticated
+
 # Update Pip
 RUN sudo pip install --upgrade pip
 
@@ -31,7 +32,11 @@ RUN sudo pip install --upgrade pip
 RUN sudo pip install docker-compose
 RUN docker-compose version
 
+# Define mountable directories.
 VOLUME ['/srv/firefly/']
 
-EXPOSE 2441
+# Define default command.
 ENTRYPOINT ["node", "/srv/firefly/project.js"]
+
+# Expose ports.
+EXPOSE 2441

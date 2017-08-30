@@ -6,21 +6,25 @@
 FROM ubuntu:14.04
 MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
 
-# Updates
-RUN apt-get update
+# Install Haproxy.
+RUN \
+  apt-get update && \
+  apt-get install -y haproxy && \
+  sed -i 's/^ENABLED=.*/ENABLED=1/' /etc/default/haproxy && \
+  rm -rf /var/lib/apt/lists/*
 
-# System tools
-RUN apt-get install -y sudo curl git zip && \
-    apt-get clean
-
-# haproxy
-RUN apt-get install -y haproxy && \
-    apt-get clean
-
+# Add files.
 ADD /etc/haproxy/haproxy.cfg etc/haproxy/haproxy.cfg
 ADD /etc/haproxy/errors etc/haproxy/errors
 
-EXPOSE 8182
-EXPOSE 2440
+# Define working directory.
+WORKDIR /etc/haproxy
 
-# TODO entrypoint haproxy
+# Define default command.
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod u+x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Expose ports.
+EXPOSE 80
+EXPOSE 443
