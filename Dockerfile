@@ -6,12 +6,23 @@
 FROM ubuntu:14.04
 MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
 
-# Updates
-RUN apt-get update
+# Set debconf to run non-interactively
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-# System tools
-RUN apt-get install -y sudo curl git zip && \
-    apt-get clean
+# Install base dependencies
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y -q --no-install-recommends \
+        apt-transport-https \
+        build-essential \
+        ca-certificates \
+        software-properties-common \
+        ssl-cert \
+        curl \
+        git \
+        zip \
+    && apt-get clean \
+    && rm -rf /tmp/* /var/tmp/*  \
+    && rm -rf /var/lib/apt/lists/*
 
 # Node
 RUN curl -sL https://deb.nodesource.com/setup_4.x -o nodesource_setup.sh

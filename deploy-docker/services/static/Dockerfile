@@ -31,7 +31,7 @@ RUN apt-get install -y -q --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Nginx.
-RUN dd-apt-repository -y ppa:nginx/stable && \
+RUN add-apt-repository -y ppa:nginx/stable && \
 	apt-get update && \
   	apt-get install -y nginx && \
   	rm -rf /var/lib/apt/lists/* && \
