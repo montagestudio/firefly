@@ -18,7 +18,9 @@ services:
     build:
       context: ./deploy-docker/services/static/
     networks:
-      - frontend
+      backend:
+      outside:
+        ipv4_address: 162.243.35.210
     ports:
       - "8183:80"
     volumes:
@@ -27,7 +29,9 @@ services:
     build:
       context: ./deploy-docker/services/login/
     networks:
-      - backend
+      backend:
+      outside:
+        ipv4_address: 107.170.4.128
     ports:
       - "8184:2440"
       - "8104:8104"
@@ -39,7 +43,9 @@ services:
     build:
       context: ./deploy-docker/services/project/
     networks:
-      - backend
+      backend:
+      outside:
+        ipv4_address: 10.5.0.6
     ports:
       - "8185:2440"
       - "8105:8105"
@@ -51,6 +57,13 @@ services:
 networks:
     frontend:
     backend:
+    outside:
+      driver: overlay
+      ipam:
+        config:
+        - subnet: 162.243.35.0/24
+        - subnet: 107.170.4.0/24
+        - subnet: 10.5.0.0/24
 
 volumes:
   firefly-src: 
