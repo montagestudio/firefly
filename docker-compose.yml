@@ -2,6 +2,7 @@ version: "3.1"
 
 services:
   load-balancer:
+    image: 127.0.0.1:5000/load-balancer
     build:
       context: ./deploy-docker/services/load-balancer/
     networks:
@@ -15,6 +16,7 @@ services:
       - login
       - project
   static:
+    image: 127.0.0.1:5000/static
     build:
       context: ./deploy-docker/services/static/
     networks:
@@ -26,6 +28,7 @@ services:
     volumes:
       - firefly-src:/srv/filament/
   login:
+    image: 127.0.0.1:5000/login
     build:
       context: ./deploy-docker/services/login/
     networks:
@@ -40,6 +43,7 @@ services:
     volumes:
       - ./:/srv/firefly/
   project:
+    image: 127.0.0.1:5000/project
     build:
       context: ./deploy-docker/services/project/
     networks:

@@ -34,10 +34,9 @@ before_script:
 #  - export DISPLAY=:99.0
 #  - sh -e /etc/init.d/xvfb start
   - export DOCKER_CLIENT_TIMEOUT=120
-  - docker-compose build
+  - sh docker-swarm-start.sh
 script:
   - npm run lint
-  - docker-compose up -d
   - sleep 25
   - docker ps | grep -q load-balancer
   - docker ps | grep -q login
@@ -46,4 +45,4 @@ script:
 # TODO provide server to run test
 #  - npm run test
 after_script:
-  - docker-compose down
+  - sh docker-swarm-stop.sh
