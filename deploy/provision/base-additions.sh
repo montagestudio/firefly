@@ -8,16 +8,14 @@ apt-get install --yes git
 
 # To save time lets load the new repositories first
 # For Node
-curl -sL https://deb.nodesource.com/setup_4.x -o nodesource_setup.sh
-sudo bash nodesource_setup.sh
-
+add-apt-repository --yes ppa:chris-lea/node.js
 # For Redis
 add-apt-repository --yes ppa:chris-lea/redis-server
 # And be sure we are up to date
 apt-get update --fix-missing
 
 # Node
-apt-get install --yes nodejs build-essential
+apt-get install --yes nodejs
 
 # Run with naught for zero-downtime deploys
 npm install -g naught
