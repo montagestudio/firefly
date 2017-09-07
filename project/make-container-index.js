@@ -9,15 +9,25 @@ function makeContainerIndex(filename) {
     if (filename) {
         var entries;
         try {
-            entries = JSON.parse(fs.readFileSync(filename, {encoding: "utf8"}));
+            entries = JSON.parse(fs.readFileSync(filename, {
+                encoding: "utf8"
+            }));
+
         } catch (e) {}
         if (entries) {
-            entries.map(function (entry) { containers.set(entry[0], entry[1]); });
+            entries.map(function (entry) {
+                containers.set(entry[0], entry[1]);
+            });
         }
 
         containers.addMapChangeListener(function () {
-            var entries = containers.entries();
-            fs.writeFileSync(filename, JSON.stringify(entries));
+
+            var containersIdex = [];
+            containers.forEach(function (key, value) {
+                containersIdex.push([value, key]);
+            });
+
+            fs.writeFileSync(filename, JSON.stringify(containersIdex));
         });
     }
 
