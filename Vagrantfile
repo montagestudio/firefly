@@ -153,7 +153,7 @@ Vagrant.configure('2') do |config|
 
         # TODO don't mount filament when server is split
         login.vm.synced_folder "../filament", "/srv/filament", type: "rsync", rsync__exclude: [".git/"]
-        login.vm.synced_folder ".", "/srv/firefly" , type: "rsync", rsync__exclude: [".git/", "node_modules"]
+        login.vm.synced_folder ".", "/srv/firefly" , type: "rsync", rsync__exclude: ["node_modules"]
 
         login.vm.provision :shell, path: "deploy/provision/login.sh"
 
@@ -185,7 +185,7 @@ Vagrant.configure('2') do |config|
 
         # TODO don't mount filament when server is split
         project.vm.synced_folder "../filament", "/srv/filament" , type: "rsync", rsync__exclude: [".git/"]
-        project.vm.synced_folder ".", "/srv/firefly" , type: "rsync", rsync__exclude: [".git/", "node_modules"]
+        project.vm.synced_folder ".", "/srv/firefly" , type: "rsync", rsync__exclude: ["node_modules"]
 
 #        project.vm.provision :shell, :inline => "ln -sf /srv/firefly/Dockerfile /srv/Dockerfile"
 
