@@ -79,10 +79,6 @@ that would usually only be seen in production.
 
 You can then access the server at http://local-aurora.montagestudio.com:2440/
 
-If the page fails to load, try the following: `vagrant reload load-balancer`.
-This may happen after setting up Firefly for the first time, but should not be
-an issue after that.
-
 #### Expected warnings
 
 There is a lot of output when provisioning, and a number of warnings. The ones
@@ -231,13 +227,6 @@ app domain. This is blocked because there are no cross-domain headers on the
 app domain (despite the request now really being non-cross domain). Hence the
 error showing the app domain in the message, and the `Origin` being null
 because it comes from a redirect.
-
-```
-local-aurora.montagestudio.com didn't send any data
-```
-
-This error may occur after setting up Firefly for the first time.
-Run `vagrant reload load-balancer` to fix it.
 
 ## Administration
 

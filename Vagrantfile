@@ -107,7 +107,7 @@ Vagrant.configure('2') do |config|
         # HAProxy uses rsyslog. It needs to be restarted to pick up the
         # configuration change
         lb.vm.provision :shell, :inline => "service rsyslog restart"
-        lb.vm.provision :shell, :inline => "service haproxy start || service haproxy reload"
+        lb.vm.provision :shell, :inline => "service haproxy start && service haproxy reload"
     end
 
     config.vm.define "web-server" do |web|
