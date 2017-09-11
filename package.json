@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "if [ \"`uname`\" = \"Linux\" ]; then npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs npm run tests; else echo Running tests in VM; vagrant ssh login -c \"cd /srv/firefly; npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs npm run tests\"; fi",
-    "tests": "jasmine-node spec",
+    "tests": "jasmine-node spec --forceexit",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "slow-tests": "runSlowSpecs=true npm test",
     "lint": "jshint --verbose .",
@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "istanbul": "~0.1.44",
-    "jasmine-node": "~1.11.0",
+    "jasmine-node": "~1.14.0",
     "jshint": "^2.9.5",
     "rewire": "^2.1.3"
   },
