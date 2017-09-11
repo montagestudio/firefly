@@ -1283,7 +1283,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                 // Let's revert the remote changes
                 return next
                 .then(function() {
-                    return _git.command(_fsPath, "revert", ["-m 0", "HEAD~" + status.behind + "..HEAD"]);
+                    return _git.command(_fsPath, "revert", ["HEAD~" + status.behind + "..HEAD"]);
                 })
                 .then(function() {
                     if (status.ahead > 0) {
@@ -1338,7 +1338,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         })
         .then(function() {
             // revert parent changes
-            return _git.command(_fsPath, "revert", ["-m 0", "HEAD~" + status.behind + "..HEAD"]);
+            return _git.command(_fsPath, "revert", ["HEAD~" + status.behind + "..HEAD"]);
         })
         .then(function() {
             // push the parent
