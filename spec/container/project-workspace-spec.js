@@ -134,12 +134,12 @@ describe("ProjectWorkspace", function () {
         it("should initialize by creating an empty project", function(done) {
             var spy = spyOn(projectWorkspace, "initializeWithEmptyProject");
 
-            spyOn(projectWorkspace.__repoService, "isProjectEmpty")
+            spyOn(projectWorkspace._repoService, "isProjectEmpty")
             .andCallFake(function() {
                 return Q.resolve(true);
             });
 
-            spyOn(projectWorkspace.__repoService, "checkoutShadowBranch")
+            spyOn(projectWorkspace._repoService, "checkoutShadowBranch")
             .andCallFake(function() {
                 return Q.resolve(true);
             });
@@ -153,12 +153,12 @@ describe("ProjectWorkspace", function () {
         it("should initialize by cloning a repository", function(done) {
             var spy = spyOn(projectWorkspace, "initializeWithRepository");
 
-            spyOn(projectWorkspace.__repoService, "isProjectEmpty")
+            spyOn(projectWorkspace._repoService, "isProjectEmpty")
             .andCallFake(function() {
                 return Q.resolve(false);
             });
 
-            spyOn(projectWorkspace.__repoService, "checkoutShadowBranch")
+            spyOn(projectWorkspace._repoService, "checkoutShadowBranch")
             .andCallFake(function() {
                 return Q.resolve(true);
             });
