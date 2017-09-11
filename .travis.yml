@@ -38,8 +38,6 @@ before_script:
 #  - sleep 25
 script:
   - npm run lint
-  - npm test
-# TODO provide server to run test
-#  - npm run test
+  - runSlowSpecs=true npm test
 after_script:
   - docker stop firefly-container
