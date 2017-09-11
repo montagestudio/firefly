@@ -38,11 +38,11 @@ var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function
     };
 };
 
-function RepositoryService(config, fs, environment, pathname, fsPath) {
-    return _RepositoryService(config.username, config.owner, config.githubAccessToken, config.repo, fs, fsPath, true);
+function RepositoryService(config, fs, environment, pathname, fsPath, githubApi) {
+    return _RepositoryService(config.username, config.owner, config.githubAccessToken, config.repo, fs, fsPath, true, githubApi);
 }
 
-function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote) {
+function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath, acceptOnlyHttpsRemote, githubApi) {
     // Returned service
 
     var serviceUUID = username + ":" + owner + ":" + repo + ":" + fsPath;
@@ -62,7 +62,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         _fsPath = fsPath,
         _convertProjectUrlToPath = makeConvertProjectUrlToPath(),
         _git = new Git(_fs, _accessToken, acceptOnlyHttpsRemote),
-        _githubApi = new GithubApi(_accessToken),
+        _githubApi = githubApi || new GithubApi(_accessToken),
         _info = null,
         _githubPollTimer = null,
         _gitFetchLastTimeStamp = 0,

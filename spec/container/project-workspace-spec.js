@@ -23,8 +23,7 @@ describe("ProjectWorkspace", function () {
         owner = "owner";
         repo = "repo";
         var workspacePath = fs.join(tmpPath, owner, repo);
-        projectWorkspace = new ProjectWorkspace(config, workspacePath, owner, repo, minitPath);
-        projectWorkspace._repoService.setGithubApi(new MockGithubApi());
+        projectWorkspace = new ProjectWorkspace(config, workspacePath, owner, repo, minitPath, new MockGithubApi());
     });
 
     afterEach(function(done) {
