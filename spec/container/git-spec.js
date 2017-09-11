@@ -73,7 +73,7 @@ describe("Git", function () {
         it("creates .git/index, impling the file has been staged", function (done) {
             git.init(tmpPath)
             .then(function () {
-                fs.write(fs.join(tmpPath, "test.txt"), "pass");
+                return fs.write(fs.join(tmpPath, "test.txt"), "pass");
             })
             .then(function () {
                 return git.add(tmpPath, ".");
@@ -92,7 +92,7 @@ describe("Git", function () {
         it("creates the master ref", function (done) {
             git.init(tmpPath)
             .then(function () {
-                fs.write(fs.join(tmpPath, "test.txt"), "pass");
+                return fs.write(fs.join(tmpPath, "test.txt"), "pass");
             })
             .then(function () {
                 return git.add(tmpPath, ".");
