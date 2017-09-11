@@ -58,7 +58,6 @@ GithubApi.prototype.getInfo = function(owner, repo) {
 };
 
 GithubApi.prototype.checkError = function (method, username, thisp) {
-    var self = this;
     return function wrapped(error) {
         var args = Array.prototype.slice.call(arguments);
         return method.apply(thisp, args);
@@ -67,4 +66,4 @@ GithubApi.prototype.checkError = function (method, username, thisp) {
 
 GithubApi.prototype.getRepositoryEvents = function (username, repository, lastETag) {
     return Q.resolve();
-}
+};

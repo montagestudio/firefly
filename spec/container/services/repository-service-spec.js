@@ -73,7 +73,7 @@ describe("repository-service", function () {
                 service1 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false, new MockGithubApi());
             })
             .then(function () {
-                return git.isCloned(serviceRepo1Path)
+                return git.isCloned(serviceRepo1Path);
             })
             .then(function (isCloned) {
                 expect(isCloned).toBe(true);
