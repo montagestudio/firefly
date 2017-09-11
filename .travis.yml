@@ -38,6 +38,7 @@ before_script:
 #  - sleep 25
 script:
   - npm run lint
+  - npm test
 # TODO provide server to run test
 #  - npm run test
 after_script:
