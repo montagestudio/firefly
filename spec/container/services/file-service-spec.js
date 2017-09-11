@@ -39,9 +39,7 @@ describe("file-service", function () {
             }).then(done, done);
         });
 
-        xit("should replace the content of an existing file with the new content", function (done) {
-            // q-io/fs-mock is inconsistent with q-io/fs
-            // https://github.com/kriskowal/q-io/issues/81
+        it("should replace the content of an existing file with the new content", function (done) {
             return service.writeFile("package.json", dummyStringBase64).then(function() {
                 return fs.read("package.json");
             }).then(function(result) {
@@ -80,9 +78,7 @@ describe("file-service", function () {
             }).then(done, done);
         });
 
-        xit("should replace the content of an existing file with the new content", function (done) {
-            // q-io/fs-mock is inconsistent with q-io/fs
-            // https://github.com/kriskowal/q-io/issues/81
+        it("should replace the content of an existing file with the new content", function (done) {
             return service.makeTreeWriteFile("package.json", dummyStringBase64).then(function() {
                 return fs.read("package.json");
             }).then(function(result) {

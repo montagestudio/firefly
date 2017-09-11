@@ -187,8 +187,8 @@ describe("repository-service", function () {
         });
     });
 
-    xdescribe("check repository service setup", function () {
-        it ("should have two repos", function(done) {
+    describe("check repository service setup", function () {
+        it("should have two repos", function(done) {
             executeFile("repo-service-setup.sh", tmpPath)
             .then(function() {
                 service1.close(null);   // We need to close the service in order to reset it (as we use the same path)
