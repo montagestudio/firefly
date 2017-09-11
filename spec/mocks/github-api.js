@@ -56,3 +56,15 @@ GithubApi.prototype.getInfo = function(owner, repo) {
         gitBranch: this._options.defaultBranch || "master"
     });
 };
+
+GithubApi.prototype.checkError = function (method, username, thisp) {
+    var self = this;
+    return function wrapped(error) {
+        var args = Array.prototype.slice.call(arguments);
+        return method.apply(thisp, args);
+    };
+};
+
+GithubApi.prototype.getRepositoryEvents = function (username, repository, lastETag) {
+    return Q.resolve();
+}
