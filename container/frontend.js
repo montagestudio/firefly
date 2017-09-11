@@ -31,7 +31,7 @@ module.exports = {
         promises = this._notificationsQueue.map(function(notification) {
             return notification.fn.apply(this, notification.args);
         }, this);
-        this._notificationsQueue.clear();
+        this._notificationsQueue.length = 0;
 
         return Q.all(promises);
     },
