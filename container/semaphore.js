@@ -1,4 +1,4 @@
-var Queue = require("q/queue");
+var Queue = require("../promise-queue");
 
 exports.Semaphore = Semaphore;
 

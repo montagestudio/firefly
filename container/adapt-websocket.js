@@ -1,9 +1,9 @@
 var Promise = require("bluebird");
-var Queue = require("q/queue");
+var Queue = require("../promise-queue");
 
 module.exports = adaptWebsocket;
 function adaptWebsocket(ws) {
-    var queue = Queue();
+    var queue = new Queue();
 
     ws.on("message", function (event) {
         queue.put(event.data);
