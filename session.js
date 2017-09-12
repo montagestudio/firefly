@@ -125,7 +125,7 @@ function Session(key, secret, cookieOptions, store) {
         return new Promise(function (resolve) {
             session._destroyed = true;
             resolve();
-        })
+        });
     };
 
     result.getKey = function() {
@@ -204,5 +204,5 @@ Memory.prototype.destroy = function destroy(id) {
     return new Promise(function (resolve) {
         delete self.sessions[id];
         resolve();
-    })
+    });
 };

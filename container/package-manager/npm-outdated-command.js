@@ -10,7 +10,7 @@ var PrepareNpmForExecution = require("./prepare-exec-npm"),
  * @return {Promise.<Object>} A promise with all outdated dependencies.
  */
 function _execCommand (npmLoaded) {
-    var outdated = Promise.promisify(npmLoaded.commands.outdated, { context: npmLoadec.commands });
+    var outdated = Promise.promisify(npmLoaded.commands.outdated, { context: npmLoaded.commands });
     return outdated([], true).then(function (list) {
         return _formatOutDatedListDependencies(npmLoaded, list);
     });

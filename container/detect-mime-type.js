@@ -62,7 +62,7 @@ module.exports.mimeTypes = Configuration.mimeTypes;
 
 function detectMimeType (fs, path, fsPath) {
     var magic = new Magic(mmm.MAGIC_MIME_TYPE),
-        detectFile = Promise.promisify(magic.detectFile, {context: magic});
+        detectFile = Promise.promisify(magic.detectFile, {context: magic}),
         fsFilePath = PATH.join(fsPath, path);
 
     return detectFile(fsFilePath).then(function (mimeType) {
