@@ -1,10 +1,10 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var GitCommitBatchFactory = require("../../container/git-commit-batch");
 
 describe("Git Commit Batch", function () {
     var GitCommitBatch = GitCommitBatchFactory({
         commitBatch : function() {
-            return Q.resolve({success: true});
+            return Promise.resolve({success: true});
         }
     });
 
@@ -55,7 +55,7 @@ describe("Git Commit Batch", function () {
     it("commits batches in order", function(done) {
         var commitOrder = [];
 
-        Q.all([
+        Promise.all([
             batchB.commit().then(function() {
                 commitOrder.push(batchB.message);
             }),

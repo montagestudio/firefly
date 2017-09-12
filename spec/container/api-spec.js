@@ -1,5 +1,5 @@
 var apiChain = require("../../container/api");
-var Q = require("q");
+var Promise = require("bluebird");
 var mockRequest = require("../mocks/request");
 
 describe("api", function () {
@@ -17,7 +17,7 @@ describe("api", function () {
         request = function (req) {
             req = mockRequest(req);
             req.projectWorkspace = projectWorkspace;
-            return Q(chain(req));
+            return Promise.resolve(chain(req));
         };
     });
 
@@ -25,7 +25,7 @@ describe("api", function () {
         var url;
         beforeEach(function () {
             url = "/init";
-            projectWorkspace.initializeWorkspace = jasmine.createSpy("initializeWorkspace").andReturn(Q());
+            projectWorkspace.initializeWorkspace = jasmine.createSpy("initializeWorkspace").andReturn(Promise.resolve());
         });
 
         it("doesn't respond to GET", function (done) {

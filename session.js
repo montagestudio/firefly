@@ -83,7 +83,9 @@ function Session(key, secret, cookieOptions, store) {
                     if (request.session._destroyed) {
                         log("destroyed", _id);
                         setSessionCookie(response, "", new Date(0));
-                        return store.destroy(_id).thenResolve(response);
+                        return store.destroy(_id).then(function () {
+                            return response;
+                        });
                     } else {
                         var _setCookie = false;
 
@@ -151,7 +153,9 @@ function Session(key, secret, cookieOptions, store) {
         }).then(function(result) {
             if (_session) {
                 // Save session new state.
-                return store.set(_session.sessionId, _session).thenResolve(result);
+                return store.set(_session.sessionId, _session).then(function () {
+                    return result;
+                });
             } else {
                 return result;
             }

@@ -227,7 +227,9 @@ ContainerManager.prototype.waitForServer = function (port, timeout, error) {
             return self.waitForServer(port, timeout - 100, error);
         });
     })
-    .thenResolve(port);
+    .then(function () {
+        return port;
+    });
 };
 
 function getExposedPort(containerInfo) {

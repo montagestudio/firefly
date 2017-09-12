@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var Frontend = require("../../container/frontend");
 
 describe("Frontend", function () {
@@ -7,7 +7,7 @@ describe("Frontend", function () {
         it("calls showNotification on all frontends", function (done) {
             var connectionA = {invoke: jasmine.createSpy("invokeA") };
             var connectionB = {invoke: jasmine.createSpy("invokeB") };
-            return Q.all([
+            return Promise.all([
                 Frontend.addFrontend("A", connectionA),
                 Frontend.addFrontend("B", connectionB)
             ])
@@ -24,7 +24,7 @@ describe("Frontend", function () {
                 expect(connectionB.invoke.mostRecentCall.args[1]).toEqual("pass");
             })
             .finally(function () {
-                return Q.all([
+                return Promise.all([
                     Frontend.deleteFrontend("A"),
                     Frontend.deleteFrontend("B")
                 ]);

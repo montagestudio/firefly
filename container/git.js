@@ -115,7 +115,7 @@ Git.prototype.rm = function(repoPath, paths) {
     }).map(function (promise) {
         return promise.reflect();
     }))
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git rm failed.");
     });

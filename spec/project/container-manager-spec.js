@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var ContainerManager = require("../../project/container-manager");
 var MockDocker = require("../mocks/docker");
 var makeContainerIndex = require("../../project/make-container-index");
@@ -14,7 +14,7 @@ describe("ContainerManager", function () {
 
         containerManager = new ContainerManager(docker, containerIndex, subdomainDetailsMap, function () {
             // Shim `request` function
-            return Q({
+            return Promise.resolve({
                 status: 200,
                 headers: {},
                 body: []
@@ -22,7 +22,7 @@ describe("ContainerManager", function () {
         });
         containerManager.GithubService = function() {
             this.getRepo = function() {
-                return Q.resolve({
+                return Promise.resolve({
                     private: false
                 });
             };
@@ -51,7 +51,7 @@ describe("ContainerManager", function () {
         });
 
         it("removes a container from the index if it fails", function (done) {
-            docker.createContainer = function () { return  Q.reject(new Error()); };
+            docker.createContainer = function () { return  Promise.reject(new Error()); };
             containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             .then(function () {
                 // expect failure
@@ -65,7 +65,7 @@ describe("ContainerManager", function () {
 
         it("doesn't create two containers for one user/owner/repo", function (done) {
             spyOn(docker, "createContainer").andCallThrough();
-            Q.all([
+            Promise.all([
                 containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {}),
                 containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             ])

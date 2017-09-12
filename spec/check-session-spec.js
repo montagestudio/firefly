@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var CheckSession = require("../check-session");
 
 describe("CheckSession", function () {
@@ -61,7 +61,7 @@ describe("CheckSession", function () {
     });
 
     it("returns ok(request) if there is a valid githubUser", function (done) {
-        var request = {session: {githubUser: Q({})}};
+        var request = {session: {githubUser: Promise.resolve({})}};
         checkSession(request)
         .then(function (response) {
             expect(ok).toHaveBeenCalledWith(request);
@@ -71,7 +71,7 @@ describe("CheckSession", function () {
     });
 
     it("returns notOk(request) if there is not a valid githubUser", function (done) {
-        var request = {session: {githubUser: Q(void 0)}};
+        var request = {session: {githubUser: Promise.resolve(void 0)}};
         checkSession(request)
         .then(function (response) {
             expect(notOk).toHaveBeenCalledWith(request);
@@ -81,7 +81,7 @@ describe("CheckSession", function () {
     });
 
     it("returns notOk(request) if there is an error getting githubUser", function (done) {
-        var request = {session: {githubUser: Q.reject(new Error())}};
+        var request = {session: {githubUser: Promise.reject(new Error())}};
         checkSession(request)
         .then(function (response) {
             expect(notOk).toHaveBeenCalledWith(request);

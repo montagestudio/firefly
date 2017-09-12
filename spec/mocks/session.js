@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 
 exports = module.exports = Session;
 function Session(sessions) {
@@ -14,7 +14,7 @@ function Session(sessions) {
     };
 
     result.get = function (id) {
-        return Q(sessions[id]);
+        return Promise.resolve(sessions[id]);
     };
 
     result.getKey = function() {

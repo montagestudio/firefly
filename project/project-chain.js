@@ -75,7 +75,9 @@ function server(options) {
                         }
                     });
                 } else {
-                    return sessions.destroy(request.session).thenResolve(next);
+                    return sessions.destroy(request.session).then(function () {
+                        return next;
+                    })
                 }
             } else {
                 log("Invalid request to /session from referer", request.headers.referer);

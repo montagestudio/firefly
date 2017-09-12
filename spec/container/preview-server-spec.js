@@ -1,5 +1,5 @@
 /*global escape*/
-var Q = require("q");
+var Promise = require("bluebird");
 var PreviewServer = require("../../container/preview/preview-server");
 var FS = require("q-io/fs");
 var htmlparser = require("htmlparser2");
@@ -14,7 +14,7 @@ describe("preview-server", function () {
             host: "1-owner-repo.local-project.montagestudio.com:2440"
         };
         var response = {
-            body: Q.resolve({
+            body: Promise.resolve({
                 read: function() {
                     return FS.read(indexHtml);
                 }

@@ -170,7 +170,7 @@ function handleEndpoint(config, request, endpointCallback, successCallback) {
 
         return JsonApps.json(createMessage(successMessage));
     })
-    .fail(function(error) {
+    .catch(function(error) {
         log("*handleEndpoint fail*", error.stack);
         track.error(error, request);
         return JsonApps.json(createMessage({

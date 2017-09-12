@@ -1379,9 +1379,10 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         return _git.command(_fsPath, "rebase", options)
         .then(function() {
             if (dryRunSha) {
-                return _git.command(_fsPath, "reset", ["--hard", dryRunSha])
-                .thenResolve(true);
+                return _git.command(_fsPath, "reset", ["--hard", dryRunSha]);
             }
+        })
+        .then(function () {
             return true;
         })
         .catch(function() {

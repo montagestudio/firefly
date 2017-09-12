@@ -1,5 +1,5 @@
 var URL = require("url");
-var Q = require("q");
+var Promise = require("bluebird");
 var normalizeRequest = require("q-io/http").normalizeRequest;
 
 module.exports = request;
@@ -34,7 +34,7 @@ function request(req) {
 
     if (Array.isArray(req.body)) {
         req.body.read = function () {
-            return Q(this.join(""));
+            return Promise.resolve(this.join(""));
         };
     }
 

@@ -2,15 +2,15 @@ var childProcess = require('child_process');
 var exec = childProcess.exec;
 var execFile = childProcess.execFile;
 var PATH = require("path");
-var Q = require("q");
+var Promise = require("bluebird");
 var MockGithubApi = require("../../mocks/github-api");
 var fs = require("q-io/fs");
-var FS = require("fs");
+var FS = Promise.promisifyAll(require("fs"));
 var Git = require("../../../container/git");
 var RepositoryService = require("../../../container/services/repository-service").service;
 
 var executeFile = function(scriptName, destPath, onlyLastLine) {
-    var deferred = Q.defer();
+    var deferred = Promise.defer();
 
     exec("cd ./spec/fixtures/repos/; chmod +x " + scriptName + "; pwd", function(error, stdout) {
         var scriptPath = PATH.join(stdout.trim(), scriptName);
@@ -40,11 +40,12 @@ var executeFile = function(scriptName, destPath, onlyLastLine) {
 };
 
 var writeFile = function(repoPath, fileName, data, append) {
-    return Q.nfcall(append === true ? FS.appendFile : FS.writeFile, PATH.join(repoPath, fileName), data);
+    var write = append === true ? FS.appendFileAsync : FS.writeFileAsync;
+    return write(PATH.join(repoPath, fileName), data);
 };
 
 var readFile = function(repoPath, fileName, data) {
-    return Q.nfcall(FS.readFile, PATH.join(repoPath, fileName), data)
+    return FS.readFileAsync(PATH.join(repoPath, fileName), data)
     .then(function(result) {
         return result.toString();
     });
@@ -200,7 +201,7 @@ describe("repository-service", function () {
                 service2 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo2Path, false, new MockGithubApi());
 
                 service1._getRepositoryUrl = function() {
-                    return Q.resolve(tmpPath + "/originServiceRepo");
+                    return Promise.resolve(tmpPath + "/originServiceRepo");
                 };
                 service2._getRepositoryUrl = service1._getRepositoryUrl;
 

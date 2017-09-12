@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 
 module.exports = GithubApi;
 
@@ -24,7 +24,7 @@ function getRepositoryUrl(type, owner, repo) {
 }
 
 GithubApi.prototype.getRepository = function(owner, repo) {
-    return Q.resolve({
+    return Promise.resolve({
         owner: {
             login: owner
         },
@@ -39,19 +39,19 @@ GithubApi.prototype.getRepository = function(owner, repo) {
 GithubApi.prototype.isRepositoryEmpty = function(owner, repo) {
     var options = this._options;
     
-    return Q.resolve(
+    return Promise.resolve(
         "isRepositoryEmpty" in options ? options.isRepositoryEmpty : false
     );
 };
 
 GithubApi.prototype.getUser = function() {
-    return Q.resolve({
+    return Promise.resolve({
         login: "Jasmine"
     });
 };
 
 GithubApi.prototype.getInfo = function(owner, repo) {
-    return Q.resolve({
+    return Promise.resolve({
         gitUrl: getRepositoryUrl("clone", owner, repo),
         gitBranch: this._options.defaultBranch || "master"
     });
@@ -65,5 +65,5 @@ GithubApi.prototype.checkError = function (method, username, thisp) {
 };
 
 GithubApi.prototype.getRepositoryEvents = function (username, repository, lastETag) {
-    return Q.resolve();
+    return Promise.resolve({});
 };

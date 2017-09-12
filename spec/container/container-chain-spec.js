@@ -1,5 +1,5 @@
 var containerChain = require("../../container/container-chain");
-var Q = require("q");
+var Promise = require("bluebird");
 var MockFs = require("q-io/fs-mock");
 var mockRequest = require("../mocks/request");
 
@@ -55,7 +55,7 @@ describe("container chain", function () {
 
         it("/init calls initializeWorkspace", function (done) {
             var url = "http://127.0.0.1:2440/api/init";
-            projectWorkspace.initializeWorkspace = jasmine.createSpy().andReturn(Q());
+            projectWorkspace.initializeWorkspace = jasmine.createSpy().andReturn(Promise.resolve());
 
             request({
                 method: "POST",
@@ -109,7 +109,7 @@ describe("container chain", function () {
         it("calls Frontend.showNotification", function (done) {
             var Frontend = require("../../container/frontend");
             var original = Frontend.showNotification;
-            Frontend.showNotification = jasmine.createSpy("showNotification").andReturn(Q());
+            Frontend.showNotification = jasmine.createSpy("showNotification").andReturn(Promise.resolve());
             request({
                 method: "POST",
                 url: url,

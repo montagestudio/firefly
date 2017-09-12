@@ -1,5 +1,5 @@
 /*global waitsFor*/
-var Q = require("q");
+var Promise = require("bluebird");
 var WebSocket = require("faye-websocket");
 var websocket = require("../../container/websocket");
 
@@ -59,7 +59,7 @@ describe("websocket", function () {
                 socketServer = websocket({username: "test"}, null, services, null),
                 wsQueue = new WebSocket.Client('ws://www.example.com/', ['irc', 'amqp']);
 
-            wsQueue.closed = Q();
+            wsQueue.closed = Promise.resolve();
             socketServer({url:"localhost/spec"}, {remoteAddress: "127.0.0.1"}, null, wsQueue);
 
             waitsFor(function() {

@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var uuid = require("uuid");
 
 var Container = require("./docker-container");
@@ -7,7 +7,7 @@ module.exports = MockDocker;
 function MockDocker() {}
 
 MockDocker.prototype.createContainer = function () {
-    return Q(new Container(null, uuid.v4()));
+    return Promise.resolve(new Container(null, uuid.v4()));
 };
 
 MockDocker.prototype.Container = Container;

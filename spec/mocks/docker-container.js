@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 
 module.exports = MockContainer;
 function MockContainer(_, id) {
@@ -84,21 +84,21 @@ MockContainer.prototype.start = function () {
             ]
         }
     };
-    return Q();
+    return Promise.resolve();
 };
 
 MockContainer.prototype.inspect = function () {
-    return Q(this.info);
+    return Promise.resolve(this.info);
 };
 
 MockContainer.prototype.stop = function () {
     this.info.State.running = false;
     delete this.info.HostConfig;
-    return Q();
+    return Promise.resolve();
 };
 
 MockContainer.prototype.remove = function () {
     this.id = null;
     this.info = null;
-    return Q();
+    return Promise.resolve();
 };

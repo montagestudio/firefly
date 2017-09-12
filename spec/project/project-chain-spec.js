@@ -1,5 +1,5 @@
 var projectChain = require("../../project/project-chain");
-var Q = require("q");
+var Promise = require("bluebird");
 var CheckSession = require("../../check-session");
 var Session = require("../../session");
 var MockSession = require("../mocks/session");
@@ -16,8 +16,8 @@ describe("project chain", function () {
 
         sessions = {};
         containerManager = {
-            setup: function () { return Q("1234"); },
-            delete: jasmine.createSpy().andReturn(Q())
+            setup: function () { return Promise.resolve("1234"); },
+            delete: jasmine.createSpy().andReturn(Promise.resolve())
         };
         containerIndex = makeContainerIndex();
 
@@ -54,7 +54,7 @@ describe("project chain", function () {
             chain = projectChain({
                 sessions: Session("session", "x", null, store),
                 checkSession: CheckSession,
-                containerManager: {setup: function () { return Q("1234"); }},
+                containerManager: {setup: function () { return Promise.resolve("1234"); }},
                 containerIndex: containerIndex
             }).end();
         });
@@ -107,7 +107,7 @@ describe("project chain", function () {
             // fake session
             sessions.abc = {
                 username: username,
-                githubUser: Q({})
+                githubUser: Promise.resolve({})
             };
 
             var details = {username: username, owner: username, repo: "repo"};

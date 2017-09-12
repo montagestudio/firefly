@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var fs = require("q-io/fs");
 var exec = require('child_process').exec;
 var MockGithubApi = require("../mocks/github-api");
@@ -136,12 +136,12 @@ describe("ProjectWorkspace", function () {
 
             spyOn(projectWorkspace._repoService, "isProjectEmpty")
             .andCallFake(function() {
-                return Q.resolve(true);
+                return Promise.resolve(true);
             });
 
             spyOn(projectWorkspace._repoService, "checkoutShadowBranch")
             .andCallFake(function() {
-                return Q.resolve(true);
+                return Promise.resolve(true);
             });
 
             return projectWorkspace.initializeWorkspace()
@@ -155,12 +155,12 @@ describe("ProjectWorkspace", function () {
 
             spyOn(projectWorkspace._repoService, "isProjectEmpty")
             .andCallFake(function() {
-                return Q.resolve(false);
+                return Promise.resolve(false);
             });
 
             spyOn(projectWorkspace._repoService, "checkoutShadowBranch")
             .andCallFake(function() {
-                return Q.resolve(true);
+                return Promise.resolve(true);
             });
 
             return projectWorkspace.initializeWorkspace()
