@@ -34,9 +34,10 @@ module.exports = module.exports.Queue = Queue;
  */
 Queue.prototype.get = function () {
     var result = this._ends.promise.get("head");
+    var _closed = this._closed;
     this._ends.promise = this._ends.promise.get("tail");
     return result.catch(function (error) {
-        closed.resolve(error);
+        _closed.resolve(error);
         throw error;
     });
 };
