@@ -2,7 +2,7 @@
 var log = require("../../logging").from(__filename);
 var activity = require("../activity");
 
-var Q = require("q");
+var Promise = require("bluebird");
 var FS = require("q-io/fs");
 var URL = require("url");
 var HttpApps = require("q-io/http-apps/fs");
@@ -49,7 +49,8 @@ function Preview(config) {
                 return servePreviewClientFile(request, response);
             }
 
-            return Q.when(next(request, response), function (response) {
+            return Promise.resolve(next(request, response))
+            .then(function (response) {
                 if (response.body && path === "/index.html") {
                     response = injectPreviewScripts(request, response);
                 }

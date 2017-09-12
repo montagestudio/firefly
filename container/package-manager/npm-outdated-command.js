@@ -2,7 +2,7 @@
 
 var PrepareNpmForExecution = require("./prepare-exec-npm"),
     Arguments = process.argv,
-    Q = require("q");
+    Promise = require("bluebird");
 
 /**
  * Invokes the outdated command.
@@ -10,7 +10,8 @@ var PrepareNpmForExecution = require("./prepare-exec-npm"),
  * @return {Promise.<Object>} A promise with all outdated dependencies.
  */
 function _execCommand (npmLoaded) {
-    return Q.ninvoke(npmLoaded.commands, "outdated", [], true).then(function (list) {
+    var outdated = Promise.promisify(npmLoaded.commands.outdated, { context: npmLoadec.commands });
+    return outdated([], true).then(function (list) {
         return _formatOutDatedListDependencies(npmLoaded, list);
     });
 }

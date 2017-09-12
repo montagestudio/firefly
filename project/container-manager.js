@@ -1,7 +1,7 @@
 var log = require("../logging").from(__filename);
 var track = require("../track");
 var request = require("q-io/http").request;
-var Q = require("q");
+var Promise = require("bluebird");
 var environment = require("../environment");
 var PreviewDetails = require("./preview-details");
 var GithubService = require("../services/repository/github").GithubService;
@@ -31,7 +31,7 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
 
     var info = self.containers.get(details);
     if (!info && (!githubAccessToken || !githubUser)) {
-        return Q(false);
+        return Promise.resolve(false);
     }
 
     return self.getOrCreate(details, githubAccessToken, githubUser)
@@ -86,10 +86,10 @@ ContainerManager.prototype._getRepoPrivacy = function(details, githubAccessToken
     if (typeof details.private === 'undefined' && githubAccessToken) {
         var githubService = new this.GithubService(githubAccessToken);
         return githubService.getRepo(details.owner, details.repo).then(function(repoInfo) {
-            return Q.resolve(repoInfo.private);
+            return Promise.resolve(repoInfo.private);
         });
     } else {
-        return Q.resolve(details.private);
+        return Promise.resolve(details.private);
     }
 };
 
@@ -156,7 +156,7 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
     } else if (info.created && info.created.then) {
         return info.created;
     } else {
-        return Q(info);
+        return Promise.resolve(info);
     }
 };
 
@@ -212,7 +212,7 @@ ContainerManager.prototype.waitForServer = function (port, timeout, error) {
 
     timeout = typeof timeout === "undefined" ? 5000 : timeout;
     if (timeout <= 0) {
-        return Q.reject(new Error("Timeout while waiting for server on port " + port + (error ? " because " + error.message : "")));
+        return Promise.reject(new Error("Timeout while waiting for server on port " + port + (error ? " because " + error.message : "")));
     }
 
     return self.request({
@@ -223,7 +223,7 @@ ContainerManager.prototype.waitForServer = function (port, timeout, error) {
     })
     .catch(function (error) {
         log("Server at", port, "not available yet. Trying for", timeout - 100, "more ms");
-        return Q.delay(100).then(function () {
+        return Promise.delay(100).then(function () {
             return self.waitForServer(port, timeout - 100, error);
         });
     })

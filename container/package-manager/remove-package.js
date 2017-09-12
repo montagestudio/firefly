@@ -1,6 +1,6 @@
 var PackageManagerError = require("./package-manager-error"),
     path = require("path"),
-    Q = require("q"),
+    Promise = require("bluebird"),
 
     ERRORS = {
         DEPENDENCY_NAME_NOT_VALID: 4000,
@@ -47,10 +47,10 @@ var RemovePackage = function RemovePackage (fs, dependencyName, dependencyLocati
             });
         }
 
-        return Q.reject(new PackageManagerError("Dependency path invalid", ERRORS.PROJECT_PATH_NOT_VALID));
+        return Promise.reject(new PackageManagerError("Dependency path invalid", ERRORS.PROJECT_PATH_NOT_VALID));
     }
 
-    return Q.reject(new PackageManagerError("Dependency name invalid", ERRORS.DEPENDENCY_NAME_NOT_VALID));
+    return Promise.reject(new PackageManagerError("Dependency name invalid", ERRORS.DEPENDENCY_NAME_NOT_VALID));
 };
 
 RemovePackage.ERRORS = ERRORS;

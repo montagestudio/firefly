@@ -1,6 +1,6 @@
 var env = require("./environment");
 var log = require("./logging").from(__filename);
-var Q = require("q");
+var Promise = require("bluebird");
 
 exports = module.exports = CheckSession;
 
@@ -19,7 +19,7 @@ function CheckSession(ok, notOk) {
                 return notOk(request);
             });
         } else {
-            return Q(notOk(request));
+            return Promise.resolve(notOk(request));
         }
     };
 }

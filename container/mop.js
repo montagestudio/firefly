@@ -1,6 +1,6 @@
 var log = require("logging").from(__filename);
 var track = require("../track");
-var Q = require("q");
+var Promise = require("bluebird");
 var exec = require("./exec");
 var cp = require("child_process");
 var Connection = require("q-connection");
@@ -65,7 +65,7 @@ Mop.prototype.archive = function() {
     var buildLocation;
     var archiveLocation;
 
-    return Q.all([this.getBuildLocation(), this.getBuildArchiveLocation()])
+    return Promise.all([this.getBuildLocation(), this.getBuildArchiveLocation()])
     .spread(function(_buildLocation, _archiveLocation) {
         buildLocation = _buildLocation;
         archiveLocation = _archiveLocation;
@@ -85,7 +85,7 @@ Mop.prototype.archive = function() {
     .then(function () {
         return archiveLocation;
     })
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("Creating build archive failed.");
     });

@@ -2,7 +2,7 @@ var log = require("../logging").from(__filename);
 var environment = require("../environment");
 
 var FS = require("q-io/fs");
-var Q = require("q");
+var Promise = require("bluebird");
 var HttpApps = require("q-io/http-apps/fs");
 var querystring = require("querystring");
 var generateAccessCode = require("./generate-access-code");
@@ -28,18 +28,18 @@ exports.isPreview = function (request) {
  * this preview and the owner has it open in the tool.
  */
 exports.hasAccess = function (previewDetails, session) {
-    return Q.try(function () {
+    return new Promise(function (resolve) {
         if (session && session.githubUser) {
             return session.githubUser.then(function (githubUser) {
                 // The user doesn't need to have explicit access to its own previews.
                 var access = githubUser && githubUser.login.toLowerCase() === previewDetails.username;
 
-                return access || has3rdPartyAccess(previewDetails, session);
+                resolve(access || has3rdPartyAccess(previewDetails, session));
             });
         } else if (previewDetails.private) {
-            return has3rdPartyAccess(previewDetails, session);
+            resolve(has3rdPartyAccess(previewDetails, session));
         } else {
-            return true;
+            resolve(true);
         }
     });
 };

@@ -1,6 +1,6 @@
 var log = require("../logging").from(__filename);
 var track = require("../track");
-var Q = require("q");
+var Promise = require("bluebird");
 var URL = require("url");
 var joey = require("joey");
 var HTTP = require("q-io/http");
@@ -187,7 +187,7 @@ function server(options) {
 
             track.message("delete containers", request, {number: workspaceKeys.length});
 
-            return Q.all(workspaceKeys.map(function (details) {
+            return Promise.all(workspaceKeys.map(function (details) {
                 // delete
                 return containerManager.delete(details)
                 .catch(function (error) {
@@ -222,13 +222,13 @@ function server(options) {
     var proxyAppWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-app");
     var proxyPreviewWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-preview");
     chain.upgrade = function (request, socket, body) {
-        Q.try(function () {
+        new Promise(function (resolve) {
             if (!WebSocket.isWebSocket(request)) {
-                return;
+                resolve();
             }
             var details;
             if (preview.isPreview(request)) {
-                return sessions.getSession(request, function (session) {
+                resolve(sessions.getSession(request, function (session) {
                     var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
                     if (previewDetails) {
                         return preview.hasAccess(previewDetails, session);
@@ -244,14 +244,14 @@ function server(options) {
                         socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
                         socket.destroy();
                     }
-                });
+                }));
             } else {
                 log("filament websocket");
-                return sessions.getSession(request, function (session) {
+                resolve(sessions.getSession(request, function (session) {
                     details = environment.getDetailsFromAppUrl(request.url);
                     details = new PreviewDetails(session.username, details.owner, details.repo);
                     return proxyAppWebsocket(request, socket, body, details);
-                });
+                }));
             }
         })
         .catch(function (error) {

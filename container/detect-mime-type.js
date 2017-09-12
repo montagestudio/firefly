@@ -1,7 +1,7 @@
 var mmm = require("mmmagic");
 var Magic = mmm.Magic;
 var htmlparser = require("htmlparser2");
-var Q = require("q");
+var Promise = require("bluebird");
 var PATH = require('path');
 
 var Configuration = {
@@ -62,9 +62,10 @@ module.exports.mimeTypes = Configuration.mimeTypes;
 
 function detectMimeType (fs, path, fsPath) {
     var magic = new Magic(mmm.MAGIC_MIME_TYPE),
+        detectFile = Promise.promisify(magic.detectFile, {context: magic});
         fsFilePath = PATH.join(fsPath, path);
 
-    return Q.ninvoke(magic, "detectFile", fsFilePath).then(function (mimeType) {
+    return detectFile(fsFilePath).then(function (mimeType) {
         if (path.charAt(path.length - 1) === "/") { // remove last trailing slash.
             path = path.slice(0, -1);
         }

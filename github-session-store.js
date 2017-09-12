@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var packedSession = require("./packed-session");
 var uuid = require("uuid");
 
@@ -11,7 +11,7 @@ function GithubSessionStore() {
 
 GithubSessionStore.prototype.get = function get(id) {
     var self = this;
-    return Q.fcall(function () {
+    return new Promise(function (resolve) {
         var session = self.sessions[id];
         if (!session) {
             // If there's no cached session try and unpack it
@@ -35,13 +35,13 @@ GithubSessionStore.prototype.get = function get(id) {
             });
         }
 
-        return session;
+        resolve(session);
     });
 };
 
 GithubSessionStore.prototype.set = function set(_, session) {
     var self = this;
-    return Q.fcall(function () {
+    return new Promise(function (resolve) {
         // Don't do anything if there is no data in the session, or if the
         // session id fields haven't changed.
         var previousKey = session && session.__previousKey;
@@ -53,7 +53,7 @@ GithubSessionStore.prototype.set = function set(_, session) {
                 previousKey === packedSession.key(session)
             )
         ) {
-            return;
+            return resolve();
         }
 
         // Remove the previousKey as it has now changed
@@ -67,7 +67,7 @@ GithubSessionStore.prototype.set = function set(_, session) {
         }
         // If the session wasn't able to be packed don't change the session
         if (!newId) {
-            return;
+            return resolve();
         }
         // Remove previous session cache
         delete self.sessions[session.sessionId];
@@ -75,20 +75,18 @@ GithubSessionStore.prototype.set = function set(_, session) {
         session.sessionId = newId;
         // And cache the new session
         self.sessions[newId] = session;
+        resolve();
     });
 };
 
 GithubSessionStore.prototype.create = function create() {
-    return Q.fcall(function () {
-        var session = {};
-
-        return session;
-    });
+    return Promise.resolve({});
 };
 
 GithubSessionStore.prototype.destroy = function destroy(id) {
     var self = this;
-    return Q.fcall(function() {
+    return new Promise(function (resolve) {
         delete self.sessions[id];
+        resolve();
     });
 };

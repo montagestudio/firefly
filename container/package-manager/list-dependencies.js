@@ -1,7 +1,7 @@
 var DetectErrorDependencyTree = require("./detect-error-dependency-tree"),
     makeDependencyNode = require("./dependency-node"),
     PATH = require("path"),
-    Q = require("q"),
+    Promise = require("bluebird"),
 
     DEPENDENCY_CATEGORIES = makeDependencyNode.DEPENDENCY_CATEGORIES;
 
@@ -220,15 +220,16 @@ module.exports = function listDependencies (fs, projectPath, shouldReadChildren)
     function _filterFolders (path, listFileNames) {
         var folders = [];
 
-        return Q.all(listFileNames.map(function (fileName) {
-                return fs.stat(PATH.join(path, fileName)).then(function (stats) {
-                    if (stats.isDirectory() && fileName.charAt(0) !== '.') {
-                        folders.push(fileName);
-                    }
-                });
-            })).then(function () {
-                return folders;
+        return Promise.all(listFileNames.map(function (fileName) {
+            return fs.stat(PATH.join(path, fileName)).then(function (stats) {
+                if (stats.isDirectory() && fileName.charAt(0) !== '.') {
+                    folders.push(fileName);
+                }
             });
+        }))
+        .then(function () {
+            return folders;
+        });
     }
 
     /**
@@ -272,10 +273,10 @@ module.exports = function listDependencies (fs, projectPath, shouldReadChildren)
         var children = dependencyNode.children,
             childrenCategoryKeys = Object.keys(children);
 
-        return Q.all(childrenCategoryKeys.map(function (childCategoryKey) {
+        return Promise.all(childrenCategoryKeys.map(function (childCategoryKey) {
             var childrenCategory = children[childCategoryKey];
 
-            return Q.all(childrenCategory.map(function (childNode) {
+            return Promise.all(childrenCategory.map(function (childNode) {
                 if (!childNode.missing) {
                     return _examineDependencyNode(childNode);
                 }

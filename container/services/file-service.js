@@ -1,9 +1,9 @@
 var log = require("../../logging").from(__filename);
-var Q = require("q");
+var Promise = require("bluebird");
 var minimatch = require("minimatch");
 var PATH = require('path');
 var URL = require("url");
-var watchr = require("watchr");
+var watchr = Promise.promisifyAll(require("watchr"));
 var detectMimeType = require("../detect-mime-type");
 
 var guard = function (exclude) {
@@ -45,7 +45,7 @@ function FileService(config, fs, environment, pathname, fsPath) {
      * @return {Promise.<Array.<{url, stat}>>}
      */
     function pathsToUrlStatArray(paths) {
-        return Q.all(paths.map(function (path) {
+        return Promise.all(paths.map(function (path) {
             return fs.stat(path).then(function (stat) {
                 // Directories in URLs must have a trailing slash
                 if (stat.isDirectory()) {
@@ -139,19 +139,19 @@ function FileService(config, fs, environment, pathname, fsPath) {
             return shouldKeep;
 
         }).then(function (paths) {
-                return Q.all(paths.map(function (path) {
-                    return fs.stat(path).then(function (stat) {
-                        return detectMimeType(fs, path, fsPath).then(function (mimeType) {
-                            // Directories in URLs must have a trailing slash
-                            if (stat.isDirectory()) {
-                                path += "/";
-                            }
+            return Promise.all(paths.map(function (path) {
+                return fs.stat(path).then(function (stat) {
+                    return detectMimeType(fs, path, fsPath).then(function (mimeType) {
+                        // Directories in URLs must have a trailing slash
+                        if (stat.isDirectory()) {
+                            path += "/";
+                        }
 
-                            return {url: convertPathToProjectUrl(path), stat: stat, mimeType: mimeType};
-                        });
+                        return {url: convertPathToProjectUrl(path), stat: stat, mimeType: mimeType};
                     });
-                }));
-            });
+                });
+            }));
+        });
     };
 
     service.detectMimeTypeAtUrl = function (url) {
@@ -218,7 +218,7 @@ function FileService(config, fs, environment, pathname, fsPath) {
     };
 
     service.open = function (thing) {
-        var done = Q.defer();
+        var done = Promise.defer();
         // opener(thing, done.makeNodeResolver());
         done.reject(new Error("TODO Implement me"));
         return done.promise;
@@ -230,7 +230,7 @@ function FileService(config, fs, environment, pathname, fsPath) {
         });
 
         //TODO make sure we return whatever watcher handle we need to stop watching, probably
-        return Q.invoke(watchr, "watch", {
+        return watchr.watch({
             path: fsPath,
             ignorePaths: ignorePaths,
             ignoreCommonPatterns: false,
@@ -275,7 +275,7 @@ function FileService(config, fs, environment, pathname, fsPath) {
         })
         // Ignore the return value which is ignored on the client side, and
         // contains a lot of properties that really don't need to be serialized
-        .thenResolve();
+        .then(Function.noop);
     };
 
     return service;

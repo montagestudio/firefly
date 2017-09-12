@@ -20,7 +20,7 @@ if (typeof jasmine !== "undefined") {
 }
 
 var log = require("./logging").from(__filename);
-var Q = require("q");
+var Promise = require("bluebird");
 var rollbar = require("rollbar");
 
 var config = {
@@ -70,7 +70,8 @@ exports.messageForUsername = function (message, username, data, level) {
 
 exports.joeyErrors = function (next) {
     return function (request, response) {
-        return Q.when(next(request, response), null, function (error) {
+        return Promise.resolve(next(request, response))
+        .catch(function (error) {
             exports.error(error, request);
             throw error;
         });

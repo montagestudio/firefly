@@ -4,7 +4,7 @@ var PackageManagerTools = require("./package-manager-tools"),
     PackageManagerError = require("./package-manager-error"),
     PrepareNpmForExecution = require("./prepare-exec-npm"),
     Arguments = process.argv,
-    Q = require("q"),
+    Promise = require("bluebird"),
 
     ERROR_NOT_FOUND = 2000,
     ERROR_VERSION_NOT_FOUND = 2001,
@@ -36,7 +36,8 @@ function execCommand (npmLoaded, ModulesRequested) {
     }
 
     if (_request) {
-        return Q.ninvoke(npmLoaded.commands, "install", _request).then(function (data) {
+        var install = Promise.promisify(npmLoaded.commands.install, { context: npmLoaded.commands });
+        return install(_request).then(function (data) {
             return _formatListModulesInstalled(data[1]);
         }, function (error) {
             if (error && typeof error === 'object') {
@@ -53,7 +54,7 @@ function execCommand (npmLoaded, ModulesRequested) {
         });
     }
 
-    return Q.reject(
+    return Promise.reject(
         new PackageManagerError("Should respect the following format: name[@version], or a git url", ERROR_WRONG_FORMAT)
     );
 }

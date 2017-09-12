@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*global console */
 
-var Q = require("q");
+var Promise = require("bluebird");
 var optimist = require("optimist");
 var uglify = require("mop/lib/minify-javascript");
 var FS = require("q-io/fs");
@@ -41,7 +41,7 @@ return FS.removeTree(FS.join(targetRoot, "filament"))
                 }
             });
         });
-    }, Q());
+    }, Promise.resolve());
 })
 .done();
 

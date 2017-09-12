@@ -3,7 +3,7 @@
 var PackageManagerTools = require("./package-manager-tools"),
     PackageManagerError = require("./package-manager-error"),
     PrepareNpmForExecution = require("./prepare-exec-npm"),
-    Q = require("q"),
+    Promise = require("bluebird"),
     Arguments = process.argv,
 
     ERROR_REQUEST_INVALID = 3001;
@@ -21,7 +21,8 @@ function execCommand (npmLoaded, request) {
         request = request.trim();
 
         if (PackageManagerTools.isRequestValid(request)) {
-            return Q.ninvoke(npmLoaded.commands, "view", [request], true).then(function (packageInformationRaw) {
+            var view = Promise.promisify(npmLoaded.commands.view, { context: npmLoaded.commands });
+            return view([request], true).then(function (packageInformationRaw) {
 
                 if (packageInformationRaw && typeof packageInformationRaw === 'object') {
                     var packageInformationKeys = Object.keys(packageInformationRaw);
@@ -38,7 +39,7 @@ function execCommand (npmLoaded, request) {
         }
     }
 
-    return Q.reject(new PackageManagerError("Wrong request should respect the following format: name[@version]", ERROR_REQUEST_INVALID));
+    return Promise.reject(new PackageManagerError("Wrong request should respect the following format: name[@version]", ERROR_REQUEST_INVALID));
 }
 
 /**

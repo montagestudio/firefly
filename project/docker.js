@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var Dockerode = require("dockerode");
 
 var Container = require("./docker-container");
@@ -13,7 +13,8 @@ function Docker() {
 
 Docker.prototype.createContainer = function () {
     var self = this;
-    return Q.npost(this.dockerode, "createContainer", arguments)
+    var createContainer = Promise.promisify(this.dockerode.createContainer, { context: this.dockerode });
+    return createContainer.apply(this.dockerode, arguments)
     .then(function (container) {
         return new self.Container(container);
     })
@@ -23,7 +24,8 @@ Docker.prototype.createContainer = function () {
 };
 
 Docker.prototype.listImages = function () {
-    return Q.npost(this.dockerode, "listImages", arguments)
+    var listImages = Promise.promisify(this.dockerode.listImages, { context: this.dockerode });
+    return listImages.apply(this.dockerode, arguments)
     .catch(function (error) {
         throw new Error("Could not list images because " + error.message);
     });

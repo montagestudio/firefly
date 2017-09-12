@@ -1,7 +1,7 @@
 var FileService = require('./file-service'),
     exec = require("../exec"),
     PATH = require("path"),
-    Q = require("q"),
+    Promise = require("bluebird"),
 
     OUT_PUT_EXTENSION = {
         BUNDLE: ".glTF",
@@ -78,7 +78,7 @@ function AssetConverterService (config, fs, environment, pathname, fsPath) {
             });
         }
 
-        return Q.reject(new Error("the given file at: " + modelPath + " is not a collada file"));
+        return Promise.reject(new Error("the given file at: " + modelPath + " is not a collada file"));
     };
 
     return service;

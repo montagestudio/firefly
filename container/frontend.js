@@ -1,5 +1,5 @@
 var log = require("../logging").from(__filename);
-var Q = require("q");
+var Promise = require("bluebird");
 
 var frontends = {};
 
@@ -20,7 +20,7 @@ module.exports = {
     },
 
     getFrontend: function(frontendId) {
-        return Q.resolve(frontends[frontendId]);
+        return Promise.resolve(frontends[frontendId]);
     },
 
     addFrontend: function(frontendId, connection) {
@@ -33,12 +33,12 @@ module.exports = {
         }, this);
         this._notificationsQueue.length = 0;
 
-        return Q.all(promises);
+        return Promise.all(promises);
     },
 
     deleteFrontend: function(frontendId) {
         delete frontends[frontendId];
-        return Q.resolve();
+        return Promise.resolve();
     },
 
     _invokeFunction: function(name, args) {
@@ -48,9 +48,9 @@ module.exports = {
             this._notificationsQueue.push({fn:this[name], args:args});
         }
 
-        return Q.all(frontendKeys.map(function (id) {
+        return Promise.all(frontendKeys.map(function (id) {
             return frontends[id][name].apply(frontends[id], args);
-        })).thenResolve();
+        })).then(Function.noop);
     }
 
 };
@@ -64,7 +64,7 @@ Frontend.prototype.showNotification = function(message) {
         return this._connection.invoke("showNotification", message);
     } else {
         log("showNotification: frontend service is not available yet");
-        return Q.resolve();
+        return Promise.resolve();
     }
 };
 
@@ -73,7 +73,7 @@ Frontend.prototype.inspectComponent = function(ownerModuleId, label) {
         return this._connection.invoke("inspectComponent", ownerModuleId, label);
     } else {
         log("inspectComponent: frontend service is not available yet");
-        return Q.resolve();
+        return Promise.resolve();
     }
 };
 
@@ -82,7 +82,7 @@ Frontend.prototype.dispatchEventNamed = function(type, canBubble, cancelable, de
         return this._connection.invoke("dispatchEventNamed", type, canBubble, cancelable, detail);
     } else {
         log("dispatchEventNamed: frontend service is not available yet");
-        return Q.resolve();
+        return Promise.resolve();
     }
 };
 

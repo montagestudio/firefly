@@ -4,6 +4,7 @@ var track = require("../track");
 var activity = require("./activity");
 
 var Q = require("q");
+var Promise = require("bluebird");
 var URL = require("url");
 var uuid = require("uuid");
 var FS = require("q-io/fs");
@@ -64,8 +65,10 @@ function websocket(config, workspacePath, services, clientPath) {
         wsQueue.closed.then(function () {
             track.messageForUsername("disconnect websocket", config.username);
             connectionServices.then(function(services) {
-                return Q.allSettled(Object.keys(services).map(function (key) {
+                return Promise.all(Object.keys(services).map(function (key) {
                     return services[key].invoke("close");
+                }).map(function (promise) {
+                    return promise.inspect();
                 }));
             })
             .finally(function() {
@@ -86,7 +89,7 @@ function makeServices(services, config, fs, env, pathname, fsPath, clientPath) {
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
         var service = services[name](config, fs, env, pathname, fsPath, clientPath);
-        connectionServices[name] = Q.master(service);
+        connectionServices[name] = Q.resolve(service);
     });
     log("Finished creating services");
     return connectionServices;

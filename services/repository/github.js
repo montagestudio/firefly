@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var GithubApi = require("github");
 
 var GithubService = exports.GithubService = function(accessToken) {
@@ -15,14 +15,14 @@ var GithubService = exports.GithubService = function(accessToken) {
 };
 
 GithubService.prototype.getRepo = function(owner, repo) {
-    return Q.denodeify(this._githubApi.repos.get)({
+    return Promise.promisify(this._githubApi.repos.get)({
         user: owner,
         repo: repo
     });
 };
 
 GithubService.prototype.getOrganizations = function(username) {
-    return Q.denodeify(this._githubApi.orgs.getFromUser)({
+    return Promise.promisify(this._githubApi.orgs.getFromUser)({
         user: username
     });
 };

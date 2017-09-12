@@ -1,7 +1,7 @@
 /*global __dirname */
 var log = require("../../logging").from(__filename),
     fork = require('child_process').fork,
-    Q = require("q"),
+    Promise = require("bluebird"),
 
     COMMANDS = {
         VIEW: 'view',
@@ -19,7 +19,7 @@ var log = require("../../logging").from(__filename),
 var execNpm = function execNpm(command, args, npmfs) {
     log(command, args);
 
-    var deferred = Q.defer(),
+    var deferred = Promise.defer(),
         procChild = null;
 
     if (Array.isArray(args)) {

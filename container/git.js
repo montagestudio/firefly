@@ -1,6 +1,6 @@
 var log = require("../logging").from(__filename);
 var track = require("../track");
-var Q = require("q");
+var Promise = require("bluebird");
 var URL = require("url");
 var exec = require("./exec");
 var Semaphore = require("./semaphore").Semaphore;
@@ -24,7 +24,7 @@ function Git(_fs, accessToken, acceptOnlyHttpsRemote) {
 Git.prototype.init = function(repoPath) {
     log("init " + repoPath);
     return exec("git", ["init", repoPath], "/")
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git init failed.");
     });
@@ -33,7 +33,7 @@ Git.prototype.init = function(repoPath) {
 Git.prototype.config = function(repoPath, option, value) {
     log("config " + option + " " + value);
     return exec("git", ["config", "--file", ".git/config", option, value], repoPath)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git config failed.");
     });
@@ -42,7 +42,7 @@ Git.prototype.config = function(repoPath, option, value) {
 Git.prototype.addRemote = function (repoPath, url) {
     log("remote add origin " + url);
     return exec("git", ["remote", "add", "origin", url], repoPath)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git add origin failed.");
     });
@@ -56,7 +56,7 @@ Git.prototype.fetch = function(repoPath, remoteRepoNames, options) {
     }
     args.push(remoteRepoNames || "--all");
     return exec("git", args, repoPath)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git fetch failed.");
     });
@@ -68,7 +68,7 @@ Git.prototype.branch = function(repoPath, option) {
         option = [option];
     }
     return exec("git", ["branch"].concat(option), repoPath, true)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git branch failed.");
     });
@@ -95,7 +95,7 @@ Git.prototype.add = function(repoPath, paths) {
     log("add", paths);
     var args = ["add"].concat(paths);
     return exec("git", args, repoPath)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git add failed.");
     });
@@ -106,12 +106,14 @@ Git.prototype.rm = function(repoPath, paths) {
     var self = this;
 
     // We need to process each path one by one as we need to use the -r option when removing a directory
-    return Q.allSettled(paths.map(function (path) {
+    return Promise.all(paths.map(function (path) {
         if ((path.slice(-1) === self._fs.SEPARATOR)) {
             return exec("git", ["rm", "-r", path], repoPath);
         } else {
             return exec("git", ["rm", path], repoPath);
         }
+    }).map(function (promise) {
+        return promise.reflect();
     }))
     .fail(function (error) {
         track.error(error);
@@ -131,7 +133,7 @@ Git.prototype.checkout = function (repoPath, branch, create, merge) {
     }
 
     return exec("git", args, repoPath)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git checkout failed.");
     });
@@ -141,7 +143,7 @@ Git.prototype.merge = function (repoPath, branch, squash) {
     var args = (squash === true) ? ["merge", "-q", "--squash", branch] : ["merge", "-q", branch];
     log("merge ", branch, squash === true ? "squash" : "");
     return exec("git", args, repoPath)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git merge failed.");
     });
@@ -151,7 +153,7 @@ Git.prototype.commit = function (repoPath, message, amend) {
     var args = amend === true ? ["commit", "--amend", "-m", message] : ["commit", "-m", message];
     log("commit ", args);
     return exec("git", args, repoPath)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git commit failed.");
     });
@@ -159,7 +161,7 @@ Git.prototype.commit = function (repoPath, message, amend) {
 
 Git.prototype.push = function(repoPath, repositoryUrl, branch, options) {
     if (this._acceptOnlyHttpsRemote && !/^https:\/\//.test(repositoryUrl)) {
-        return Q.reject(new Error("Push url must be https://, not " + repositoryUrl));
+        return Promise.reject(new Error("Push url must be https://, not " + repositoryUrl));
     }
     log("push " + repositoryUrl + (branch ? " " + branch : ""));
     repositoryUrl = this._addAccessToken(repositoryUrl);
@@ -172,7 +174,7 @@ Git.prototype.push = function(repoPath, repositoryUrl, branch, options) {
     }
     // The remote has already been set with the accessToken in Git#clone
     return exec("git", args, repoPath)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git push failed.");
     });
@@ -185,10 +187,10 @@ Git.prototype.push = function(repoPath, repositoryUrl, branch, options) {
 // git pull https://<token>@github.com/username/bar.git
 Git.prototype.clone = function(cloneUrl, repoPath) {
     if (this._acceptOnlyHttpsRemote && !/^https:\/\//.test(cloneUrl)) {
-        return Q.reject(new Error("Clone url must be https://, not " + cloneUrl));
+        return Promise.reject(new Error("Clone url must be https://, not " + cloneUrl));
     }
     return exec("git", ["clone", this._addAccessToken(cloneUrl), repoPath], "/")
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git clone failed.");
     });
@@ -212,7 +214,7 @@ Git.prototype.command = function(repoPath, command, options, shouldReturnOutput)
         args = args.concat(options);
     }
     return exec("git", args, repoPath, shouldReturnOutput)
-    .fail(function (error) {
+    .catch(function (error) {
         track.error(error);
         throw new Error("git " + command + " failed.");
     });

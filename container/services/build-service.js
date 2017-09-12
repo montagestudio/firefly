@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var GithubApi = require("../../inject/adaptor/client/core/github-api");
 var Git = require("../git");
 var mop = require("../mop").mop;
@@ -92,7 +92,7 @@ function BuildService(config, fs, environment, pathname, fsPath) {
         var deferred;
 
         if (!repositoryUrlPromise) {
-            deferred = Q.defer();
+            deferred = Promise.defer();
             repositoryUrlPromise = deferred.promise;
             _githubApi.getInfo(_owner, _repo).then(function(info) {
                 return _git._addAccessToken(info.gitUrl);

@@ -1,6 +1,6 @@
 var log = require("../logging").from(__filename);
 var track = require("../track");
-var Q = require("q");
+var Promise = require("bluebird");
 var joey = require("joey");
 
 var HttpApps = require("q-io/http-apps/fs");
@@ -103,15 +103,15 @@ function server(options) {
     var websocketServer = websocket(config, workspacePath, services, clientPath);
 
     chain.upgrade = function (request, socket, head) {
-        Q.try(function () {
+        new Promise(function (resolve) {
             if (!WebSocket.isWebSocket(request)) {
-                return;
+                resolve();
             }
 
             if (request.headers['sec-websocket-protocol'] === "firefly-preview") {
-                return preview.wsServer(request, socket, head);
+                resolve(preview.wsServer(request, socket, head));
             } else {
-                return websocketServer(request, socket, head);
+                resolve(websocketServer(request, socket, head));
             }
         })
         .catch(function (error) {

@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var Queue = require("q/queue");
 
 module.exports = adaptWebsocket;
@@ -14,7 +14,7 @@ function adaptWebsocket(ws) {
     });
 
     // So that we don't create a new promise for `ws` everytime `put` is called
-    var promisedWs = Q(ws);
+    var promisedWs = Promise.resolve(ws);
     return {
         "get": queue.get,
         "put": function(message) {

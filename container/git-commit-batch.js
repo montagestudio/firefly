@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 
 module.exports = GitCommitBatchFactory;
 
@@ -80,7 +80,7 @@ function GitCommitBatchFactory(repositoryService) {
     GitCommitBatch.prototype.commit = function(message) {
         if (!this._deferred) {
             this._state = BATCH_COMMIT_STATE.willCommit;
-            this._deferred = Q.defer();
+            this._deferred = Promise.defer();
 
             this.message = message || this.message;
             _commit();

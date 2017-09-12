@@ -1,5 +1,5 @@
 var log = require("./logging").from(__filename);
-var Q = require("q");
+var Promise = require("bluebird");
 var uuid = require("uuid");
 var parseCookies = require("./parse-cookies");
 
@@ -78,7 +78,8 @@ function Session(key, secret, cookieOptions, store) {
             }
 
             return done.then(function () {
-                return Q.when(app(request, response), function (response) {
+                return Promise.resolve(app(request, response))
+                .then(function (response) {
                     if (request.session._destroyed) {
                         log("destroyed", _id);
                         setSessionCookie(response, "", new Date(0));
@@ -106,8 +107,8 @@ function Session(key, secret, cookieOptions, store) {
                                     var timeoutDate = new Date(Date.now() + COOKIE_TIMEOUT_MS);
                                     setSessionCookie(response, _id, timeoutDate);
                                 }
-                            })
-                            .thenResolve(response);
+                                return response;
+                            });
                     }
                 });
             });
@@ -119,9 +120,10 @@ function Session(key, secret, cookieOptions, store) {
     };
 
     result.destroy = function(session) {
-        return Q.fcall(function() {
+        return new Promise(function (resolve) {
             session._destroyed = true;
-        });
+            resolve();
+        })
     };
 
     result.getKey = function() {
@@ -166,37 +168,37 @@ function Memory() {
 
 Memory.prototype.get = function get(id) {
     var self = this;
-    return Q.fcall(function () {
+    return new Promise(function (resolve) {
         var session = self.sessions[id];
-        if (session) {
-            return JSON.parse(session);
-        }
+        resolve(session ? JSON.parse(session) : void 0);
     });
 };
 
 Memory.prototype.set = function set(id, session) {
     var self = this;
-    return Q.fcall(function () {
+    return new Promise(function (resolve) {
         self.sessions[id] = JSON.stringify(session);
+        resolve();
     });
 };
 
 Memory.prototype.create = function create() {
     var self = this;
-    return Q.fcall(function () {
+    return new Promise(function (resolve) {
         var id = uuid.v4();
         var session = {
             sessionId: id
         };
         self.sessions[id] = JSON.stringify(session);
 
-        return session;
+        resolve(session);
     });
 };
 
 Memory.prototype.destroy = function destroy(id) {
     var self = this;
-    return Q.fcall(function() {
+    return new Promise(function (resolve) {
         delete self.sessions[id];
-    });
+        resolve();
+    })
 };

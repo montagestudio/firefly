@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var QFS = require("q-io/fs");
 var PATH = require('path');
 
@@ -86,7 +86,7 @@ function ExtensionService(_, fs, environment, __, ___, clientPath) {
         return FS.listTree(libraryItemsPath, function (filePath) {
             return PATH.extname(filePath).toLowerCase() === ".library-item" ? true : (filePath ===  libraryItemsPath ? false : null);
         }).then(function (filePaths) {
-            return Q.all(filePaths.map(function (filePath) {
+            return Promise.all(filePaths.map(function (filePath) {
                 return FS.stat(filePath).then(function (stat) {
                     return convertPathToExtensionUrl(filePath, baseURL) + (stat.isDirectory() ? "/" : "");
                 });

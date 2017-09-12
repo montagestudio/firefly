@@ -2,7 +2,7 @@ var log = require("../logging").from(__filename);
 var track = require("../track");
 var joey = require("joey");
 var env = require("../environment");
-var Q = require("q");
+var Promise = require("bluebird");
 
 var HttpApps = require("q-io/http-apps");
 var serveFile = require("../serve-file");
@@ -67,7 +67,7 @@ function server(options) {
     //////////////////////////////////////////////////////////////////////
     .use(function (next) {
         return function (request) {
-            return Q.when(next(request))
+            return Promise.resolve(next(request))
             .then(function (response) {
                 return routeProject.addRouteProjectCookie(request, response);
             });

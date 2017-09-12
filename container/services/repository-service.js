@@ -1,4 +1,4 @@
-var Q = require("q");
+var Promise = require("bluebird");
 var URL = require("url");
 var Git = require("../git");
 var GitCommitBatchFactory = require("../git-commit-batch");
@@ -82,7 +82,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                 _gitFetchLastTimeStamp = Date.now();
             });
         } else {
-            return Q();
+            return Promise.resolve();
         }
     };
 
@@ -406,7 +406,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             next =_fs.copyTree(path, _fsPath);
         }
 
-        return Q.all([this._getRepositoryUrl(), next])
+        return Promise.all([this._getRepositoryUrl(), next])
         .spread(function (gitUrl) {
             // Setup the remotes
             return _git.command(_fsPath, "remote", ["add", "origin", _git._addAccessToken(gitUrl)]);
@@ -530,7 +530,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         // Validate arguments
         branch = branch || "master";
         if (typeof branch !== "string") {
-            return Q.reject(new Error("Invalid checkoutWorkingBranch argument."));
+            return Promise.reject(new Error("Invalid checkoutWorkingBranch argument."));
         }
 
         return self._listBranches()
@@ -555,7 +555,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     branchesInfo = result;
                 });
             } else {
-                next = Q();
+                next = Promise.resolve();
             }
             return next;
         })
@@ -603,7 +603,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         // Validate arguments
         branch = branch || "master";
         if (typeof branch !== "string") {
-            return Q.reject(new Error("Invalid shadowBranchStatus argument."));
+            return Promise.reject(new Error("Invalid shadowBranchStatus argument."));
         }
 
         shadowBranch = USER_SHADOW_BRANCH_PREFIX + branch;
@@ -635,7 +635,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             files = ["--all"];
         } else {
             if (!Array.isArray(fileUrls) ) {
-                return Q.reject(new Error("Invalid commitFiles argument."));
+                return Promise.reject(new Error("Invalid commitFiles argument."));
             }
             files = fileUrls.map(function(url) {
                 return _convertProjectUrlToPath(url);
@@ -874,7 +874,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     }
 
                     return next
-                    .fail(function(error) {
+                    .catch(function(error) {
                         log("Revert remote changes failed:", error.stack);
                         throw new Error("Revert remote changes failed: " + error.message);
                     });
@@ -920,7 +920,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                 return returnValue;
             });
         } else {
-            return Q.resolve(returnValue);
+            return Promise.resolve(returnValue);
         }
     };
 
@@ -1041,10 +1041,11 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
     };
 
     service._branchStatus = function(localBranch, remoteBranch) {
-        return Q.spread([
+        return Promise.all([
             _git.command(_fsPath, "rev-list", ["--first-parent", localBranch + ".." + remoteBranch, "--count"], true),
             _git.command(_fsPath, "rev-list", ["--first-parent", remoteBranch + ".." + localBranch, "--count"], true)
-        ], function(behind, ahead) {
+        ])
+        .spread(function(behind, ahead) {
             return {
                 behind: parseInt(behind, 10),
                 ahead: parseInt(ahead, 10)
@@ -1138,7 +1139,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
             next;
 
         if (branchesInfo) {
-            next = Q();
+            next = Promise.resolve();
         } else {
             next = this._listBranches(true)
             .then(function(result) {
@@ -1172,7 +1173,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     // Remote shadow branch missing, let's push it
                     next = self._push(USER_SHADOW_BRANCH_PREFIX + currentBranch, "-u");
                 } else {
-                    next = Q();
+                    next = Promise.resolve();
                 }
             } else if (remote.shadow) {
                 // Create a local branch that track the remote shadow branch
@@ -1187,13 +1188,13 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                     oldRemoteShadow = branchesInfo.branches[REMOTE_SOURCE_NAME] ?
                         branchesInfo.branches[REMOTE_SOURCE_NAME][oldShadowBranchName] : null;
 
-                next = Q().then(function() {
+                next = Promise.resolve().then(function() {
                     // <!-- backward compatibility code, can be removed in the future...
                     if (oldRemoteShadow) {
                         var statusPromise;
 
                         if (!oldLocalShadow || (oldLocalShadow.sha === oldRemoteShadow.sha)) {
-                            statusPromise = Q.resolve({behind:0, ahead:0});
+                            statusPromise = Promise.resolve({behind:0, ahead:0});
                         } else {
                             statusPromise = self._branchStatus(oldLocalShadow.name, oldRemoteShadow.name);
                         }
@@ -1277,7 +1278,7 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
                         return self._rebase(local, remote);
                     });
                 } else {
-                    next = Q();
+                    next = Promise.resolve();
                 }
 
                 // Let's revert the remote changes
