@@ -3,7 +3,6 @@ var log = require("../logging").from(__filename);
 var track = require("../track");
 var activity = require("./activity");
 
-var Q = require("q");
 var Promise = require("bluebird");
 var URL = require("url");
 var uuid = require("uuid");
@@ -66,7 +65,7 @@ function websocket(config, workspacePath, services, clientPath) {
             track.messageForUsername("disconnect websocket", config.username);
             connectionServices.then(function(services) {
                 return Promise.all(Object.keys(services).map(function (key) {
-                    return services[key].invoke("close");
+                    return services[key].close();
                 }).map(function (promise) {
                     return promise.inspect();
                 }));
@@ -89,7 +88,7 @@ function makeServices(services, config, fs, env, pathname, fsPath, clientPath) {
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
         var service = services[name](config, fs, env, pathname, fsPath, clientPath);
-        connectionServices[name] = Q.resolve(service);
+        connectionServices[name] = service;
     });
     log("Finished creating services");
     return connectionServices;
