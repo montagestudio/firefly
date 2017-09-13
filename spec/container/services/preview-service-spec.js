@@ -2,7 +2,7 @@ var PreviewService = require("../../../container/services/preview-service");
 var environment = new require("../../../environment").Env();
 
 describe("preview-service", function () {
-    var service = PreviewService.service();
+    var service = new PreviewService.service();
 
     function createConnection(host) {
         return {

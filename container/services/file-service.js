@@ -3,7 +3,7 @@ var Promise = require("bluebird");
 var minimatch = require("minimatch");
 var PATH = require('path');
 var URL = require("url");
-var watchr = Promise.promisifyAll(require("watchr"));
+var watchr = require("watchr");
 var detectMimeType = require("../detect-mime-type");
 
 var guard = function (exclude) {
@@ -229,8 +229,7 @@ function FileService(config, fs, environment, pathname, fsPath) {
             return PATH.resolve(fsPath, ignorePath) + PATH.sep;
         });
 
-        //TODO make sure we return whatever watcher handle we need to stop watching, probably
-        return watchr.watch({
+        var watchrOpts = {
             path: fsPath,
             ignorePaths: ignorePaths,
             ignoreCommonPatterns: false,
@@ -272,10 +271,18 @@ function FileService(config, fs, environment, pathname, fsPath) {
                     });
                 }
             }
-        })
-        // Ignore the return value which is ignored on the client side, and
-        // contains a lot of properties that really don't need to be serialized
-        .then(Function.noop);
+        };
+
+        //TODO make sure we return whatever watcher handle we need to stop watching, probably
+        return new Promise(function (resolve, reject) {
+            watchr.watch(watchrOpts, function (error) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
     };
 
     return service;

@@ -154,188 +154,185 @@ function browserNameForUserAgent(userAgent) {
 exports.service = PreviewService;
 
 function PreviewService() {
-    var service = {};
-
-    service.register = function() {
-        log("register new preview");
-        preview.clearChanges();
-        this.refresh();
-    };
-
-    service.unregister = function() {
-        log("unregister preview");
-        preview.disconnectAllClients();
-    };
-
-    service.refresh = function() {
-        preview.sendToClients("refresh");
-    };
-
-    service.selectComponentToInspect = function(clientId) {
-        preview.sendToClient(clientId, "selectComponentToInspect");
-    };
-
-    service.setObjectProperties = function(label, ownerModuleId, properties) {
-        var params = {
-            label: label,
-            ownerModuleId: ownerModuleId,
-            properties: properties
-        };
-        // Since this operation can happen at 60ops/s (because of the flow
-        // editor) we don't want or need to store every single change to the
-        // properties of an object for memory and performance reasons.
-        // To avoid this we check if we already performed this operation to the
-        // same object in the past and remove the previous operation from the
-        // change set.
-        var key = "setObjectProperties:" + label + "@" + ownerModuleId;
-        var sequenceId = preview.changes[key];
-        if (sequenceId) {
-            delete preview.changes.queue[sequenceId];
-        }
-
-        preview.sendChangeToClients("setObjectProperties", params);
-        preview.changes[key] = preview.changes._lastSequenceId;
-    };
-
-    service.setObjectProperty = function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
-        var params = {
-            ownerModuleId: ownerModuleId,
-            label: label,
-            propertyName: propertyName,
-            propertyValue: propertyValue,
-            propertyType: propertyType
-        };
-        preview.sendChangeToClients("setObjectProperty", params);
-    };
-
-    service.setObjectLabel = function(ownerModuleId, label, newLabel) {
-        var params = {
-            ownerModuleId: ownerModuleId,
-            label: label,
-            newLabel: newLabel
-        };
-        preview.sendChangeToClients("setObjectLabel", params);
-    };
-
-    service.setObjectBinding = function(ownerModuleId, label, binding) {
-        var params = {
-            ownerModuleId: ownerModuleId,
-            label: label,
-            binding: binding
-        };
-        preview.sendChangeToClients("setObjectBinding", params);
-    };
-
-    service.deleteObjectBinding = function(ownerModuleId, label, path) {
-        var params = {
-            ownerModuleId: ownerModuleId,
-            label: label,
-            path: path
-        };
-        preview.sendChangeToClients("deleteObjectBinding", params);
-    };
-
-    service.addTemplateFragment = function(moduleId, elementLocation, how, templateFragment) {
-        var params = {
-            moduleId: moduleId,
-            elementLocation: elementLocation,
-            how: how,
-            templateFragment: templateFragment
-        };
-        preview.sendChangeToClients("addTemplateFragment", params);
-    };
-
-    service.addTemplateFragmentObjects = function(moduleId, templateFragment) {
-        var params = {
-            moduleId: moduleId,
-            templateFragment: templateFragment
-        };
-        preview.sendChangeToClients("addTemplateFragmentObjects", params);
-    };
-
-    service.deleteObject = function(ownerModuleId, label) {
-        var params = {
-            ownerModuleId: ownerModuleId,
-            label: label
-        };
-        preview.sendChangeToClients("deleteObject", params);
-    };
-
-    service.deleteElement = function(ownerModuleId, elementLocation) {
-        var params = {
-            ownerModuleId: ownerModuleId,
-            elementLocation: elementLocation
-        };
-        preview.sendChangeToClients("deleteElement", params);
-    };
-
-    service.setElementAttribute = function(moduleId, elementLocation, attributeName, attributeValue) {
-        var params = {
-            moduleId: moduleId,
-            elementLocation: elementLocation,
-            attributeName: attributeName,
-            attributeValue: attributeValue
-        };
-        preview.sendChangeToClients("setElementAttribute", params);
-    };
-
-    service.addObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
-        var params = {
-            moduleId: moduleId,
-            label: label,
-            type: type,
-            listenerLabel: listenerLabel,
-            useCapture: useCapture
-        };
-        preview.sendChangeToClients("addObjectEventListener", params);
-    };
-
-    service.removeObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
-        var params = {
-            moduleId: moduleId,
-            label: label,
-            type: type,
-            listenerLabel: listenerLabel,
-            useCapture: useCapture
-        };
-        preview.sendChangeToClients("removeObjectEventListener", params);
-    };
-
-    service.didSaveProject = function() {
-        preview.clearChanges();
-    };
-
-    service.updateCssFileContent = function(url, content) {
-        var params = {
-            url: url,
-            content: content
-        };
-        // Since this operation can happen quite a lot with big chunks of
-        // content it could potentially make the queue store big amounts of
-        // data that are not necessary because each change on an url
-        // invalidates the previous change made to the same url.
-        // To avoid this we check if we already performed this operation to the
-        // same object in the past and remove the previous operation from the
-        // change set.
-        var key = "updateCssFileContent:" + url;
-        var sequenceId = preview.changes[key];
-        if (sequenceId) {
-            delete preview.changes.queue[sequenceId];
-        }
-
-        preview.sendChangeToClients("updateCssFileContent", params);
-        preview.changes[key] = preview.changes._lastSequenceId;
-    };
-
-    service.getClients = function() {
-        return preview.connections.map(function(connection) {
-            return connection.info;
-        });
-    };
-
-    service.close = function() {
-        this.unregister();
-    };
-
-    return service;
 }
+
+PreviewService.prototype.register = function() {
+    log("register new preview");
+    preview.clearChanges();
+    this.refresh();
+};
+
+PreviewService.prototype.unregister = function() {
+    log("unregister preview");
+    preview.disconnectAllClients();
+};
+
+PreviewService.prototype.refresh = function() {
+    preview.sendToClients("refresh");
+};
+
+PreviewService.prototype.selectComponentToInspect = function(clientId) {
+    preview.sendToClient(clientId, "selectComponentToInspect");
+};
+
+PreviewService.prototype.setObjectProperties = function(label, ownerModuleId, properties) {
+    var params = {
+        label: label,
+        ownerModuleId: ownerModuleId,
+        properties: properties
+    };
+    // Since this operation can happen at 60ops/s (because of the flow
+    // editor) we don't want or need to store every single change to the
+    // properties of an object for memory and performance reasons.
+    // To avoid this we check if we already performed this operation to the
+    // same object in the past and remove the previous operation from the
+    // change set.
+    var key = "setObjectProperties:" + label + "@" + ownerModuleId;
+    var sequenceId = preview.changes[key];
+    if (sequenceId) {
+        delete preview.changes.queue[sequenceId];
+    }
+
+    preview.sendChangeToClients("setObjectProperties", params);
+    preview.changes[key] = preview.changes._lastSequenceId;
+};
+
+PreviewService.prototype.setObjectProperty = function(ownerModuleId, label, propertyName, propertyValue, propertyType) {
+    var params = {
+        ownerModuleId: ownerModuleId,
+        label: label,
+        propertyName: propertyName,
+        propertyValue: propertyValue,
+        propertyType: propertyType
+    };
+    preview.sendChangeToClients("setObjectProperty", params);
+};
+
+PreviewService.prototype.setObjectLabel = function(ownerModuleId, label, newLabel) {
+    var params = {
+        ownerModuleId: ownerModuleId,
+        label: label,
+        newLabel: newLabel
+    };
+    preview.sendChangeToClients("setObjectLabel", params);
+};
+
+PreviewService.prototype.setObjectBinding = function(ownerModuleId, label, binding) {
+    var params = {
+        ownerModuleId: ownerModuleId,
+        label: label,
+        binding: binding
+    };
+    preview.sendChangeToClients("setObjectBinding", params);
+};
+
+PreviewService.prototype.deleteObjectBinding = function(ownerModuleId, label, path) {
+    var params = {
+        ownerModuleId: ownerModuleId,
+        label: label,
+        path: path
+    };
+    preview.sendChangeToClients("deleteObjectBinding", params);
+};
+
+PreviewService.prototype.addTemplateFragment = function(moduleId, elementLocation, how, templateFragment) {
+    var params = {
+        moduleId: moduleId,
+        elementLocation: elementLocation,
+        how: how,
+        templateFragment: templateFragment
+    };
+    preview.sendChangeToClients("addTemplateFragment", params);
+};
+
+PreviewService.prototype.addTemplateFragmentObjects = function(moduleId, templateFragment) {
+    var params = {
+        moduleId: moduleId,
+        templateFragment: templateFragment
+    };
+    preview.sendChangeToClients("addTemplateFragmentObjects", params);
+};
+
+PreviewService.prototype.deleteObject = function(ownerModuleId, label) {
+    var params = {
+        ownerModuleId: ownerModuleId,
+        label: label
+    };
+    preview.sendChangeToClients("deleteObject", params);
+};
+
+PreviewService.prototype.deleteElement = function(ownerModuleId, elementLocation) {
+    var params = {
+        ownerModuleId: ownerModuleId,
+        elementLocation: elementLocation
+    };
+    preview.sendChangeToClients("deleteElement", params);
+};
+
+PreviewService.prototype.setElementAttribute = function(moduleId, elementLocation, attributeName, attributeValue) {
+    var params = {
+        moduleId: moduleId,
+        elementLocation: elementLocation,
+        attributeName: attributeName,
+        attributeValue: attributeValue
+    };
+    preview.sendChangeToClients("setElementAttribute", params);
+};
+
+PreviewService.prototype.addObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
+    var params = {
+        moduleId: moduleId,
+        label: label,
+        type: type,
+        listenerLabel: listenerLabel,
+        useCapture: useCapture
+    };
+    preview.sendChangeToClients("addObjectEventListener", params);
+};
+
+PreviewService.prototype.removeObjectEventListener = function(moduleId, label, type, listenerLabel, useCapture) {
+    var params = {
+        moduleId: moduleId,
+        label: label,
+        type: type,
+        listenerLabel: listenerLabel,
+        useCapture: useCapture
+    };
+    preview.sendChangeToClients("removeObjectEventListener", params);
+};
+
+PreviewService.prototype.didSaveProject = function() {
+    preview.clearChanges();
+};
+
+PreviewService.prototype.updateCssFileContent = function(url, content) {
+    var params = {
+        url: url,
+        content: content
+    };
+    // Since this operation can happen quite a lot with big chunks of
+    // content it could potentially make the queue store big amounts of
+    // data that are not necessary because each change on an url
+    // invalidates the previous change made to the same url.
+    // To avoid this we check if we already performed this operation to the
+    // same object in the past and remove the previous operation from the
+    // change set.
+    var key = "updateCssFileContent:" + url;
+    var sequenceId = preview.changes[key];
+    if (sequenceId) {
+        delete preview.changes.queue[sequenceId];
+    }
+
+    preview.sendChangeToClients("updateCssFileContent", params);
+    preview.changes[key] = preview.changes._lastSequenceId;
+};
+
+PreviewService.prototype.getClients = function() {
+    return preview.connections.map(function(connection) {
+        return connection.info;
+    });
+};
+
+PreviewService.prototype.close = function() {
+    this.unregister();
+};

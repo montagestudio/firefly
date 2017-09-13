@@ -22,6 +22,7 @@ Semaphore.prototype.exclusive = function(method) {
             return method.apply(self, args);
         }).finally(function() {
             semaphore.put();
+            return null;
         });
     };
 };

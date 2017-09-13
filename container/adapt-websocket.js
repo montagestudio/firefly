@@ -16,9 +16,9 @@ function adaptWebsocket(ws) {
     // So that we don't create a new promise for `ws` everytime `put` is called
     var promisedWs = Promise.resolve(ws);
     return {
-        "get": queue.get,
+        "get": queue.get.bind(queue),
         "put": function(message) {
-            return promisedWs.invoke("send", message);
+            return promisedWs.call("send", message);
         },
         "close": function () {
             ws.close();

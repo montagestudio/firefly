@@ -19,8 +19,7 @@ var log = require("../../logging").from(__filename),
 var execNpm = function execNpm(command, args, npmfs) {
     log(command, args);
 
-    var deferred = Promise.defer(),
-        procChild = null;
+    var procChild = null;
 
     if (Array.isArray(args)) {
         args = args.join(",");
@@ -42,40 +41,39 @@ var execNpm = function execNpm(command, args, npmfs) {
             break;
     }
 
-    if (procChild) {
+    return new Promise(function (resolve, reject) {
         var result = null;
+
+        if (!procChild) {
+            return reject(new Error("invalid npm command or missing arguments"));
+        }
 
         procChild.on('message', function (message) {
             result = message;
         });
 
         procChild.on("error", function (error) {
-            deferred.reject(error);
+            reject(error);
         });
 
         procChild.on('exit', function (code) {
             if (code !== 0) {
                 var argumentList = typeof args === "string" ? args.replace(/,/g, " ") : "";
 
-                deferred.reject(new Error("'npm " + command + " " + argumentList + "' in " + npmfs + " exited with code " + code));
+                reject(new Error("'npm " + command + " " + argumentList + "' in " + npmfs + " exited with code " + code));
             } else {
                 if (result) {
                     if (typeof result.error !== "undefined") {
-                        deferred.reject(result.error);
+                        reject(result.error);
                     } else {
-                        deferred.resolve(result.response);
+                        resolve(result.response);
                     }
                 } else {
-                    deferred.resolve();
+                    resolve();
                 }
             }
         });
-
-    } else {
-        deferred.reject(new Error("invalid npm command or missing arguments"));
-    }
-
-    return deferred.promise;
+    });
 };
 
 execNpm.COMMANDS = COMMANDS;
