@@ -236,13 +236,7 @@ ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
 
     return this._repoService.setUserInfo(name, email)
     .then(function() {
-        // Only run npm install if we do not have already a node_modules folders
-        return self.existsNodeModules()
-        .then(function(exists) {
-            if (!exists) {
-                return self._npmInstall();
-            }
-        });
+        return self._npmInstall();
     });
 };
 
