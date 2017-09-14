@@ -52,7 +52,6 @@ ADD firefly /srv/firefly
 ADD filament /srv/filament
 
 WORKDIR /srv/firefly
-RUN npm install
 
 EXPOSE 2441
 ENTRYPOINT ["node", "/srv/firefly/container/index.js"]
