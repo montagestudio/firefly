@@ -2,9 +2,9 @@
 #
 # VERSION 1.1
 
-# TODO move to 16.04 LTS
+# TODO upgrade to 16.04 LTS
 FROM ubuntu:14.04
-MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
+MAINTAINER Corentin Debost <corentin.debost@kaazing.com>
 
 # Set debconf to run non-interactively
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
@@ -46,7 +46,6 @@ RUN git clone https://github.com/montagejs/popcorn.git /home/montage/popcorn
 RUN git --git-dir /home/montage/popcorn/.git remote rm origin
 
 # Install glTFConverter converter
-## TODO fix libpng12 on ubuntu 16+ https://askubuntu.com/questions/840257/e-package-libpng12-0-has-no-installation-candidate-ubuntu-16-10-gnome/840268
 RUN apt-get install -y libxml2-dev libpng12-dev libpcre3-dev cmake&& \
     apt-get clean
 RUN git clone https://github.com/KhronosGroup/glTF.git /home/montage/glTF
@@ -62,6 +61,8 @@ RUN echo github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmd
 # /srv/firefly/project.js for development
 ADD firefly /srv/firefly
 ADD filament /srv/filament
+
+WORKDIR /srv/firefly
 
 EXPOSE 2441
 ENTRYPOINT ["node", "/srv/firefly/container/index.js"]

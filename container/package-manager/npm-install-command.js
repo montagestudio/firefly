@@ -8,7 +8,8 @@ var PackageManagerTools = require("./package-manager-tools"),
 
     ERROR_NOT_FOUND = 2000,
     ERROR_VERSION_NOT_FOUND = 2001,
-    ERROR_WRONG_FORMAT = 2002;
+    ERROR_WRONG_FORMAT = 2002,
+    ERROR_UNKNOWN = 2003;
 
 /**
  * Invokes the NPM install command.
@@ -43,6 +44,8 @@ function execCommand (npmLoaded, ModulesRequested) {
                     error = new PackageManagerError("Dependency not found", ERROR_NOT_FOUND);
                 } else if ((/version not found/).test(error.message)) {
                     error = new PackageManagerError("Version not found", ERROR_VERSION_NOT_FOUND);
+                } else {
+                    error = new PackageManagerError("Unexpected error " + error.code, ERROR_UNKNOWN);
                 }
             }
 

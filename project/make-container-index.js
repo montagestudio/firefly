@@ -2,9 +2,7 @@ var fs = require("fs");
 var Map = require("collections/map");
 
 module.exports = makeContainerIndex;
-
 function makeContainerIndex(filename) {
-
     var containers = new Map();
 
     // Repopulate the map with the saved files
@@ -17,15 +15,15 @@ function makeContainerIndex(filename) {
 
         } catch (e) {}
         if (entries) {
-            entries.map(function(entry) {
+            entries.map(function (entry) {
                 containers.set(entry[0], entry[1]);
             });
         }
 
-        containers.addMapChangeListener(function() {
+        containers.addMapChangeListener(function () {
 
             var containersIdex = [];
-            containers.forEach(function(key, value) {
+            containers.forEach(function (key, value) {
                 containersIdex.push([value, key]);
             });
 
@@ -33,7 +31,7 @@ function makeContainerIndex(filename) {
         });
     }
 
-    containers.forUsername = function(username) {
+    containers.forUsername = function (username) {
         username = username.toLowerCase();
 
         // At the time of writing Map.prototype.filter is broken
@@ -42,7 +40,7 @@ function makeContainerIndex(filename) {
         //     return key.username === username;
         // });
         var result = this.constructClone();
-        this.reduce(function(undefined, value, key) {
+        this.reduce(function (undefined, value, key) {
             if (key.username === username) {
                 result.set(key, value);
             }

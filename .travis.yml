@@ -42,7 +42,6 @@ script:
   - docker ps | grep -q login
   - docker ps | grep -q static
   - docker ps | grep -q project
-# TODO provide server to run test
-#  - npm run test
+  - runSlowSpecs=true npm test
 after_script:
   - sh docker-swarm-stop.sh

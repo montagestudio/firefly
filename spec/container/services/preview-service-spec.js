@@ -15,7 +15,7 @@ describe("preview-service", function () {
     beforeEach(function() {
         var preview = PreviewService._getPreview();
 
-        preview.connections.clear();
+        preview.connections.length = 0;
     });
 
     describe("service", function() {
