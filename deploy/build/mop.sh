@@ -2,20 +2,20 @@
 
 HERE="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
 
-FIREFLY_PATH="$(dirname -- "$(dirname "$HERE")")"
-FILAMENT_PATH="$(dirname -- "$FIREFLY_PATH")/filament"
+FIREFLY_PATH="$(dirname -- "$(dirname "${HERE}")")"
+FILAMENT_PATH="$(dirname -- "${FIREFLY_PATH}")/filament"
 
-FIREFLY_ISH="$(cd -- "$FIREFLY_PATH"; git rev-parse HEAD)"
-FILAMENT_ISH="$(cd -- "$FILAMENT_PATH"; git rev-parse HEAD)"
+FIREFLY_ISH="$(cd -- "${FIREFLY_PATH}"; git rev-parse HEAD)"
+FILAMENT_ISH="$(cd -- "${FILAMENT_PATH}"; git rev-parse HEAD)"
 COMBINED_ISH="${FILAMENT_ISH:0:8}${FIREFLY_ISH:0:8}"
 
-FILAMENT_INTERMEDIATE_PATH="$FIREFLY_PATH/.mop/$COMBINED_ISH"
-FILAMENT_BUILDS_PATH="$FIREFLY_PATH/.mop/builds"
+FILAMENT_INTERMEDIATE_PATH="$FIREFLY_PATH/.deploy/sources/$COMBINED_ISH"
+FILAMENT_BUILDS_PATH="$FIREFLY_PATH/.deploy/builds"
 FILAMENT_ARCHIVE="${FIREFLY_PATH}/.deploy/filament.tgz"
 
-if [ ! -e "$FIREFLY_PATH"/.mop/srv ]; then
-    mkdir -p -- "$FIREFLY_PATH"/.mop/srv
-    (cd -- "$FIREFLY_PATH"/.mop/srv; ln -s ../builds/filament app)
+if [ ! -e "$FIREFLY_PATH"/.deploy/srv ]; then
+    mkdir -p -- "$FIREFLY_PATH"/.deploy/srv
+    (cd -- "$FIREFLY_PATH"/.deploy/srv; ln -s ../builds/filament app)
 fi
 
 # consider mop mode
