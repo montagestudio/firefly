@@ -21,9 +21,9 @@ docker service create --name docker-registry --publish 5000:5000 --detach=true \
 
 # Start visualizer to visualize Docker Swarm and Services Status
 # Visit http://localhost:5001/
-print_status "Creating swarm visualizer at localhost:5001"
+print_status "Creating swarm visualizer at localhost:5051"
 docker run -it -d --name swarm-visualizer \
-    -p 5001:8080 \
+    -p 5051:8080 \
     -v /var/run/docker.sock:/var/run/docker.sock \
     dockersamples/visualizer
 
