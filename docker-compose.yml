@@ -49,7 +49,7 @@ services:
     networks:
       backend:
       outside:
-        ipv4_address: 10.5.0.6
+        ipv4_address: 162.243.121.4
     ports:
       - "8185:2440"
       - "8105:8105"
@@ -67,7 +67,7 @@ networks:
         config:
         - subnet: 162.243.35.0/24
         - subnet: 107.170.4.0/24
-        - subnet: 10.5.0.0/24
+        - subnet: 162.243.121.4/24
 
 volumes:
   firefly-src: 
