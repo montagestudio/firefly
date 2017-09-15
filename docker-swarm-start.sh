@@ -8,7 +8,17 @@ print_status()
 
 # Init Swarm
 print_status "Initializing swarm"
-docker swarm init --advertise-addr 192.168.0.63
+INIT_CODE=
+if [ -z "$IP" ]; then
+    docker swarm init
+else
+    docker swarm init --advertise-addr "$IP"
+fi
+INIT_CODE=$?
+if [ $INIT_CODE -ne 0 ]; then
+    exit $INIT_CODE
+fi
+
 SWARM_TOKEN=$(docker swarm join-token -q worker)
 SWARM_MASTER=$(docker info --format "{{.Swarm.NodeAddr}}")
 
