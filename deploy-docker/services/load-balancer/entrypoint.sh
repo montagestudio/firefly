@@ -1,6 +1,17 @@
 #!/bin/bash
 
-PIDFILE="/var/run/haproxy.pid"
-CONFIG="/etc/haproxy/haproxy.cfg"
+service rsyslog restart
+service haproxy start && service haproxy reload
 
-exec haproxy -f "$CONFIG" -p "$PIDFILE"
+HAPROXY_EXIT_CODE=$?
+
+if [ "$HAPROXY_EXIT_CODE" -eq 0 ]; then
+    echo -e "\033[032mStarted\033[0m"
+else
+    echo -e "\033[031mHaproxy exited with code $HAPROXY_EXIT_CODE\033[0m"
+    exit $HAPROXY_EXIT_CODE
+fi
+
+# Keeps the process running so the container doesn't exit. While we're at it we
+# show the haproxy log.
+tail -f /var/log/haproxy_0.log
