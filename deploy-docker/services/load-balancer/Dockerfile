@@ -40,6 +40,7 @@ RUN sed -i 's/^ENABLED=.*/ENABLED=1/' /etc/default/haproxy
 
 # Add files.
 ADD etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
+ADD etc/rsyslog.d/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf
 ADD etc/haproxy/errors /etc/haproxy/errors
 ADD etc/ssl/*.pem /etc/ssl/
 
