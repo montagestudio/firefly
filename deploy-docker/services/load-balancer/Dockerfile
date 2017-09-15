@@ -39,9 +39,9 @@ RUN apt-get --yes install haproxy=1.5*
 RUN sed -i 's/^ENABLED=.*/ENABLED=1/' /etc/default/haproxy
 
 # Add files.
-ADD /etc/haproxy/haproxy.cfg etc/haproxy/haproxy.cfg
-ADD /etc/haproxy/errors etc/haproxy/errors
-ADD /etc/ssl/*.pem /etc/ssl/
+ADD etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
+ADD etc/haproxy/errors /etc/haproxy/errors
+ADD etc/ssl/*.pem /etc/ssl/
 
 # Define working directory.
 WORKDIR /etc/haproxy

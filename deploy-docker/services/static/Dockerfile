@@ -38,7 +38,7 @@ RUN add-apt-repository -y ppa:nginx/stable && \
   	chown -R www-data:www-data /var/lib/nginx
 
 # Add files.
-ADD etc/nginx/nginx.conf etc/nginx/nginx.conf
+ADD etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Define working directory.
 WORKDIR /etc/nginx
