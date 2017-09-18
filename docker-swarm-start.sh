@@ -16,6 +16,7 @@ else
 fi
 INIT_CODE=$?
 if [ $INIT_CODE -ne 0 ]; then
+    echo "Initializing swarm failed. You may need to specify an advertise addr by setting an IP environment variable"
     exit $INIT_CODE
 fi
 
