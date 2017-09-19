@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# TODO: Temporary hack to work like the old Vagrant environment. We should
+# be using https for local dev too.
+if [ "$NODE_ENV" == development ]; then
+    sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg
+fi
+
 service rsyslog restart
 service haproxy start && service haproxy reload
 

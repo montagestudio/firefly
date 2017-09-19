@@ -18,6 +18,8 @@ services:
       - static
       - login
       - project
+    environment:
+      - NODE_ENV=$NODE_ENV
   static:
     image: 127.0.0.1:5000/static
     build:
