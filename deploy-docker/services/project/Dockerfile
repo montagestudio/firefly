@@ -53,7 +53,9 @@ RUN docker-compose version
 VOLUME ['/srv/firefly/']
 
 # Define default command.
-ENTRYPOINT ["node", "/srv/firefly/project.js"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod u+x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Expose ports.
 EXPOSE 2441
