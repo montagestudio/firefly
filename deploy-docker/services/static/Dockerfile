@@ -44,7 +44,7 @@ ADD etc/nginx/nginx.conf /etc/nginx/nginx.conf
 WORKDIR /etc/nginx
 
 # Define mountable directories.
-VOLUME ['/srv/filament/']
+VOLUME ['/srv/app/']
 
 # Define default command.
 COPY entrypoint.sh /entrypoint.sh
