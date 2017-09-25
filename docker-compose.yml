@@ -31,7 +31,8 @@ services:
     ports:
       - "8183:80"
     volumes:
-      - firefly-src:/srv/filament/
+      - ../filament:/srv/app/
+      - ./inject/adaptor/:/srv/app/adaptor/
   login:
     image: 127.0.0.1:5000/login
     build:
@@ -47,6 +48,7 @@ services:
       - static
     volumes:
       - ./:/srv/firefly/
+      - ../filament/:/srv/filament/
   project:
     image: 127.0.0.1:5000/project
     build:
@@ -73,7 +75,3 @@ networks:
         - subnet: 162.243.35.0/24
         - subnet: 107.170.4.0/24
         - subnet: 162.243.121.4/24
-
-volumes:
-  firefly-src: 
-  filament-src:
