@@ -37,7 +37,7 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "collections": "~0.2.2",
-    "dockerode": "~1.2.7",
+    "dockerode": "~2.2.8",
     "dotenv": "^0.2.8",
     "faye-websocket": "~0.7.2",
     "github": "^0.2.3",
