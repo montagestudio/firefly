@@ -53,3 +53,6 @@ Library/
 output-virtualbox-iso/
 packer_cache/
 packer_virtualbox-iso_virtualbox.box
+
+# Self Signed Cert
+deploy/files/local-project.montagestudio.net.*
