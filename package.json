@@ -10,6 +10,7 @@
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "slow-tests": "runSlowSpecs=true npm test",
     "lint": "jshint --verbose .",
+    "make-local-certificate": "deploy/vagrant/make-local-certificate.sh",
     "start": "vagrant up",
     "deploy": "deploy/vagrant/deploy.sh",
     "stop": "vagrant halt && echo 'Run `vagrant destroy` to completely remove the VMs (this will make `npm start` a lot slower)'",
