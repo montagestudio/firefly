@@ -68,9 +68,9 @@ Vagrant.configure('2') do |config|
         lb.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         lb.vm.hostname = "load-balancer"
         lb.vm.network "private_network", ip: "10.0.0.2"
-        lb.vm.network "forwarded_port", guest: 80, host: 8182
+        lb.vm.network "forwarded_port", guest: 443, host: 8182
         # Exposed so that existing URL works
-        lb.vm.network "forwarded_port", guest: 80, host: 2440
+        lb.vm.network "forwarded_port", guest: 443, host: 2440
 
         # base load balancer image
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf"
