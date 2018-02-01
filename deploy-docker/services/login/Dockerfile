@@ -45,4 +45,4 @@ RUN chmod u+x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Expose ports.
-EXPOSE 2441
+EXPOSE 2440
