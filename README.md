@@ -34,15 +34,13 @@ access to services for consumption in Filament through an Environment Bridge.
 
                 Created with http://www.asciiflow.com/
 
-Firefly consists of four machines managed by Vagrant: Load Balancer
+Firefly consists of four services in a Docker swarm: Load Balancer
 (frontend entrypoint), Web Server (the filament application itself),
-Login, and Project. The # of machines is scalable, as defined by `.env` files:
-a local environment has one of each machine, staging has two login and project
-servers, production has four.
+Login, and Project.
 
-The Project machine is just a host for Docker containers. Actual user projects
+The Project Docker is just a host for Docker containers. Actual user projects
 are stored in these containers. These are where we perform git checkouts and
-npm installs, server the app for the live preview, and use other backend tools
+npm installs, serve the app for the live preview, and use other backend tools
 like glTF conversion. Each Docker container contains exactly one user project.
 
 ## Local Development
@@ -56,65 +54,29 @@ like glTF conversion. Each Docker container contains exactly one user project.
     firefly/
     ```
 
- 2. Install VirtualBox from https://www.virtualbox.org/wiki/Downloads if you
-    don't have it installed already. Mac OS X users, you must add
-    `/Applications/VirtualBox.app/Contents/MacOS/VBoxManage` to your `PATH`.
-    ```
-    export PATH=$PATH:/Applications/VirtualBox.app/Contents/MacOS/VBoxManage
-    ```
- 3. Install Vagrant from http://www.vagrantup.com/downloads.html
- 4. Run `vagrant plugin install vagrant-cachier`. This will cache apt packages
-    to speed up the initialization of the VMs.
- 5. Run `vagrant plugin install vagrant-vbguest`. This will keep the
-    VirtualBox Guest additions up to date.
+ 2. Install Docker
 
 ### Starting
 
-Run `npm start`
+Run `npm start`. This sets up the docker swarm and runs each service.
 
-This can take up to 20 minutes the first time as the local VMs are provisioned
-from scratch, however the result is a local setup that's very similar to the
-production setup. This means that we should be able to avoid causing problems
-that would usually only be seen in production.
+If you are running locally, you must run `NODE_ENV=development npm start` instead to disable https redirection. This will become unnecessary once we add a consistent process for adding self-signed certificates.
 
-You can then access the server at http://local-aurora.montagestudio.com:2440/
+There is currently a bug with the load-balancer that causes it to be up and running too early. As a result it thinks other services (e.g. login) are down. In order to fix this, you must `docker exec CONTAINER_ID service haproxy restart` after `npm start`. CONTAINER_ID is the id of the load-balancer container and can be found with `docker container ls`.
 
-#### Expected warnings
-
-There is a lot of output when provisioning, and a number of warnings. The ones
-below are expected:
-
-```
-dpkg-preconfigure: unable to re-open stdin: No such file or directory
-```
-
-```
-The guest additions on this VM do not match the installed version of VirtualBox
-```
-
-```
-adduser: The group `admin' already exists.
-adduser: The user `admin' does not exist.
-chown: invalid user: `admin:admin'
-```
-
-```
-stdin: is not a tty
-```
+You can then access the server at http://local-aurora.montagestudio.com:2440/.
+local-aurora.montagestudio.com is an alias for localhost.
+A Docker visualizer is made available at localhost:5001.
 
 ### Stopping
 
 Run `npm stop`
 
-This will shutdown the VMs. You can bring them back up with `npm start` which
-should take < 1 minute now that they are all set up.
-
-After running `npm stop` the machines are not using CPU, but still take up
-disk space. Instead of `npm stop` you can run `vagrant destroy` to remove the
-VMs from disk. You can use `npm start` to bring them back, but this will take
-almost the same amount of time as the initial setup.
+This will destroy the swarm. You can use this liberally, as unlike the old VM-based architecture, `npm start` completes very quickly.
 
 ### Refreshing the server
+
+!! Under Construction - the information in this section is outdated !!
 
 Run `npm run deploy`
 
@@ -128,12 +90,16 @@ running and the last 20 lines of the error log will be output.
 
 ### Containers
 
+!! Under Construction - the information in this section is outdated !!
+
 Run `npm run container-rm-all` to remove all containers from the project server.
 
 Run `npm run container-rebuild` if you make changes to the `Dockerfile`. This
 will rebuid the base container image.
 
 ### Debugging Node
+
+!! Under Construction - the information in this section is outdated !!
 
 Run
 
@@ -148,6 +114,8 @@ The port that `node-inspector` is exposed on is defined in the package.json and
 forwarded in the Vagrantfile.
 
 ### Remote debugging Node
+
+!! Under Construction - the information in this section is outdated !!
 
 Run
 
@@ -232,6 +200,8 @@ because it comes from a redirect.
 
 ### Accessing logs
 
+!! Under Construction - the information in this section is outdated !!
+
 You can `ssh` into the different machines with `vagrant ssh $NAME`. Files are
 generally located at `/srv`. You can run the commands below to directly follow
 the logs for the different servers:
@@ -283,6 +253,8 @@ user `montage`, password `Mont@ge1789`.
 
 ### Viewing the files inside the container
 
+!! Under Construction - the information in this section is outdated !!
+
 Run `npm run container-files`
 
 This will find the most recently launched container and list all the
@@ -296,6 +268,8 @@ can look at the files but of course any changes won't be reflected in the
 container.
 
 ### Mounting container workspaces
+
+!! Under Construction - the information in this section is outdated !!
 
 Run `npm run container-rm-all` to remove existing containers then,
 
@@ -315,6 +289,8 @@ This will remove all the containers and workspaces on the project server, and
 then restart the regular server.
 
 ### Viewing a specific container
+
+!! Under Construction - the information in this section is outdated !!
 
 Only `root` and the `docker` group can access the containers, so log into the
 project server and change to `root`:
@@ -356,6 +332,8 @@ revoke their Github token on Github, killing the session on our end as well),
 but it allows all the servers to be relatively stateless.
 
 ### Provisioning
+
+!! Under Construction - the information in this section is outdated !!
 
 Here are some more useful commands if you change any config files or other
 aspects of the provisioning.
@@ -423,6 +401,8 @@ sudo service haproxy reload"
 * Indent by 4 spaces, not tabs
 
 ## Deploying
+
+!! Under Construction - the information in this section is outdated !!
 
 ### Overview
 
