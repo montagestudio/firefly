@@ -25,9 +25,7 @@ services:
     build:
       context: ./deploy-docker/services/static/
     networks:
-      backend:
-      outside:
-        ipv4_address: 162.243.35.210
+      - backend
     ports:
       - "8183:80"
     volumes:
@@ -38,9 +36,7 @@ services:
     build:
       context: ./deploy-docker/services/login/
     networks:
-      backend:
-      outside:
-        ipv4_address: 107.170.4.128
+      - backend
     ports:
       - "8184:2440"
       - "8104:8104"
@@ -54,9 +50,7 @@ services:
     build:
       context: ./deploy-docker/services/project/
     networks:
-      backend:
-      outside:
-        ipv4_address: 162.243.121.4
+      - backend
     ports:
       - "8185:2440"
       - "8105:8105"
@@ -68,10 +62,3 @@ services:
 networks:
     frontend:
     backend:
-    outside:
-      driver: overlay
-      ipam:
-        config:
-        - subnet: 162.243.35.0/24
-        - subnet: 107.170.4.0/24
-        - subnet: 162.243.121.4/24
