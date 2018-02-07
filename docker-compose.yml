@@ -58,6 +58,7 @@ services:
       - static
     volumes:
       - ./:/srv/firefly/
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 networks:
     frontend:
