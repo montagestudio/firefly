@@ -59,19 +59,6 @@ services:
     volumes:
       - ./:/srv/firefly/
       - /var/run/docker.sock:/var/run/docker.sock
-  firefly-project:
-    image: 127.0.0.1:5000/firefly-project
-    build:
-      context: .
-    ports:
-      - "32768:2441"
-    depends_on:
-      - project
-    volumes:
-      - ./:/srv/firefly/
-      - ../filament/:/srv/filament
-    deploy:
-      replicas: 0
   swarm-visualizer:
     image: dockersamples/visualizer:stable
     ports:

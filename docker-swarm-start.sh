@@ -39,6 +39,9 @@ docker-compose up -d --build
 docker-compose down --volumes
 docker-compose stop
 
+# Build container image
+docker build -t firefly-project .
+
 # Push to docker swarm registry
 print_status "Pushing to docker swarm registry"
 # docker-compose push
