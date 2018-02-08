@@ -93,6 +93,8 @@ function main(options) {
 function mountVolume(docker, shouldMountWorkspaces, workspacePath) {
     var originalCreateContainer = docker.createContainer;
     docker.createContainer = function (options) {
+        // TODO: Reinstate this
+        return originalCreateContainer.call(this, options);
         // Create the volume on the container base image
         options.Volumes = {"/srv/firefly": {}, "/srv/filament": {}};
         // Map the volume to the server location inside the VM, and mark it
