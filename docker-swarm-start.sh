@@ -30,18 +30,6 @@ print_status "Creating swarm registry"
 docker service create --name docker-registry --publish 5000:5000 --detach=true \
     registry:2
 
-# Start visualizer to visualize Docker Swarm and Services Status
-# Visit http://localhost:5001/
-print_status "Creating swarm visualizer at localhost:5051"
-if [ ! "$(docker ps -aqf name=swarm-visualizer)" ]; then
-    docker run -it -d --name swarm-visualizer \
-        -p 5051:8080 \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        dockersamples/visualizer
-else
-    echo "Swarm visualizer already created, skipping"
-fi
-
 # Start services to check docker-compose.yml
 print_status "Checking docker-compose.yml"
 docker-compose rm
