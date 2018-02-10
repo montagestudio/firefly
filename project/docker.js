@@ -1,4 +1,3 @@
-var Q = require("q");
 var Dockerode = require("dockerode");
 
 var Container = require("./docker-container");
@@ -11,9 +10,9 @@ function Docker() {
     this.modem = this.dockerode.modem;
 }
 
-Docker.prototype.createContainer = function () {
+Docker.prototype.createContainer = function (opts) {
     var self = this;
-    return Q.npost(this.dockerode, "createContainer", arguments)
+    return this.dockerode.createContainer(opts)
     .then(function (container) {
         return new self.Container(container);
     })
@@ -22,8 +21,8 @@ Docker.prototype.createContainer = function () {
     });
 };
 
-Docker.prototype.listImages = function () {
-    return Q.npost(this.dockerode, "listImages", arguments)
+Docker.prototype.listImages = function (opts) {
+    return this.dockerode.listImages(opts)
     .catch(function (error) {
         throw new Error("Could not list images because " + error.message);
     });
