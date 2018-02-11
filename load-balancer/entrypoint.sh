@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Wait a few seconds to give other containers enough time to start their servers
+sleep 5s
+
 # TODO: Temporary hack to work like the old Vagrant environment. We should
 # be using https for local dev too.
 if [ "$NODE_ENV" == development ]; then

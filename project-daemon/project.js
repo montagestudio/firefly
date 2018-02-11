@@ -1,4 +1,4 @@
-var track = require("./track");
+var track = require("../track");
 var Env = require("../environment");
 var log = require("../logging").from(__filename);
 // var FS = require("q-io/fs");
@@ -10,9 +10,9 @@ process.on('uncaughtException', function (err) {
 
 var projectChainFactory = require("./project-chain");
 
-var GithubSessionStore = require("./github-session-store");
-var Session = require("./session");
-var CheckSession = require("./check-session");
+var GithubSessionStore = require("../github-session-store");
+var Session = require("../session");
+var CheckSession = require("../check-session");
 
 var ContainerManager = require("./container-manager");
 var Docker = require("./docker");
