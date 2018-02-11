@@ -40,9 +40,7 @@ RUN apt-get install -y nodejs build-essential && \
 VOLUME ['/srv/firefly/']
 
 # Define default command.
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod u+x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT [ "node", "/srv/firefly/login/login.js" ]
 
 # Expose ports.
 EXPOSE 2440
