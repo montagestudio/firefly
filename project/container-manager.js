@@ -7,7 +7,7 @@ var PreviewDetails = require("./preview-details");
 var GithubService = require("../services/repository/github").GithubService;
 
 // TODO configure
-var IMAGE_NAME = "firefly-project";
+var IMAGE_NAME = "firefly_project";
 var IMAGE_PORT = "2441";
 // Needed by the Docker configuration
 var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";

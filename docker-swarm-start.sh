@@ -41,7 +41,7 @@ docker-compose stop
 
 # Build container image
 print_status "Building project image"
-docker build -t firefly-project .
+docker build -t firefly_project -f ./container/Dockerfile .
 
 # Push to docker swarm registry
 print_status "Pushing to docker swarm registry"
