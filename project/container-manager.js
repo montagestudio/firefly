@@ -39,7 +39,7 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
         return self.start(info);
     })
     .then(function (info) {
-        return self.waitForServer(info);
+        return self.waitForServer(self.getUrl(details));
     })
     .catch(function (error) {
         log("Removing container for", details.toString(), "because", error.message);
@@ -56,6 +56,19 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
 };
 
 /**
+ * Get the IP address of a given container. If the address is unknown, `undefined`
+ * is returned
+ * @param  {string} user
+ * @param  {string} owner
+ * @param  {string} repo
+ * @return {string}       The port of the container, or `undefined`
+ */
+ContainerManager.prototype.getAddr = function (details) {
+    var info = this.containers.get(details);
+    return info && info.addr;
+};
+
+/**
  * Get the port of a given container. If the port is unknown, `undefined`
  * is returned
  * @param  {string} user
@@ -66,6 +79,19 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
 ContainerManager.prototype.getPort = function (details) {
     var info = this.containers.get(details);
     return info && info.port;
+};
+
+/**
+ * Get the base URL of a given container, including address and port.
+ * If the port is unknown, `undefined` is returned.
+ * @param  {string} user
+ * @param  {string} owner
+ * @param  {string} repo
+ * @return {string}       The port of the container, or `undefined`
+ */
+ContainerManager.prototype.getUrl = function (details) {
+    var info = this.containers.get(details);
+    return info && info.addr + ":" + info.port;
 };
 
 ContainerManager.prototype.delete = function (details) {
@@ -136,7 +162,8 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                         "FIREFLY_PROJECT_URL=" + environment.project.href,
                         "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
                     ],
-                    PortBindings: {}
+                    PortBindings: {},
+                    NetworkMode: "firefly_backend"
                 };
                 // only bind to the local IP
                 options.PortBindings[IMAGE_PORT_TCP] = [{HostIp: "127.0.0.1"}];
@@ -190,49 +217,48 @@ ContainerManager.prototype.start = function (info) {
             return info.started;
         }
     })
-    .then(getExposedPort)
-    .then(function (port) {
-        // store the port in memory so that it can be gotten synchronously
-        info.port = port;
-        return port;
+    .then(function (details) {
+        info.addr = getExposedAddr(details);
+        info.port = IMAGE_PORT;
+        return info;
     });
 };
 
 /**
  * Waits for a server to be available on the given port. Retries every
  * 100ms until timeout passes.
- * @param  {string} port        The port
+ * @param  {string} url         The base url of the container
  * @param  {number} [timeout]   The number of milliseconds to keep trying for
  * @param  {Error} [error]      An previous error that caused the timeout
  * @return {Promise.<string>}   A promise for the port resolved when the
  * server is available.
  */
-ContainerManager.prototype.waitForServer = function (port, timeout, error) {
+ContainerManager.prototype.waitForServer = function (url, timeout, error) {
     var self = this;
 
     timeout = typeof timeout === "undefined" ? 5000 : timeout;
     if (timeout <= 0) {
-        return Q.reject(new Error("Timeout while waiting for server on port " + port + (error ? " because " + error.message : "")));
+        return Q.reject(new Error("Timeout while waiting for server at " + url + (error ? " because " + error.message : "")));
     }
 
     return self.request({
-        host: "127.0.0.1",
-        port: port,
+        host: url.split(":")[0],
+        port: url.split(":")[1],
         method: "OPTIONS",
         path: "/check"
     })
     .catch(function (error) {
-        log("Server at", port, "not available yet. Trying for", timeout - 100, "more ms");
+        log("Server at", url, "not available yet. Trying for", timeout - 100, "more ms");
         return Q.delay(100).then(function () {
-            return self.waitForServer(port, timeout - 100, error);
+            return self.waitForServer(url, timeout - 100, error);
         });
     })
-    .thenResolve(port);
+    .thenResolve(url);
 };
 
-function getExposedPort(containerInfo) {
-    if (containerInfo && containerInfo.NetworkSettings && containerInfo.NetworkSettings.Ports) {
-        return containerInfo.NetworkSettings.Ports[IMAGE_PORT_TCP][0].HostPort;
+function getExposedAddr(containerInfo) {
+    if (containerInfo && containerInfo.NetworkSettings && containerInfo.NetworkSettings.Networks && containerInfo.NetworkSettings.Networks["firefly_backend"]) {
+        return containerInfo.NetworkSettings.Networks["firefly_backend"].IPAddress;
     } else {
         throw new Error("Cannot get exposed port, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
     }

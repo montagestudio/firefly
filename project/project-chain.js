@@ -107,11 +107,11 @@ function server(options) {
                 .then(function (hasAccess) {
                     var details = subdomainDetailsMap.detailsFromUrl(request.url);
                     if (hasAccess) {
-                        var projectWorkspacePort = containerManager.getPort(details);
-                        if (!projectWorkspacePort) {
+                        var projectWorkspaceUrl = containerManager.getUrl(details);
+                        if (!projectWorkspaceUrl) {
                             return preview.serveNoPreviewPage(request);
                         }
-                        return proxyContainer(request, projectWorkspacePort, "static")
+                        return proxyContainer(request, projectWorkspaceUrl, "static")
                         .catch(function (error) {
                             // If there's an error making the request then serve
                             // the no preview page. The container has probably
@@ -120,8 +120,8 @@ function server(options) {
                         });
                     } else {
                         containerManager.setup(details)
-                        .then(function (projectWorkspacePort) {
-                            if (!projectWorkspacePort) {
+                        .then(function (projectWorkspaceUrl) {
+                            if (!projectWorkspaceUrl) {
                                 return;
                             }
                             var code = preview.getAccessCode(previewDetails);
@@ -131,7 +131,7 @@ function server(options) {
                             code = code.replace(/(....)(?!$)/g, "$1 ");
                             return HTTP.request({
                                 method: "POST",
-                                url: "http://127.0.0.1:" + projectWorkspacePort + "/notice",
+                                url: "http://" + projectWorkspaceUrl + "/notice",
                                 headers: {"content-type": "application/json; charset=utf8"},
                                 body: [JSON.stringify("Preview access code: " + code)]
                             });
