@@ -1,7 +1,7 @@
 var track = require("./track");
 var Env = require("./environment");
 var log = require("./logging").from(__filename);
-var FS = require("q-io/fs");
+// var FS = require("q-io/fs");
 
 /* Catch possible hidden error */
 process.on('uncaughtException', function (err) {
@@ -96,22 +96,22 @@ function mountVolume(docker, shouldMountWorkspaces, workspacePath) {
         // TODO: Reinstate this
         return originalCreateContainer.call(this, options);
         // Create the volume on the container base image
-        options.Volumes = {"/srv/firefly": {}, "/srv/filament": {}};
-        // Map the volume to the server location inside the VM, and mark it
-        // read-only (ro)
-        options.Binds = ["/srv/firefly:/srv/firefly:ro", "/srv/filament:/srv/filament:ro"];
-        if (shouldMountWorkspaces) {
-            options.Volumes[workspacePath] = {};
-            var hostPath = FS.join("/srv/workspaces", this.id);
-            options.Binds.push(hostPath + ":" + workspacePath + ":rw");
-            var self = this;
-            return FS.makeTree(hostPath)
-            .then(function () {
-                return originalCreateContainer.call(self, options);
-            });
-        } else {
-            return originalCreateContainer.call(this, options);
-        }
+        // options.Volumes = {"/srv/firefly": {}, "/srv/filament": {}};
+        // // Map the volume to the server location inside the VM, and mark it
+        // // read-only (ro)
+        // options.Binds = ["/srv/firefly:/srv/firefly:ro", "/srv/filament:/srv/filament:ro"];
+        // if (shouldMountWorkspaces) {
+        //     options.Volumes[workspacePath] = {};
+        //     var hostPath = FS.join("/srv/workspaces", this.id);
+        //     options.Binds.push(hostPath + ":" + workspacePath + ":rw");
+        //     var self = this;
+        //     return FS.makeTree(hostPath)
+        //     .then(function () {
+        //         return originalCreateContainer.call(self, options);
+        //     });
+        // } else {
+        //     return originalCreateContainer.call(this, options);
+        // }
     };
 
     var originalContainer = docker.Container;

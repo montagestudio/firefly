@@ -257,11 +257,13 @@ ContainerManager.prototype.waitForServer = function (url, timeout, error) {
 };
 
 function getExposedAddr(containerInfo) {
+    // jshint -W069
     if (containerInfo && containerInfo.NetworkSettings && containerInfo.NetworkSettings.Networks && containerInfo.NetworkSettings.Networks["firefly_backend"]) {
         return containerInfo.NetworkSettings.Networks["firefly_backend"].IPAddress;
     } else {
         throw new Error("Cannot get exposed address, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
     }
+    // jshint +W069
 }
 
 var REPLACE_RE = /[^a-zA-Z0-9\-]/g;
