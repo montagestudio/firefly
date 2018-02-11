@@ -70,11 +70,10 @@ function MockContainer(_, id) {
 MockContainer.prototype.start = function () {
     this.info.State.running = true;
     this.info.NetworkSettings = {
-        "IpAddress": "172.17.100.100",
-        "IpPrefixLen": 16,
-        "Gateway": "172.17.42.1",
-        "Bridge": "docker0",
-        "PortMapping": null,
+        "IpAddress": "",
+        "IpPrefixLen": 0,
+        "Gateway": "",
+        "Bridge": "",
         "Ports": {
             "2441/tcp": [
                 {
@@ -82,6 +81,14 @@ MockContainer.prototype.start = function () {
                     "HostPort": "1234"
                 }
             ]
+        },
+        "Networks": {
+            "firefly_backend": {
+                "IPAddress": "172.17.100.100",
+                "IPAMConfig": {
+                    "IPv4Address": "10.0.0.12"
+                }
+            }
         }
     };
     return Q();

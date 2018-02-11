@@ -260,7 +260,7 @@ function getExposedAddr(containerInfo) {
     if (containerInfo && containerInfo.NetworkSettings && containerInfo.NetworkSettings.Networks && containerInfo.NetworkSettings.Networks["firefly_backend"]) {
         return containerInfo.NetworkSettings.Networks["firefly_backend"].IPAddress;
     } else {
-        throw new Error("Cannot get exposed port, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
+        throw new Error("Cannot get exposed address, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
     }
 }
 

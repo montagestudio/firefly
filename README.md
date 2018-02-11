@@ -386,7 +386,7 @@ sudo service haproxy reload"
 
 * If a spec takes more than 100ms then it is a "slow" spec and a message
   telling you this will be logged. Make it faster, or wrap the `it` in an
-  `if (process.env.runSlowSpecs)` block. Run `npm run slow-tests` to run the
+  `if (process.env.runSlowSpecs)` block. Run `npm run test:all` to run the
   slow tests.
 
 * Make sure all commit messages follow the 50 character subject/72 character

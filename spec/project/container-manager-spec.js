@@ -32,9 +32,8 @@ describe("ContainerManager", function () {
     describe("setup", function () {
         it("returns the port", function (done) {
             containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
-            .then(function (port) {
-                // Port returned by MockDocker
-                expect(port).toEqual("1234");
+            .then(function (addr) {
+                expect(addr).toEqual("172.17.100.100:2441");
             })
             .then(done, done);
         });

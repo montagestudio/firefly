@@ -5,10 +5,9 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "test": "if [ \"`uname`\" = \"Linux\" ]; then npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs npm run tests; else echo Running tests in VM; vagrant ssh login -c \"cd /srv/firefly; npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs npm run tests\"; fi",
-    "tests": "jasmine-node spec --forceexit",
+    "test": "npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs jasmine-node spec --forceexit",
+    "test:all": "runSlowSpecs=true npm test",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
-    "slow-tests": "runSlowSpecs=true npm test",
     "lint": "jshint --verbose .",
     "start": "./docker-swarm-start.sh",
     "stop": "./docker-swarm-stop.sh",
