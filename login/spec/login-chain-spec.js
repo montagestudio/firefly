@@ -1,8 +1,8 @@
-var loginChain = require("../../login/login-chain");
+var loginChain = require("../chain");
 var Q = require("q");
 var MockFs = require("q-io/fs-mock");
-var MockSession = require("../mocks/session");
-var mockRequest = require("../mocks/request");
+var MockSession = require("../../spec/mocks/session");
+var mockRequest = require("../../spec/mocks/request");
 
 describe("login chain", function () {
     var request, sessions;

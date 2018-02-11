@@ -1,0 +1,16 @@
+{
+  "name": "login",
+  "description": "Login service for Firefly.",
+  "main": "index.js",
+  "scripts": {
+    "test": "runSlowSpecs=$runSlowSpecs jasmine-node spec --forceexit"
+  },
+  "dependencies": {
+    "joey": "^1.5.3",
+    "q-io": "^1.13.4"
+  },
+  "devDependencies": {
+    "istanbul": "~0.1.44",
+    "jasmine-node": "~1.14.0"
+  }
+}

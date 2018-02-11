@@ -7,7 +7,7 @@ process.on('uncaughtException', function (err) {
   log("*uncaughtException*", err, err.stack);
 });
 
-var loginChainFactory = require("./login-chain");
+var loginChainFactory = require("./chain");
 
 var GithubSessionStore = require("../github-session-store");
 var Session = require("../session");
