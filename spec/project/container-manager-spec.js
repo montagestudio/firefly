@@ -1,9 +1,9 @@
 var Q = require("q");
-var ContainerManager = require("../../project/container-manager");
+var ContainerManager = require("../../project-daemon/container-manager");
 var MockDocker = require("../mocks/docker");
-var makeContainerIndex = require("../../project/make-container-index");
-var SubdomainDetailsMap = require("../../project/subdomain-details-map").SubdomainDetailsMap;
-var PreviewDetails = require("../../project/preview-details");
+var makeContainerIndex = require("../../project-daemon/make-container-index");
+var SubdomainDetailsMap = require("../../project-daemon/subdomain-details-map").SubdomainDetailsMap;
+var PreviewDetails = require("../../project-daemon/preview-details");
 
 describe("ContainerManager", function () {
     var docker, containerIndex, subdomainDetailsMap, containerManager;

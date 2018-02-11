@@ -1,11 +1,11 @@
-var projectChain = require("../../project/project-chain");
+var projectChain = require("../../project-daemon/project-chain");
 var Q = require("q");
 var CheckSession = require("../../check-session");
 var Session = require("../../session");
 var MockSession = require("../mocks/session");
 var mockRequest = require("../mocks/request");
 var GithubSessionStore = require("../../github-session-store");
-var makeContainerIndex = require("../../project/make-container-index");
+var makeContainerIndex = require("../../project-daemon/make-container-index");
 
 describe("project chain", function () {
     var token, username, packed, sessions, containerManager, containerIndex, chain, request;

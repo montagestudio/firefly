@@ -1,4 +1,4 @@
-var PreviewDetails = require("../../project/preview-details");
+var PreviewDetails = require("../../project-daemon/preview-details");
 var Set = require("collections/set");
 
 describe("PreviewDetails", function () {

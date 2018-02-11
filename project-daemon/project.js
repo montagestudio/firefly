@@ -1,6 +1,6 @@
 var track = require("./track");
-var Env = require("./environment");
-var log = require("./logging").from(__filename);
+var Env = require("../environment");
+var log = require("../logging").from(__filename);
 // var FS = require("q-io/fs");
 
 /* Catch possible hidden error */
@@ -8,16 +8,16 @@ process.on('uncaughtException', function (err) {
   log("*uncaughtException*", err, err.stack);
 });
 
-var projectChainFactory = require("./project/project-chain");
+var projectChainFactory = require("./project-chain");
 
 var GithubSessionStore = require("./github-session-store");
 var Session = require("./session");
 var CheckSession = require("./check-session");
 
-var ContainerManager = require("./project/container-manager");
-var Docker = require("./project/docker");
-var containerIndex = require("./project/make-container-index")("/srv/container-index.json");
-var subdomainDetailsMap = require("./project/subdomain-details-map");
+var ContainerManager = require("./container-manager");
+var Docker = require("./docker");
+var containerIndex = require("./make-container-index")("/srv/container-index.json");
+var subdomainDetailsMap = require("./subdomain-details-map");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
@@ -124,7 +124,7 @@ function mountVolume(docker, shouldMountWorkspaces, workspacePath) {
 }
 
 function checkDiskFree() {
-    var df = require("./project/disk-free");
+    var df = require("./disk-free");
     var INTERVAL = 15 * /*minutes*/ 60 * 1000;
 
     // level strings from https://rollbar.com/docs/notifier/rollbar.js/configuration#context_1

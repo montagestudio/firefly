@@ -1,4 +1,4 @@
-var SubdomainDetailsMap = require("../../project/subdomain-details-map").SubdomainDetailsMap;
+var SubdomainDetailsMap = require("../../project-daemon/subdomain-details-map").SubdomainDetailsMap;
 
 describe("SubdomainDetailsMap", function () {
     var subdomainDetailsMap, details;

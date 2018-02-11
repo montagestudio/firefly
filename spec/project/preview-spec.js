@@ -1,6 +1,6 @@
 var Q = require("q");
-var preview = require("../../project/preview");
-var PreviewDetails = require("../../project/preview-details");
+var preview = require("../../project-daemon/preview");
+var PreviewDetails = require("../../project-daemon/preview-details");
 
 var Set = require("collections/set");
 

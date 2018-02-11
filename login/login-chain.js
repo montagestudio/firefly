@@ -9,7 +9,7 @@ var serveFile = require("../serve-file");
 var parseCookies = require("../parse-cookies");
 var GithubAuth = require("../auth/github");
 var checkSession = require("../check-session");
-var routeProject = require("./route-project");
+var routeProject = require("../route-project");
 var LogStackTraces = require("../log-stack-traces");
 
 module.exports = server;
