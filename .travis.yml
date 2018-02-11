@@ -41,7 +41,7 @@ script:
   - docker ps | grep -q load-balancer
   - docker ps | grep -q login
   - docker ps | grep -q static
-  - docker ps | grep -q project
-  - runSlowSpecs=true npm test
+  - docker ps | grep -q project-daemon
+  - npm run test:all
 after_script:
   - sh docker-swarm-stop.sh

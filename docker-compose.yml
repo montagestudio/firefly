@@ -17,7 +17,7 @@ services:
     depends_on:
       - static
       - login
-      - project
+      - project-daemon
     environment:
       - NODE_ENV=$NODE_ENV
   static:
@@ -44,10 +44,10 @@ services:
     volumes:
       - ./:/srv/firefly/
       - ../filament/:/srv/filament/
-  project:
-    image: 127.0.0.1:5000/project
+  project-daemon:
+    image: 127.0.0.1:5000/project-daemon
     build:
-      context: ./deploy-docker/services/project/
+      context: ./deploy-docker/services/project-daemon/
     networks:
       - backend
     ports:

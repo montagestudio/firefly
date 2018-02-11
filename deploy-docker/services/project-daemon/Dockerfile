@@ -1,4 +1,4 @@
-# Firefly Project
+# Firefly Project Daemon
 #
 # VERSION 1.1
 
