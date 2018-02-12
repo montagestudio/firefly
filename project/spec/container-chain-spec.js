@@ -1,7 +1,7 @@
 var containerChain = require("../chain");
 var Q = require("q");
 var MockFs = require("q-io/fs-mock");
-var mockRequest = require("../../spec/mocks/request");
+var mockRequest = require("../../common/spec/mocks/request");
 
 describe("container chain", function () {
     var config, chain, request, projectWorkspace;

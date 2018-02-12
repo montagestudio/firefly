@@ -1,6 +1,6 @@
 var Q = require("q");
 var ContainerManager = require("../container-manager");
-var MockDocker = require("../../spec/mocks/docker");
+var MockDocker = require("./mocks/docker");
 var makeContainerIndex = require("../make-container-index");
 var SubdomainDetailsMap = require("../subdomain-details-map").SubdomainDetailsMap;
 var PreviewDetails = require("../preview-details");

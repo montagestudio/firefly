@@ -1,6 +1,6 @@
 var apiChain = require("../api");
 var Q = require("q");
-var mockRequest = require("../../spec/mocks/request");
+var mockRequest = require("../../common/spec/mocks/request");
 
 describe("api", function () {
     var config, chain, request, projectWorkspace;

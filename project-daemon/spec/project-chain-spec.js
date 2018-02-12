@@ -2,8 +2,8 @@ var projectChain = require("../chain");
 var Q = require("q");
 var CheckSession = require("../../common/check-session");
 var Session = require("../../common/session");
-var MockSession = require("../../spec/mocks/session");
-var mockRequest = require("../../spec/mocks/request");
+var MockSession = require("../../common/spec/mocks/session");
+var mockRequest = require("../../common/spec/mocks/request");
 var GithubSessionStore = require("../../common/github-session-store");
 var makeContainerIndex = require("../make-container-index");
 

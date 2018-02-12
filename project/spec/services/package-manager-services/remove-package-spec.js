@@ -1,5 +1,5 @@
 var RemovePackage = require("../../../package-manager/remove-package"),
-    ProjectFSMocks = require("../../../../spec/mocks/project-fs-sample"),
+    ProjectFSMocks = require("../../mocks/project-fs-sample"),
     ErrorsCodes = RemovePackage.ERRORS;
 
 describe("remove command", function () {
