@@ -1,1 +1,1 @@
-../../container/preview/client/live-edit.js
+../../project/preview/client/live-edit.js
