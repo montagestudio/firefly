@@ -1,5 +1,5 @@
 /*global __dirname */
-var log = require("../../logging").from(__filename),
+var log = require("../../common/logging").from(__filename),
     fork = require('child_process').fork,
     Q = require("q"),
 

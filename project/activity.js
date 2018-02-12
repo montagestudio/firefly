@@ -1,5 +1,5 @@
-var log = require("../logging").from(__filename);
-var track = require("../track");
+var log = require("../common/logging").from(__filename);
+var track = require("../common/track");
 
 var NO_CONNECTIONS_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 var shutdownTimeout;

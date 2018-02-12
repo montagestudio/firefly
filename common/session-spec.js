@@ -1,6 +1,6 @@
 var packedSession = require("../packed-session");
 var MockGithubApi = require("./mocks/github-api");
-var routeProject = require("../route-project");
+var routeProject = require("./route-project");
 var environment = require("../environment");
 
 describe("packedSession", function () {

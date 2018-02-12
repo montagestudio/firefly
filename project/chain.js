@@ -1,12 +1,12 @@
-var log = require("../logging").from(__filename);
-var track = require("../track");
+var log = require("../common/logging").from(__filename);
+var track = require("../common/track");
 var Q = require("q");
 var joey = require("joey");
 
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 
-var LogStackTraces = require("../log-stack-traces");
+var LogStackTraces = require("../common/log-stack-traces");
 
 var api = require("./api");
 var serveArchivedBuild = require("./mop").serveArchivedBuild;

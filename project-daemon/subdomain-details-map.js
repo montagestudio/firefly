@@ -1,7 +1,7 @@
-var log = require("../logging").from(__filename);
+var log = require("../common/logging").from(__filename);
 var URL = require("url");
 var Set = require("collections/map");
-var routeProject = require("../route-project");
+var routeProject = require("../common/route-project");
 var generateAccessCode = require("./generate-access-code");
 
 // Singleton

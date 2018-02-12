@@ -1,15 +1,15 @@
-var log = require("../logging").from(__filename);
-var track = require("../track");
+var log = require("../common/logging").from(__filename);
+var track = require("../common/track");
 var Q = require("q");
 var URL = require("url");
 var joey = require("joey");
 var HTTP = require("q-io/http");
 var APPS = require("q-io/http-apps");
-var environment = require("../environment");
+var environment = require("../common/environment");
 
-var LogStackTraces = require("../log-stack-traces");
-var parseCookies = require("../parse-cookies");
-var routeProject = require("../route-project");
+var LogStackTraces = require("../common/log-stack-traces");
+var parseCookies = require("../common/parse-cookies");
+var routeProject = require("../common/route-project");
 
 var preview = require("./preview");
 

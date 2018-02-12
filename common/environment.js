@@ -1,7 +1,8 @@
 // Load environment variables from .env file.
 // chdir needed because the cwd is not this directory when doing an
 // `npm run deploy`, and dotenv loads .wnv from the cwd
-process.chdir(__dirname);
+var path = require("path");
+process.chdir(path.join(__dirname, ".."));
 require("dotenv").load();
 
 var log = require("./logging").from(__filename);

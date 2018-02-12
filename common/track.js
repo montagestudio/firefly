@@ -160,7 +160,7 @@ function setCodeVersion(config) {
     if (fs.existsSync(GIT_HASH_PATH)) {
         config.codeVersion = fs.readFileSync(GIT_HASH_PATH, "utf8").trim();
     } else {
-        var exec = require("./project/exec");
+        var exec = require("../project/exec");
         exec("git", ["rev-parse", "HEAD"], __dirname, true)
         .then(function (hash) {
             config.codeVersion = hash.trim();

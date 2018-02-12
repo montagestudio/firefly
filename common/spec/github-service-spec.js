@@ -1,8 +1,8 @@
 var rewire = require("rewire");
-var GithubServiceModule = rewire("../../../services/repository/github"),
+var GithubServiceModule = rewire("../github-service"),
     GithubService = GithubServiceModule.GithubService;
 
-describe("services/repository/github-spec", function() {
+describe("github-service-spec", function() {
 
     describe("initialization", function() {
         it("should create a Github API client using correct version and defined user-agent header", function(done) {

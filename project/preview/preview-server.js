@@ -1,5 +1,5 @@
 /*global module, unescape*/
-var log = require("../../logging").from(__filename);
+var log = require("../../common/logging").from(__filename);
 var activity = require("../activity");
 
 var Q = require("q");
@@ -9,7 +9,7 @@ var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var WebSocket = require("faye-websocket");
 var preview = require("../services/preview-service");
-var Env = require("../../environment");
+var Env = require("../../common/environment");
 var Frontend = require("../frontend");
 
 var CLIENT_FILES = "{$PREVIEW}";

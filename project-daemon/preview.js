@@ -1,5 +1,5 @@
-var log = require("../logging").from(__filename);
-var environment = require("../environment");
+var log = require("../common/logging").from(__filename);
+var environment = require("../common/environment");
 
 var FS = require("q-io/fs");
 var Q = require("q");

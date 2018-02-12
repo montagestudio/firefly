@@ -1,5 +1,5 @@
-var log = require("../logging").from(__filename);
-var track = require("../track");
+var log = require("../common/logging").from(__filename);
+var track = require("../common/track");
 var querystring = require("querystring");
 
 var uuid = require("uuid");

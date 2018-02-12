@@ -1,10 +1,10 @@
-var log = require("../logging").from(__filename);
-var track = require("../track");
+var log = require("../common/logging").from(__filename);
+var track = require("../common/track");
 var request = require("q-io/http").request;
 var Q = require("q");
-var environment = require("../environment");
+var environment = require("../common/environment");
 var PreviewDetails = require("./preview-details");
-var GithubService = require("../services/repository/github").GithubService;
+var GithubService = require("../common/github-service").GithubService;
 
 // TODO configure
 var IMAGE_NAME = "firefly_project";

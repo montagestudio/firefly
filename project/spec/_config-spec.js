@@ -1,6 +1,6 @@
 // Disable logging in the tests
 function noop() {}
-require("../../logging").from = function () { return noop; };
+require("../../common/logging").from = function () { return noop; };
 
 if (!process.env.runSlowSpecs) {
     var SlowSpecReporter = function () {

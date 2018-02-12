@@ -1,16 +1,16 @@
-var log = require("../logging").from(__filename);
-var track = require("../track");
+var log = require("../common/logging").from(__filename);
+var track = require("../common/track");
 var joey = require("joey");
-var env = require("../environment");
+var env = require("../common/environment");
 var Q = require("q");
 
 var HttpApps = require("q-io/http-apps");
-var serveFile = require("../serve-file");
-var parseCookies = require("../parse-cookies");
-var GithubAuth = require("../auth/github");
-var checkSession = require("../check-session");
-var routeProject = require("../route-project");
-var LogStackTraces = require("../log-stack-traces");
+var serveFile = require("./serve-file");
+var parseCookies = require("../common/parse-cookies");
+var GithubAuth = require("./github");
+var checkSession = require("../common/check-session");
+var routeProject = require("../common/route-project");
+var LogStackTraces = require("../common/log-stack-traces");
 
 module.exports = server;
 function server(options) {

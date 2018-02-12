@@ -1,4 +1,4 @@
-var log = require("../../logging").from(__filename);
+var log = require("../../common/logging").from(__filename);
 var uuid = require("uuid");
 var Frontend = require("../frontend");
 var UAParser = require("ua-parser-js").UAParser;
