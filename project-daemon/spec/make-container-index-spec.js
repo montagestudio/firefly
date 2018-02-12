@@ -1,4 +1,4 @@
-var makeContainerIndex = require("../../project-daemon/make-container-index");
+var makeContainerIndex = require("../make-container-index");
 
 describe("makeContainerIndex", function () {
     var containerIndex;

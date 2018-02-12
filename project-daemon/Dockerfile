@@ -53,7 +53,7 @@ RUN docker-compose version
 VOLUME ['/srv/firefly/']
 
 # Define default command.
-ENTRYPOINT [ "node", "/srv/firefly/project-daemon/project.js" ]
+ENTRYPOINT [ "node", "/srv/firefly/project-daemon" ]
 
 # Expose ports.
 EXPOSE 2440
