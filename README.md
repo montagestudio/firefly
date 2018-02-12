@@ -2,10 +2,12 @@
 
 [![Build Status](https://travis-ci.com/montagestudio/firefly.svg?token=DkxazY7pbviHZyy38ZZb&branch=master)](https://travis-ci.com/montagestudio/firefly)
 
-Firefly serves as the host for the Filament application.
+Firefly is the backend for Montage Studio.
 
-Firefly will serve Filament itself for use inside a browser and also provide
-access to services for consumption in Filament through an Environment Bridge.
+Firefly provides multiple services related to editing a Montage application in
+the cloud, including Filament, the Montage Studio editor web application. Filament
+is served for use inside a browser and is given access to services through an
+Environment Bridge.
 
 ## Architecture overview
 
@@ -16,12 +18,12 @@ access to services for consumption in Filament through an Environment Bridge.
                 .com/assets/*|          +----------+------------+       | *.net/*
                              |                     |                    |  websocket
                              v                     v                    v
-                +-------------------------+ +------------+ +-----------------------+
-                |Web Server               | |Login server| |Project server         |
-                |static files (Nginx)     | +------------+ |+----------------+     |
-                |filament + firefly/inject|                ||Container server| ... |
-                +-------------------------+                |+----------------+     |
-                                                           +-----------------------+
+                +-------------------------+ +------------+ +-----------------------+      +--------------+  
+                |Web Server               | |Login server| |Project daemon         | <--> |Project server| ...
+                |static files (Nginx)     | +------------+ | Creates new project   |      +--------------+
+                |filament + firefly/inject|                | containers            |      +--------------+
+                +-------------------------+                |                       | <--> |Project server| ...
+                                                           +-----------------------+      +--------------+
 
                 .com is short for the main app domain
                         local-aurora.montagestudio.com
@@ -36,12 +38,17 @@ access to services for consumption in Filament through an Environment Bridge.
 
 Firefly consists of four services in a Docker swarm: Load Balancer
 (frontend entrypoint), Web Server (the filament application itself),
-Login, and Project.
+Login, and the Project Daemon.
 
-The Project Docker is just a host for Docker containers. Actual user projects
-are stored in these containers. These are where we perform git checkouts and
-npm installs, serve the app for the live preview, and use other backend tools
-like glTF conversion. Each Docker container contains exactly one user project.
+The Project Daemon is responsible for spawning and managing user project containers.
+These containers are where we perform git checkouts and npm installs of the user's
+project and serve the app for live preview. Each of these containers hold exactly
+one user project. Requests to interact with these containers are made through the
+Project Daemon (indirectly, through the Load Balancer).
+
+While users just get a single docker container for their project that is outside their
+control for now, the eventual goal is to create a docker stack for each user, which they
+can control by defining a `docker-compose.yml` file in their project.
 
 ## Local Development
 
@@ -58,11 +65,9 @@ like glTF conversion. Each Docker container contains exactly one user project.
 
 ### Starting
 
-Run `npm start`. This sets up the docker swarm and runs each service.
+Run `npm start`. This sets up the docker swarm and runs each service. The first run can take 20+ minutes as Docker must download requisite images and build the project container image. After the first build these images are cached and running should take no more than 30 seconds.
 
 If you are running locally, you must run `NODE_ENV=development npm start` instead to disable https redirection. This will become unnecessary once we add a consistent process for adding self-signed certificates.
-
-There is currently a bug with the load-balancer that causes it to be up and running too early. As a result it thinks other services (e.g. login) are down. In order to fix this, you must `docker exec CONTAINER_ID service haproxy restart` after `npm start`. CONTAINER_ID is the id of the load-balancer container and can be found with `docker container ls`.
 
 You can then access the server at http://local-aurora.montagestudio.com:2440/.
 local-aurora.montagestudio.com is an alias for localhost.
