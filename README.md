@@ -71,7 +71,7 @@ If you are running locally, you must run `NODE_ENV=development npm start` instea
 
 You can then access the server at http://local-aurora.montagestudio.com:2440/.
 local-aurora.montagestudio.com is an alias for localhost.
-A Docker visualizer is made available at localhost:5001.
+A Docker visualizer is made available at http://127.0.0.1:5001/.
 
 ### Stopping
 

@@ -1,6 +1,16 @@
 version: "3.2"
 
 services:
+  swarm-visualizer:
+    image: dockersamples/visualizer
+    ports:
+      - "5001:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
   load-balancer:
     image: 127.0.0.1:5000/load-balancer
     build:
@@ -58,18 +68,6 @@ services:
     volumes:
       - ./:/srv/firefly/
       - /var/run/docker.sock:/var/run/docker.sock
-  swarm-visualizer:
-    image: dockersamples/visualizer:stable
-    ports:
-      - "5051:8080"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    deploy:
-      placement:
-        constraints: [node.role == manager]
-      replicas: 1
-    networks:
-      - frontend
 
 networks:
     frontend:
