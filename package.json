@@ -31,6 +31,14 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
+    "dotenv": "^0.2.8",
+    "github": "^0.2.3",
+    "logging": "montagestudio/logging.git",
+    "optimist": "~0.6.0",
+    "q": "~0.9.7",
+    "q-io": "^1.13.4",
+    "rollbar": "~0.3.6",
+    "uuid": "~1.4.1",
     "xmlhttprequest": "~1.6.0"
   },
   "repository": {

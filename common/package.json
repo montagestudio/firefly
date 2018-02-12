@@ -4,15 +4,6 @@
   "scripts": {
     "test": "runSlowSpecs=$runSlowSpecs jasmine-node spec --forceexit"
   },
-  "dependencies": {
-    "bluebird": "^3.5.0",
-    "dotenv": "^0.2.8",
-    "github": "^0.2.3",
-    "logging": "montagestudio/logging.git",
-    "q": "~0.9.7",
-    "q-io": "^1.13.4",
-    "uuid": "~1.4.1"
-  },
   "devDependencies": {
     "istanbul": "~0.1.44",
     "jasmine-node": "~1.14.0",
