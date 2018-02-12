@@ -1,6 +1,6 @@
 # How to run
 
-Start a web server from the live-edit-spec/ directory. Tests are run in the browser by loading `/run-tests.html`. The specs make use of container/preview/client/live-edit.js, which is symlinked into live-edit-spec/core/. Make sure this symlink is valid if the specs are unable to run.
+Start a web server from the live-edit-spec/ directory. Tests are run in the browser by loading `/run-tests.html`. The specs make use of project/preview/client/live-edit.js, which is symlinked into live-edit-spec/core/. Make sure this symlink is valid if the specs are unable to run.
 
 Note: Minit does not support query strings or symlinks, and will not work with these specs. Use another web server like php.
 

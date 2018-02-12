@@ -5,8 +5,8 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "install": "npm install --prefix login && npm install --prefix project-daemon",
-    "test": "npm run tests; npm test --prefix login; npm test --prefix project-daemon",
+    "install": "npm install --prefix login && npm install --prefix project-daemon && npm install --prefix project",
+    "test": "npm run tests && npm test --prefix login && npm test --prefix project-daemon && npm test --prefix project",
     "tests": "npm_config_coverage=$npm_config_coverage runSlowSpecs=$runSlowSpecs jasmine-node spec --forceexit",
     "test:all": "runSlowSpecs=true npm test",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",

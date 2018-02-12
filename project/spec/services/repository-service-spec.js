@@ -3,16 +3,16 @@ var exec = childProcess.exec;
 var execFile = childProcess.execFile;
 var PATH = require("path");
 var Q = require("q");
-var MockGithubApi = require("../../mocks/github-api");
+var MockGithubApi = require("../../../spec/mocks/github-api");
 var fs = require("q-io/fs");
 var FS = require("fs");
-var Git = require("../../../container/git");
-var RepositoryService = require("../../../container/services/repository-service").service;
+var Git = require("../../git");
+var RepositoryService = require("../../services/repository-service").service;
 
 var executeFile = function(scriptName, destPath, onlyLastLine) {
     var deferred = Q.defer();
 
-    exec("cd ./spec/fixtures/repos/; chmod +x " + scriptName + "; pwd", function(error, stdout) {
+    exec("cd ./project/spec/fixtures/repos/; chmod +x " + scriptName + "; pwd", function(error, stdout) {
         var scriptPath = PATH.join(stdout.trim(), scriptName);
         execFile(scriptPath, [destPath], function(error, stdout) {
             if (error) {

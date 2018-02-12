@@ -1,9 +1,9 @@
 var Q = require("q");
 var fs = require("q-io/fs");
 var exec = require('child_process').exec;
-var MockGithubApi = require("../mocks/github-api");
-var ProjectWorkspace = require("../../container/project-workspace");
-var Git = require("../../container/git");
+var MockGithubApi = require("../../spec/mocks/github-api");
+var ProjectWorkspace = require("../project-workspace");
+var Git = require("../git");
 
 function createWorkspace(tmpPath, owner, repo) {
     return fs.makeTree(fs.join(tmpPath, owner, repo));

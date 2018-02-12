@@ -1,4 +1,4 @@
-var PackageManagerTools = require("../../../../container/package-manager/package-manager-tools");
+var PackageManagerTools = require("../../../package-manager/package-manager-tools");
 
 describe("package-tools", function () {
 

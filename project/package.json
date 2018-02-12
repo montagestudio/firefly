@@ -1,0 +1,23 @@
+{
+  "name": "project",
+  "description": "Per-user-project workspace service for Firefly.",
+  "main": "index.js",
+  "scripts": {
+    "test": "runSlowSpecs=$runSlowSpecs jasmine-node spec --forceexit"
+  },
+  "dependencies": {
+    "faye-websocket": "~0.7.2",
+    "htmlparser2": "3.4.0",
+    "joey": "^1.5.3",
+    "minimatch": "~0.2.12",
+    "npm": "2.15.11",
+    "q": "~0.9.7",
+    "q-io": "^1.13.4",
+    "watchr": "2.4.11",
+    "uuid": "~1.4.1"
+  },
+  "devDependencies": {
+    "istanbul": "~0.1.44",
+    "jasmine-node": "~1.14.0"
+  }
+}

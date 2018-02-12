@@ -1,5 +1,5 @@
 var Q = require("q");
-var Frontend = require("../../container/frontend");
+var Frontend = require("../frontend");
 
 describe("Frontend", function () {
 

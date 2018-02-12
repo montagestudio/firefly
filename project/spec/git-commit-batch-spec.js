@@ -1,5 +1,5 @@
 var Q = require("q");
-var GitCommitBatchFactory = require("../../container/git-commit-batch");
+var GitCommitBatchFactory = require("../git-commit-batch");
 
 describe("Git Commit Batch", function () {
     var GitCommitBatch = GitCommitBatchFactory({

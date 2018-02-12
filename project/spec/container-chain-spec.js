@@ -1,7 +1,7 @@
-var containerChain = require("../../container/container-chain");
+var containerChain = require("../chain");
 var Q = require("q");
 var MockFs = require("q-io/fs-mock");
-var mockRequest = require("../mocks/request");
+var mockRequest = require("../../spec/mocks/request");
 
 describe("container chain", function () {
     var config, chain, request, projectWorkspace;
@@ -107,7 +107,7 @@ describe("container chain", function () {
         });
 
         it("calls Frontend.showNotification", function (done) {
-            var Frontend = require("../../container/frontend");
+            var Frontend = require("../../project/frontend");
             var original = Frontend.showNotification;
             Frontend.showNotification = jasmine.createSpy("showNotification").andReturn(Q());
             request({

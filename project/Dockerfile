@@ -60,4 +60,4 @@ RUN chmod +x /usr/bin/collada2gltf && rm -rf /home/montage/glTF
 ADD . /srv/firefly
 
 EXPOSE 2441
-ENTRYPOINT ["node", "/srv/firefly/container/index.js"]
+ENTRYPOINT ["node", "/srv/firefly/project/index.js"]

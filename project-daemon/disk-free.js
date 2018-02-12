@@ -1,4 +1,4 @@
-var exec = require("../container/exec");
+var exec = require("../project/exec");
 
 var PERCENT_RE = /([0-9]+)%/;
 

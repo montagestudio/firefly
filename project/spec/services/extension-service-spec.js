@@ -1,4 +1,4 @@
-var ExtensionService = require("../../../container/services/extension-service");
+var ExtensionService = require("../../services/extension-service");
 var MockFs = require("q-io/fs-mock");
 var PATH = require("path");
 
@@ -20,7 +20,7 @@ describe("extension-service", function () {
             },
             null,
             null,
-            PATH.join(__dirname, "..", "..", "fixtures")
+            PATH.join(__dirname, "..", "fixtures")
         );
     });
 

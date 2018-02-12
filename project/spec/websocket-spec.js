@@ -1,7 +1,7 @@
 /*global waitsFor*/
 var Q = require("q");
 var WebSocket = require("faye-websocket");
-var websocket = require("../../container/websocket");
+var websocket = require("../websocket");
 
 describe("websocket", function () {
     describe("makeServices", function () {
