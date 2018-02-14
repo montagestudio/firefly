@@ -21,6 +21,13 @@ Docker.prototype.createContainer = function (opts) {
     });
 };
 
+Docker.prototype.createService = function (opts) {
+    return this.dockerode.createService(opts)
+    .catch(function (error) {
+        throw new Error("Could not create service because " + error.message);
+    });
+};
+
 Docker.prototype.listImages = function (opts) {
     return this.dockerode.listImages(opts)
     .catch(function (error) {
