@@ -6,16 +6,13 @@ var environment = require("../common/environment");
 var PreviewDetails = require("./preview-details");
 var GithubService = require("../common/github-service").GithubService;
 
-// TODO configure
 var IMAGE_NAME = "firefly_project";
-var IMAGE_PORT = "2441";
-// Needed by the Docker configuration
-var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
+var IMAGE_PORT = 2441;
 
 module.exports = ContainerManager;
-function ContainerManager(docker, containers, subdomainDetailsMap, _request) {
+function ContainerManager(docker, services, subdomainDetailsMap, _request) {
     this.docker = docker;
-    this.containers = containers;
+    this.services = services;
     this.subdomainDetailsMap = subdomainDetailsMap;
     this.GithubService = GithubService;
     // Only used for testing
@@ -29,16 +26,13 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
         throw new Error("Given details was not an instance of PreviewDetails");
     }
 
-    var info = self.containers.get(details);
-    if (!info && (!githubAccessToken || !githubUser)) {
+    var service = self.services.get(details);
+    if (!service && (!githubAccessToken || !githubUser)) {
         return Q(false);
     }
 
     return self.getOrCreate(details, githubAccessToken, githubUser)
-    .then(function (info) {
-        return self.start(info);
-    })
-    .then(function (info) {
+    .then(function (service) {
         return self.waitForServer(self.getUrl(details));
     })
     .catch(function (error) {
@@ -56,55 +50,21 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
 };
 
 /**
- * Get the IP address of a given container. If the address is unknown, `undefined`
- * is returned
- * @param  {string} user
- * @param  {string} owner
- * @param  {string} repo
- * @return {string}       The port of the container, or `undefined`
- */
-ContainerManager.prototype.getAddr = function (details) {
-    var info = this.containers.get(details);
-    return info && info.addr;
-};
-
-/**
- * Get the port of a given container. If the port is unknown, `undefined`
- * is returned
- * @param  {string} user
- * @param  {string} owner
- * @param  {string} repo
- * @return {string}       The port of the container, or `undefined`
- */
-ContainerManager.prototype.getPort = function (details) {
-    var info = this.containers.get(details);
-    return info && info.port;
-};
-
-/**
  * Get the base URL of a given container, including address and port.
- * If the port is unknown, `undefined` is returned.
  * @param  {string} user
  * @param  {string} owner
  * @param  {string} repo
  * @return {string}       The port of the container, or `undefined`
  */
 ContainerManager.prototype.getUrl = function (details) {
-    var info = this.containers.get(details);
-    return info && info.addr + ":" + info.port;
+    return this.services.get(details).name + ':' + IMAGE_PORT;
 };
 
 ContainerManager.prototype.delete = function (details) {
     var self = this;
-
-    var info = self.containers.get(details);
-    var container = new self.docker.Container(self.docker.modem, info.id);
-
-    self.containers.delete(details);
-
-    return container.stop()
+    return this.services.get(details).remove()
     .then(function () {
-        return container.remove();
+        self.services.delete(details);
     });
 };
 
@@ -128,7 +88,7 @@ ContainerManager.prototype._getRepoPrivacy = function(details, githubAccessToken
  */
 ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, githubUser) {
     var self = this;
-    var info = self.containers.get(details);
+    var info = self.services.get(details);
     if (!info) {
         var created = this._getRepoPrivacy(details, githubAccessToken)
             .then(function (isPrivate) {
@@ -136,9 +96,10 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                     details.setPrivate(true);
                 }
 
-                log("Creating container for", details.toString(), "...");
-                track.messageForUsername("create container", details.username, {details: details});
+                log("Creating service for", details.toString(), "...");
+                track.messageForUsername("create service", details.username, {details: details});
 
+                var serviceName = generateContainerName(details);
                 var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
 
                 var config = {
@@ -151,33 +112,56 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                 };
 
                 var options = {
-                    name: generateContainerName(details),
-                    Image: IMAGE_NAME,
-                    Memory: 256 * 1024 * 1024,
-                    MemorySwap: 256 * 1024 * 1024,
-                    Cmd: ['-c', JSON.stringify(config)],
-                    Env: [
-                        "NODE_ENV=" + (process.env.NODE_ENV || "development"),
-                        "FIREFLY_APP_URL=" + environment.app.href,
-                        "FIREFLY_PROJECT_URL=" + environment.project.href,
-                        "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
-                    ],
-                    PortBindings: {},
-                    NetworkMode: "firefly_backend"
+                    name: serviceName,
+                    TaskTemplate: {
+                        ContainerSpec: {
+                            Image: IMAGE_NAME,
+                            Args: ['-c', JSON.stringify(config)],
+                            Env: [
+                                "NODE_ENV=" + (process.env.NODE_ENV || "development"),
+                                "FIREFLY_APP_URL=" + environment.app.href,
+                                "FIREFLY_PROJECT_URL=" + environment.project.href,
+                                "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
+                            ]
+                        },
+                        Networks: [
+                            {
+                                "Target": "firefly_backend"
+                            }
+                        ],
+                        Placement: {
+                            Constraints: [
+                                // "node.role == worker"
+                            ]
+                        },
+                        Resources: {
+                            Limits: {
+                                // MemoryBytes: 104857600
+                            }
+                        },
+                        RestartPolicy: {
+                            Condition: "on-failure",
+                            Delay: 10000000000,
+                            MaxAttempts: 10
+                        }
+                    },
+                    Mode: {
+                        Replicated: {
+                            Replicas: 1
+                        }
+                    }
                 };
-                // only bind to the local IP
-                options.PortBindings[IMAGE_PORT_TCP] = [{HostIp: "127.0.0.1"}];
 
-                return self.docker.createContainer(options)
-                    .then(function (container) {
-                        log("Created container", container.id, "for", details.toString());
-                        info = {id: container.id};
-                        self.containers.set(details, info);
-                        return info;
+                return self.docker.createService(options)
+                    .then(function (service) {
+                        log("Created service", service.id, "for", details.toString());
+                        service.name = serviceName;
+                        self.services.set(details, service);
+                        return service;
                     });
             });
 
-        self.containers.set(details, {created: created});
+        self.services.set(details, {created: created});
 
         return created;
     } else if (info.created && info.created.then) {
@@ -185,43 +169,6 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
     } else {
         return Q(info);
     }
-};
-
-/**
- * Starts a container if it's not already running and returns the exposed port
- * @param  {Object} info        Information from the containers map.
- * @return {Promise.<string>}   A promise for the container's exposed port
- */
-ContainerManager.prototype.start = function (info) {
-    var self = this;
-
-    var container = new self.docker.Container(self.docker.modem, info.id);
-
-    return container.inspect()
-    .then(function (containerInfo) {
-        if (containerInfo.State.Running) {
-            return containerInfo;
-        } else if (info.started && info.started.then) {
-            return info.started;
-        } else {
-            log("Starting container", container.id);
-            var options = {};
-
-            info.started = container.start(options)
-            .then(function () {
-                // This promise must be removed so that future connections
-                // don't think we're still in the process of starting
-                delete info.started;
-                return container.inspect();
-            });
-            return info.started;
-        }
-    })
-    .then(function (details) {
-        info.addr = getExposedAddr(details);
-        info.port = IMAGE_PORT;
-        return info;
-    });
 };
 
 /**
@@ -242,8 +189,8 @@ ContainerManager.prototype.waitForServer = function (url, timeout, error) {
     }
 
     return self.request({
-        host: url.split(":")[0],
-        port: url.split(":")[1],
+        host: url,
+        port: IMAGE_PORT,
         method: "OPTIONS",
         path: "/check"
     })
@@ -255,16 +202,6 @@ ContainerManager.prototype.waitForServer = function (url, timeout, error) {
     })
     .thenResolve(url);
 };
-
-function getExposedAddr(containerInfo) {
-    // jshint -W069
-    if (containerInfo && containerInfo.NetworkSettings && containerInfo.NetworkSettings.Networks && containerInfo.NetworkSettings.Networks["firefly_backend"]) {
-        return containerInfo.NetworkSettings.Networks["firefly_backend"].IPAddress;
-    } else {
-        throw new Error("Cannot get exposed address, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
-    }
-    // jshint +W069
-}
 
 var REPLACE_RE = /[^a-zA-Z0-9\-]/g;
 function generateContainerName(details) {

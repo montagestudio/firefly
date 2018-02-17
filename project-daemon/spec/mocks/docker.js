@@ -10,4 +10,8 @@ MockDocker.prototype.createContainer = function () {
     return Q(new Container(null, uuid.v4()));
 };
 
+MockDocker.prototype.createService = function () {
+    return Q();
+};
+
 MockDocker.prototype.Container = Container;
