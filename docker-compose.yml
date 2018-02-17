@@ -3,6 +3,8 @@ version: "3.2"
 services:
   swarm-visualizer:
     image: dockersamples/visualizer
+    networks:
+      - frontend
     ports:
       - "5001:8080"
     volumes:
@@ -37,9 +39,9 @@ services:
     ports:
       - "8183:80"
     volumes:
-      - ./static/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ../filament:/srv/app/
-      - ./inject/adaptor/:/srv/app/adaptor/
+      - /firefly/static/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /filament/:/srv/app/
+      - /firefly//inject/adaptor/:/srv/app/adaptor/
   login:
     image: 127.0.0.1:5000/login
     build:
@@ -52,8 +54,8 @@ services:
     depends_on:
       - static
     volumes:
-      - ./:/srv/firefly/
-      - ../filament/:/srv/filament/
+      - /firefly/:/srv/firefly/
+      - /filament/:/srv/filament/
   project-daemon:
     image: 127.0.0.1:5000/project-daemon
     build:
@@ -66,7 +68,7 @@ services:
     depends_on:
       - static
     volumes:
-      - ./:/srv/firefly/
+      - /firefly/:/srv/firefly/
       - /var/run/docker.sock:/var/run/docker.sock
 
 networks:
