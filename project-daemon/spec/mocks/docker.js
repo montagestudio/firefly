@@ -11,7 +11,12 @@ MockDocker.prototype.createContainer = function () {
 };
 
 MockDocker.prototype.createService = function () {
-    return Q();
+    return Q({
+        id: uuid.v4(),
+        remove: function () {
+            return Q.resolve();
+        }
+    });
 };
 
 MockDocker.prototype.Container = Container;

@@ -30,15 +30,15 @@ describe("ContainerManager", function () {
     });
 
     describe("setup", function () {
-        it("returns the port", function (done) {
+        it("returns the url", function (done) {
             containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             .then(function (addr) {
-                expect(addr).toEqual("172.17.100.100:2441");
+                expect(/^user_owner_repo_\d+:2441/.test(addr)).toBe(true);
             })
             .then(done, done);
         });
 
-        it("adds a new container to the index", function (done) {
+        it("adds a new service to the index", function (done) {
             var details = new PreviewDetails("user", "owner", "repo");
             containerManager.setup(details, "xxx", {})
             .then(function () {
@@ -49,8 +49,8 @@ describe("ContainerManager", function () {
             .then(done, done);
         });
 
-        it("removes a container from the index if it fails", function (done) {
-            docker.createContainer = function () { return  Q.reject(new Error()); };
+        it("removes a service from the index if it fails", function (done) {
+            docker.createService = function () { return  Q.reject(new Error()); };
             containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             .then(function () {
                 // expect failure
@@ -62,28 +62,28 @@ describe("ContainerManager", function () {
             .then(done, done);
         });
 
-        it("doesn't create two containers for one user/owner/repo", function (done) {
-            spyOn(docker, "createContainer").andCallThrough();
+        it("doesn't create two services for one user/owner/repo", function (done) {
+            spyOn(docker, "createService").andCallThrough();
             Q.all([
                 containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {}),
                 containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             ])
             .then(function () {
-                expect(docker.createContainer.callCount).toEqual(1);
+                expect(docker.createService.callCount).toEqual(1);
             })
             .then(done, done);
         });
 
-        it("gives the container a useful name", function (done) {
-            spyOn(docker, "createContainer").andCallThrough();
+        it("gives the service a useful name", function (done) {
+            spyOn(docker, "createService").andCallThrough();
             containerManager.setup(new PreviewDetails("one-one", "two&two", "three123456three"), "xxx", {})
             .then(function () {
-                expect(docker.createContainer.mostRecentCall.args[0].name).toContain("one-one_twotwo_three123456three");
+                expect(docker.createService.mostRecentCall.args[0].Name).toContain("one-one_twotwo_three123456three");
             })
             .then(done, done);
         });
 
-        it("returns false if there's no container and no github access token or username are given", function (done) {
+        it("returns false if there's no service and no github access token or username are given", function (done) {
             containerManager.setup(new PreviewDetails("user", "owner", "repo"))
             .then(function (port) {
                 expect(port).toBe(false);

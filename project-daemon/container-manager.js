@@ -38,14 +38,14 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
     .catch(function (error) {
         log("Removing container for", details.toString(), "because", error.message);
 
-        self.delete(details)
+        return self.delete(details)
         .catch(function (error) {
             track.errorForUsername(error, details.username, {details: details});
+        })
+        .then(function () {
+            track.errorForUsername(error, details.username, {details: details});
+            throw error;
         });
-
-        track.errorForUsername(error, details.username, {details: details});
-
-        throw error;
     });
 };
 
@@ -62,8 +62,11 @@ ContainerManager.prototype.getUrl = function (details) {
 
 ContainerManager.prototype.delete = function (details) {
     var self = this;
-    return this.services.get(details).remove()
-    .then(function () {
+    return Q.resolve(this.services.get(details))
+    .then(function (service) {
+        return service.remove();
+    })
+    .finally(function () {
         self.services.delete(details);
     });
 };
