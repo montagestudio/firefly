@@ -122,6 +122,14 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                                 "FIREFLY_APP_URL=" + environment.app.href,
                                 "FIREFLY_PROJECT_URL=" + environment.project.href,
                                 "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
+                            ],
+                            Mounts: [
+                                {
+                                    "ReadOnly": true,
+                                    "Source": "/firefly",
+                                    "Target": "/srv/firefly",
+                                    "Type": "bind"
+                                }
                             ]
                         },
                         Networks: [
