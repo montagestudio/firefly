@@ -6,7 +6,7 @@ var environment = require("../common/environment");
 var PreviewDetails = require("./preview-details");
 var GithubService = require("../common/github-service").GithubService;
 
-var IMAGE_NAME = "firefly_project";
+var IMAGE_NAME = "127.0.0.1:5000/project";
 var IMAGE_PORT = 2441;
 
 module.exports = ContainerManager;
