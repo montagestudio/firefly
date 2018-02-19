@@ -128,7 +128,7 @@ The swarm now has access to a local registry at `127.0.0.1:5000` which it can us
 For ease of debugging and inspecting the swarm, you may add a swarm visualizer service to a cluster manager node. The visualizer provides a UI to see the different nodes in your swarm, see which services are running where, and what the status of every container is. Create the visualizer:
 
 ```
-docker run -it -d --name swarm-visualizer \
+docker run -it -d --rm --name swarm-visualizer \
   -p 5001:8080 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   dockersamples/visualizer
@@ -136,21 +136,24 @@ docker run -it -d --name swarm-visualizer \
 
 This will create the visualizer on the "firefly1" machine. The interface is accessible at <FIREFLY1 IP ADDR>:5001. Note that because the visualizer is not a service, it will not be accessible from other nodes in the swarm.
 
-### Building and Deploying
+### Build images
 
-Run `npm start`. This builds every service and publishes them to the registry. The first run can take 20+ minutes as Docker must download requisite images and build the project container image. After the first build these images are cached and running should take no more than 30 seconds. Once built, the firefly stack is deployed on the swarm.
+After first cloning the project, you must build all images in the application and push them onto the registry:
+
+```
+npm run build-all-images
+```
+
+This may take 20+ minutes the first time as all images must be built from scratch. Images can be built individually with `./build-image.sh <service name>`, but they only ever need to be rebuilt when the Dockerfiles themselves are changed. Changes to the firefly or filament source do not require an image rebuild, the containers must just be restarted.
+
+### Deploy
+
+Run `npm start`. This deploys the firefly stack to the swarm. You can run `npm stop` to remove the stack from the swarm.
 
 If you are running locally, you must run `NODE_ENV=development npm start` instead to disable https redirection. This will become unnecessary once we add a consistent process for adding self-signed certificates.
 
 You can then access the server at http://local-aurora.montagestudio.com:2440/.
 local-aurora.montagestudio.com is an alias for localhost.
-A Docker visualizer is made available at http://<IP OF FIREFLY1 MACHINE>:5001/.
-
-### Stopping
-
-Run `npm stop`
-
-This will destroy the firefly stack. You can use this liberally, as unlike the old VM-based architecture, `npm start` completes very quickly.
 
 ### Refreshing the server
 
