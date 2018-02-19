@@ -50,9 +50,7 @@ While users just get a single docker container for their project that is outside
 control for now, the eventual goal is to create a docker stack for each user, which they
 can control by defining a `docker-compose.yml` file in their project.
 
-## Local Development
-
-### Initial setup
+## Quickstart
 
  1. You must check out Filament next to Firefly, so that it looks like this:
 
@@ -67,11 +65,11 @@ can control by defining a `docker-compose.yml` file in their project.
 
  4. Install Docker-Machine to create a development cluster
 
-### Creating a swarm cluster
+### Create a swarm cluster
 
 In order to work with a local setup that closely mirrors staging/production environments, we recommend setting up a Docker Swarm with a cluster of least 3 nodes. These steps only need to be run once.
 
-#### Creating docker machines
+#### Create docker machines
 
 Use docker-machine to create three VMs:
 
@@ -81,13 +79,17 @@ docker-machine create --driver virtualbox firefly2
 docker-machine create --driver virtualbox firefly3
 ```
 
-Now open the VirtualBox UI. For each machine, open Settings>Shared Folders, and add both filament/ and firefly/ to the shared folders. Check the "auto-mounted" and "permanent" options. This will ensure firefly/ and filament/ are mounted in the root / of each machine and changes made to your local copy of the repository is synced to the VMs. Once that is done, restart each machine:
+Now open the VirtualBox UI. For each machine, open Settings>Shared Folders, and add both filament/ and firefly/ to the shared folders. Check the "auto-mounted" and "permanent" options. This will ensure firefly/ and filament/ are mounted in the root / of each machine and changes made to your local copy of the repository is synced to the VMs. 
+
+Also, open Settings>Network>Adapter 1>Advanced>Port Forwarding for the firefly1 machine. Add an entry with the host IP 127.0.0.1, host port 2440 and guest port 2440. This way Firefly can be reached at local-aurora.montagestudio.com (an alias for localhost) instead of the machine's IP.
+
+Once that is done, restart each machine:
 
 ```
 docker-machine restart firefly1 firefly2 firefly3
 ```
 
-#### Creating the swarm
+#### Create the swarm
 
 Now, use `docker-machine ls` to check that all your machines are created, and look for the IP address of the "firefly1" node.
 
@@ -120,7 +122,7 @@ If you are running locally, you must run `NODE_ENV=development npm start` instea
 
 You can then access the server at http://local-aurora.montagestudio.com:2440/.
 local-aurora.montagestudio.com is an alias for localhost.
-A Docker visualizer is made available at http://127.0.0.1:5001/.
+A Docker visualizer is made available at http://<IP OF FIREFLY1 MACHINE>:5001/.
 
 ### Stopping
 
