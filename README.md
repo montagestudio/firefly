@@ -123,6 +123,19 @@ docker service create --name docker-registry --publish 5000:5000 --detach=true \
 
 The swarm now has access to a local registry at `127.0.0.1:5000` which it can use to pull service images. 
 
+### Add a swarm visualizer
+
+For ease of debugging and inspecting the swarm, you may add a swarm visualizer service to a cluster manager node. The visualizer provides a UI to see the different nodes in your swarm, see which services are running where, and what the status of every container is. Create the visualizer:
+
+```
+docker run -it -d --name swarm-visualizer \
+  -p 5001:8080 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  dockersamples/visualizer
+```
+
+This will create the visualizer on the "firefly1" machine. The interface is accessible at <FIREFLY1 IP ADDR>:5001. Note that because the visualizer is not a service, it will not be accessible from other nodes in the swarm.
+
 ### Building and Deploying
 
 Run `npm start`. This builds every service and publishes them to the registry. The first run can take 20+ minutes as Docker must download requisite images and build the project container image. After the first build these images are cached and running should take no more than 30 seconds. Once built, the firefly stack is deployed on the swarm.

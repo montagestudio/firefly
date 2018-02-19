@@ -1,18 +1,6 @@
 version: "3.2"
 
 services:
-  swarm-visualizer:
-    image: dockersamples/visualizer
-    networks:
-      - frontend
-    ports:
-      - "5001:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    deploy:
-      placement:
-        constraints: [node.role == manager]
-
   load-balancer:
     image: 127.0.0.1:5000/load-balancer
     build:
@@ -41,7 +29,7 @@ services:
     volumes:
       - /firefly/static/nginx.conf:/etc/nginx/nginx.conf:ro
       - /filament/:/srv/app/
-      - /firefly//inject/adaptor/:/srv/app/adaptor/
+      - /firefly/inject/adaptor/:/srv/app/adaptor/
   login:
     image: 127.0.0.1:5000/login
     build:
