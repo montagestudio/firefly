@@ -112,7 +112,7 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                 };
 
                 var options = {
-                    name: serviceName,
+                    Name: serviceName,
                     TaskTemplate: {
                         ContainerSpec: {
                             Image: IMAGE_NAME,
@@ -131,7 +131,7 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                         ],
                         Placement: {
                             Constraints: [
-                                // "node.role == worker"
+                                "node.role == worker"
                             ]
                         },
                         Resources: {
@@ -140,8 +140,7 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                             }
                         },
                         RestartPolicy: {
-                            Condition: "on-failure",
-                            Delay: 10000000000,
+                            Condition: "any",
                             MaxAttempts: 10
                         }
                     },
