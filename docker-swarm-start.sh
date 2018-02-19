@@ -6,11 +6,6 @@ print_status()
     echo -e "\033[32m$1\033[0m"
 }
 
-# Create docker swarm registry
-print_status "Creating swarm registry"
-docker service create --name docker-registry --publish 5000:5000 --detach=true \
-    registry:2
-
 # Build images in docker-compose.yml
 print_status "Building stack images from docker-compose.yml"
 docker-compose rm

@@ -65,11 +65,9 @@ can control by defining a `docker-compose.yml` file in their project.
 
  4. Install Docker-Machine to create a development cluster
 
-### Create a swarm cluster
+### Create a cluster of docker machines
 
 In order to work with a local setup that closely mirrors staging/production environments, we recommend setting up a Docker Swarm with a cluster of least 3 nodes. These steps only need to be run once.
-
-#### Create docker machines
 
 Use docker-machine to create three VMs:
 
@@ -89,7 +87,7 @@ Once that is done, restart each machine:
 docker-machine restart firefly1 firefly2 firefly3
 ```
 
-#### Create the swarm
+### Create the swarm
 
 Now, use `docker-machine ls` to check that all your machines are created, and look for the IP address of the "firefly1" node.
 
@@ -108,11 +106,22 @@ docker-machine ssh firefly3 "docker swarm join --token <token> <firefly1 ip>"
 
 Run `docker-machine ssh firefly1 "docker node ls"` to check the status of the swarm. Now Docker Swarm will distribute service containers across the different nodes.
 
-#### Configure your shell
+### Configure your shell
 
 Now that the cluster is initialized, you will need to configure your shell to communicate with the manager node's Docker daemon instead of the local daemon. That way you can run Docker commands directly without wrapping them in a `docker-machine ssh` call.
 
 Run `docker-machine env firefly1` to get the command to configure your shell. The command will look something like `eval $(docker-machine env firefly)`. Use `docker-machine ls` to verify that the active machine is now firefly 1. Note that this process must be repeated for any new shell that you open.
+
+### Create a registry
+
+In order for services to be deployed across the swarm, each node in the swarm must have each service's image built. Rather than building each separately on each node, we use a docker registry to publish images and make them available to all nodes in the cluster. Create a local registry in your swarm:
+
+```
+docker service create --name docker-registry --publish 5000:5000 --detach=true \
+    registry:2
+```
+
+The swarm now has access to a local registry at `127.0.0.1:5000` which it can use to pull service images. 
 
 ### Building and Deploying
 
