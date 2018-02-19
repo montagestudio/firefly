@@ -63,9 +63,58 @@ can control by defining a `docker-compose.yml` file in their project.
 
  2. Install Docker
 
-### Starting
+ 3. Install VirtualBox and VirtualBox Guest Additions
 
-Run `npm start`. This sets up the docker swarm and runs each service. The first run can take 20+ minutes as Docker must download requisite images and build the project container image. After the first build these images are cached and running should take no more than 30 seconds.
+ 4. Install Docker-Machine to create a development cluster
+
+### Creating a swarm cluster
+
+In order to work with a local setup that closely mirrors staging/production environments, we recommend setting up a Docker Swarm with a cluster of least 3 nodes. These steps only need to be run once.
+
+#### Creating docker machines
+
+Use docker-machine to create three VMs:
+
+```
+docker-machine create --driver virtualbox firefly1
+docker-machine create --driver virtualbox firefly2
+docker-machine create --driver virtualbox firefly3
+```
+
+Now open the VirtualBox UI. For each machine, open Settings>Shared Folders, and add both filament/ and firefly/ to the shared folders. Check the "auto-mounted" and "permanent" options. This will ensure firefly/ and filament/ are mounted in the root / of each machine and changes made to your local copy of the repository is synced to the VMs. Once that is done, restart each machine:
+
+```
+docker-machine restart firefly1 firefly2 firefly3
+```
+
+#### Creating the swarm
+
+Now, use `docker-machine ls` to check that all your machines are created, and look for the IP address of the "firefly1" node.
+
+Instruct the "firefly1" node to become a swarm manager:
+
+```
+docker-machine ssh firefly1 "docker swarm init --advertise-addr <firefly1 ip>"
+```
+
+The command above will output a command for adding workers to the swarm. Add the other two nodes as workers:
+
+```
+docker-machine ssh firefly2 "docker swarm join --token <token> <firefly1 ip>"
+docker-machine ssh firefly3 "docker swarm join --token <token> <firefly1 ip>"
+```
+
+Run `docker-machine ssh firefly1 "docker node ls"` to check the status of the swarm. Now Docker Swarm will distribute service containers across the different nodes.
+
+#### Configure your shell
+
+Now that the cluster is initialized, you will need to configure your shell to communicate with the manager node's Docker daemon instead of the local daemon. That way you can run Docker commands directly without wrapping them in a `docker-machine ssh` call.
+
+Run `docker-machine env firefly1` to get the command to configure your shell. The command will look something like `eval $(docker-machine env firefly)`. Use `docker-machine ls` to verify that the active machine is now firefly 1. Note that this process must be repeated for any new shell that you open.
+
+### Building and Deploying
+
+Run `npm start`. This builds every service and publishes them to the registry. The first run can take 20+ minutes as Docker must download requisite images and build the project container image. After the first build these images are cached and running should take no more than 30 seconds. Once built, the firefly stack is deployed on the swarm.
 
 If you are running locally, you must run `NODE_ENV=development npm start` instead to disable https redirection. This will become unnecessary once we add a consistent process for adding self-signed certificates.
 
@@ -77,7 +126,7 @@ A Docker visualizer is made available at http://127.0.0.1:5001/.
 
 Run `npm stop`
 
-This will destroy the swarm. You can use this liberally, as unlike the old VM-based architecture, `npm start` completes very quickly.
+This will destroy the firefly stack. You can use this liberally, as unlike the old VM-based architecture, `npm start` completes very quickly.
 
 ### Refreshing the server
 
