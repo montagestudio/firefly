@@ -20,6 +20,8 @@ services:
       - project-daemon
     environment:
       - NODE_ENV=$NODE_ENV
+    deploy:
+      replicas: 1
   static:
     image: nginx
     networks:
@@ -30,6 +32,8 @@ services:
       - /firefly/static/nginx.conf:/etc/nginx/nginx.conf:ro
       - /filament/:/srv/app/
       - /firefly/inject/adaptor/:/srv/app/adaptor/
+    deploy:
+      replicas: 1
   login:
     image: 127.0.0.1:5000/login
     build:
@@ -44,6 +48,8 @@ services:
     volumes:
       - /firefly/:/srv/firefly/
       - /filament/:/srv/filament/
+    deploy:
+      replicas: 1
   project-daemon:
     image: 127.0.0.1:5000/project-daemon
     build:
@@ -61,6 +67,7 @@ services:
     deploy:
       placement:
         constraints: [node.role == manager]
+      replicas: 1
 
 networks:
     frontend:
