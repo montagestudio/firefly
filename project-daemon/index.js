@@ -42,9 +42,6 @@ function main(options) {
     var sessions = Session("session", SESSION_SECRET, {domain: Env.getProjectHost()}, new GithubSessionStore());
 
     var docker  = new Docker({socketPath: "/var/run/docker.sock"});
-    if (!Env.production) {
-        docker = mountVolume(docker, options["mount-workspaces"], "/home/montage/workspace");
-    }
 
     var projectChain = projectChainFactory({
         sessions: sessions,
@@ -79,48 +76,6 @@ function main(options) {
             process.send("online");
         }
     });
-}
-
-/**
- * This patches the Docker object to mount Firefly inside the container,
- * similar to how Vagrant mounts the files inside the VM. File changes on disk
- * propogate into the VM, and into the containers. This means that the
- * containers don't need to be recreated every time that the server changes,
- * they just need to be restarted.
- * @param  {Docker} docker
- * @return {Docker}        The patched docker object
- */
-function mountVolume(docker, shouldMountWorkspaces, workspacePath) {
-    var originalCreateContainer = docker.createContainer;
-    docker.createContainer = function (options) {
-        // TODO: Reinstate this
-        return originalCreateContainer.call(this, options);
-        // Create the volume on the container base image
-        // options.Volumes = {"/srv/firefly": {}, "/srv/filament": {}};
-        // // Map the volume to the server location inside the VM, and mark it
-        // // read-only (ro)
-        // options.Binds = ["/srv/firefly:/srv/firefly:ro", "/srv/filament:/srv/filament:ro"];
-        // if (shouldMountWorkspaces) {
-        //     options.Volumes[workspacePath] = {};
-        //     var hostPath = FS.join("/srv/workspaces", this.id);
-        //     options.Binds.push(hostPath + ":" + workspacePath + ":rw");
-        //     var self = this;
-        //     return FS.makeTree(hostPath)
-        //     .then(function () {
-        //         return originalCreateContainer.call(self, options);
-        //     });
-        // } else {
-        //     return originalCreateContainer.call(this, options);
-        // }
-    };
-
-    var originalContainer = docker.Container;
-    docker.Container = function () {
-        originalContainer.apply(this, arguments);
-    };
-    docker.Container.prototype = Object.create(originalContainer.prototype);
-
-    return docker;
 }
 
 function checkDiskFree() {
