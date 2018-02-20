@@ -12,7 +12,7 @@
     "lint": "jshint --verbose .",
     "start": "docker stack deploy --compose-file docker-compose.yml firefly",
     "stop": "npm run rm-project-services && docker stack rm firefly",
-    "rm-project-services": "docker service ls | grep '/project ' | awk '{print $1}' | xargs 'docker service rm'",
+    "rm-project-services": "docker service ls | grep '/project ' | awk '{print $1}' | xargs docker service rm || true",
     "deploy": "deploy/vagrant/deploy.sh",
     "login-debug": "vagrant ssh login -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\" && node-inspector --web-port=8104'",
     "login-remote-debug": "vagrant ssh login -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\"'",
