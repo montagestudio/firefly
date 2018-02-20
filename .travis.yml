@@ -41,6 +41,7 @@ before_script:
 script:
   - npm run lint
   - sleep 25
+  - docker ps
   - docker ps | grep -q load-balancer
   - docker ps | grep -q login
   - docker ps | grep -q static
