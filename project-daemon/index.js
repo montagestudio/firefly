@@ -15,7 +15,7 @@ var Session = require("../common/session");
 var CheckSession = require("../common/check-session");
 
 var ContainerManager = require("./container-manager");
-var Docker = require("./docker");
+var Dockerode = require("dockerode");
 var containerIndex = require("./make-container-index")("/srv/container-index.json");
 var subdomainDetailsMap = require("./subdomain-details-map");
 
@@ -41,7 +41,7 @@ module.exports = main;
 function main(options) {
     var sessions = Session("session", SESSION_SECRET, {domain: Env.getProjectHost()}, new GithubSessionStore());
 
-    var docker  = new Docker({socketPath: "/var/run/docker.sock"});
+    var docker  = new Dockerode({socketPath: "/var/run/docker.sock"});
 
     var projectChain = projectChainFactory({
         sessions: sessions,
