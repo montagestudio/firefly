@@ -34,7 +34,10 @@ before_script:
 #  - export DISPLAY=:99.0
 #  - sh -e /etc/init.d/xvfb start
   - export DOCKER_CLIENT_TIMEOUT=120
-  - sh docker-swarm-start.sh
+  - docker swarm init
+  - docker service create --name docker-registry --publish 5000:5000 --detach=true registry:2
+  - npm run build-all-images
+  - npm start
 script:
   - npm run lint
   - sleep 25
@@ -44,4 +47,6 @@ script:
   - docker ps | grep -q project-daemon
   - runSlowSpecs=true npm test
 after_script:
-  - sh docker-swarm-stop.sh
+  - npm stop
+  - docker service rm docker-registry
+  - docker swarm leave
