@@ -33,7 +33,7 @@ describe("ContainerManager", function () {
         it("returns the url", function (done) {
             containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
             .then(function (addr) {
-                expect(/^user_owner_repo_\d+:2441/.test(addr)).toBe(true);
+                expect(addr).toBe("user_owner_repo:2441");
             })
             .then(done, done);
         });

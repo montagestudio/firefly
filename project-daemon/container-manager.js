@@ -102,7 +102,6 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                 log("Creating service for", details.toString(), "...");
                 track.messageForUsername("create service", details.username, {details: details});
 
-                var serviceName = generateContainerName(details);
                 var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
 
                 var config = {
@@ -115,7 +114,7 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                 };
 
                 var options = {
-                    Name: serviceName,
+                    Name: serviceName(details),
                     TaskTemplate: {
                         ContainerSpec: {
                             Image: IMAGE_NAME,
@@ -165,7 +164,7 @@ ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, g
                 return self.docker.createService(options)
                     .then(function (service) {
                         log("Created service", service.id, "for", details.toString());
-                        service.name = serviceName;
+                        service.name = serviceName(details);
                         self.services.set(details, service);
                         return service;
                     });
@@ -214,15 +213,13 @@ ContainerManager.prototype.waitForServer = function (url, timeout, error) {
 };
 
 var REPLACE_RE = /[^a-zA-Z0-9\-]/g;
-function generateContainerName(details) {
+function serviceName(details) {
     // Remove all characters that don't match the RE at the bottom of
     // http://docs.docker.io/en/latest/reference/api/docker_remote_api_v1.10/#create-a-container
     // (excluding "_", because we use that ourselves)
     var username = details.username.replace(REPLACE_RE, "");
     var owner = details.owner.replace(REPLACE_RE, "");
     var repo = details.repo.replace(REPLACE_RE, "");
-    // avoid collisions
-    var random = Date.now() + "" + Math.floor(Math.random()*10000);
 
-    return username + "_" + owner + "_" + repo + "_" + random;
+    return username + "_" + owner + "_" + repo;
 }
