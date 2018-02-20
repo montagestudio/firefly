@@ -12,3 +12,7 @@ MockDocker.prototype.createService = function () {
         }
     });
 };
+
+MockDocker.prototype.listServices = function () {
+    return Q([]);
+};

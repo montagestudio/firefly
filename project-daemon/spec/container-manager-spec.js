@@ -4,6 +4,7 @@ var MockDocker = require("./mocks/docker");
 var makeContainerIndex = require("../make-container-index");
 var SubdomainDetailsMap = require("../subdomain-details-map").SubdomainDetailsMap;
 var PreviewDetails = require("../preview-details");
+var uuid = require("uuid");
 
 describe("ContainerManager", function () {
     var docker, containerIndex, subdomainDetailsMap, containerManager;
@@ -70,6 +71,25 @@ describe("ContainerManager", function () {
             ])
             .then(function () {
                 expect(docker.createService.callCount).toEqual(1);
+            })
+            .then(done, done);
+        });
+
+        it("discovers matching services already in the stack", function (done) {
+            docker.listServices = function () {
+                return Q([{
+                    "ID": uuid.v4(),
+                    "Spec": {
+                        "Name": "user_owner_repo"
+                    }
+                }]);
+            };
+            spyOn(docker, "createService").andCallThrough();
+            containerManager.setup(new PreviewDetails("user", "owner", "repo"), "xxx", {})
+            .then(function () {
+                expect(docker.createService.callCount).toEqual(0);
+                var entries = containerIndex.entries();
+                expect(entries.length).toEqual(1);
             })
             .then(done, done);
         });
