@@ -5,6 +5,7 @@ var Q = require("q");
 var environment = require("../common/environment");
 var PreviewDetails = require("./preview-details");
 var GithubService = require("../common/github-service").GithubService;
+var Map = require("collections/map");
 
 var IMAGE_NAME = "127.0.0.1:5000/project";
 var IMAGE_PORT = 2441;
@@ -13,6 +14,7 @@ module.exports = ContainerManager;
 function ContainerManager(docker, services, subdomainDetailsMap, _request) {
     this.docker = docker;
     this.services = services;
+    this.pending = new Map();
     this.subdomainDetailsMap = subdomainDetailsMap;
     this.GithubService = GithubService;
     // Only used for testing
@@ -31,22 +33,35 @@ ContainerManager.prototype.setup = function (details, githubAccessToken, githubU
         return Q(false);
     }
 
-    return self.getOrCreate(details, githubAccessToken, githubUser)
-    .then(function (service) {
-        return self.waitForServer(self.getUrl(details));
-    })
-    .catch(function (error) {
-        log("Removing container for", details.toString(), "because", error.message);
-
-        return self.delete(details)
-        .catch(function (error) {
-            track.errorForUsername(error, details.username, {details: details});
+    var setup = this.pending.get(details);
+    if (!setup) {
+        setup = this.get(details)
+        .then(function (service) {
+            return service || self.create(details, githubAccessToken, githubUser);
         })
-        .then(function () {
-            track.errorForUsername(error, details.username, {details: details});
-            throw error;
+        .then(function (service) {
+            return self.waitForServer(self.getUrl(details));
+        })
+        .catch(function (error) {
+            log("Removing container for", details.toString(), "because", error.message);
+
+            return self.delete(details)
+            .catch(function (error) {
+                track.errorForUsername(error, details.username, {details: details});
+            })
+            .then(function () {
+                track.errorForUsername(error, details.username, {details: details});
+                throw error;
+            });
+        })
+        .then(function (url) {
+            self.pending.delete(details);
+            return url;
         });
-    });
+
+        this.pending.set(details, setup);
+    }
+    return setup;
 };
 
 /**
@@ -83,101 +98,117 @@ ContainerManager.prototype._getRepoPrivacy = function(details, githubAccessToken
 };
 
 /**
- * Gets or creates an container for the given user/owner/repo combo
+ * Gets a service for the given user/owner/repo combo. If the requested service
+ * is not cached, the manager tries to find a matching service from docker service
+ * ls. Another project daemon in the stack could have already created an appropriate
+ * container.
  * @param  {string} user  The currently logged in username
  * @param  {string} owner The owner of the repo
  * @param  {string} repo  The name of the repo
- * @return {Promise.<Object>} An object of information about the container
+ * @return {Promise.<Object>} An object of information about the service
  */
-ContainerManager.prototype.getOrCreate = function (details, githubAccessToken, githubUser) {
+ContainerManager.prototype.get = function (details) {
     var self = this;
-    var info = self.services.get(details);
-    if (!info) {
-        var created = this._getRepoPrivacy(details, githubAccessToken)
-            .then(function (isPrivate) {
-                if (isPrivate) {
-                    details.setPrivate(true);
-                }
+    var service = self.services.get(details);
+    if (service) {
+        return Q(service);
+    }
+    var discover = this.docker.listServices()
+    .then(function (services) {
+        var existingService = services.filter(function (s) {
+            return s.Spec && s.Spec.Name === serviceName(details);
+        })[0];
+        if (existingService) {
+            log("Discovered an existing service for", details.toString(), "that was created by another daemon in the swarm");
+            existingService.name = serviceName(details);
+            self.services.set(details, existingService);
+            return existingService;
+        }
+    });
+    return discover;
+};
 
-                log("Creating service for", details.toString(), "...");
-                track.messageForUsername("create service", details.username, {details: details});
+ContainerManager.prototype.create = function (details, githubAccessToken, githubUser) {
+    var self = this;
+    var pending = this._getRepoPrivacy(details, githubAccessToken)
+        .then(function (isPrivate) {
+            if (isPrivate) {
+                details.setPrivate(true);
+            }
 
-                var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
+            log("Creating service for", details.toString(), "...");
+            track.messageForUsername("create service", details.username, {details: details});
 
-                var config = {
-                    username: details.username,
-                    owner: details.owner,
-                    repo: details.repo,
-                    githubAccessToken: githubAccessToken,
-                    githubUser: githubUser,
-                    subdomain: subdomain
-                };
+            var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
 
-                var options = {
-                    Name: serviceName(details),
-                    TaskTemplate: {
-                        ContainerSpec: {
-                            Image: IMAGE_NAME,
-                            Args: ['-c', JSON.stringify(config)],
-                            Env: [
-                                "NODE_ENV=" + (process.env.NODE_ENV || "development"),
-                                "FIREFLY_APP_URL=" + environment.app.href,
-                                "FIREFLY_PROJECT_URL=" + environment.project.href,
-                                "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
-                            ],
-                            Mounts: [
-                                {
-                                    "ReadOnly": true,
-                                    "Source": "/firefly",
-                                    "Target": "/srv/firefly",
-                                    "Type": "bind"
-                                }
-                            ]
-                        },
-                        Networks: [
-                            {
-                                "Target": "firefly_backend"
-                            }
+            var config = {
+                username: details.username,
+                owner: details.owner,
+                repo: details.repo,
+                githubAccessToken: githubAccessToken,
+                githubUser: githubUser,
+                subdomain: subdomain
+            };
+
+            var options = {
+                Name: serviceName(details),
+                TaskTemplate: {
+                    ContainerSpec: {
+                        Image: IMAGE_NAME,
+                        Args: ['-c', JSON.stringify(config)],
+                        Env: [
+                            "NODE_ENV=" + (process.env.NODE_ENV || "development"),
+                            "FIREFLY_APP_URL=" + environment.app.href,
+                            "FIREFLY_PROJECT_URL=" + environment.project.href,
+                            "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
                         ],
-                        Placement: {
-                            Constraints: [
-                                "node.role == worker"
-                            ]
-                        },
-                        Resources: {
-                            Limits: {
-                                // MemoryBytes: 104857600
+                        Mounts: [
+                            {
+                                "ReadOnly": true,
+                                "Source": "/firefly",
+                                "Target": "/srv/firefly",
+                                "Type": "bind"
                             }
-                        },
-                        RestartPolicy: {
-                            Condition: "any",
-                            MaxAttempts: 10
+                        ]
+                    },
+                    Networks: [
+                        {
+                            "Target": "firefly_backend"
+                        }
+                    ],
+                    Placement: {
+                        Constraints: [
+                            "node.role == worker"
+                        ]
+                    },
+                    Resources: {
+                        Limits: {
+                            // MemoryBytes: 104857600
                         }
                     },
-                    Mode: {
-                        Replicated: {
-                            Replicas: 1
-                        }
+                    RestartPolicy: {
+                        Condition: "any",
+                        MaxAttempts: 10
                     }
-                };
+                },
+                Mode: {
+                    Replicated: {
+                        Replicas: 1
+                    }
+                }
+            };
 
-                return self.docker.createService(options)
-                    .then(function (service) {
-                        log("Created service", service.id, "for", details.toString());
-                        service.name = serviceName(details);
-                        self.services.set(details, service);
-                        return service;
-                    });
-            });
+            return self.docker.createService(options);
+        })
+        .then(function (service) {
+            log("Created service", service.id, "for", details.toString());
+            service.name = serviceName(details);
+            self.services.set(details, service);
+            return service;
+        });
 
-        self.services.set(details, {created: created});
-
-        return created;
-    } else if (info.created && info.created.then) {
-        return info.created;
-    } else {
-        return Q(info);
-    }
+    this.pending.set(details, pending);
+    return pending;
 };
 
 /**
