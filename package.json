@@ -29,7 +29,9 @@
     "update-dependencies": "rm -rf node_modules && npm install && npm dedupe && git add --update node_modules && git add node_modules",
     "mop": "deploy/build/mop.sh",
     "enter-mop-mode": "deploy/vagrant/enter-mop-mode.sh",
-    "exit-mop-mode": "deploy/vagrant/exit-mop-mode.sh"
+    "exit-mop-mode": "deploy/vagrant/exit-mop-mode.sh",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -38,28 +40,29 @@
   "dependencies": {
     "bluebird": "^3.4.1",
     "collections": "~0.2.2",
-    "dockerode": "~1.2.7",
+    "dockerode": "~2.2.8",
     "dotenv": "^0.2.8",
     "faye-websocket": "~0.7.2",
     "github": "^0.2.3",
     "htmlparser2": "3.4.0",
-    "joey": "~1.3.1",
+    "joey": "~1.5.2",
     "logging": "git+ssh://git@github.com:Stuk/logging.git#4dbe3884056c0deab8ca409c81461948d911aff0",
-    "minimatch": "~0.2.12",
+    "minimatch": "~3.0.2",
     "minit": "0.5.7",
     "mmmagic": "0.3.5",
-    "mop": "0.15.0",
-    "npm": "1.4.4",
+    "mop": "16.0.0",
+    "npm": "3.0.0",
     "optimist": "~0.6.0",
     "q": "~0.9.7",
     "q-connection": "~0.6.1",
     "q-io": "git+ssh://git@github.com:kriskowal/q-io.git#caabcc26f406d95bc9442ebd11d5b0c3c5445193",
     "rollbar": "~0.3.6",
-    "semver": "2.2.1",
+    "semver": "4.3.2",
     "ua-parser-js": "~0.6.2",
     "uuid": "~1.4.1",
     "watchr": "2.4.11",
-    "xmlhttprequest": "~1.6.0"
+    "xmlhttprequest": "~1.6.0",
+    "snyk": "^1.69.7"
   },
   "devDependencies": {
     "istanbul": "~0.1.44",
@@ -115,5 +118,6 @@
     "p38.project.declarativ.net",
     "p39.project.declarativ.net",
     "p40.project.declarativ.net"
-  ]
+  ],
+  "snyk": true
 }
