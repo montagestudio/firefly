@@ -1,0 +1,47 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.10.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:hawk:20160119':
+    - minit > npm > request > hawk:
+        patched: '2018-02-21T23:31:23.098Z'
+  'npm:minimatch:20160620':
+    - minit > npm > glob > minimatch:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > read-package-json > glob > minimatch:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > init-package-json > glob > minimatch:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > node-gyp > glob > minimatch:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > node-gyp > minimatch:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > minimatch:
+        patched: '2018-02-21T23:31:23.098Z'
+  'npm:qs:20140806-1':
+    - minit > npm > request > qs:
+        patched: '2018-02-21T23:31:23.098Z'
+  'npm:request:20160119':
+    - minit > npm > request:
+        patched: '2018-02-21T23:31:23.098Z'
+  'npm:semver:20150403':
+    - minit > npm > semver:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > node-gyp > semver:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > npmconf > semver:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > read-package-json > normalize-package-data > semver:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > init-package-json > semver:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > read-installed > semver:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > npm-registry-client > semver:
+        patched: '2018-02-21T23:31:23.098Z'
+  'npm:tar:20151103':
+    - minit > npm > tar:
+        patched: '2018-02-21T23:31:23.098Z'
+    - minit > npm > node-gyp > tar:
+        patched: '2018-02-21T23:31:23.098Z'
