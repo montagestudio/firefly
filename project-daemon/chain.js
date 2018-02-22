@@ -17,7 +17,6 @@ var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
 var PreviewDetails = require("./preview-details");
-var subdomainDetailsMap = require("./subdomain-details-map");
 
 module.exports = server;
 function server(options) {
@@ -32,6 +31,8 @@ function server(options) {
     var containerManager = options.containerManager;
     if (!options.containerIndex) throw new Error("options.containerIndex required");
     var containerIndex = options.containerIndex;
+    if (!options.subdomainStoreClient) throw new Error("options.subdomainStoreClient required");
+    var subdomainStoreClient = options.subdomainStoreClient;
     //jshint +W116
 
     var chain = joey
@@ -91,8 +92,10 @@ function server(options) {
         POST("access")
         .log(log, function (message) { return message; })
         .app(function (request) {
-            var previewDetails = subdomainDetailsMap.detailsFromUrl(request.headers.host);
-            return preview.processAccessRequest(request, previewDetails);
+            return subdomainStoreClient.getAsync(request.headers.host).then(function (res) {
+                var details = JSON.parse(res);
+                return preview.processAccessRequest(request, details);
+            });
         });
     })
     .use(function (next) {

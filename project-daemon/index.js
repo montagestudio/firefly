@@ -9,6 +9,7 @@ process.on('uncaughtException', function (err) {
 });
 
 var projectChainFactory = require("./chain");
+var bluebird = require("bluebird");
 
 var GithubSessionStore = require("../common/github-session-store");
 var Session = require("../common/session");
@@ -17,7 +18,12 @@ var CheckSession = require("../common/check-session");
 var ContainerManager = require("./container-manager");
 var Dockerode = require("dockerode");
 var containerIndex = require("./make-container-index")("/srv/container-index.json");
-var subdomainDetailsMap = require("./subdomain-details-map");
+
+var redis = require("redis");
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
+// TODO: Parametrize, use rediss protocol?
+var subdomainStoreClient = redis.createClient("redis://firefly_subdomain-map:6379");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
@@ -46,7 +52,8 @@ function main(options) {
     var projectChain = projectChainFactory({
         sessions: sessions,
         checkSession: CheckSession,
-        containerManager: new ContainerManager(docker, containerIndex, subdomainDetailsMap),
+        subdomainStoreClient: subdomainStoreClient,
+        containerManager: new ContainerManager(docker, containerIndex, subdomainStoreClient),
         containerIndex: containerIndex
     });
     return projectChain.listen(options.port)

@@ -68,8 +68,17 @@ services:
       placement:
         constraints: [node.role == manager]
       replicas: 1
+  subdomain-map:
+    image: redis
+    networks:
+      - backend
+    volumes:
+      - subdomain-data:/data
 
 networks:
     frontend:
     backend:
       attachable: true
+
+volumes:
+  subdomain-data:
