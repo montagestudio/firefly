@@ -66,10 +66,7 @@ function Env(options) {
     };
 
     env.getProjectUrl = function (subdomain) {
-        var urlObj = Object.create(this.project);
-        urlObj.hostname = subdomain + "." + urlObj.hostname;
-
-        return URL.format(urlObj);
+        return URL.format(URL.parse(this.project.href + subdomain + "/"));
     };
 
     env.getProjectHost = function() {
