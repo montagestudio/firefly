@@ -12,7 +12,7 @@ var Map = require("collections/map");
 var CLIENT_ROOT = FS.join(__dirname, "preview");
 var clientFs = FS.reroot(CLIENT_ROOT);
 
-var HOST_ACCESS_CODE_MAP = Map();
+var HOST_ACCESS_CODE_MAP = new Map();
 
 function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;

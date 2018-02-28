@@ -2,8 +2,9 @@
 #
 # VERSION 1.1
 
+# TODO upgrade to 16.04 LTS
 FROM ubuntu:14.04
-MAINTAINER Pierre Chaussalet <pchaussalet@montagestudio.com>
+MAINTAINER Corentin Debost <corentin.debost@kaazing.com>
 
 # Updates
 RUN apt-get update
@@ -13,11 +14,9 @@ RUN apt-get install -y sudo curl git zip && \
     apt-get clean
 
 # Node
-RUN apt-get install -y python-software-properties python g++ make software-properties-common && \
-    apt-get clean
-RUN add-apt-repository ppa:chris-lea/node.js
-RUN apt-get update
-RUN apt-get install -y nodejs&& \
+RUN curl -sL https://deb.nodesource.com/setup_4.x -o nodesource_setup.sh
+RUN sudo bash nodesource_setup.sh
+RUN apt-get install -y nodejs build-essential && \
     apt-get clean
 
 RUN adduser --disabled-password --gecos "" montage
@@ -51,6 +50,9 @@ RUN echo github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmd
 # /srv/firefly/project.js for development
 ADD firefly /srv/firefly
 ADD filament /srv/filament
+
+WORKDIR /srv/firefly
+RUN npm install
 
 EXPOSE 2441
 ENTRYPOINT ["node", "/srv/firefly/container/index.js"]

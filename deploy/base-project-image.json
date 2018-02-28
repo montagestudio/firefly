@@ -1,22 +1,19 @@
 {
     "variables": {
-        "do_api_key": null,
-        "do_client_id": null,
         "snapshot_name": null,
         "home": "{{env `HOME`}}",
         "build": "{{env `BUILD`}}",
         "base_image_id": null,
-        "region_id": "{{env `REGION_ID`}}"
+        "do_region": "{{env `REGION`}}"
     },
 
     "builders": [{
         "type": "digitalocean",
-        "api_key": "{{user `do_api_key`}}",
-        "client_id": "{{user `do_client_id`}}",
-        "image_id": "{{user `base_image_id`}}",
-        "region_id": "{{user `region_id`}}",
-        "size_id": 66,
+        "image": "{{user `base_image_id`}}",
+        "region": "{{user `do_region`}}",
+        "size": "512mb",
         "private_networking": false,
+        "ssh_username": "root",
         "ssh_timeout": "12m",
         "state_timeout": "12m",
         "snapshot_name": "{{user `snapshot_name`}}",

@@ -91,7 +91,7 @@ ContainerManager.prototype._getRepoPrivacy = function(details, githubAccessToken
     } else {
         return Q.resolve(details.private);
     }
-}
+};
 
 /**
  * Gets or creates an container for the given user/owner/repo combo

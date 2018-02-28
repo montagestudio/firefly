@@ -11,7 +11,7 @@ module.exports.SubdomainDetailsMap = SubdomainDetailsMap;
 
 function SubdomainDetailsMap() {
     this.subdomainDetails = {};
-    this.detailsSubdomain = Set();
+    this.detailsSubdomain = new Set();
 }
 
 SubdomainDetailsMap.prototype.detailsFromSubdomain = function(subdomain) {

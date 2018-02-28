@@ -27,12 +27,13 @@ module.exports = ProjectWorkspace;
  * - Create a montage module and add it to the workspace
  * - Flush the workspace (sends all local changes to the remote git repository)
  */
-function ProjectWorkspace(config, workspacePath, owner, repo, minitPath) {
+function ProjectWorkspace(config, workspacePath, owner, repo, minitPath, githubApi) {
     this._fs = fs;
     this._config = config;
     this._workspacePath = workspacePath;
     this._owner = owner;
     this._repo = repo;
+    this._githubApi = githubApi;
 
     this._minitPath = minitPath;
 }
@@ -45,7 +46,7 @@ Object.defineProperties(ProjectWorkspace.prototype, {
     _repoService: {
         get: function() {
             if (!this.__repoService) {
-                this.__repoService = RepositoryService(this._config.username, this._owner, this._config.githubAccessToken, this._repo, this._fs, this._workspacePath);
+                this.__repoService = RepositoryService(this._config.username, this._owner, this._config.githubAccessToken, this._repo, this._fs, this._workspacePath, true, this._githubApi);
             }
             return this.__repoService;
         }

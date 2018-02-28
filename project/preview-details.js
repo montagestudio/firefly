@@ -19,7 +19,7 @@ PreviewDetails.fromObject = function (object) {
 
 PreviewDetails.prototype.setPrivate = function(isPrivate) {
     this.private = isPrivate;
-}
+};
 
 PreviewDetails.prototype.equals = function (other) {
     return this.username === other.username && this.owner === other.owner && this.repo === other.repo;

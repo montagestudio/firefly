@@ -1,4 +1,4 @@
-/*global window, montageRequire, document, MontageStudio */
+/*global window, document, MontageStudio */
 //jshint -W106
 //jshint -W089
 Object.defineProperty(window, "_montage_le_flag", { value: true });
@@ -1507,11 +1507,13 @@ waitForApplicationLoad()
                     // This ensures that the next changes will be able to see
                     // the new components created by this template adition.
                     if (object.parentComponent === parentComponent) {
-                        promise = new MontageStudio.Promise(function (r) {
+                        /*jshint -W083 */
+                        promise = new MontageStudio.Promise(function(r) {
                             resolve = r;
                         });
                         object.addEventListener("firstDraw", resolve, false);
                         promises.push(promise);
+                        /*jshint +W083 */
                     }
                 }
                 return MontageStudio.Promise.all(promises);
@@ -2493,24 +2495,24 @@ waitForApplicationLoad()
             // each one to find out the one directly under the "label"
             // component.
             elementsLoop:
-                for (var i = 0; element =/*assign*/ elements[i]; i++) {
-                    node = element;
-                    while (node = node.parentNode) {
-                        elementId = template.getElementId(node);
-                        if (elementId) {
-                            if (elementId === componentElementId) {
-                                // Our work here is done, we found the one we're
-                                // looking for so we exit the search immediately.
-                                break elementsLoop;
-                            } else {
-                                // This argument belongs to a different component,
-                                // no need to continue up the DOM tree, we go for
-                                // the next element.
-                                break;
-                            }
+            for (var i = 0; element =/*assign*/ elements[i]; i++) {
+                node = element;
+                while (node = node.parentNode) {
+                    elementId = template.getElementId(node);
+                    if (elementId) {
+                        if (elementId === componentElementId) {
+                            // Our work here is done, we found the one we're
+                            // looking for so we exit the search immediately.
+                            break elementsLoop;
+                        } else {
+                            // This argument belongs to a different component,
+                            // no need to continue up the DOM tree, we go for
+                            // the next element.
+                            break;
                         }
                     }
                 }
+            }
 
             return element;
         } else {
