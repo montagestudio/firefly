@@ -119,14 +119,23 @@ rollbar() {
     echo "Registered $3 $1 deploy $ROLLBAR_REVISION with Rollbar"
 }
 
-staging ()
+tugboat_scp ()
 {
+    # $1: Droplet name
+    # $2: Source
+    # $3: Destination
+
     # We need to wait for the droplets to come back alive after rebuild
     wait_for_droplet $1
     
-    echo "Uploading script to $1"
+    echo "Uploading $2 to $1"
     IP=$(get_ip $1)
-    scp $FIREFLY_SSH_OPTIONS "${HOME}/deploy/build/staging.sh" "montage@${IP}:/srv"
+    scp $FIREFLY_SSH_OPTIONS "$2" "montage@${IP}:$3"
+}
+
+staging ()
+{
+    tugboat_scp $1 "${HOME}/deploy/build/staging.sh" "/srv"
     # Execute the staging script on the droplet
     echo "Executing script to $1"
     tugboat ssh -n $1 -c 'sudo chmod +x /srv/staging.sh; sudo /srv/staging.sh'
@@ -141,9 +150,7 @@ lets_encrypt ()
 
     wait_for_droplet $1
 
-    echo "Uploading script to $1"
-    IP=$(get_ip $1)
-    scp $FIREFLY_SSH_OPTIONS "${HOME}/deploy/build/lets-encrypt.sh" "montage@${IP}:/srv"
+    tugboat_scp $1 "${HOME}/deploy/build/lets-encrypt.sh" "/srv"
     echo "Executing script to $1"
     tugboat ssh -n $1 -c "sudo chmod +x /srv/lets-encrypt.sh; sudo /srv/lets-encrypt.sh $2 $3 $4"
 }
