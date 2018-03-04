@@ -4,7 +4,6 @@ set -e
 
 if [[ -e /etc/haproxy/haproxy.cfg  ]]; then
     sudo sed -i.bak 's/work.montagestudio.com.pem/staging-aurora.montagestudio.com.pem/' /etc/haproxy/haproxy.cfg
-    sudo sed -i.bak 's/project.montagestudio.net.pem/staging-project.montagestudio.net.pem/' /etc/haproxy/haproxy.cfg
     sudo sed -i.bak 's/server static1 [0-9\.]*/server static1 107.170.66.81/' /etc/haproxy/haproxy.cfg
     sudo sed -i.bak 's/server login1 [0-9\.]*/server login1 107.170.71.152/' /etc/haproxy/haproxy.cfg
     sudo sed -i.bak 's/server login2 [0-9\.]*/server login2 162.243.44.160/' /etc/haproxy/haproxy.cfg

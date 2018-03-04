@@ -16,18 +16,11 @@ certbot certonly -n \
     --http-01-port 80 \
     --agree-tos \
     -d "$1" \
-    -m "$3"
-certbot certonly -n \
-    --standalone \
-    --preferred-challenges http \
-    --http-01-port 80 \
-    --agree-tos \
     -d "$2" \
     -d www."$2" \
     -m "$3"
 
-# Move certificates into haproxy
+# Move certificate into haproxy
 mkdir -p /etc/haproxy/certs
 cat /etc/letsencrypt/live/"$1"/fullchain.pem /etc/letsencrypt/live/"$1"/privkey.pem > /etc/haproxy/certs/"$1".pem
-cat /etc/letsencrypt/live/"$2"/fullchain.pem /etc/letsencrypt/live/"$2"/privkey.pem > /etc/haproxy/certs/"$2".pem
 service haproxy start
