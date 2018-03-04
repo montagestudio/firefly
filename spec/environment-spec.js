@@ -16,7 +16,7 @@ describe("environment", function () {
 
         describe("getProjectUrl", function () {
             it("returns a url", function () {
-                expect(environment.getProjectUrl("pass")).toEqual("http://pass.local-project.montagestudio.com:2440");
+                expect(environment.getProjectUrl("pass")).toEqual("http://local-project.montagestudio.com:2440/pass/");
             });
         });
 
