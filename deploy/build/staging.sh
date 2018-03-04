@@ -15,8 +15,6 @@ if [[ -e /etc/haproxy/haproxy.cfg  ]]; then
     sudo sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg
     sudo sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg
     sudo sed -i.bak 's/stats show-desc .*/stats show-desc Montage Studio Staging Statistic Page/' /etc/haproxy/haproxy.cfg
-
-    sudo service haproxy reload
 fi
 
 if [[ -e /srv/app/track.js ]]; then
