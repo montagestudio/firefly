@@ -43,7 +43,8 @@ module.exports.servePreviewClientFile = servePreviewClientFile;
 function Preview(config) {
     var use = function(next) {
         return function(request, response) {
-            var path = unescape(request.pathInfo);
+            var path = removeContainerIdFromPath(request.pathInfo);
+            log("transformed path", request.pathInfo, "into", path);
 
             if (path.indexOf("/" + CLIENT_FILES + "/") === 0) {
                 return servePreviewClientFile(request, response);
@@ -60,6 +61,10 @@ function Preview(config) {
 
     use.wsServer = startWsServer(config);
     return use;
+}
+
+function removeContainerIdFromPath(path) {
+    return unescape(path).replace(/^\/?.+?\//, ""); // remove container id
 }
 
 function injectScriptInHtml(src, html) {
@@ -104,7 +109,8 @@ function injectPreviewScripts(request, response) {
     })
     .then(function(body) {
         var html = body.toString();
-        var scriptBaseSrc = "/" + CLIENT_FILES + "/";
+        var containerId = request.pathInfo.split("/")[request.pathInfo[0] === "/" ? 1 : 0];
+        var scriptBaseSrc = containerId + "/" + CLIENT_FILES + "/";
 
         for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
@@ -135,7 +141,7 @@ function processPreviewClientMessage(message) {
 }
 
 function servePreviewClientFile(request, response) {
-    var path = unescape(request.pathInfo);
+    var path = removeContainerIdFromPath(request.pathInfo);
 
     return clientFs.then(function(fs) {
         path = path.slice(("/" + CLIENT_FILES + "/").length);
