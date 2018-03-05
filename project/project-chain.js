@@ -228,8 +228,8 @@ function server(options) {
             }
             var details;
             if (preview.isPreview(request)) {
+                var previewDetails = subdomainDetailsMap.detailsFromPath(request.url);
                 return sessions.getSession(request, function (session) {
-                    var previewDetails = subdomainDetailsMap.detailsFromPath(request.path);
                     if (previewDetails) {
                         return preview.hasAccess(previewDetails, session);
                     } else {
@@ -238,8 +238,7 @@ function server(options) {
                 }).then(function (hasAccess) {
                     if (hasAccess) {
                         log("preview websocket", request.headers.host);
-                        details = subdomainDetailsMap.detailsFromPath(request.path);
-                        return proxyPreviewWebsocket(request, socket, body, details);
+                        return proxyPreviewWebsocket(request, socket, body, previewDetails);
                     } else {
                         socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
                         socket.destroy();
