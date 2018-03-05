@@ -3,7 +3,6 @@
 set -e
 
 pushd /srv
-
 if [[ -e "/srv/filament.tgz" ]]; then
     tar -xzf filament.tgz
     export BASE_DIR="app"
@@ -25,5 +24,12 @@ if [[ -e "/srv/filament.tgz" ]]; then
     echo "<html></html>" > index.html
     chown -R montage:montage index.html
 fi
+popd
 
+pushd /srv/filament
+    npm install
+
+    # Hack needed until montage upgraded to npm 3+
+    cd node_modules/montage
+    npm install
 popd
