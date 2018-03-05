@@ -18,6 +18,7 @@ certbot certonly -n \
     -d "$1" \
     -d "$2" \
     -d www."$2" \
+    -d session."$2" \
     -m "$3"
 
 # Move certificate into haproxy
