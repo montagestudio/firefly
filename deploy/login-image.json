@@ -11,7 +11,7 @@
         "type": "digitalocean",
         "image": "{{user `base_image_id`}}",
         "region": "{{user `do_region`}}",
-        "size": "1gb",
+        "size": "512mb",
         "private_networking": false,
         "ssh_username": "root",
         "ssh_timeout": "12m",
