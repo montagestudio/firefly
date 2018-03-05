@@ -19,10 +19,6 @@ pushd ${BUILD}
         if [[ -e "filament" ]]; then
             cp -R "firefly/inject/adaptor" "filament/."
 
-            pushd filament
-                npm install
-            popd
-
             # Configure Rollbar logging
             if [[ -e "filament/track.js" ]]; then
                 sed -i.bak 's/var ENVIRONMENT = .*;/var ENVIRONMENT = "production";/' "filament/track.js"

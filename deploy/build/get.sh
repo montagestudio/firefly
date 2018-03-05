@@ -28,6 +28,11 @@ get ()
             git checkout "${BRANCH}"
         fi
 
+        # Install dependencies
+        if [[ -e "package.json" ]]; then
+            npm install
+        fi
+
         # Tag every deploy
         # git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"
         # git push --tags

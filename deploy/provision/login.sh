@@ -27,7 +27,3 @@ if [[ -e "/srv/firefly.tgz" ]]; then
 fi
 
 popd
-
-pushd /srv/firefly
-    npm install
-popd

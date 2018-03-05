@@ -25,11 +25,3 @@ if [[ -e "/srv/filament.tgz" ]]; then
     chown -R montage:montage index.html
 fi
 popd
-
-pushd /srv/filament
-    npm install
-
-    # Hack needed until montage upgraded to npm 3+
-    cd node_modules/montage
-    npm install
-popd
