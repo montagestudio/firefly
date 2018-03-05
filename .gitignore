@@ -18,9 +18,11 @@ SikuliLog.txt
 
 ## Build
 /dist
+.config/*
 .deploy/*
 .npm/*
 .packer.d/*
+.node-gyp/*
 
 ## jsdoc
 /doc
