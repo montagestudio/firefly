@@ -77,9 +77,6 @@ Vagrant.configure('2') do |config|
         lb.vm.provision :shell, path: "deploy/provision/base-load-balancer.sh"
 
         # load balancer image
-        lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/montagestudio.com.pem /etc/ssl/montagestudio.com.pem"
-        lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/project.montagestudio.net.pem"
-        lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/project.montagestudio.net.pem /etc/ssl/staging-project.montagestudio.net.pem"
         lb.vm.provision :shell, path: "deploy/provision/load-balancer.sh"
         lb.vm.provision :shell, inline: "cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg"
 
@@ -87,6 +84,7 @@ Vagrant.configure('2') do |config|
         # change any of the following lines make sure to update the bit about
         # HAProxy in the readme as well
         # Disable the ssl redirect
+        lb.vm.provision :shell, inline: "sed -i.bak 's/ssl crt .*//' /etc/haproxy/haproxy.cfg"
         lb.vm.provision :shell, inline: "sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg"
         #   login
         lb.vm.provision :shell, inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg"

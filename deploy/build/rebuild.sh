@@ -119,17 +119,40 @@ rollbar() {
     echo "Registered $3 $1 deploy $ROLLBAR_REVISION with Rollbar"
 }
 
-staging ()
+tugboat_scp ()
 {
+    # $1: Droplet name
+    # $2: Source
+    # $3: Destination
+
     # We need to wait for the droplets to come back alive after rebuild
     wait_for_droplet $1
     
-    echo "Uploading script to $1"
+    echo "Uploading $2 to $1"
     IP=$(get_ip $1)
-    scp $FIREFLY_SSH_OPTIONS "${HOME}/deploy/build/staging.sh" "montage@${IP}:/srv"
+    scp $FIREFLY_SSH_OPTIONS "$2" "montage@${IP}:$3"
+}
+
+staging ()
+{
+    tugboat_scp $1 "${HOME}/deploy/build/staging.sh" "/srv"
     # Execute the staging script on the droplet
     echo "Executing script to $1"
     tugboat ssh -n $1 -c 'sudo chmod +x /srv/staging.sh; sudo /srv/staging.sh'
+}
+
+lets_encrypt ()
+{
+    # $1: Droplet name (Load Balancer)
+    # $2: Main domain
+    # $3: Project domain
+    # $4: Contact email
+
+    wait_for_droplet $1
+
+    tugboat_scp $1 "${HOME}/deploy/build/lets-encrypt.sh" "/srv"
+    echo "Executing script to $1"
+    tugboat ssh -n $1 -c "sudo chmod +x /srv/lets-encrypt.sh; sudo /srv/lets-encrypt.sh $2 $3 $4"
 }
 
 if [[ $PRODUCTION == "TRUE" ]]; then
@@ -142,6 +165,8 @@ if [[ $PRODUCTION == "TRUE" ]]; then
     tugboat rebuild -n Project3 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n Project4 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
 
+    lets_encrypt LoadBalancer work.montagestudio.com project.montagestudio.net corentin.debost@kaazing.com
+
     rollbar "production" "Login1" "filament" "dccb9acdbffd4c8bbd21247e51a0619e"
     rollbar "production" "Login1" "firefly" "80c8078968bf4f9a92aee1af74e46b57"
 else
@@ -151,6 +176,8 @@ else
     tugboat rebuild -n StagingLogin2 -m login-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n StagingProject1 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
     tugboat rebuild -n StagingProject2 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
+
+    lets_encrypt StagingLoadBalancer staging-aurora.montagestudio.com staging-project.montagestudio.net corentin.debost@kaazing.com
 
     staging StagingLoadBalancer
     staging StagingWebServer

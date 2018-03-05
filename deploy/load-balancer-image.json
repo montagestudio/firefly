@@ -24,18 +24,6 @@
         "type": "shell",
         "inline": ["sleep 30"]
     }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/montagestudio.com.pem",
-        "destination": "/etc/ssl/montagestudio.com.pem"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/project.montagestudio.net.pem",
-        "destination": "/etc/ssl/project.montagestudio.net.pem"
-    }, {
-        "type": "file",
-        "source": "{{user `home`}}/deploy/files/staging-project.montagestudio.net.pem",
-        "destination": "/etc/ssl/staging-project.montagestudio.net.pem"
-    }, {
         "type": "shell",
         "script": "{{user `home`}}/deploy/provision/load-balancer.sh"
     }, {
