@@ -41,18 +41,18 @@ module.exports.servePreviewClientFile = servePreviewClientFile;
  * commands. This webservice is also served through the project-chain connection.
  */
 function Preview(config) {
+    var subdomain = config.subdomain;
     var use = function(next) {
         return function(request, response) {
-            var path = removeContainerIdFromPath(request.pathInfo);
-            log("transformed path", request.pathInfo, "into", path);
+            var path = removeContainerIdFromPath(request.pathInfo, subdomain);
 
             if (path.indexOf("/" + CLIENT_FILES + "/") === 0) {
-                return servePreviewClientFile(request, response);
+                return servePreviewClientFile(request, response, subdomain);
             }
 
             return Q.when(next(request, response), function (response) {
                 if (response.body && path === "/index.html") {
-                    response = injectPreviewScripts(request, response);
+                    response = injectPreviewScripts(request, response, subdomain);
                 }
                 return response;
             });
@@ -63,8 +63,8 @@ function Preview(config) {
     return use;
 }
 
-function removeContainerIdFromPath(path) {
-    return unescape(path).replace(/^\/?.+?\//, ""); // remove container id
+function removeContainerIdFromPath(path, subdomain) {
+    return unescape(path).replace(subdomain + "/", ""); // remove container id
 }
 
 function injectScriptInHtml(src, html) {
@@ -103,14 +103,13 @@ function injectScriptSource(source, html) {
     return html;
 }
 
-function injectPreviewScripts(request, response) {
+function injectPreviewScripts(request, response, subdomain) {
     return response.body.then(function(body) {
         return body.read();
     })
     .then(function(body) {
         var html = body.toString();
-        var containerId = request.pathInfo.split("/")[request.pathInfo[0] === "/" ? 1 : 0];
-        var scriptBaseSrc = containerId + "/" + CLIENT_FILES + "/";
+        var scriptBaseSrc = "/" + subdomain + "/" + CLIENT_FILES + "/";
 
         for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
@@ -140,8 +139,8 @@ function processPreviewClientMessage(message) {
     }
 }
 
-function servePreviewClientFile(request, response) {
-    var path = removeContainerIdFromPath(request.pathInfo);
+function servePreviewClientFile(request, response, subdomain) {
+    var path = removeContainerIdFromPath(request.pathInfo, subdomain);
 
     return clientFs.then(function(fs) {
         path = path.slice(("/" + CLIENT_FILES + "/").length);
