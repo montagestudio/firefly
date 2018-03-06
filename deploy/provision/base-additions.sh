@@ -10,7 +10,6 @@ apt-get install --yes git
 # For Node
 curl -sL https://deb.nodesource.com/setup_4.x -o nodesource_setup.sh
 sudo bash nodesource_setup.sh
-
 # For Redis
 add-apt-repository --yes ppa:chris-lea/redis-server
 # And be sure we are up to date

@@ -2,10 +2,12 @@
 
 [![Build Status](https://travis-ci.com/montagestudio/firefly.svg?token=DkxazY7pbviHZyy38ZZb&branch=master)](https://travis-ci.com/montagestudio/firefly)
 
-Firefly serves as the host for the Filament application.
+Firefly is the backend for Montage Studio.
 
-Firefly will serve Filament itself for use inside a browser and also provide
-access to services for consumption in Filament through an Environment Bridge.
+Firefly provides multiple services related to editing a Montage application in
+the cloud, including Filament, the Montage Studio editor web application. Filament
+is served for use inside a browser and is given access to services through an
+Environment Bridge.
 
 ## Architecture overview
 
@@ -16,12 +18,12 @@ access to services for consumption in Filament through an Environment Bridge.
                 .com/assets/*|          +----------+------------+       | *.net/*
                              |                     |                    |  websocket
                              v                     v                    v
-                +-------------------------+ +------------+ +-----------------------+
-                |Web Server               | |Login server| |Project server         |
-                |static files (Nginx)     | +------------+ |+----------------+     |
-                |filament + firefly/inject|                ||Container server| ... |
-                +-------------------------+                |+----------------+     |
-                                                           +-----------------------+
+                +-------------------------+ +------------+ +-----------------------+      +--------------+  
+                |Web Server               | |Login server| |Project daemon         | <--> |Project server| ...
+                |static files (Nginx)     | +------------+ | Creates new project   |      +--------------+
+                |filament + firefly/inject|                | containers            |      +--------------+
+                +-------------------------+                |                       | <--> |Project server| ...
+                                                           +-----------------------+      +--------------+
 
                 .com is short for the main app domain
                         local-aurora.montagestudio.com
@@ -34,20 +36,21 @@ access to services for consumption in Filament through an Environment Bridge.
 
                 Created with http://www.asciiflow.com/
 
-Firefly consists of four machines managed by Vagrant: Load Balancer
+Firefly consists of four services in a Docker swarm: Load Balancer
 (frontend entrypoint), Web Server (the filament application itself),
-Login, and Project. The # of machines is scalable, as defined by `.env` files:
-a local environment has one of each machine, staging has two login and project
-servers, production has four.
+Login, and the Project Daemon.
 
-The Project machine is just a host for Docker containers. Actual user projects
-are stored in these containers. These are where we perform git checkouts and
-npm installs, server the app for the live preview, and use other backend tools
-like glTF conversion. Each Docker container contains exactly one user project.
+The Project Daemon is responsible for spawning and managing user project containers.
+These containers are where we perform git checkouts and npm installs of the user's
+project and serve the app for live preview. Each of these containers hold exactly
+one user project. Requests to interact with these containers are made through the
+Project Daemon (indirectly, through the Load Balancer).
 
-## Local Development
+While users just get a single docker container for their project that is outside their
+control for now, the eventual goal is to create a docker stack for each user, which they
+can control by defining a `docker-compose.yml` file in their project.
 
-### Initial setup
+## Quickstart
 
  1. You must check out Filament next to Firefly, so that it looks like this:
 
@@ -56,69 +59,105 @@ like glTF conversion. Each Docker container contains exactly one user project.
     firefly/
     ```
 
- 2. Install VirtualBox from https://www.virtualbox.org/wiki/Downloads if you
-    don't have it installed already. Mac OS X users, you must add
-    `/Applications/VirtualBox.app/Contents/MacOS/VBoxManage` to your `PATH`.
-    ```
-    export PATH=$PATH:/Applications/VirtualBox.app/Contents/MacOS/VBoxManage
-    ```
- 3. Install Vagrant from http://www.vagrantup.com/downloads.html
- 4. Run `vagrant plugin install vagrant-cachier`. This will cache apt packages
-    to speed up the initialization of the VMs.
- 5. Run `vagrant plugin install vagrant-vbguest`. This will keep the
-    VirtualBox Guest additions up to date.
+ 2. Install Docker
 
-### Starting
+ 3. Install VirtualBox and VirtualBox Guest Additions
 
-Run `npm start`
+ 4. Install Docker-Machine to create a development cluster
 
-This can take up to 20 minutes the first time as the local VMs are provisioned
-from scratch, however the result is a local setup that's very similar to the
-production setup. This means that we should be able to avoid causing problems
-that would usually only be seen in production.
+### Create a cluster of docker machines
 
-You can then access the server at http://local-aurora.montagestudio.com:2440/
+In order to work with a local setup that closely mirrors staging/production environments, we recommend setting up a Docker Swarm with a cluster of least 3 nodes. These steps only need to be run once.
 
-If the page fails to load, try the following: `vagrant reload load-balancer`.
-This may happen after setting up Firefly for the first time, but should not be
-an issue after that.
-
-#### Expected warnings
-
-There is a lot of output when provisioning, and a number of warnings. The ones
-below are expected:
+Use docker-machine to create three VMs:
 
 ```
-dpkg-preconfigure: unable to re-open stdin: No such file or directory
+docker-machine create --driver virtualbox firefly1
+docker-machine create --driver virtualbox firefly2
+docker-machine create --driver virtualbox firefly3
 ```
 
-```
-The guest additions on this VM do not match the installed version of VirtualBox
-```
+Now open the VirtualBox UI. For each machine, open Settings>Shared Folders, and add both filament/ and firefly/ to the shared folders. Check the "auto-mounted" and "permanent" options. This will ensure firefly/ and filament/ are mounted in the root / of each machine and changes made to your local copy of the repository is synced to the VMs. 
+
+Also, open Settings>Network>Adapter 1>Advanced>Port Forwarding for the firefly1 machine. Add an entry with the host IP 127.0.0.1, host port 2440 and guest port 2440. This way Firefly can be reached at local-aurora.montagestudio.com (an alias for localhost) instead of the machine's IP.
+
+Once that is done, restart each machine:
 
 ```
-adduser: The group `admin' already exists.
-adduser: The user `admin' does not exist.
-chown: invalid user: `admin:admin'
+docker-machine restart firefly1 firefly2 firefly3
 ```
 
+### Create the swarm
+
+Now, use `docker-machine ls` to check that all your machines are created, and look for the IP address of the "firefly1" node.
+
+Instruct the "firefly1" node to become a swarm manager:
+
 ```
-stdin: is not a tty
+docker-machine ssh firefly1 "docker swarm init --advertise-addr <firefly1 ip>"
 ```
 
-### Stopping
+The command above will output a command for adding workers to the swarm. Add the other two nodes as workers:
 
-Run `npm stop`
+```
+docker-machine ssh firefly2 "docker swarm join --token <token> <firefly1 ip>"
+docker-machine ssh firefly3 "docker swarm join --token <token> <firefly1 ip>"
+```
 
-This will shutdown the VMs. You can bring them back up with `npm start` which
-should take < 1 minute now that they are all set up.
+Run `docker-machine ssh firefly1 "docker node ls"` to check the status of the swarm. Now Docker Swarm will distribute service containers across the different nodes.
 
-After running `npm stop` the machines are not using CPU, but still take up
-disk space. Instead of `npm stop` you can run `vagrant destroy` to remove the
-VMs from disk. You can use `npm start` to bring them back, but this will take
-almost the same amount of time as the initial setup.
+### Configure your shell
+
+Now that the cluster is initialized, you will need to configure your shell to communicate with the manager node's Docker daemon instead of the local daemon. That way you can run Docker commands directly without wrapping them in a `docker-machine ssh` call.
+
+Run `docker-machine env firefly1` to get the command to configure your shell. The command will look something like `eval $(docker-machine env firefly)`. Use `docker-machine ls` to verify that the active machine is now firefly 1. Note that this process must be repeated for any new shell that you open.
+
+### Create a registry
+
+In order for services to be deployed across the swarm, each node in the swarm must have each service's image built. Rather than building each separately on each node, we use a docker registry to publish images and make them available to all nodes in the cluster. Create a local registry in your swarm:
+
+```
+docker service create --name docker-registry --publish 5000:5000 --detach=true \
+    registry:2
+```
+
+The swarm now has access to a local registry at `127.0.0.1:5000` which it can use to pull service images. 
+
+### Add a swarm visualizer
+
+For ease of debugging and inspecting the swarm, you may add a swarm visualizer service to a cluster manager node. The visualizer provides a UI to see the different nodes in your swarm, see which services are running where, and what the status of every container is. Create the visualizer:
+
+```
+docker run -it -d --rm --name swarm-visualizer \
+  -p 5001:8080 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  dockersamples/visualizer
+```
+
+This will create the visualizer on the "firefly1" machine. The interface is accessible at <FIREFLY1 IP ADDR>:5001. Note that because the visualizer is not a service, it will not be accessible from other nodes in the swarm.
+
+### Build images
+
+After first cloning the project, you must build all images in the application and push them onto the registry:
+
+```
+npm run build-all-images
+```
+
+This may take 20+ minutes the first time as all images must be built from scratch. Images can be built individually with `./build-image.sh <service name>`, but they only ever need to be rebuilt when the Dockerfiles themselves are changed. Changes to the firefly or filament source do not require an image rebuild, the containers must just be restarted.
+
+### Deploy
+
+Run `npm start`. This deploys the firefly stack to the swarm. You can run `npm stop` to remove the stack from the swarm.
+
+If you are running locally, you must run `NODE_ENV=development npm start` instead to disable https redirection. This will become unnecessary once we add a consistent process for adding self-signed certificates.
+
+You can then access the server at http://local-aurora.montagestudio.com:2440/.
+local-aurora.montagestudio.com is an alias for localhost.
 
 ### Refreshing the server
+
+!! Under Construction - the information in this section is outdated !!
 
 Run `npm run deploy`
 
@@ -132,12 +171,16 @@ running and the last 20 lines of the error log will be output.
 
 ### Containers
 
+!! Under Construction - the information in this section is outdated !!
+
 Run `npm run container-rm-all` to remove all containers from the project server.
 
 Run `npm run container-rebuild` if you make changes to the `Dockerfile`. This
 will rebuid the base container image.
 
 ### Debugging Node
+
+!! Under Construction - the information in this section is outdated !!
 
 Run
 
@@ -152,6 +195,8 @@ The port that `node-inspector` is exposed on is defined in the package.json and
 forwarded in the Vagrantfile.
 
 ### Remote debugging Node
+
+!! Under Construction - the information in this section is outdated !!
 
 Run
 
@@ -232,16 +277,11 @@ app domain (despite the request now really being non-cross domain). Hence the
 error showing the app domain in the message, and the `Origin` being null
 because it comes from a redirect.
 
-```
-local-aurora.montagestudio.com didn't send any data
-```
-
-This error may occur after setting up Firefly for the first time.
-Run `vagrant reload load-balancer` to fix it.
-
 ## Administration
 
 ### Accessing logs
+
+!! Under Construction - the information in this section is outdated !!
 
 You can `ssh` into the different machines with `vagrant ssh $NAME`. Files are
 generally located at `/srv`. You can run the commands below to directly follow
@@ -294,6 +334,8 @@ user `montage`, password `Mont@ge1789`.
 
 ### Viewing the files inside the container
 
+!! Under Construction - the information in this section is outdated !!
+
 Run `npm run container-files`
 
 This will find the most recently launched container and list all the
@@ -307,6 +349,8 @@ can look at the files but of course any changes won't be reflected in the
 container.
 
 ### Mounting container workspaces
+
+!! Under Construction - the information in this section is outdated !!
 
 Run `npm run container-rm-all` to remove existing containers then,
 
@@ -326,6 +370,8 @@ This will remove all the containers and workspaces on the project server, and
 then restart the regular server.
 
 ### Viewing a specific container
+
+!! Under Construction - the information in this section is outdated !!
 
 Only `root` and the `docker` group can access the containers, so log into the
 project server and change to `root`:
@@ -367,6 +413,8 @@ revoke their Github token on Github, killing the session on our end as well),
 but it allows all the servers to be relatively stateless.
 
 ### Provisioning
+
+!! Under Construction - the information in this section is outdated !!
 
 Here are some more useful commands if you change any config files or other
 aspects of the provisioning.
@@ -419,7 +467,7 @@ sudo service haproxy reload"
 
 * If a spec takes more than 100ms then it is a "slow" spec and a message
   telling you this will be logged. Make it faster, or wrap the `it` in an
-  `if (process.env.runSlowSpecs)` block. Run `npm run slow-tests` to run the
+  `if (process.env.runSlowSpecs)` block. Run `npm run test:all` to run the
   slow tests.
 
 * Make sure all commit messages follow the 50 character subject/72 character
@@ -434,6 +482,8 @@ sudo service haproxy reload"
 * Indent by 4 spaces, not tabs
 
 ## Deploying
+
+!! Under Construction - the information in this section is outdated !!
 
 ### Overview
 
