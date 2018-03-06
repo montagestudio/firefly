@@ -58,7 +58,7 @@ function server(options) {
             // It is also used in /logout to remove the session cookie from the
             // project/preview domain
             route("next").app(function (request) {
-                return HttpApps.redirect(request, env.getProjectUrl("session") + "/session?id=" + (request.session.sessionId || ""));
+                return HttpApps.redirect(request, env.getProjectSubdomain('session') + "session?id=" + (request.session.sessionId || ""));
             });
         });
     })

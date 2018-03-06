@@ -65,8 +65,12 @@ function Env(options) {
         throw new Error("Deprecated. Use FIXME");
     };
 
-    env.getProjectUrl = function (subdomain) {
-        return URL.format(URL.parse(this.project.href + subdomain + "/"));
+    env.getProjectUrl = function (containerId) {
+        return URL.format(URL.parse(this.project.href + containerId + "/"));
+    };
+
+    env.getProjectSubdomain = function (subdomain) {
+        return URL.format(URL.parse(this.project.protocol + "//" + subdomain + "." + this.getProjectHost()));
     };
 
     env.getProjectHost = function() {
