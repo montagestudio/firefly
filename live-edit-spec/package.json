@@ -1,14 +1,14 @@
 {
-    "name": "test-dependencies",
-    "version": "0.1.0",
-    "dependencies": {
-        "digit": "0.5.0",
-        "jasminum": "0.0.1",
-        "matte": "0.2.0",
-        "montage": "montagejs/montage#master"
-    },
-    "exclude": [
-        "run-tests.html",
-        "test"
-    ]
+  "name": "test-dependencies",
+  "version": "0.1.0",
+  "dependencies": {
+    "digit": "^3.0.3",
+    "jasminum": "0.0.5",
+    "matte": "^0.3.2",
+    "montage": "montagejs/montage#master"
+  },
+  "exclude": [
+    "run-tests.html",
+    "test"
+  ]
 }
