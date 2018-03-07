@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "dependencies": {
     "digit": "^3.0.3",
-    "jasminum": "0.0.6",
+    "jasminum": "0.0.5",
     "matte": "^0.3.2",
     "montage": "montagejs/montage#master"
   },
