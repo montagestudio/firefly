@@ -70,7 +70,7 @@ describe("repository-service", function () {
         it("should have a repo", function (done) {
             executeFile("repo-service-sample.sh", tmpPath, true).then(function (path) {
                 serviceRepo1Path = path;
-                service1 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false, new MockGithubApi());
+                service1 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false, null, new MockGithubApi());
             })
             .then(function () {
                 return git.isCloned(serviceRepo1Path);
@@ -194,10 +194,10 @@ describe("repository-service", function () {
                 service1.close(null);   // We need to close the service in order to reset it (as we use the same path)
 
                 serviceRepo1Path = PATH.join(tmpPath, "serviceRepo1");
-                service1 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false, new MockGithubApi());
+                service1 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo1Path, false, null, new MockGithubApi());
 
                 serviceRepo2Path = PATH.join(tmpPath, "serviceRepo2");
-                service2 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo2Path, false, new MockGithubApi());
+                service2 = RepositoryService(session.username, session.owner, session.githubAccessToken, session.repo, fs, serviceRepo2Path, false, null, new MockGithubApi());
 
                 service1._getRepositoryUrl = function() {
                     return Q.resolve(tmpPath + "/originServiceRepo");

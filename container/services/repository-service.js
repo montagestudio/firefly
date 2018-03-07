@@ -38,7 +38,7 @@ var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function
     };
 };
 
-function RepositoryService(config, fs, environment, pathname, fsPath, githubApi) {
+function RepositoryService(config, fs, environment, pathname, fsPath, clientPath, githubApi) {
     return _RepositoryService(config.username, config.owner, config.githubAccessToken, config.repo, fs, fsPath, true, githubApi);
 }
 
@@ -71,7 +71,6 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         _checkGithubError,
         _gitCommitBatch = GitCommitBatchFactory(service),
         USER_SHADOW_BRANCH_PREFIX;
-
 
     USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _username + SHADOW_BRANCH_SUFFIX;
 
