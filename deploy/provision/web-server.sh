@@ -3,7 +3,6 @@
 set -e
 
 pushd /srv
-
 if [[ -e "/srv/filament.tgz" ]]; then
     tar -xzf filament.tgz
     export BASE_DIR="app"
@@ -25,5 +24,4 @@ if [[ -e "/srv/filament.tgz" ]]; then
     echo "<html></html>" > index.html
     chown -R montage:montage index.html
 fi
-
 popd

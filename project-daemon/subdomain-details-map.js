@@ -1,5 +1,4 @@
-var log = require("../common/logging").from(__filename);
-var URL = require("url");
+var log = require("../logging").from(__filename);
 var Set = require("collections/map");
 var routeProject = require("../common/route-project");
 var generateAccessCode = require("./generate-access-code");
@@ -18,18 +17,13 @@ SubdomainDetailsMap.prototype.detailsFromSubdomain = function(subdomain) {
     return this.subdomainDetails[subdomain] || false;
 };
 
-SubdomainDetailsMap.prototype.detailsFromUrl = function(url) {
-    // Needed because node's URL.parse interprets
-    // a.b.c.com:1234
-    // as
-    // protocol: "a.b.c.d.com"
-    // hostname: "2440"
-    if (!/^https?:\/\//.test(url)) {
-        url = "http://" + url;
-    }
-
-    var hostname = URL.parse(url).hostname;
-    var subdomain = hostname.split(".")[0];
+/**
+ * Returns the detail for a given url path.
+ * @param {String} path The path of the url, e.g. /ajzijdhqfi/ui/main.reel/main.html
+ */
+SubdomainDetailsMap.prototype.detailsFromPath = function (path) {
+    var pathFragments = path.split("/");
+    var subdomain = pathFragments[0].length ? pathFragments[0] : pathFragments[1];
 
     return this.detailsFromSubdomain(subdomain);
 };

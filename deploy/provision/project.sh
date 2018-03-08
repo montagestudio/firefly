@@ -21,10 +21,6 @@ if [[ -e "/srv/firefly.tgz" ]]; then
 fi
 popd
 
-pushd /srv/firefly
-    npm install
-popd
-
 #Create the container image
 pushd /srv
 	docker build -f /srv/firefly/Dockerfile -t firefly_project --rm .

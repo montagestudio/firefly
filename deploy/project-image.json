@@ -33,10 +33,6 @@
         "destination": "/srv/firefly.tgz"
     }, {
         "type": "file",
-        "source": "{{user `home`}}/.dockerignore",
-        "destination": "/srv/.dockerignore"
-    }, {
-        "type": "file",
         "source": "{{user `home`}}/Dockerfile",
         "destination": "/srv/Dockerfile"
     }, {

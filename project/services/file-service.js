@@ -20,7 +20,8 @@ var guard = function (exclude) {
 module.exports = exports = FileService;
 var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function (pathname) {
     return function (url) {
-        return decodeURI(URL.parse(url).pathname);
+        // Remove the container ID
+        return decodeURI(URL.parse(url).pathname.replace(/^\/.+?\//, ""));
     };
 };
 

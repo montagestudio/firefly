@@ -72,7 +72,6 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
         _gitCommitBatch = GitCommitBatchFactory(service),
         USER_SHADOW_BRANCH_PREFIX;
 
-
     USER_SHADOW_BRANCH_PREFIX = SHADOW_BRANCH_PREFIX + _username + SHADOW_BRANCH_SUFFIX;
 
     _gitFetch = function(force) {

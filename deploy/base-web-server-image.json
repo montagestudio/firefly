@@ -25,6 +25,9 @@
         "inline": ["sleep 30"]
     }, {
         "type": "shell",
+        "script": "{{user `home`}}/deploy/provision/base-additions.sh"
+    }, {
+        "type": "shell",
         "script": "{{user `home`}}/deploy/provision/base-web-server.sh"
     }]
 }

@@ -54,7 +54,7 @@ function loadRequireMethod(resolve) {
     }
     if (global.mr) {
         global.mr.loadPackage({
-            location: '/node_modules/montage'
+            location: './node_modules/montage'
         }).then(function(montageRequire) {
             resolve(montageRequire);
         });

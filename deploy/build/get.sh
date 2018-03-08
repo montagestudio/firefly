@@ -28,6 +28,11 @@ get ()
             git checkout "${BRANCH}"
         fi
 
+        # Install dependencies
+        if [[ -e "package.json" ]]; then
+            npm install
+        fi
+
         # Tag every deploy
         # git tag -a -m "$BUILD_URL" "deploy-$BUILD_NUMBER"
         # git push --tags
@@ -131,9 +136,8 @@ remove-image ()
 
 get-release-number ()
 {
-    if [[ $LAST_BUILD_NUMER < 0 ]]; then
+    if [ $LAST_BUILD_NUMER -lt 0 ]; then
         if [[ -n ${BUILD_RELEASE_NAME} ]]; then
-
             rm -rf "${BUILD}/firefly"
             git clone git@$GITHUBDECLARATIV:declarativ/firefly.git "${BUILD}/firefly"
             if [[ -e "${BUILD}/firefly" ]]; then
