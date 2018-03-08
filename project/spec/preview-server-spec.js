@@ -11,7 +11,8 @@ describe("preview-server", function () {
     it("should inject the preview scripts into the html file", function(done) {
         var request = {
             scheme: "http",
-            host: "1-owner-repo.local-project.montagestudio.com:2440"
+            host: "local-project.montagestudio.com:2440",
+            pathname: "/1-owner-repo"
         };
         var response = {
             body: Q.resolve({
@@ -22,7 +23,7 @@ describe("preview-server", function () {
             headers: {}
         };
 
-        PreviewServer.injectPreviewScripts(request, response)
+        PreviewServer.injectPreviewScripts(request, response, "1-owner-repo")
         .then(function(response) {
             var foundPreview = false;
             var foundLiveEdit = false;
@@ -30,10 +31,10 @@ describe("preview-server", function () {
             var parser = new htmlparser.Parser({
                 onopentag: function(name, attribs){
                     if (name === "script") {
-                        if (attribs.src === "/{$PREVIEW}/preview.js") {
+                        if (attribs.src === "/1-owner-repo/{$PREVIEW}/preview.js") {
                             foundPreview = true;
                         }
-                        if (attribs.src === "/{$PREVIEW}/live-edit.js") {
+                        if (attribs.src === "/1-owner-repo/{$PREVIEW}/live-edit.js") {
                             foundLiveEdit = true;
                         }
                     }
