@@ -213,8 +213,8 @@ function server(options) {
                     githubUser
                 );
             })
-            .then(function (projectWorkspacePort) {
-                return proxyContainer(request, projectWorkspacePort, "api");
+            .then(function (projectWorkspaceUrl) {
+                return proxyContainer(request, projectWorkspaceUrl, "api");
             });
         });
     });
