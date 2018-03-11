@@ -17,7 +17,6 @@ var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
 var PreviewDetails = require("./preview-details");
-var subdomainDetailsMap = require("./subdomain-details-map");
 
 module.exports = server;
 function server(options) {
@@ -91,23 +90,22 @@ function server(options) {
         POST("access")
         .log(log, function (message) { return message; })
         .app(function (request) {
-            var previewDetails = subdomainDetailsMap.detailsFromPath(request.path);
+            var previewDetails = PreviewDetails.fromPath(request.pathname);
             return preview.processAccessRequest(request, previewDetails);
         });
     })
     .use(function (next) {
         return function (request, response) {
             if (preview.isPreview(request)) {
-                var previewDetails = subdomainDetailsMap.detailsFromPath(request.path);
+                var previewDetails = PreviewDetails.fromPath(request.path);
                 if (!previewDetails) {
                     return preview.serveAccessForm(request);
                 }
 
                 return preview.hasAccess(previewDetails, request.session)
                 .then(function (hasAccess) {
-                    var details = subdomainDetailsMap.detailsFromPath(request.path);
                     if (hasAccess) {
-                        var projectWorkspaceUrl = containerManager.getUrl(details);
+                        var projectWorkspaceUrl = containerManager.getUrl(previewDetails);
                         if (!projectWorkspaceUrl) {
                             return preview.serveNoPreviewPage(request);
                         }
@@ -119,7 +117,7 @@ function server(options) {
                             return preview.serveNoPreviewPage(request);
                         });
                     } else {
-                        containerManager.setup(details)
+                        containerManager.setup(previewDetails)
                         .then(function (projectWorkspaceUrl) {
                             if (!projectWorkspaceUrl) {
                                 return;
@@ -228,7 +226,7 @@ function server(options) {
             }
             var details;
             if (preview.isPreview(request)) {
-                var previewDetails = subdomainDetailsMap.detailsFromPath(request.url);
+                var previewDetails = PreviewDetails.fromPath(request.url);
                 return sessions.getSession(request, function (session) {
                     if (previewDetails) {
                         return preview.hasAccess(previewDetails, session);

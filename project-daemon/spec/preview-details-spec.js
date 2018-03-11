@@ -57,4 +57,18 @@ describe("PreviewDetails", function () {
         expect(set.toArray()[1].username).toEqual("two");
     });
 
+    describe("path", function () {
+        it("generates a path", function () {
+            expect(details.toPath()).toEqual("/username/owner/repo/");
+        });
+
+        it("generates a url", function () {
+            expect(details.toUrl("http://base/", "foo/bar")).toEqual("http://base/username/owner/repo/foo/bar");
+        });
+
+        it("can be created from a url", function () {
+            var other = PreviewDetails.fromPath("/username/owner/repo");
+            expect(other).toEqual(details);
+        });
+    });
 });

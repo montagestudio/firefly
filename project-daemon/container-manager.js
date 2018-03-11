@@ -11,11 +11,10 @@ var IMAGE_NAME = "127.0.0.1:5000/project";
 var IMAGE_PORT = 2441;
 
 module.exports = ContainerManager;
-function ContainerManager(docker, services, subdomainDetailsMap, _request) {
+function ContainerManager(docker, services, _request) {
     this.docker = docker;
     this.services = services;
     this.pending = new Map();
-    this.subdomainDetailsMap = subdomainDetailsMap;
     this.GithubService = GithubService;
     // Only used for testing
     this.request = _request || request;
@@ -139,7 +138,7 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
             log("Creating service for", details.toString(), "...");
             track.messageForUsername("create service", details.username, {details: details});
 
-            var subdomain = self.subdomainDetailsMap.subdomainFromDetails(details);
+            var subdomain = details.toPath();
 
             var config = {
                 username: details.username,

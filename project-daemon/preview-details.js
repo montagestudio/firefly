@@ -2,6 +2,8 @@
 // Implements the `equals` and `hash` methods needed for uniqueness in Sets
 // and Maps/
 
+var url = require("url");
+
 module.exports = PreviewDetails;
 function PreviewDetails(username, owner, repo) {
     this.username = username.toLowerCase();
@@ -15,6 +17,17 @@ PreviewDetails.fromObject = function (object) {
     } else {
         return new this(object.username, object.owner, object.repo);
     }
+};
+
+PreviewDetails.fromPath = function (url) {
+    if (url[0] !== "/") {
+        url = "/" + url;
+    }
+    var parts = url.split("/");
+    if (parts.length < 4) {
+        throw new TypeError("Cannot build a PreviewDetails object from " + url);
+    }
+    return new PreviewDetails(parts[1], parts[2], parts[3]);
 };
 
 PreviewDetails.prototype.setPrivate = function(isPrivate) {
@@ -31,4 +44,20 @@ PreviewDetails.prototype.hash = function () {
 
 PreviewDetails.prototype.toString = function () {
     return "[PreviewDetails " + this.username + ", " + this.owner + ", " + this.repo + "]";
+};
+
+PreviewDetails.prototype.toPath = function () {
+    return "/" + this.username + "/" + this.owner + "/" + this.repo + "/";
+};
+
+PreviewDetails.prototype.toUrl = function (base, path) {
+    if (base && path) {
+        return url.resolve(url.resolve(base, this.toPath()), path);
+    } else if (!path) {
+        return url.resolve(base, this.toPath);
+    } else if (!base) {
+        return url.resolve(this.toPath(), path);
+    } else {
+        return this.toPath();
+    }
 };
