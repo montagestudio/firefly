@@ -167,6 +167,12 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
                                 "Source": "/firefly",
                                 "Target": "/srv/firefly",
                                 "Type": "bind"
+                            },
+                            {
+                                "ReadOnly": true,
+                                "Source": "/filament",
+                                "Target": "/srv/filament",
+                                "Type": "bind"
                             }
                         ]
                     },
