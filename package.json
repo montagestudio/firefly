@@ -10,7 +10,7 @@
     "test": "npm test --prefix common && npm test --prefix login && npm test --prefix project-daemon && npm test --prefix project",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "lint": "jshint --verbose .",
-    "start": "docker stack deploy --compose-file docker-compose.yml firefly",
+    "start": "npm run rm-project-services && docker stack deploy --compose-file docker-compose.yml firefly",
     "stop": "npm run rm-project-services && docker stack rm firefly",
     "restart": "./restart-all.sh",
     "rm-project-services": "docker service ls | grep '/project ' | awk '{print $1}' | xargs docker service rm || true",
