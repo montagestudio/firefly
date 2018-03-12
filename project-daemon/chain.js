@@ -3,7 +3,6 @@ var track = require("../common/track");
 var Q = require("q");
 var URL = require("url");
 var joey = require("joey");
-var HTTP = require("q-io/http");
 var APPS = require("q-io/http-apps");
 var environment = require("../common/environment");
 
@@ -11,7 +10,7 @@ var LogStackTraces = require("../common/log-stack-traces");
 var parseCookies = require("../common/parse-cookies");
 var routeProject = require("../common/route-project");
 
-var preview = require("./preview");
+var PreviewManager = require("./preview");
 
 var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
@@ -32,6 +31,8 @@ function server(options) {
     if (!options.containerIndex) throw new Error("options.containerIndex required");
     var containerIndex = options.containerIndex;
     //jshint +W116
+
+    var previewManager = new PreviewManager(containerManager);
 
     var chain = joey
     .error()
@@ -91,65 +92,10 @@ function server(options) {
         .log(log, function (message) { return message; })
         .app(function (request) {
             var previewDetails = PreviewDetails.fromPath(request.pathname);
-            return preview.processAccessRequest(request, previewDetails);
+            return previewManager.processAccessRequest(request, previewDetails);
         });
     })
-    .use(function (next) {
-        return function (request, response) {
-            if (preview.isPreview(request)) {
-                var previewDetails = PreviewDetails.fromPath(request.path);
-                if (!previewDetails) {
-                    return preview.serveAccessForm(request);
-                }
-
-                return preview.hasAccess(previewDetails, request.session)
-                .then(function (hasAccess) {
-                    if (hasAccess) {
-                        var projectWorkspaceUrl = containerManager.getUrl(previewDetails);
-                        if (!projectWorkspaceUrl) {
-                            return preview.serveNoPreviewPage(request);
-                        }
-                        return proxyContainer(request, projectWorkspaceUrl, "static")
-                        .catch(function (error) {
-                            // If there's an error making the request then serve
-                            // the no preview page. The container has probably
-                            // been shut down due to inactivity
-                            return preview.serveNoPreviewPage(request);
-                        });
-                    } else {
-                        containerManager.setup(previewDetails)
-                        .then(function (projectWorkspaceUrl) {
-                            if (!projectWorkspaceUrl) {
-                                return;
-                            }
-                            var code = preview.getAccessCode(previewDetails);
-                            // Chunk into groups of 4 by adding a space after
-                            // every 4th character except if it's at the end of
-                            // the string
-                            code = code.replace(/(....)(?!$)/g, "$1 ");
-                            return HTTP.request({
-                                method: "POST",
-                                url: "http://" + projectWorkspaceUrl + "/notice",
-                                headers: {"content-type": "application/json; charset=utf8"},
-                                body: [JSON.stringify("Preview access code: " + code)]
-                            });
-                        })
-                        .catch(function (error) {
-                            log("*Error with preview access code*", error.stack);
-                            track.error(error, request);
-                        });
-
-                        // Serve the access form regardless, so that people
-                        // can't work out if a project exists or not.
-                        return preview.serveAccessForm(request);
-                    }
-                });
-            } else {
-                // route /:user/:app/:action
-                return next(request, response);
-            }
-        };
-    })
+    .use(previewManager.route)
     .log(log, function (message) { return message; })
     .use(checkSession)
     .route(function (any, GET, PUT, POST) {
@@ -218,30 +164,14 @@ function server(options) {
     });
 
     var proxyAppWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-app");
-    var proxyPreviewWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-preview");
     chain.upgrade = function (request, socket, body) {
         Q.try(function () {
             if (!WebSocket.isWebSocket(request)) {
                 return;
             }
             var details;
-            if (preview.isPreview(request)) {
-                var previewDetails = PreviewDetails.fromPath(request.url);
-                return sessions.getSession(request, function (session) {
-                    if (previewDetails) {
-                        return preview.hasAccess(previewDetails, session);
-                    } else {
-                        return false;
-                    }
-                }).then(function (hasAccess) {
-                    if (hasAccess) {
-                        log("preview websocket", request.headers.host);
-                        return proxyPreviewWebsocket(request, socket, body, previewDetails);
-                    } else {
-                        socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
-                        socket.destroy();
-                    }
-                });
+            if (previewManager.isPreview(request)) {
+                return previewManager.upgrade(request, socket, body);
             } else {
                 log("filament websocket");
                 return sessions.getSession(request, function (session) {
