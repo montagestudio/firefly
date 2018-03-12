@@ -28,7 +28,8 @@ var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function
 var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, subdomain, environment) {
     return function (path) {
         var projectHost = environment.getProjectUrl(subdomain);
-        return projectHost + encodeURI(path);
+        var relativePath = path[0] === "/" ? "." + path : path;
+        return URL.resolve(projectHost, encodeURI(relativePath));
     };
 };
 
