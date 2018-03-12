@@ -155,29 +155,6 @@ If you are running locally, you must run `NODE_ENV=development npm start` instea
 You can then access the server at http://local-aurora.montagestudio.com:2440/.
 local-aurora.montagestudio.com is an alias for localhost.
 
-### Refreshing the server
-
-!! Under Construction - the information in this section is outdated !!
-
-Run `npm run deploy`
-
-You will need to run this whenever you make changes to Firefly only. Changes to
-Filament do not need a server refresh, simply reload the page to see UI changes.
-
-This will restart the `login` and `project` servers, and stop all running
-containers so on the next request they will be restarted with the updated code.
-If either `login` or `project` fail to deploy the previous version will remain
-running and the last 20 lines of the error log will be output.
-
-### Containers
-
-!! Under Construction - the information in this section is outdated !!
-
-Run `npm run container-rm-all` to remove all containers from the project server.
-
-Run `npm run container-rebuild` if you make changes to the `Dockerfile`. This
-will rebuid the base container image.
-
 ### Debugging Node
 
 !! Under Construction - the information in this section is outdated !!
@@ -279,59 +256,6 @@ because it comes from a redirect.
 
 ## Administration
 
-### Accessing logs
-
-!! Under Construction - the information in this section is outdated !!
-
-You can `ssh` into the different machines with `vagrant ssh $NAME`. Files are
-generally located at `/srv`. You can run the commands below to directly follow
-the logs for the different servers:
-
-#### Login
-
-Run `npm run login-logs`
-
-When the server fails to launch:
-
-```bash
-vagrant ssh login -c "tail -f /home/montage/stderr.log"
-vagrant ssh login -c "sudo tail -n 30 /var/log/upstart/firefly-login.log"
-```
-
-#### Project
-
-Run `npm run project-logs`
-
-When the server fails to launch:
-
-```bash
-vagrant ssh project -c "tail -f /home/montage/stderr.log"
-vagrant ssh project -c "sudo tail -n 30 /var/log/upstart/firefly-project.log"
-```
-
-#### Container
-
-Run `npm run container-logs`
-
-This will find the most recently launched container and start following the
-logs.
-
-#### Static file server (Filament)
-
-```bash
-vagrant ssh web-server -c "tail -f /var/log/nginx/filament.access.log"
-```
-
-#### Load balancer
-
-```bash
-vagrant ssh load-balancer -c "tail -f /var/log/haproxy.log"
-```
-
-You can also see the state of the load-balancer (HAProxy) and the servers at
-http://local-aurora.montagestudio.com:2440/admin?stats and logging in with
-user `montage`, password `Mont@ge1789`.
-
 ### Viewing the files inside the container
 
 !! Under Construction - the information in this section is outdated !!
@@ -419,37 +343,6 @@ but it allows all the servers to be relatively stateless.
 Here are some more useful commands if you change any config files or other
 aspects of the provisioning.
 
-#### Upstart services
-
-If you need to change the Upstart config files you need to restart the service:
-
-```bash
-vagrant ssh login -c "sudo cp /vagrant/deploy/services/firefly-login.conf /etc/init/firefly-login.conf"
-vagrant ssh login -c "sudo service firefly-login restart"
-
-vagrant ssh project -c "sudo cp /vagrant/deploy/services/firefly-project.conf /etc/init/firefly-project.conf"
-vagrant ssh project -c "sudo service firefly-project restart"
-```
-
-#### HAProxy config file
-
-The new config needs to be copied across and certain values replaced. (This
-command is adapted from the Vagrantfile).
-
-```bash
-vagrant ssh load-balancer -c "sudo cp /vagrant/deploy/files/haproxy.cfg /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.0.4/' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.0.3/' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/use-server .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server project1 [0-9\.]*/server project1 10.0.0.5/' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server project2 .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg;\
-sudo sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg;\
-sudo service haproxy reload"
-```
-
 ## Contributing
 
 * Run the specs (`npm test`) at the project's root and make sure there are no
@@ -483,28 +376,12 @@ sudo service haproxy reload"
 
 ## Deploying
 
-!! Under Construction - the information in this section is outdated !!
+The development environment is designed to be almost identical to staging and
+production. The main difference is that we use `docker-machine` with the DigitalOcean
+driver instead of VirtualBox.
 
-### Overview
+You will need a DigitalOcean access token to interact with droplets.
 
-The deployment process mainly relies on two third-party tools: `packer` and `tugboat`.
-
-`packer` is used to create images through Digital Ocean. It uses the
-`build/*-image.sh` scripts to set up default values and perform pre-build
-steps, then reads the `./*-image.json` configuration files to walk through its
-image creation process. These .json files are used to describe the properties
-of DigitalOcean droplets (using the standard DO API), to copy configuration
-files from `files` and `services`, and to execute scripts from `provision` on
-the droplets that initialize them for use. Finally packer takes a snapshot of
-the droplet to produce an image (`.iso`) which will be used when deploying.
-
-`tugboat` is used to actually interact with the existing droplets, while
-`packer` creates intermediate temporary droplets just for the purpose of
-snapshotting. It allows us to flash the new images onto existing droplets, ssh
-into them by name, check their statuses, etc. Note: When this deployment
-process was first created there was no equivalent to `tugboat`, but now there
-is an official tool maintained by DigitalOcean, `doctl`, which we should
-migrate to instead.
 
 ### Setup
 
