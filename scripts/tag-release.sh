@@ -3,6 +3,8 @@
 # Tags a release on both the filament and firefly repositories.
 # $1: Version number to use
 
+set -e
+
 function usage {
     echo ""
     echo "Usage: $0 version_number"
