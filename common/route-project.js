@@ -1,3 +1,4 @@
+// TODO: Remove?
 /**
  * The purpose is to determine the project pod a user will connect to and to route the request appropriately
  * Created by pierre on 2/12/2014.
