@@ -36,12 +36,14 @@ popd
 
 bump package.json "$1"
 git commit package.json -m "Bump version v$1"
+git push
 git tag "v$1"
 git push --tags
 
 pushd ../filament
     bump package.json "$1"
     git commit package.json -m "Bump version v$1"
+    git push
     git tag "v$1"
     git push --tags
 popd
