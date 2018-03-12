@@ -257,7 +257,7 @@ exports.EnvironmentBridge = Target.specialize({
             return dependencyNames.map(function (dependencyName) {
                 return {
                     "dependency": dependencyName,
-                    "url": packageUrl + "/node_modules/" + dependencyName,
+                    "url": packageUrl + "node_modules/" + dependencyName,
                     "version": packageInfo.dependencies[dependencyName]
                 };
             });
