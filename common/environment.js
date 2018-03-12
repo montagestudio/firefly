@@ -66,8 +66,8 @@ function Env(options) {
         throw new Error("Deprecated. Use FIXME");
     };
 
-    env.getProjectUrl = function (containerId) {
-        return URL.format(URL.parse(this.project.href + containerId + "/"));
+    env.getProjectUrl = function (containerPath) {
+        return URL.resolve(this.project.href, containerPath);
     };
 
     env.getProjectSubdomain = function (subdomain) {

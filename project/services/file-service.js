@@ -20,8 +20,8 @@ var guard = function (exclude) {
 module.exports = exports = FileService;
 var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function (pathname) {
     return function (url) {
-        // Remove the container ID
-        return decodeURI(URL.parse(url).pathname.replace(/^\/.+?\//, ""));
+        // Remove the details path (/user/owner/repo/)
+        return decodeURI(URL.parse(url).pathname.replace(/^\/.+?\/.+?\/.+?\//, "/"));
     };
 };
 

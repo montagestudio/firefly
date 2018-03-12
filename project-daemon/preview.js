@@ -39,13 +39,15 @@ PreviewManager.prototype.route = function (next) {
             return next(request, response);
         }
 
-        var previewDetails = PreviewDetails.fromPath(request.pathname);
+        var previewDetails = PreviewDetails.fromPath(request.pathInfo);
         return self.hasAccess(previewDetails, request.session).then(function (hasAccess) {
             if (hasAccess) {
                 var projectWorkspaceUrl = self.containerManager.getUrl(previewDetails);
                 if (!projectWorkspaceUrl) {
                     return self.serveNoPreviewPage(request);
                 }
+                // Remove the /user/owner/repo/ part of the URL, project services don't see this
+                request.pathInfo = request.pathInfo.replace(previewDetails.toPath(), "/");
                 return proxyContainer(request, projectWorkspaceUrl, "static")
                 .catch(function (error) {
                     // If there's an error making the request then serve
