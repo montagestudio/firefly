@@ -2,5 +2,5 @@
 
 PROJECT_SERVICES=$(docker service ls | grep '/project ')
 if [ ! -z "${PROJECT_SERVICES}" ]; then
-    awk '{print $1}' "${PROJECT_SERVICES}" | xargs docker service rm
+    echo "${PROJECT_SERVICES}" | awk '{print $1}' | xargs docker service rm
 fi
