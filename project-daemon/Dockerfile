@@ -49,11 +49,8 @@ RUN sudo pip install --upgrade pip
 RUN sudo pip install docker-compose
 RUN docker-compose version
 
-# Define mountable directories.
-VOLUME ['/srv/firefly/']
-
 # Define default command.
-ENTRYPOINT [ "node", "/srv/firefly/project-daemon" ]
+ENTRYPOINT [ "node", "/srv/project-daemon" ]
 
 # Expose ports.
 EXPOSE 2440

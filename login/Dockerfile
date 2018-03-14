@@ -36,11 +36,8 @@ RUN sudo bash nodesource_setup.sh
 RUN apt-get install -y nodejs build-essential && \
     apt-get clean
 
-# Define mountable directories.
-VOLUME ['/srv/firefly/']
-
 # Define default command.
-ENTRYPOINT [ "node", "/srv/firefly/login" ]
+ENTRYPOINT [ "node", "/srv/login" ]
 
 # Expose ports.
 EXPOSE 2440
