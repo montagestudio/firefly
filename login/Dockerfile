@@ -37,7 +37,7 @@ RUN apt-get install -y nodejs build-essential && \
     apt-get clean
 
 # Define default command.
-ENTRYPOINT [ "node", "/srv/login" ]
+ENTRYPOINT [ "node", "/srv/login", "-c", "/srv/filament" ]
 
 # Expose ports.
 EXPOSE 2440
