@@ -24,6 +24,9 @@ SikuliLog.txt
 .packer.d/*
 .node-gyp/*
 
+# Used for tracking, so firefly knows what commit it's on
+**/GIT_HASH
+
 ## jsdoc
 /doc
  
