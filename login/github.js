@@ -6,7 +6,7 @@ var uuid = require("uuid");
 var Http = require("q-io/http");
 var HttpApps = require("q-io/http-apps");
 
-var GithubApi = require("../inject/adaptor/client/core/github-api");
+var GithubApi = require("./common/inject/adaptor/client/core/github-api");
 
 var CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
