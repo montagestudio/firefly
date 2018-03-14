@@ -36,7 +36,6 @@ RUN sudo bash nodesource_setup.sh
 RUN apt-get install -y nodejs build-essential && \
     apt-get clean
 
-COPY .env /srv/
 COPY login/ /srv/
 COPY common/ /srv/login/
 # COPY ../filament /srv/
