@@ -59,5 +59,8 @@ RUN chmod +x /usr/bin/collada2gltf && rm -rf /home/montage/glTF
 
 RUN chown -R montage /home/montage/.npm
 
+COPY . /srv/
+# COPY ../filament /srv/
+
 EXPOSE 2441
 ENTRYPOINT ["node", "/srv/firefly/project/index.js"]

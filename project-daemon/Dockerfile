@@ -49,6 +49,10 @@ RUN sudo pip install --upgrade pip
 RUN sudo pip install docker-compose
 RUN docker-compose version
 
+COPY .env /srv/
+COPY project-daemon/ /srv/
+COPY common/ /srv/project-daemon/
+
 # Define default command.
 ENTRYPOINT [ "node", "/srv/project-daemon" ]
 
