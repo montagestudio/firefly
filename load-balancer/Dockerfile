@@ -39,16 +39,16 @@ RUN apt-get --yes install haproxy=1.5*
 RUN sed -i 's/^ENABLED=.*/ENABLED=1/' /etc/default/haproxy
 
 # Add files.
-ADD etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
-ADD etc/rsyslog.d/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf
-ADD etc/haproxy/errors /etc/haproxy/errors
-ADD etc/ssl/*.pem /etc/ssl/
+ADD load-balancer/etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
+ADD load-balancer/etc/rsyslog.d/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf
+ADD load-balancer/etc/haproxy/errors /etc/haproxy/errors
+ADD load-balancer/etc/ssl/*.pem /etc/ssl/
 
 # Define working directory.
 WORKDIR /etc/haproxy
 
 # Define default command.
-COPY entrypoint.sh /entrypoint.sh
+COPY load-balancer/entrypoint.sh /entrypoint.sh
 RUN chmod u+x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
