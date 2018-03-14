@@ -100,7 +100,7 @@ describe("preview", function () {
                 previewAccess: []
             };
 
-            var host = "1-owner-repo.local-project.montagestudio.com:2440";
+            var host = "1-owner-repo.project.local.montage.studio:2440";
             var url = "http://" + host;
             request = {
                 url: url,

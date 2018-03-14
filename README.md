@@ -26,13 +26,13 @@ Environment Bridge.
                                                            +-----------------------+      +--------------+
 
                 .com is short for the main app domain
-                        local-aurora.montagestudio.com
-                        staging-aurora.montagestudio.com
-                        work.montagestudio.com
+                        local.montage.studio
+                        staging.montage.studio
+                        montage.studio
                 .net is short for the project/preview domain
-                        *.local-project.montagestudio.net
-                        *.staging-project.montagestudio.net
-                        *.project.montagestudio.net
+                        project.local.montage.studio
+                        project.staging.montage.studio
+                        project.montage.studio
 
                 Created with http://www.asciiflow.com/
 
@@ -79,7 +79,7 @@ docker-machine create --driver virtualbox firefly3
 
 Now open the VirtualBox UI. For each machine, open Settings>Shared Folders, and add both filament/ and firefly/ to the shared folders. Check the "auto-mounted" and "permanent" options. This will ensure firefly/ and filament/ are mounted in the root / of each machine and changes made to your local copy of the repository is synced to the VMs. 
 
-Also, open Settings>Network>Adapter 1>Advanced>Port Forwarding for the firefly1 machine. Add an entry with the host IP 127.0.0.1, host port 2440 and guest port 2440. This way Firefly can be reached at local-aurora.montagestudio.com (an alias for localhost) instead of the machine's IP.
+Also, open Settings>Network>Adapter 1>Advanced>Port Forwarding for the firefly1 machine. Add an entry with the host IP 127.0.0.1, host port 2440 and guest port 2440. This way Firefly can be reached at local.montage.studio (an alias for localhost) instead of the machine's IP.
 
 Once that is done, restart each machine:
 
@@ -152,8 +152,8 @@ Run `npm start`. This deploys the firefly stack to the swarm. You can run `npm s
 
 If you are running locally, you must run `NODE_ENV=development npm start` instead to disable https redirection. This will become unnecessary once we add a consistent process for adding self-signed certificates.
 
-You can then access the server at http://local-aurora.montagestudio.com:2440/.
-local-aurora.montagestudio.com is an alias for localhost.
+You can then access the server at http://local.montage.studio:2440/.
+local.montage.studio is an alias for localhost.
 
 ### Debugging Node
 
@@ -242,7 +242,7 @@ the action really was in the past).
 ### Common errors
 
 ```
-XMLHttpRequest cannot load http://local-aurora.montagestudio.com:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
+XMLHttpRequest cannot load http://local.montage.studio:2440/. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
 ```
 
 This happens when the project subdomain doesn't have the session cookie.

@@ -166,11 +166,11 @@ if [[ $PRODUCTION == "TRUE" ]]; then
     tugboat rebuild -n Project4 -m project-image-$BUILD_RELEASE_NAME-$BUILD_REVISION_NUMBER -c
 
     # To generate a certificate on deploy (careful with LetsEncrypt usage limits):
-    lets_encrypt LoadBalancer work.montagestudio.com project.montagestudio.net corentin.debost@kaazing.com
+    lets_encrypt LoadBalancer montage.studio project.montage.studio corentin.debost@kaazing.com
 
     # Or, to copy the certificate in the repository without generating a new one:
-    # tugboat_scp LoadBalancer "${HOME}/deploy/files/work.montagestudio.com.pem" "/srv"
-    # tugboat ssh -n LoadBalancer -c "sudo mkdir -p /etc/haproxy/certs && sudo mv /srv/work.montagestudio.com.pem /etc/haproxy/certs/"
+    # tugboat_scp LoadBalancer "${HOME}/deploy/files/montage.studio.pem" "/srv"
+    # tugboat ssh -n LoadBalancer -c "sudo mkdir -p /etc/haproxy/certs && sudo mv /srv/montage.studio.pem /etc/haproxy/certs/"
     # tugboat ssh -n LoadBalancer -c "sudo service haproxy reload"
 
     rollbar "production" "Login1" "filament" "dccb9acdbffd4c8bbd21247e51a0619e"
@@ -194,10 +194,10 @@ else
     rollbar "staging" "StagingLogin1" "firefly" "80c8078968bf4f9a92aee1af74e46b57"
 
     # To generate a certificate on deploy (careful with LetsEncrypt usage limits):
-    lets_encrypt StagingLoadBalancer staging-aurora.montagestudio.com staging-project.montagestudio.net corentin.debost@kaazing.com
+    lets_encrypt StagingLoadBalancer staging.montage.studio project.staging.montage.studio corentin.debost@kaazing.com
 
     # Or, to copy the certificate in the repository without generating a new one:
-    # tugboat_scp StagingLoadBalancer "${HOME}/deploy/files/staging-aurora.montagestudio.com.pem" "/srv"
-    # tugboat ssh -n StagingLoadBalancer -c "sudo mkdir -p /etc/haproxy/certs && sudo mv /srv/staging-aurora.montagestudio.com.pem /etc/haproxy/certs/"
+    # tugboat_scp StagingLoadBalancer "${HOME}/deploy/files/staging.montage.studio.pem" "/srv"
+    # tugboat ssh -n StagingLoadBalancer -c "sudo mkdir -p /etc/haproxy/certs && sudo mv /srv/staging.montage.studio.pem /etc/haproxy/certs/"
     # tugboat ssh -n StagingLoadBalancer -c "sudo service haproxy reload"
 fi

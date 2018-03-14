@@ -10,25 +10,25 @@ describe("environment", function () {
 
         describe("getAppUrl", function () {
             it("returns a url", function () {
-                expect(environment.getAppUrl()).toEqual("http://local-aurora.montagestudio.com:2440");
+                expect(environment.getAppUrl()).toEqual("http://local.montage.studio:2440");
             });
         });
 
         describe("getProjectUrl", function () {
             it("returns a url", function () {
-                expect(environment.getProjectUrl("/user/owner/repo/")).toEqual("http://local-project.montagestudio.com:2440/user/owner/repo/");
+                expect(environment.getProjectUrl("/user/owner/repo/")).toEqual("http://project.local.montage.studio:2440/user/owner/repo/");
             });
         });
 
         describe("getAppHost", function () {
             it("returns a host", function () {
-                expect(environment.getAppHost()).toEqual("local-aurora.montagestudio.com:2440");
+                expect(environment.getAppHost()).toEqual("local.montage.studio:2440");
             });
         });
 
         describe("getProjectHost", function () {
             it("returns a host", function () {
-                expect(environment.getProjectHost()).toEqual("local-project.montagestudio.com:2440");
+                expect(environment.getProjectHost()).toEqual("project.local.montage.studio:2440");
             });
         });
 

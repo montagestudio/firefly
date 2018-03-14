@@ -11,7 +11,7 @@ describe("preview-server", function () {
     it("should inject the preview scripts into the html file", function(done) {
         var request = {
             scheme: "http",
-            host: "local-project.montagestudio.com:2440",
+            host: "project.local.montage.studio:2440",
             pathname: "/1-owner-repo"
         };
         var response = {

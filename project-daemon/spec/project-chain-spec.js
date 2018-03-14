@@ -64,7 +64,7 @@ describe("project chain", function () {
                 method: "GET",
                 url: "http://127.0.0.1:2440/session?id=" + packed,
                 headers: {
-                    referer: "http://local-aurora.montagestudio.com:2440",
+                    referer: "http://local.montage.studio:2440",
                 }
             })
             .then(function (response) {
@@ -79,7 +79,7 @@ describe("project chain", function () {
                 method: "GET",
                 url: "http://127.0.0.1:2440/session?id=xxx",
                 headers: {
-                    referer: "http://local-aurora.montagestudio.com:2440",
+                    referer: "http://local.montage.studio:2440",
                 }
             })
             .then(function (response) {
