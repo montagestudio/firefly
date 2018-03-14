@@ -1,5 +1,6 @@
 {
   "name": "common",
+  "version": "1.0.0",
   "description": "Common modules shared by multiple Firefly services",
   "scripts": {
     "test": "runSlowSpecs=$runSlowSpecs jasmine-node spec --forceexit"
