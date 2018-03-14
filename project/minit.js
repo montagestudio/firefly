@@ -1,7 +1,7 @@
 var log = require("./common/logging").from(__filename);
 var PATH = require("path");
 var FS = require("q-io/fs");
-var exec = require("./exec");
+var exec = require("./common/exec");
 
 module.exports = Minit;
 function Minit(path) {

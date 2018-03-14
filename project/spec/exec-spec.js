@@ -1,4 +1,4 @@
-var exec = require("../exec");
+var exec = require("../common/exec");
 
 describe("exec", function () {
     if (process.env.runSlowSpecs) {
