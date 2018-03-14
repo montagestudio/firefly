@@ -1,6 +1,6 @@
-var track = require("../common/track");
-var Env = require("../common/environment");
-var log = require("../common/logging").from(__filename);
+var track = require("./common/track");
+var Env = require("./common/environment");
+var log = require("./common/logging").from(__filename);
 // var FS = require("q-io/fs");
 
 /* Catch possible hidden error */
@@ -10,9 +10,9 @@ process.on('uncaughtException', function (err) {
 
 var projectChainFactory = require("./chain");
 
-var GithubSessionStore = require("../common/github-session-store");
-var Session = require("../common/session");
-var CheckSession = require("../common/check-session");
+var GithubSessionStore = require("./common/github-session-store");
+var Session = require("./common/session");
+var CheckSession = require("./common/check-session");
 
 var ContainerManager = require("./container-manager");
 var Dockerode = require("dockerode");

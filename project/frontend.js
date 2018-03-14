@@ -1,4 +1,4 @@
-var log = require("../common/logging").from(__filename);
+var log = require("./common/logging").from(__filename);
 var Q = require("q");
 
 var frontends = {};

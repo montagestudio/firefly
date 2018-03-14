@@ -1,5 +1,5 @@
-var log = require("../common/logging").from(__filename);
-var track = require("../common/track");
+var log = require("./common/logging").from(__filename);
+var track = require("./common/track");
 var Q = require("q");
 var URL = require("url");
 var exec = require("./exec");

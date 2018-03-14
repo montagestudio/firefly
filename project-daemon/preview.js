@@ -1,6 +1,6 @@
-var log = require("../common/logging").from(__filename);
-var track = require("../common/track");
-var environment = require("../common/environment");
+var log = require("./common/logging").from(__filename);
+var track = require("./common/track");
+var environment = require("./common/environment");
 
 var FS = require("q-io/fs");
 var Q = require("q");

@@ -1,5 +1,5 @@
-var Env = require("../common/environment");
-var log = require("../common/logging").from(__filename);
+var Env = require("./common/environment");
+var log = require("./common/logging").from(__filename);
 var FS = require("q-io/fs");
 
 /* Catch possible hidden error */
@@ -9,8 +9,8 @@ process.on('uncaughtException', function (err) {
 
 var loginChainFactory = require("./chain");
 
-var GithubSessionStore = require("../common/github-session-store");
-var Session = require("../common/session");
+var GithubSessionStore = require("./common/github-session-store");
+var Session = require("./common/session");
 
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 

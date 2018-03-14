@@ -1,5 +1,5 @@
-var log = require("../common/logging").from(__filename);
-var track = require("../common/track");
+var log = require("./common/logging").from(__filename);
+var track = require("./common/track");
 var joey = require("joey");
 var JsonApps = require("q-io/http-apps/json");
 

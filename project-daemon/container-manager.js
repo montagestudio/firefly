@@ -1,10 +1,10 @@
-var log = require("../common/logging").from(__filename);
-var track = require("../common/track");
+var log = require("./common/logging").from(__filename);
+var track = require("./common/track");
 var request = require("q-io/http").request;
 var Q = require("q");
-var environment = require("../common/environment");
+var environment = require("./common/environment");
 var PreviewDetails = require("./preview-details");
-var GithubService = require("../common/github-service").GithubService;
+var GithubService = require("./common/github-service").GithubService;
 var Map = require("collections/map");
 
 var IMAGE_NAME = "127.0.0.1:5000/project";
