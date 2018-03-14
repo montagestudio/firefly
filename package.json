@@ -7,7 +7,7 @@
   "scripts": {
     "install": "npm install --prefix common && npm install --prefix login && npm install --prefix project-daemon && npm install --prefix project",
     "build-all-images": "./build-image.sh load-balancer && ./build-image.sh login && ./build-image.sh project && ./build-image.sh project-daemon",
-    "test": "npm test --prefix common && npm test --prefix login && npm test --prefix project-daemon && npm test --prefix project",
+    "test": "npm run lint && npm test --prefix common && npm test --prefix login && npm test --prefix project-daemon && npm test --prefix project",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "lint": "jshint --verbose .",
     "start": "npm run rm-project-services && docker stack deploy --compose-file docker-compose.yml firefly",
