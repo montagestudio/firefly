@@ -42,7 +42,6 @@ services:
     depends_on:
       - static
     volumes:
-      - /firefly/.env:/srv/.env
       - /firefly/login/:/srv/login/
       - /firefly/common/:/srv/login/common/
       - /filament/:/srv/filament/
@@ -64,7 +63,6 @@ services:
     depends_on:
       - static
     volumes:
-      - /firefly/.env:/srv/.env
       - /firefly/project-daemon/:/srv/project-daemon/
       - /firefly/common/:/srv/project-daemon/common/
       - /var/run/docker.sock:/var/run/docker.sock
