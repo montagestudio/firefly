@@ -63,6 +63,8 @@ can control by defining a `docker-compose.yml` file in their project.
 
  3. Install VirtualBox and VirtualBox Guest Additions
 
+ 4. Use npm v4: `nvm use 4`.
+
 ### Create a cluster of docker machines
 
 In order to work with a local setup that closely mirrors staging/production environments, we recommend setting up a Docker Swarm with a cluster of least 3 nodes. These steps only need to be run once.
