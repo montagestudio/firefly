@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Builds the docker image for every directory in services/ that has a Dockerfile
+# Builds the docker image for every directory that has a Dockerfile
 
-for service in $(ls -d services/*); do
+for service in $(ls -d ./*); do
     if [ -f "$service/Dockerfile" ]; then
         scripts/build-service-image.sh $(basename "$service")
         if [ "$?" -ne 0 ]; then
