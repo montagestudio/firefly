@@ -7,7 +7,7 @@
   "scripts": {
     "install": "scripts/npm-recursive.sh install",
     "prune": "scripts/npm-recursive.sh prune",
-    "build": "scripts/build-service-images.sh",
+    "build": "docker build -t firefly . && scripts/build-service-images.sh",
     "lint": "jshint --verbose .",
     "test": "npm run lint && scripts/npm-recursive.sh test",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",

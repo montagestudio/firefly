@@ -3,32 +3,8 @@
 # VERSION 1.1
 
 # TODO upgrade to 16.04 LTS
-FROM ubuntu:14.04
+FROM firefly
 MAINTAINER Corentin Debost <corentin.debost@kaazing.com>
-
-# Set debconf to run non-interactively
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-
-# Install base dependencies
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y -q --no-install-recommends \
-        apt-transport-https \
-        build-essential \
-        ca-certificates \
-        software-properties-common \
-        ssl-cert \
-        curl \
-        git \
-        zip \
-    && apt-get clean \
-    && rm -rf /tmp/* /var/tmp/*  \
-    && rm -rf /var/lib/apt/lists/*
-
-# Node
-RUN curl -sL https://deb.nodesource.com/setup_4.x -o nodesource_setup.sh
-RUN sudo bash nodesource_setup.sh
-RUN apt-get install -y nodejs build-essential && \
-    apt-get clean
 
 RUN adduser --disabled-password --gecos "" montage
 ENV HOME /home/montage
