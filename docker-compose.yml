@@ -3,8 +3,6 @@ version: "3.2"
 services:
   load-balancer:
     image: 127.0.0.1:5000/load-balancer
-    build:
-      context: ./load-balancer/
     networks:
       - frontend
       - backend
@@ -36,8 +34,6 @@ services:
       replicas: 1
   login:
     image: 127.0.0.1:5000/login
-    build:
-      context: ./login/
     networks:
       - backend
     ports:
@@ -52,8 +48,6 @@ services:
       replicas: 1
   project-daemon:
     image: 127.0.0.1:5000/project-daemon
-    build:
-      context: ./project-daemon/
     networks:
       - backend
     ports:
