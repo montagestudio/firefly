@@ -63,8 +63,6 @@ can control by defining a `docker-compose.yml` file in their project.
 
  3. Install VirtualBox and VirtualBox Guest Additions
 
- 4. Install Docker-Machine to create a development cluster
-
 ### Create a cluster of docker machines
 
 In order to work with a local setup that closely mirrors staging/production environments, we recommend setting up a Docker Swarm with a cluster of least 3 nodes. These steps only need to be run once.
@@ -141,10 +139,12 @@ This will create the visualizer on the "firefly1" machine. The interface is acce
 After first cloning the project, you must build all images in the application and push them onto the registry:
 
 ```
-npm run build-all-images
+npm run build
 ```
 
-This may take 20+ minutes the first time as all images must be built from scratch. Images can be built individually with `./build-image.sh <service name>`, but they only ever need to be rebuilt when the Dockerfiles themselves are changed. Changes to the firefly or filament source do not require an image rebuild, the containers must just be restarted.
+This may take 20+ minutes the first time as the base image and all service images must be built from scratch. Afterwards most of the images will be cached so rebuilding will be much faster.
+
+Image building only needs to be done locally if you change any of the Dockerfiles. Otherwise the firefly and filament sources are synced to the images via docker volumes. Changes to firefly only require an update to all the services with `npm start`.
 
 ### Deploy
 
