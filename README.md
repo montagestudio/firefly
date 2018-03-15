@@ -152,8 +152,6 @@ Image building only needs to be done locally if you change any of the Dockerfile
 
 Run `npm start`. This deploys the firefly stack to the swarm. You can run `npm stop` to remove the stack from the swarm.
 
-If you are running locally, you must run `NODE_ENV=development npm start` instead to disable https redirection. This will become unnecessary once we add a consistent process for adding self-signed certificates.
-
 You can then access the server at http://local.montage.studio:2440/.
 local.montage.studio is an alias for localhost.
 
