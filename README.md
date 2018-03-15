@@ -52,18 +52,11 @@ can control by defining a `docker-compose.yml` file in their project.
 
 ## Quickstart
 
- 1. You must check out Filament next to Firefly, so that it looks like this:
+ 1. Install Docker
 
-    ```
-    filament/
-    firefly/
-    ```
+ 2. Install VirtualBox and VirtualBox Guest Additions
 
- 2. Install Docker
-
- 3. Install VirtualBox and VirtualBox Guest Additions
-
- 4. Use npm v4: `nvm use 4`.
+ 3. Use npm v4: `nvm use 4`.
 
 ### Create a cluster of docker machines
 

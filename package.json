@@ -5,7 +5,7 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "install": "scripts/npm-recursive.sh install",
+    "install": "scripts/install-filament.sh && scripts/npm-recursive.sh install",
     "prune": "scripts/npm-recursive.sh prune",
     "build": "docker build -t firefly . && scripts/build-service-images.sh",
     "lint": "jshint --verbose .",
