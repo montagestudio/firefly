@@ -3,4 +3,4 @@
 **/inject/adaptor/client/core/fs-boot.js
 coverage/**
 reports/**
-app/filament
+static/filament
