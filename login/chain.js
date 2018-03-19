@@ -5,7 +5,6 @@ var env = require("./common/environment");
 var Q = require("q");
 
 var HttpApps = require("q-io/http-apps");
-var serveFile = require("./serve-file");
 var parseCookies = require("./common/parse-cookies");
 var GithubAuth = require("./github");
 var checkSession = require("./common/check-session");
@@ -17,10 +16,6 @@ function server(options) {
     options = options || {};
 
     //jshint -W116
-    if (!options.fs) throw new Error("options.fs required");
-    var fs = options.fs;
-    if (!options.client) throw new Error("options.client required");
-    var client = fs.absolute(options.client);
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
     //jshint +W116
@@ -40,16 +35,12 @@ function server(options) {
     .use(sessions)
     .route(function (route) {
         // Public routes only
-
-        var serveLogin = serveFile(fs.join(client, "login", "index.html"), "text/html", fs)();
-        var serveProjects = serveFile(fs.join(client, "project-list", "index.html"), "text/html", fs)();
-        var root = checkSession(function (request) {
+        route("").app(checkSession(function (request) {
             track.message("load project page", request);
-            return serveProjects(request);
-        }, serveLogin);
-        route("").app(root);
+            return HttpApps.Proxy("http://static/app/project-list/index.html")(request);
+        }, HttpApps.Proxy("http://static/app/login/index.html")));
 
-        route("favicon.ico").terminate(serveFile(fs.join(client, "favicon.ico"), "image/x-icon", fs));
+        route("favicon.ico").terminate(HttpApps.Proxy("http://static/app/login/index.html"));
 
         route("auth/...").route(function (route) {
             route("github/...").route(GithubAuth);
@@ -90,9 +81,7 @@ function server(options) {
         route(":owner").redirect("/");
         route(":owner/").redirect("/");
 
-        var index = fs.join(client, "firefly-index.html");
-        var serveApp = serveFile(index, "text/html", fs);
-        route(":owner/:repo").terminate(serveApp);
-        route(":owner/:repo/").terminate(serveApp);
+        route(":owner/:repo").proxy("http://static/app/firefly-index.html");
+        route(":owner/:repo/").proxy("http://static/app/firefly-index.html");
     });
 }

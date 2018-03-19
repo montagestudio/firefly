@@ -8,7 +8,6 @@ MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
 
 COPY login/ /srv/
 COPY common/ /srv/login/
-# COPY ../filament /srv/
 
 # Define default command.
 ENTRYPOINT [ "node", "/srv/login", "-c", "/srv/filament" ]

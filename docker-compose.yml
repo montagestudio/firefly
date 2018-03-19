@@ -44,7 +44,6 @@ services:
     volumes:
       - /firefly/login/:/srv/login/
       - /firefly/common/:/srv/login/common/
-      - /firefly/static/filament/:/srv/filament/
     environment:
       - NODE_ENV
       - FIREFLY_PORT

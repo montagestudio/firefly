@@ -1,6 +1,5 @@
 var Env = require("./common/environment");
 var log = require("./common/logging").from(__filename);
-var FS = require("q-io/fs");
 
 /* Catch possible hidden error */
 process.on('uncaughtException', function (err) {
@@ -15,11 +14,6 @@ var Session = require("./common/session");
 var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
 var commandOptions = {
-    "client": {
-        alias: "c",
-        describe: "A directory containing filament",
-        default: "../filament"
-    },
     "port": {
         alias: "p",
         describe: "The port to run the server on",
@@ -34,11 +28,7 @@ module.exports = main;
 function main(options) {
     var sessions = Session("session", SESSION_SECRET, null, new GithubSessionStore());
 
-    var fs = options.fs || FS;
-
     var loginChain = loginChainFactory({
-        fs: fs,
-        client: options.client,
         sessions: sessions
     });
 
