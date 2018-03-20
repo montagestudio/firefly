@@ -150,7 +150,7 @@ if (!window.performance) {
             // TODO find out why sometimes we make two connections at once.
             return;
         }
-        var containerId = window.location.pathname.split("/")[1];
+        var containerId = window.location.pathname.split("/").slice(1, 4).join("/");
         var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         ws = new WebSocket(protocol + "//" + document.location.host + "/" + containerId);
         ws.onopen = function() {

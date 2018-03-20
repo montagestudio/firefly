@@ -109,7 +109,7 @@ function injectPreviewScripts(request, response, subdomain) {
     })
     .then(function(body) {
         var html = body.toString();
-        var scriptBaseSrc = "/" + subdomain + "/" + CLIENT_FILES + "/";
+        var scriptBaseSrc = subdomain + CLIENT_FILES + "/";
 
         for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
