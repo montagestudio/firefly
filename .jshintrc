@@ -18,7 +18,7 @@
     "maxcomplexity": 10,
     "globals": {
         "CustomEvent": true,
-        "WebSocket": false,
+        "WebSocket": true,
 
         "jasmine": true,
         "beforeEach": false,
@@ -50,6 +50,6 @@
         "clearInterval" : false,
         "setImmediate"  : false,
         "clearImmediate": false,
-        "Promise"       : false
+        "Promise"       : true
     }
 }
