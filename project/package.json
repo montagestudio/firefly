@@ -16,10 +16,11 @@
     "q": "~0.9.7",
     "q-connection": "~0.6.1",
     "q-io": "^1.13.4",
+    "request": "^2.85.0",
     "semver": "2.2.1",
-    "watchr": "2.4.11",
     "ua-parser-js": "~0.6.2",
-    "uuid": "~1.4.1"
+    "uuid": "~1.4.1",
+    "watchr": "2.4.11"
   },
   "devDependencies": {
     "istanbul": "~0.1.44",
