@@ -14,7 +14,7 @@
     "boss": true,
     "eqnull": true,
     "browser": false,
-    "node": false, // Defined below in globals
+    "node": false,
     "maxcomplexity": 10,
     "globals": {
         "CustomEvent": true,
@@ -34,12 +34,11 @@
         "Map": true,
         "Set": true,
 
-        // From https://github.com/jshint/jshint/blob/2.x/src/vars.js#L374-L391
         "__filename"    : false,
         "__dirname"     : false,
         "Buffer"        : false,
-        // "console"    : false, // Use `var log = require("logging").from(__filename);` instead!
-        "exports"       : true,  // In Node it is ok to exports = module.exports = foo();
+        "console"       : false,
+        "exports"       : true,
         "GLOBAL"        : false,
         "global"        : false,
         "module"        : false,
@@ -49,9 +48,8 @@
         "clearTimeout"  : false,
         "setInterval"   : false,
         "clearInterval" : false,
-        "setImmediate"  : false, // v0.9.1+
-        "clearImmediate": false, // v0.9.1+
-
-        "WebSocket"     : true
+        "setImmediate"  : false,
+        "clearImmediate": false,
+        "Promise"       : false
     }
 }
