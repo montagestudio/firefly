@@ -1,10 +1,35 @@
-var Q = require("q");
-var QFS = require("q-io/fs");
 var PATH = require('path');
+var request = require("request");
+var Url = require("url");
+
+var requestPromise = function (url) {
+    return new Promise(function (resolve, reject) {
+        request(url, function (error, response, body) {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(body);
+            }
+        });
+    });
+};
+
+var parseIndexHtml = function (body) {
+    var filePaths = [];
+    var regex = /^<a href="(.*?)">/gm;
+    var matches = /<title>Index of (.*?)<\/title>/.exec(body);
+    var baseUrl = matches[1];
+    while (matches = regex.exec(body)) {
+        filePaths.push(PATH.join(baseUrl, matches[1]));
+    }
+    return filePaths;
+};
 
 module.exports = ExtensionService;
-function ExtensionService(_, fs, environment, __, ___, clientPath) {
-    var extensionsRoot = PATH.join(clientPath, "extensions");
+function ExtensionService(_, fs, environment) {
+    var appHost = environment.getAppUrl();
+    var appExtensionsUrl = Url.resolve(appHost, "app/extensions/");
+    var staticExtensionsUrl = "http://static/app/extensions/";
 
     // Returned service
     var service = {};
@@ -26,98 +51,55 @@ function ExtensionService(_, fs, environment, __, ___, clientPath) {
      * returned bu getAppUrl(). This enable using container URLs.
      */
     var convertPathToExtensionUrl = function (path, base) {
-        var projectHost = environment.getAppUrl() + "/app/extensions",
-            url = null;
-
-        if (new RegExp(extensionsRoot).test(path)) {
-            url = projectHost + path.replace(extensionsRoot, "");
-        } else if (base) {
-            url = base + path;
-        }
-
-        return url;
+        return Url.format(Url.resolve(base || appHost, path));
     };
 
-    var convertExtensionUrlToPath = function (url) {
-        var projectHost = environment.getAppUrl() + "/app/extensions",
-            path = null;
-
-        if (new RegExp(projectHost).test(url)) {
-            path = extensionsRoot + url.replace(projectHost, "");
-        } else {
-            // removes parts scheme://domain:port from the URL
-            path = url.replace(/https?:\/\/[^\/]+/, "");
-        }
-
-        return path;
-    };
-
-    // Return the base of the URL made of scheme://domain:port
-    var getBaseUrl = function (url) {
-        var baseUrl = null,
-            matches = url.match(/https?:\/\/[^\/]+/);
-
-        if (matches.length) {
-            baseUrl = matches[0];
-        }
-
-        return baseUrl;
+    var convertAppExtensionUrlToStaticExtensionUrl = function (extensionUrl) {
+        return extensionUrl.replace(appExtensionsUrl, staticExtensionsUrl);
     };
 
     service.getExtensions = function(extensionFolder) {
-        extensionFolder = extensionFolder || extensionsRoot;
+        extensionFolder = extensionFolder || staticExtensionsUrl;
 
-        return QFS.listTree(extensionFolder, function (filePath) {
-            // if false return null so directories aren't traversed
-            return PATH.extname(filePath).toLowerCase() === ".filament-extension" ? true : (filePath ===  extensionFolder ? false : null);
-        }).then(function (filePaths) {
-            return filePaths.map(function (filePath) {
-                return {url: convertPathToExtensionUrl(filePath)};
+        return requestPromise(extensionFolder)
+            .then(parseIndexHtml)
+            .then(function (filePaths) {
+                return filePaths.map(function (filePath) {
+                    return {url: convertPathToExtensionUrl(filePath)};
+                });
             });
-        });
     };
 
     service.listLibraryItemUrls = function (extensionUrl, packageName) {
-        var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
-            path = convertExtensionUrlToPath(extensionUrl),
-            baseURL = getBaseUrl(extensionUrl),
-            libraryItemsPath = PATH.join(path, "library-items", packageName);
+        var staticUrl = convertAppExtensionUrlToStaticExtensionUrl(extensionUrl);
+        var path = Url.format(Url.resolve(staticUrl, PATH.join("library-items", packageName)));
 
-        return FS.listTree(libraryItemsPath, function (filePath) {
-            return PATH.extname(filePath).toLowerCase() === ".library-item" ? true : (filePath ===  libraryItemsPath ? false : null);
-        }).then(function (filePaths) {
-            return Q.all(filePaths.map(function (filePath) {
-                return FS.stat(filePath).then(function (stat) {
-                    return convertPathToExtensionUrl(filePath, baseURL) + (stat.isDirectory() ? "/" : "");
+        return requestPromise(path)
+            .then(parseIndexHtml)
+            .then(function (filePaths) {
+                return filePaths.map(function (filePath) {
+                    return convertPathToExtensionUrl(filePath);
                 });
-            }));
-        });
+            });
     };
 
     service.loadLibraryItemJson = function (libraryItemJsonUrl) {
-        var FS = (libraryItemJsonUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
-            path = convertExtensionUrlToPath(libraryItemJsonUrl);
-
-        return FS.read(path).then(function(content) {
-            content = content.toString("utf8");
-            var obj = JSON.parse(content);
-            return obj;
-        });
+        var staticUrl = convertAppExtensionUrlToStaticExtensionUrl(libraryItemJsonUrl);
+        return requestPromise(staticUrl)
+            .then(JSON.parse);
     };
 
     service.listModuleIconUrls = function (extensionUrl, packageName) {
-        var FS = (extensionUrl.indexOf(environment.getAppUrl()) !== -1) ? QFS : fs,
-            path = convertExtensionUrlToPath(extensionUrl),
-            baseURL = getBaseUrl(extensionUrl),
-            iconsPath = PATH.join(path, "icons", packageName);
+        var staticUrl = convertAppExtensionUrlToStaticExtensionUrl(extensionUrl);
+        var iconsPath = Url.format(Url.resolve(staticUrl, PATH.join("icons", packageName)));
 
-        return FS.listTree(iconsPath, function (filePath) {
-            return PATH.extname(filePath).toLowerCase() === ".png";
-        }).then(function (filePaths) {
-            return filePaths.map(function (filePath) {
-                return convertPathToExtensionUrl(filePath, baseURL);
+        return requestPromise(iconsPath)
+            .then(parseIndexHtml)
+            .then(function (filePaths) {
+                return filePaths.map(function (filePath) {
+                    return convertPathToExtensionUrl(filePath);
+                });
             });
-        });
     };
 
     return service;

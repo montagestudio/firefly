@@ -19,9 +19,7 @@ describe("login chain", function () {
         sessions = {};
         var chain = loginChain({
             fs: fs,
-            client: "/",
             sessions: MockSession(sessions),
-            clientServices: {},
             directory: ".",
             minitPath: "."
         }).end();

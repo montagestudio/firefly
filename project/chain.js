@@ -28,10 +28,6 @@ function server(options) {
     var workspacePath = options.workspacePath;
     if (!options.fs) throw new Error("options.fs required");
     var fs = options.fs;
-    if (!options.client) throw new Error("options.client required");
-    var clientPath = options.client;
-    if (!options.clientServices) throw new Error("options.clientServices required");
-    var clientServices = options.clientServices;
     //jshint +W116
 
     var preview = Preview(config);
@@ -88,9 +84,6 @@ function server(options) {
     });
 
     var services = {};
-    Object.keys(clientServices).forEach(function (name) {
-        services[name] = require(fs.join(clientPath, clientServices[name]));
-    });
     services["file-service"] = require("./services/file-service");
     services["extension-service"] = require("./services/extension-service");
     services["env-service"] = require("./services/env-service");
@@ -100,7 +93,7 @@ function server(options) {
     services["build-service"] = require("./services/build-service");
     services["asset-converter-service"] = require("./services/asset-converter-service");
 
-    var websocketServer = websocket(config, workspacePath, services, clientPath);
+    var websocketServer = websocket(config, workspacePath, services);
 
     chain.upgrade = function (request, socket, head) {
         Q.try(function () {
