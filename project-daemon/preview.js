@@ -21,7 +21,7 @@ var HOST_ACCESS_CODE_MAP = new Map();
 
 function PreviewManager(containerManager, sessions) {
     this.containerManager = containerManager;
-    this.sessions = this.sessions;
+    this.sessions = sessions;
     this.proxyWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-preview");
     this.route = this.route.bind(this);
 }
@@ -98,7 +98,7 @@ PreviewManager.prototype.upgrade = function (request, socket, body) {
     }).then(function (hasAccess) {
         if (hasAccess) {
             log("preview websocket", request.headers.host);
-            return self.proxyPreviewWebsocket(request, socket, body, previewDetails);
+            return self.proxyWebsocket(request, socket, body, previewDetails);
         } else {
             socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
             socket.destroy();

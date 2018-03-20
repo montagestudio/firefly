@@ -32,7 +32,7 @@ function server(options) {
     var containerIndex = options.containerIndex;
     //jshint +W116
 
-    var previewManager = new PreviewManager(containerManager);
+    var previewManager = new PreviewManager(containerManager, sessions);
 
     var chain = joey
     .error()
