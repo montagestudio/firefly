@@ -164,8 +164,13 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
                         Mounts: [
                             {
                                 "ReadOnly": true,
-                                "Source": "/firefly",
-                                "Target": "/srv/firefly",
+                                "Source": "/firefly/project",
+                                "Target": "/srv/project",
+                                "Type": "bind"
+                            }, {
+                                "ReadOnly": true,
+                                "Source": "/firefly/common",
+                                "Target": "/srv/project/common",
                                 "Type": "bind"
                             }
                         ]

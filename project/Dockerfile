@@ -4,7 +4,7 @@
 
 # TODO upgrade to 16.04 LTS
 FROM firefly
-MAINTAINER Corentin Debost <corentin.debost@kaazing.com>
+LABEL author="Corentin Debost <corentin.debost@kaazing.com>"
 
 RUN adduser --disabled-password --gecos "" montage
 ENV HOME /home/montage
@@ -35,8 +35,7 @@ RUN chmod +x /usr/bin/collada2gltf && rm -rf /home/montage/glTF
 
 RUN chown -R montage /home/montage/.npm
 
-COPY . /srv/
-# COPY ../filament /srv/
+COPY project/ /srv/
 
 EXPOSE 2441
-ENTRYPOINT ["node", "/srv/firefly/project/index.js"]
+ENTRYPOINT ["node", "/srv/project/index.js"]
