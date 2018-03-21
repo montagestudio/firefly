@@ -6,11 +6,11 @@
 FROM firefly
 MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
 
-COPY login/ /srv/
-COPY common/ /srv/login/
+COPY login/ /srv/login/
+COPY common/ /srv/login/common/
 
 # Define default command.
-ENTRYPOINT [ "node", "/srv/login", "-c", "/srv/filament" ]
+ENTRYPOINT [ "node", "/srv/login" ]
 
 # Expose ports.
 EXPOSE 2440
