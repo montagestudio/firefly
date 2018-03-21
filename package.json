@@ -13,7 +13,7 @@
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "start": "scripts/start.sh",
     "stop": "scripts/stop.sh",
-    "restart": "./restart-all.sh",
+    "restart": "npm run stop && npm run start",
     "rm-project-services": "scripts/rm-project-services.sh",
     "deploy": "deploy/vagrant/deploy.sh",
     "login-debug": "vagrant ssh login -c 'sudo pkill -USR1 -u montage -f \"nodejs /srv/firefly\" && node-inspector --web-port=8104'",
