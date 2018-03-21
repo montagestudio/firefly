@@ -11,8 +11,9 @@ var RepositoryService = require("../../services/repository-service").service;
 
 var executeFile = function(scriptName, destPath, onlyLastLine) {
     var deferred = Q.defer();
+    var reposPath = PATH.join(__dirname, "..", "fixtures", "repos");
 
-    exec("cd ./project/spec/fixtures/repos/; chmod +x " + scriptName + "; pwd", function(error, stdout) {
+    exec("cd " + reposPath + "; chmod +x " + scriptName + "; pwd", function(error, stdout) {
         var scriptPath = PATH.join(stdout.trim(), scriptName);
         execFile(scriptPath, [destPath], function(error, stdout) {
             if (error) {
