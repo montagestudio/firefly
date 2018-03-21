@@ -2,7 +2,6 @@
 #
 # VERSION 1.1
 
-# TODO upgrade to 16.04 LTS
 FROM firefly
 LABEL author="Corentin Debost <corentin.debost@kaazing.com>"
 

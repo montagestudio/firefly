@@ -2,6 +2,7 @@
 #
 # VERSION 1.1
 
+# TODO move to 16.04 LTS
 FROM ubuntu:14.04
 LABEL author="Corentin Debost <corentin.debost@kaazing.com>"
 

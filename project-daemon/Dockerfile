@@ -2,7 +2,6 @@
 #
 # VERSION 1.1
 
-# TODO move to 16.04 LTS
 FROM firefly
 LABEL author="Harold Thetiot <harold.thetiot@montagestudio.com>"
 
