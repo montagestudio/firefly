@@ -35,7 +35,8 @@ RUN chmod +x /usr/bin/collada2gltf && rm -rf /home/montage/glTF
 
 RUN chown -R montage /home/montage/.npm
 
-COPY project/ /srv/
+COPY project/ /srv/project
+COPY common/ /srv/project/common
 
 EXPOSE 2441
 ENTRYPOINT ["node", "/srv/project/index.js"]
