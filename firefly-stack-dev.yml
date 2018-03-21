@@ -1,0 +1,79 @@
+version: "3.2"
+
+services:
+  load-balancer:
+    image: 127.0.0.1:5000/load-balancer
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "2440:80"
+    depends_on:
+      - static
+      - login
+      - project-daemon
+    environment:
+      - NODE_ENV
+    deploy:
+      replicas: 1
+  static:
+    image: nginx
+    networks:
+      - backend
+    ports:
+      - "8183:80"
+    volumes:
+      - ./static/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static/filament/:/srv/app/
+      - ./common/inject/adaptor/:/srv/app/adaptor/
+    deploy:
+      replicas: 1
+  login:
+    image: 127.0.0.1:5000/login
+    networks:
+      - backend
+    ports:
+      - "8184:2440"
+      - "8104:8104"
+    depends_on:
+      - static
+    volumes:
+      - ./login/:/srv/login/
+      - ./common/:/srv/login/common/
+    environment:
+      - NODE_ENV
+      - FIREFLY_PORT
+      - FIREFLY_APP_URL
+      - FIREFLY_PROJECT_URL
+      - GITHUB_CLIENT_ID
+      - GITHUB_CLIENT_SECRET
+    deploy:
+      replicas: 1
+  project-daemon:
+    image: 127.0.0.1:5000/project-daemon
+    networks:
+      - backend
+    ports:
+      - "8185:2440"
+      - "8105:8105"
+    depends_on:
+      - static
+    volumes:
+      - ./project-daemon/:/srv/project-daemon/
+      - ./common/:/srv/project-daemon/common/
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - NODE_ENV
+      - WORKING_DIR
+      - FIREFLY_PORT
+      - FIREFLY_APP_URL
+      - FIREFLY_PROJECT_URL
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      replicas: 1
+
+networks:
+    frontend:
+    backend:
+      attachable: true

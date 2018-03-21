@@ -7,11 +7,8 @@ services:
       - frontend
       - backend
     ports:
-      # TODO Choose port conditionally based on env
-      # We should use 2440 for dev and 80 for staging/prod
-      - "2440:80"
-      #- "80:80"
-      #- "443:443"
+      - "80:80"
+      - "443:443"
     depends_on:
       - static
       - login
@@ -26,10 +23,6 @@ services:
       - backend
     ports:
       - "8183:80"
-    volumes:
-      - ./static/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./static/filament/:/srv/app/
-      - ./common/inject/adaptor/:/srv/app/adaptor/
     deploy:
       replicas: 1
   login:
@@ -41,9 +34,6 @@ services:
       - "8104:8104"
     depends_on:
       - static
-    volumes:
-      - ./login/:/srv/login/
-      - ./common/:/srv/login/common/
     environment:
       - NODE_ENV
       - FIREFLY_PORT
@@ -63,12 +53,9 @@ services:
     depends_on:
       - static
     volumes:
-      - ./project-daemon/:/srv/project-daemon/
-      - ./common/:/srv/project-daemon/common/
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - NODE_ENV
-      - WORKING_DIR
       - FIREFLY_PORT
       - FIREFLY_APP_URL
       - FIREFLY_PROJECT_URL
