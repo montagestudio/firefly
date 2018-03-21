@@ -41,12 +41,10 @@ before_script:
 script:
   - npm run lint
   - sleep 25
-  # TODO: Improve to check containers are actually created.
-  # How does travis get filament and firefly into machines?
-  - docker service ls | grep -q load-balancer
-  - docker service ls | grep -q login
-  - docker service ls | grep -q static
-  - docker service ls | grep -q project-daemon
+  - docker ps | grep -q load-balancer
+  - docker ps | grep -q login
+  - docker ps | grep -q static
+  - docker ps | grep -q project-daemon
   - runSlowSpecs=true npm test
 after_script:
   - npm stop
