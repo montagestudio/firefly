@@ -12,6 +12,8 @@ services:
       - static
       - login
       - project-daemon
+    volumes:
+      - ./load-balancer/etc/haproxy/haproxy.cfg:/etc/haproxy/haproxy.cfg:ro
     environment:
       - NODE_ENV
     deploy:
