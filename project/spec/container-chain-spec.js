@@ -28,8 +28,7 @@ describe("container chain", function () {
                     "index.html": "pass"
                 }
             }),
-            client: "/client",
-            clientServices: []
+            request: mockRequest
         }).end();
 
         request = function (req) {

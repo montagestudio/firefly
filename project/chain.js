@@ -28,6 +28,8 @@ function server(options) {
     var workspacePath = options.workspacePath;
     if (!options.fs) throw new Error("options.fs required");
     var fs = options.fs;
+    if (!options.request) throw new Error("options.request required");
+    var request = options.request;
     //jshint +W116
 
     var preview = Preview(config);
@@ -93,7 +95,7 @@ function server(options) {
     services["build-service"] = require("./services/build-service");
     services["asset-converter-service"] = require("./services/asset-converter-service");
 
-    var websocketServer = websocket(config, workspacePath, services);
+    var websocketServer = websocket(config, workspacePath, services, request);
 
     chain.upgrade = function (request, socket, head) {
         Q.try(function () {

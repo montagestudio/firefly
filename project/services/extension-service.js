@@ -1,8 +1,7 @@
 var PATH = require('path');
-var request = require("request");
 var Url = require("url");
 
-var requestPromise = function (url) {
+var requestPromise = function (request, url) {
     return new Promise(function (resolve, reject) {
         request(url, function (error, response, body) {
             if (error) {
@@ -29,7 +28,7 @@ var parseIndexHtml = function (body) {
 };
 
 module.exports = ExtensionService;
-function ExtensionService(_, fs, environment) {
+function ExtensionService(_, fs, environment, __, ___, request) {
     var appHost = environment.getAppUrl();
     var appExtensionsUrl = Url.resolve(appHost, "app/extensions/");
     var staticExtensionsUrl = "http://static/app/extensions/";
@@ -64,7 +63,7 @@ function ExtensionService(_, fs, environment) {
     service.getExtensions = function(extensionFolder) {
         extensionFolder = extensionFolder || staticExtensionsUrl;
 
-        return requestPromise(extensionFolder)
+        return requestPromise(request, extensionFolder)
             .then(parseIndexHtml)
             .then(function (filePaths) {
                 return filePaths.map(function (filePath) {
@@ -77,7 +76,7 @@ function ExtensionService(_, fs, environment) {
         var staticUrl = convertAppExtensionUrlToStaticExtensionUrl(extensionUrl);
         var path = Url.format(Url.resolve(staticUrl, PATH.join("library-items", packageName)));
 
-        return requestPromise(path)
+        return requestPromise(request, path)
             .then(parseIndexHtml)
             .then(function (filePaths) {
                 return filePaths.map(function (filePath) {
@@ -88,7 +87,7 @@ function ExtensionService(_, fs, environment) {
 
     service.loadLibraryItemJson = function (libraryItemJsonUrl) {
         var staticUrl = convertAppExtensionUrlToStaticExtensionUrl(libraryItemJsonUrl);
-        return requestPromise(staticUrl)
+        return requestPromise(request, staticUrl)
             .then(JSON.parse);
     };
 
@@ -96,7 +95,7 @@ function ExtensionService(_, fs, environment) {
         var staticUrl = convertAppExtensionUrlToStaticExtensionUrl(extensionUrl);
         var iconsPath = Url.format(Url.resolve(staticUrl, PATH.join("icons", packageName)));
 
-        return requestPromise(iconsPath)
+        return requestPromise(request, iconsPath)
             .then(parseIndexHtml)
             .then(function (filePaths) {
                 return filePaths.map(function (filePath) {

@@ -37,10 +37,10 @@ describe("websocket", function () {
             expect(testServiceFn.mostRecentCall.args[3]).toEqual(fsPath);
         });
 
-        it("passes in clientPath", function () {
-            var clientPath = "pass";
-            websocket.makeServices(services, null, null, null, null, clientPath);
-            expect(testServiceFn.mostRecentCall.args[4]).toEqual(clientPath);
+        it("passes in request", function () {
+            var request = Function.noop();
+            websocket.makeServices(services, null, null, null, null, request);
+            expect(testServiceFn.mostRecentCall.args[4]).toEqual(request);
         });
     });
 

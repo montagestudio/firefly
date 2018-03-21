@@ -15,7 +15,7 @@ var Frontend = require("./frontend");
 var websocketConnections = 0;
 
 module.exports = websocket;
-function websocket(config, workspacePath, services, clientPath) {
+function websocket(config, workspacePath, services, request) {
     log("Websocket given services", Object.keys(services));
 
     return function (request, socket, body, wsQueue) {
@@ -38,7 +38,7 @@ function websocket(config, workspacePath, services, clientPath) {
         log("Limiting", remoteAddress, pathname, "to", workspacePath);
         var connectionServices = FS.reroot(workspacePath)
         .then(function (fs) {
-            return makeServices(services, config, fs, Env, pathname, workspacePath, clientPath);
+            return makeServices(services, config, fs, Env, pathname, workspacePath, request);
         });
 
         // Throw errors if they happen in establishing services
@@ -81,11 +81,11 @@ function websocket(config, workspacePath, services, clientPath) {
 
 // export for testing
 module.exports.makeServices = makeServices;
-function makeServices(services, config, fs, env, pathname, fsPath, clientPath) {
+function makeServices(services, config, fs, env, pathname, fsPath, request) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
-        var service = services[name](config, fs, env, pathname, fsPath, clientPath);
+        var service = services[name](config, fs, env, pathname, fsPath, request);
         connectionServices[name] = Q.master(service);
     });
     log("Finished creating services");

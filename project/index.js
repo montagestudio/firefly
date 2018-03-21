@@ -28,6 +28,7 @@ var log = require("./common/logging").from(__filename);
 var track = require("./common/track");
 var FS = require("q-io/fs");
 var Mop = require("./mop");
+var request = require("request");
 
 /* Catch possible hidden error */
 process.on('uncaughtException', function (err) {
@@ -76,7 +77,8 @@ function main(options) {
         fs: fs,
         config: config,
         workspacePath: options.directory,
-        setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, minitPath)
+        setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, minitPath),
+        request: request 
     });
     return containerChain.listen(options.port)
     .then(function (server) {
