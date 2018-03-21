@@ -58,56 +58,23 @@ can control by defining a `docker-compose.yml` file in their project.
 
  3. Use npm v4: `nvm use 4`.
 
-### Create a cluster of docker machines
+### Create a swarm
 
-In order to work with a local setup that closely mirrors staging/production environments, we recommend setting up a Docker Swarm with a cluster of least 3 nodes. These steps only need to be run once.
-
-Use docker-machine to create three VMs:
+For ease of development, Firefly is deployed locally in a swarm running natively on the guest OS. First, initialize a swarm with a single node (your machine):
 
 ```
-docker-machine create --driver virtualbox firefly1
-docker-machine create --driver virtualbox firefly2
-docker-machine create --driver virtualbox firefly3
+docker swarm init
 ```
 
-Now open the VirtualBox UI. For each machine, open Settings>Shared Folders, and add both filament/ and firefly/ to the shared folders. Check the "auto-mounted" and "permanent" options. This will ensure firefly/ and filament/ are mounted in the root / of each machine and changes made to your local copy of the repository is synced to the VMs. 
-
-Also, open Settings>Network>Adapter 1>Advanced>Port Forwarding for the firefly1 machine. Add an entry with the host IP 127.0.0.1, host port 2440 and guest port 2440. This way Firefly can be reached at local.montage.studio (an alias for localhost) instead of the machine's IP.
-
-Once that is done, restart each machine:
+If the command complains about not being able to choose an IP address to advertise, choose your main IP address (check `ifconfig`) and specify it as your advertise address as follows:
 
 ```
-docker-machine restart firefly1 firefly2 firefly3
+docker swarm init --advertise-addr <YOUR_IP>
 ```
-
-### Create the swarm
-
-Now, use `docker-machine ls` to check that all your machines are created, and look for the IP address of the "firefly1" node.
-
-Instruct the "firefly1" node to become a swarm manager:
-
-```
-docker-machine ssh firefly1 "docker swarm init --advertise-addr <firefly1 ip>"
-```
-
-The command above will output a command for adding workers to the swarm. Add the other two nodes as workers:
-
-```
-docker-machine ssh firefly2 "docker swarm join --token <token> <firefly1 ip>"
-docker-machine ssh firefly3 "docker swarm join --token <token> <firefly1 ip>"
-```
-
-Run `docker-machine ssh firefly1 "docker node ls"` to check the status of the swarm. Now Docker Swarm will distribute service containers across the different nodes.
-
-### Configure your shell
-
-Now that the cluster is initialized, you will need to configure your shell to communicate with the manager node's Docker daemon instead of the local daemon. That way you can run Docker commands directly without wrapping them in a `docker-machine ssh` call.
-
-Run `docker-machine env firefly1` to get the command to configure your shell. The command will look something like `eval $(docker-machine env firefly)`. Use `docker-machine ls` to verify that the active machine is now firefly 1. Note that this process must be repeated for any new shell that you open.
 
 ### Create a registry
 
-In order for services to be deployed across the swarm, each node in the swarm must have each service's image built. Rather than building each separately on each node, we use a docker registry to publish images and make them available to all nodes in the cluster. Create a local registry in your swarm:
+In order to deploy services across the swarm, each node in the swarm must have each service's image built. Rather than building each service separately on each node, we use a docker registry to publish images and make them available to all nodes in the cluster. Create a local registry in your swarm:
 
 ```
 docker service create --name docker-registry --publish 5000:5000 --detach=true \
@@ -121,13 +88,13 @@ The swarm now has access to a local registry at `127.0.0.1:5000` which it can us
 For ease of debugging and inspecting the swarm, you may add a swarm visualizer service to a cluster manager node. The visualizer provides a UI to see the different nodes in your swarm, see which services are running where, and what the status of every container is. Create the visualizer:
 
 ```
-docker run -it -d --rm --name swarm-visualizer \
+docker service create -d --name swarm-visualizer \
   -p 5001:8080 \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
   dockersamples/visualizer
 ```
 
-This will create the visualizer on the "firefly1" machine. The interface is accessible at <FIREFLY1 IP ADDR>:5001. Note that because the visualizer is not a service, it will not be accessible from other nodes in the swarm.
+This will create a web application at 127.0.0.1:5001. You can use this to see which services as currently deployed.
 
 ### Build images
 
@@ -367,6 +334,53 @@ aspects of the provisioning.
 
 * Indent by 4 spaces, not tabs
 
+## Testing with a more prod-like setup
+
+### Create a cluster of docker machines
+
+In order to work with a local setup that closely mirrors staging/production environments, we recommend setting up a Docker Swarm with a cluster of least 3 nodes. These steps only need to be run once.
+
+Use docker-machine to create three VMs:
+
+```
+docker-machine create --driver virtualbox firefly1
+docker-machine create --driver virtualbox firefly2
+docker-machine create --driver virtualbox firefly3
+```
+
+Now open the VirtualBox UI. Open Settings>Network>Adapter 1>Advanced>Port Forwarding for the firefly1 machine. Add an entry with the host IP 127.0.0.1, host port 2440 and guest port 2440. This way Firefly can be reached at local.montage.studio (an alias for localhost) instead of the machine's IP.
+
+Once that is done, restart each machine:
+
+```
+docker-machine restart firefly1 firefly2 firefly3
+```
+
+### Create the swarm
+
+Now, use `docker-machine ls` to check that all your machines are created, and look for the IP address of the "firefly1" node.
+
+Instruct the "firefly1" node to become a swarm manager:
+
+```
+docker-machine ssh firefly1 "docker swarm init --advertise-addr <firefly1 ip>"
+```
+
+The command above will output a command for adding workers to the swarm. Add the other two nodes as workers:
+
+```
+docker-machine ssh firefly2 "docker swarm join --token <token> <firefly1 ip>"
+docker-machine ssh firefly3 "docker swarm join --token <token> <firefly1 ip>"
+```
+
+Run `docker-machine ssh firefly1 "docker node ls"` to check the status of the swarm. Now Docker Swarm will distribute service containers across the different nodes.
+
+### Configure your shell
+
+Now that the cluster is initialized, you will need to configure your shell to communicate with the manager node's Docker daemon instead of the local daemon. That way you can run Docker commands directly without wrapping them in a `docker-machine ssh` call.
+
+Run `docker-machine env firefly1` to get the command to configure your shell. The command will look something like `eval $(docker-machine env firefly)`. Use `docker-machine ls` to verify that the active machine is now firefly 1. Note that this process must be repeated for any new shell that you open.
+
 ## Deploying
 
 The development environment is designed to be almost identical to staging and
@@ -374,7 +388,6 @@ production. The main difference is that we use `docker-machine` with the Digital
 driver instead of VirtualBox.
 
 You will need a DigitalOcean access token to interact with droplets.
-
 
 ### Setup
 
