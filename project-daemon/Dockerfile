@@ -4,7 +4,7 @@
 
 # TODO move to 16.04 LTS
 FROM firefly
-MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
+LABEL author="Harold Thetiot <harold.thetiot@montagestudio.com>"
 
 # Docker
 RUN curl -sSL "https://get.docker.com/gpg" | sudo -E apt-key add -

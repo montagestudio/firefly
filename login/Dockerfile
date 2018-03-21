@@ -4,7 +4,7 @@
 
 # TODO move to 16.04 LTS
 FROM firefly
-MAINTAINER Harold Thetiot <harold.thetiot@montagestudio.com>
+LABEL author="Harold Thetiot <harold.thetiot@montagestudio.com>"
 
 COPY login/ /srv/login/
 COPY common/ /srv/login/common/
