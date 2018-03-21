@@ -163,6 +163,11 @@ ProjectWorkspace.prototype.saveFile = function(filename, contents) {
         throw new Error("Contents missing.");
     }
 
+    // Since filename is passed in the request's body, it's going to have the
+    // project subdomain in the path. We need to remove this to get the fs file name
+    if (filename.indexOf(this._config.subdomain) === 0) {
+        filename = filename.substring(this._config.subdomain.length);
+    }
     log("save file: " + this._workspacePath + "/" + filename);
     return this._fs.reroot(this._workspacePath)
     .then(function(fs) {

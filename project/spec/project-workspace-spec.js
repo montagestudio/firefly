@@ -18,7 +18,8 @@ describe("ProjectWorkspace", function () {
         tmpPath = "/tmp/git-clone-spec-" + Date.now() + Math.floor(Math.random() * 999999);
         config = {
             username: "jdoe",
-            githubUser: githubUser
+            githubUser: githubUser,
+            subdomain: "/jdoe/owner/repo/"
         };
         owner = "owner";
         repo = "repo";
