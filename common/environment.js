@@ -1,8 +1,13 @@
 var log = require("./logging").from(__filename);
 var URL = require("url");
 
+if (process.env.NODE_ENV === "test") {
+    var path = require("path");
+    require("dotenv").config({ path: path.join(__dirname, "..", "env", "development.env") });
+}
+
 function Env(options) {
-    var env = options || {  production: process.env.NODE_ENV === "production" };
+    var env = options || { production: process.env.NODE_ENV === "production" };
 
     log("production", env.production);
 

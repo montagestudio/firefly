@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
-    "dotenv": "^0.2.8",
     "logging": "montagestudio/logging.git",
     "github": "^0.2.3",
     "q": "~0.9.7",
@@ -17,6 +16,7 @@
     "xmlhttprequest": "~1.6.0"
   },
   "devDependencies": {
+    "dotenv": "^5.0.1",
     "istanbul": "~0.1.44",
     "jasmine-node": "~1.14.0",
     "rewire": "^2.1.3"
