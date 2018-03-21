@@ -17,7 +17,7 @@ services:
     deploy:
       replicas: 1
   static:
-    image: nginx
+    image: 127.0.0.1:5000/static
     networks:
       - backend
     ports:
