@@ -13,7 +13,7 @@ function check_cleaned {
     # $1: # of consecutive attempts
 
     set +e
-    docker stack rm firefly
+    docker stack rm firefly &> /dev/null
 
     if [ ! $? -eq 0 ]; then
         set -e
