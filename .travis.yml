@@ -36,7 +36,7 @@ before_script:
   - export DOCKER_CLIENT_TIMEOUT=120
   - docker swarm init
   - docker service create --name docker-registry --publish 5000:5000 --detach=true registry:2
-  - npm run build-all-images
+  - npm run build
   - npm start
 script:
   - npm run lint
