@@ -12,7 +12,7 @@
     "test": "npm run lint && scripts/npm-recursive.sh test",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "start": "scripts/start.sh",
-    "stop": "npm run rm-project-services && docker stack rm firefly",
+    "stop": "scripts/stop.sh",
     "restart": "./restart-all.sh",
     "rm-project-services": "scripts/rm-project-services.sh",
     "deploy": "deploy/vagrant/deploy.sh",
