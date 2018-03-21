@@ -164,13 +164,13 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
                         Mounts: [
                             {
                                 "ReadOnly": true,
-                                "Source": "/firefly/project",
-                                "Target": "/srv/project",
+                                "Source": process.env.WORKING_DIR + "/project/",
+                                "Target": "/srv/project/",
                                 "Type": "bind"
                             }, {
                                 "ReadOnly": true,
-                                "Source": "/firefly/common",
-                                "Target": "/srv/project/common",
+                                "Source": process.env.WORKING_DIR + "/common/",
+                                "Target": "/srv/project/common/",
                                 "Type": "bind"
                             }
                         ]
@@ -181,7 +181,7 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
                         }
                     ],
                     Placement: {
-                        Constraints: [
+                        Constraints: process.env.NODE_ENV === "development" ? [] : [
                             "node.role == worker"
                         ]
                     },
