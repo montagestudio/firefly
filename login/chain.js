@@ -18,6 +18,8 @@ function server(options) {
     //jshint -W116
     if (!options.sessions) throw new Error("options.sessions required");
     var sessions = options.sessions;
+    if (!options.proxyMiddleware) throw new Error("options.proxyMiddleware required");
+    var proxyMiddleware = options.proxyMiddleware;
     //jshint +W116
 
     return joey
@@ -37,10 +39,10 @@ function server(options) {
         // Public routes only
         route("").app(checkSession(function (request) {
             track.message("load project page", request);
-            return HttpApps.Proxy("http://static/app/project-list/index.html")(request);
-        }, HttpApps.Proxy("http://static/app/login/index.html")));
+            return proxyMiddleware("http://static/app/project-list/index.html")(request);
+        }, proxyMiddleware("http://static/app/login/index.html")));
 
-        route("favicon.ico").terminate(HttpApps.Proxy("http://static/app/login/index.html"));
+        route("favicon.ico").terminate(proxyMiddleware("http://static/app/login/index.html"));
 
         route("auth/...").route(function (route) {
             route("github/...").route(GithubAuth);
