@@ -1,27 +1,35 @@
 var ExtensionService = require("../../services/extension-service");
-var MockFs = require("q-io/fs-mock");
+var fs = require("fs");
 var PATH = require("path");
 
 describe("extension-service", function () {
-    var fs, service;
+    var service;
     beforeEach(function () {
-        fs = MockFs({
-            "core": {
-                "core.js": ""
-            },
-            "package.json": "{}"
-        });
+        var env = {
+            getAppUrl: function () {
+                return "http://example.com";
+            }
+        };
+        var request = function (url, cb) {
+            var requestPath = url.replace("http://static/", "/");
+            var fsPath = PATH.join(__dirname, "..", "fixtures", requestPath.replace(/^\/app\//, "/"));
+            var stat = fs.statSync(fsPath);
+            var entries, body;
+            if (stat.isDirectory()) {
+                // Fake a nginx index page
+                entries = fs.readdirSync(fsPath);
+                body = "<html><body><title>Index of " + requestPath + "</title>";
+                body += entries.map(function (entry) {
+                    return "\n<a href=\"" + entry + "\">" + entry + "</a>";
+                }).join("");
+                body += "</body></html>";
+            } else {
+                body = fs.readFileSync(fsPath).toString("utf-8");
+            }
+            cb(null, null, body);
+        };
 
-        service = ExtensionService(null, null,
-            {
-                getAppUrl: function () {
-                    return "http://example.com";
-                }
-            },
-            null,
-            null,
-            PATH.join(__dirname, "..", "fixtures")
-        );
+        service = ExtensionService(null, null, env, null, null, request);
     });
 
     describe("getExtensions", function () {
