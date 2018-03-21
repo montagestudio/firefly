@@ -161,7 +161,7 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
                             "FIREFLY_PROJECT_URL=" + environment.project.href,
                             "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
                         ],
-                        Mounts: [
+                        Mounts: process.env.USE_SRC_DOCKER_VOLUMES ? [
                             {
                                 "ReadOnly": true,
                                 "Source": process.env.WORKING_DIR + "/project/",
@@ -173,7 +173,7 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
                                 "Target": "/srv/project/common/",
                                 "Type": "bind"
                             }
-                        ]
+                        ] : []
                     },
                     Networks: [
                         {
@@ -181,7 +181,7 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
                         }
                     ],
                     Placement: {
-                        Constraints: process.env.NODE_ENV === "development" ? [] : [
+                        Constraints: process.env.SWARM_SINGLE_NODE ? [] : [
                             "node.role == worker"
                         ]
                     },

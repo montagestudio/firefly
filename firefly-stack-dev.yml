@@ -65,6 +65,8 @@ services:
     environment:
       - NODE_ENV
       - WORKING_DIR
+      - USE_SRC_DOCKER_VOLUMES
+      - SWARM_SINGLE_NODE
       - FIREFLY_PORT
       - FIREFLY_APP_URL
       - FIREFLY_PROJECT_URL
