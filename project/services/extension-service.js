@@ -18,9 +18,12 @@ var parseIndexHtml = function (body) {
     var filePaths = [];
     var regex = /^<a href="(.*?)">/gm;
     var matches = /<title>Index of (.*?)<\/title>/.exec(body);
-    var baseUrl = matches[1];
-    while (matches = regex.exec(body)) {
-        filePaths.push(PATH.join(baseUrl, matches[1]));
+    var baseUrl;
+    if (matches) {
+        baseUrl = matches[1];
+        while (matches = regex.exec(body)) {
+            filePaths.push(PATH.join(baseUrl, matches[1]));
+        }
     }
     return filePaths;
 };
