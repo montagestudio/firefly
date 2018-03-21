@@ -23,7 +23,7 @@ describe("preview-server", function () {
             headers: {}
         };
 
-        PreviewServer.injectPreviewScripts(request, response, "1-owner-repo")
+        PreviewServer.injectPreviewScripts(request, response, "/user/owner/repo/")
         .then(function(response) {
             var foundPreview = false;
             var foundLiveEdit = false;
@@ -31,10 +31,10 @@ describe("preview-server", function () {
             var parser = new htmlparser.Parser({
                 onopentag: function(name, attribs){
                     if (name === "script") {
-                        if (attribs.src === "/1-owner-repo/{$PREVIEW}/preview.js") {
+                        if (attribs.src === "/user/owner/repo/{$PREVIEW}/preview.js") {
                             foundPreview = true;
                         }
-                        if (attribs.src === "/1-owner-repo/{$PREVIEW}/live-edit.js") {
+                        if (attribs.src === "/user/owner/repo/{$PREVIEW}/live-edit.js") {
                             foundLiveEdit = true;
                         }
                     }
