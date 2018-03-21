@@ -18,19 +18,19 @@ module.exports = websocket;
 function websocket(config, workspacePath, services, request) {
     log("Websocket given services", Object.keys(services));
 
-    return function (request, socket, body, wsQueue) {
+    return function (req, socket, body, wsQueue) {
         activity.increaseToolConnections();
 
-        wsQueue = wsQueue || adaptWebsocket(new WebSocket(request, socket, body, ["firefly-app"]));
+        wsQueue = wsQueue || adaptWebsocket(new WebSocket(req, socket, body, ["firefly-app"]));
 
-        var pathname = URL.parse(request.url).pathname;
+        var pathname = URL.parse(req.url).pathname;
         // used for logging
         var remoteAddress = socket.remoteAddress;
         var frontendId;
         var frontend;
 
-        request.session = { username: config.username };
-        track.message("connect websocket", request);
+        req.session = { username: config.username };
+        track.message("connect websocket", req);
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
         frontendId = uuid.v4();
