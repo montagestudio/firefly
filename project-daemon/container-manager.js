@@ -191,8 +191,8 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
                         }
                     },
                     RestartPolicy: {
-                        Condition: "any",
-                        MaxAttempts: 10
+                        Condition: "on-failure",
+                        MaxAttempts: 5
                     }
                 },
                 Mode: {
