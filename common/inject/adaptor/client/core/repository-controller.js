@@ -204,6 +204,7 @@ exports.RepositoryController = Montage.specialize({
 
     saveFile: {
         value: function(filename, contents) {
+            filename = this._removeProjectIdFromPath(filename);
             return this._request({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/save",
@@ -224,6 +225,16 @@ exports.RepositoryController = Montage.specialize({
                     message: message
                 }
             });
+        }
+    },
+
+    _projectIdRegex: {
+        value: /^\/.+?\/.+?\/.+?\//
+    },
+
+    _removeProjectIdFromPath: {
+        value: function (path) {
+            return path.replace(this._projectIdRegex, "");
         }
     },
 
