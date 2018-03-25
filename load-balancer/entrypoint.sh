@@ -3,13 +3,6 @@
 # Wait a few seconds to give other containers enough time to start their servers
 sleep 5s
 
-# TODO: Temporary hack to work like the old Vagrant environment. We should
-# be using https for local dev too.
-echo "$NODE_ENV"
-if [ "$NODE_ENV" == development ] || [ "$NODE_ENV" == development-no-volumes ]; then
-    sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg
-fi
-
 service rsyslog restart
 service haproxy start && service haproxy reload
 

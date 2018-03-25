@@ -15,7 +15,7 @@ describe("CheckSession", function () {
         checkSession({})
         .then(function (response) {
             expect(response.status).toEqual(302);
-            expect(response.headers.Location).toEqual("http://local.montage.studio:2440");
+            expect(response.headers.Location).toEqual("https://local.montage.studio:2440");
         })
         .done(done, done);
     });

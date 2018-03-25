@@ -10,13 +10,13 @@ describe("environment", function () {
 
         describe("getAppUrl", function () {
             it("returns a url", function () {
-                expect(environment.getAppUrl()).toEqual("http://local.montage.studio:2440");
+                expect(environment.getAppUrl()).toEqual("https://local.montage.studio:2440");
             });
         });
 
         describe("getProjectUrl", function () {
             it("returns a url", function () {
-                expect(environment.getProjectUrl("/user/owner/repo/")).toEqual("http://project.local.montage.studio:2440/user/owner/repo/");
+                expect(environment.getProjectUrl("/user/owner/repo/")).toEqual("https://project.local.montage.studio:2440/user/owner/repo/");
             });
         });
 

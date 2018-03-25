@@ -88,7 +88,7 @@ docker service create -d --name swarm-visualizer \
   dockersamples/visualizer
 ```
 
-This will create a web application at 127.0.0.1:5001. You can use this to see which services as currently deployed.
+This will create a web application at 127.0.0.1:5001. You can use this to see which services are currently deployed.
 
 ### Build images
 
@@ -102,11 +102,25 @@ This may take 20+ minutes the first time as the base image and all service image
 
 Image building only needs to be done locally if you change any of the Dockerfiles. Otherwise the firefly and filament sources are synced to the images via docker volumes. Changes to firefly only require an update to all the services with `npm start`.
 
+### Enabling HTTPS in development
+
+Firefly is served locally over https. In order to have the browser trust local.montage.studio, create a local CA and a a signed cert with:
+
+```
+npm run generate-local-certificate
+```
+
+This uses the configuration files in `ssl/` to create a certificate + private key for a local CA (named Kaazing Local) and a `local.montage.studio.pem` file for use in the load balancer.
+
+Next, open the certificate settings in chrome (chrome://settings/certificates). Open the "Authorities" tab, click "IMPORT", and select the `cacert.pem` file that was just generated in `ssl/`. Finally, restart Chrome. Now the browser will trust the certificate and will allow loading Firefly over https. Importing the CA certificate only needs to be done once, as the script will not re-create the `cacert.pem` file if it already exists. The `firefly-stack-dev.yml` swarm file used in development takes care of synchronizing the generated `local.montage.studio.pem` to the load balancer.
+
+If you need to add a new domain to Firefly, add the domain under the "[ alternate names ]" section of `ssl/openssl-server.cnf` and run `npm run generate-local-certificate` again.
+
 ### Deploy
 
 Run `npm start`. This deploys the firefly stack to the swarm. You can run `npm stop` to remove the stack from the swarm.
 
-You can then access the server at http://local.montage.studio:2440/.
+You can then access the server at https://local.montage.studio:2440/.
 local.montage.studio is an alias for localhost.
 
 ## Developing

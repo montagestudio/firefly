@@ -18,7 +18,6 @@ RUN sed -i 's/^ENABLED=.*/ENABLED=1/' /etc/default/haproxy
 ADD load-balancer/etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
 ADD load-balancer/etc/rsyslog.d/30-haproxy.conf /etc/rsyslog.d/30-haproxy.conf
 ADD load-balancer/etc/haproxy/errors /etc/haproxy/errors
-ADD load-balancer/etc/ssl/*.pem /etc/ssl/
 
 # Define working directory.
 WORKDIR /etc/haproxy

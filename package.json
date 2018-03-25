@@ -8,6 +8,7 @@
     "install": "scripts/install-filament.sh && scripts/npm-recursive.sh install",
     "prune": "scripts/npm-recursive.sh prune",
     "build": "docker build -t firefly . && scripts/build-service-images.sh",
+    "generate-local-certificate": "scripts/generate-local-certificate.sh",
     "lint": "jshint --verbose .",
     "test": "npm run lint && scripts/npm-recursive.sh test",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",

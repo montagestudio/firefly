@@ -7,13 +7,14 @@ services:
       - frontend
       - backend
     ports:
-      - "2440:80"
+      - "2440:443"
     depends_on:
       - static
       - login
       - project-daemon
     volumes:
       - ./load-balancer/etc/haproxy/haproxy.cfg:/etc/haproxy/haproxy.cfg:ro
+      - ./ssl/local.montage.studio.pem:/etc/ssl/montage.studio.pem:ro 
     environment:
       - NODE_ENV
     deploy:
