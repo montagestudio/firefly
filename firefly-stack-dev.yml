@@ -23,8 +23,6 @@ services:
     image: 127.0.0.1:5000/static
     networks:
       - backend
-    ports:
-      - "8183:80"
     volumes:
       - ./static/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./static/filament/:/srv/app/
@@ -36,7 +34,6 @@ services:
     networks:
       - backend
     ports:
-      - "8184:2440"
       - "8104:8104"
     depends_on:
       - static
@@ -57,7 +54,6 @@ services:
     networks:
       - backend
     ports:
-      - "8185:2440"
       - "8105:8105"
     depends_on:
       - static
