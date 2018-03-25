@@ -16,7 +16,8 @@ log.txt
 *$py.class
 SikuliLog.txt
 static/filament/
-ssl/*.pem
+ssl/*
+!ssl/*.cnf
 
 ## Build
 /dist
