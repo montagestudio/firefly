@@ -3,7 +3,7 @@ var track = require("./common/track");
 var request = require("q-io/http").request;
 var Q = require("q");
 var environment = require("./common/environment");
-var PreviewDetails = require("./preview-details");
+var ProjectInfo = require("./common/project-info");
 var GithubService = require("./common/github-service").GithubService;
 var Map = require("collections/map");
 
@@ -20,79 +20,68 @@ function ContainerManager(docker, services, _request) {
     this.request = _request || request;
 }
 
-ContainerManager.prototype.setup = function (details, githubAccessToken, githubUser) {
+ContainerManager.prototype.setup = function (info, githubAccessToken, githubUser) {
     var self = this;
 
-    if (!(details instanceof PreviewDetails)) {
-        throw new Error("Given details was not an instance of PreviewDetails");
+    if (!(info instanceof ProjectInfo)) {
+        throw new Error("Given info was not an instance of ProjectInfo");
     }
 
-    var service = self.services.get(details);
+    var service = self.services.get(info);
     if (!service && (!githubAccessToken || !githubUser)) {
         return Q(false);
     }
 
-    var setup = this.pending.get(details);
+    var setup = this.pending.get(info);
     if (!setup) {
-        setup = this.get(details)
+        setup = this.get(info)
         .then(function (service) {
-            return service || self.create(details, githubAccessToken, githubUser);
+            return service || self.create(info, githubAccessToken, githubUser);
         })
         .then(function (service) {
-            return self.waitForServer(self.getUrl(details));
+            return self.waitForServer(info.url);
         })
         .catch(function (error) {
-            log("Removing container for", details.toString(), "because", error.message);
+            log("Removing container for", info.toString(), "because", error.message);
 
-            return self.delete(details)
+            return self.delete(info)
             .catch(function (error) {
-                track.errorForUsername(error, details.username, {details: details});
+                track.errorForUsername(error, info.username, {info: info});
             })
             .then(function () {
-                track.errorForUsername(error, details.username, {details: details});
+                track.errorForUsername(error, info.username, {info: info});
                 throw error;
             });
         })
         .then(function (url) {
-            self.pending.delete(details);
+            self.pending.delete(info);
             return url;
         });
 
-        this.pending.set(details, setup);
+        this.pending.set(info, setup);
     }
     return setup;
 };
 
-/**
- * Get the base URL of a given container, including address and port.
- * @param  {string} user
- * @param  {string} owner
- * @param  {string} repo
- * @return {string}       The port of the container, or `undefined`
- */
-ContainerManager.prototype.getUrl = function (details) {
-    return this.services.get(details).name + ':' + IMAGE_PORT;
-};
-
-ContainerManager.prototype.delete = function (details) {
+ContainerManager.prototype.delete = function (info) {
     var self = this;
-    return Q.resolve(this.services.get(details))
+    return Q.resolve(this.services.get(info))
     .then(function (service) {
         return service.remove();
     })
     .finally(function () {
-        self.services.delete(details);
+        self.services.delete(info);
     });
 };
 
-ContainerManager.prototype._getRepoPrivacy = function(details, githubAccessToken) {
-    if (typeof details.private === 'undefined' && githubAccessToken) {
+ContainerManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
+    if (typeof info.private === 'undefined' && githubAccessToken) {
         var githubService = new this.GithubService(githubAccessToken);
-        return githubService.getRepo(details.owner, details.repo).then(function(repoInfo) {
+        return githubService.getRepo(info.owner, info.repo).then(function(repoInfo) {
             return Q.resolve(repoInfo.private);
         });
     } else {
-        return Q.resolve(details.private);
+        return Q.resolve(info.private);
     }
 };
 
@@ -106,51 +95,51 @@ ContainerManager.prototype._getRepoPrivacy = function(details, githubAccessToken
  * @param  {string} repo  The name of the repo
  * @return {Promise.<Object>} An object of information about the service
  */
-ContainerManager.prototype.get = function (details) {
+ContainerManager.prototype.get = function (info) {
     var self = this;
-    var service = self.services.get(details);
+    var service = self.services.get(info);
     if (service) {
         return Q(service);
     }
     var discover = this.docker.listServices()
     .then(function (services) {
         var existingService = services.filter(function (s) {
-            return s.Spec && s.Spec.Name === serviceName(details);
+            return s.Spec && s.Spec.Name === info.serviceName;
         })[0];
         if (existingService) {
-            log("Discovered an existing service for", details.toString(), "that was created by another daemon in the swarm");
-            existingService.name = serviceName(details);
-            self.services.set(details, existingService);
+            log("Discovered an existing service for", info.toString(), "that was created by another daemon in the swarm");
+            existingService.name = info.serviceName;
+            self.services.set(info, existingService);
             return existingService;
         }
     });
     return discover;
 };
 
-ContainerManager.prototype.create = function (details, githubAccessToken, githubUser) {
+ContainerManager.prototype.create = function (info, githubAccessToken, githubUser) {
     var self = this;
-    var pending = this._getRepoPrivacy(details, githubAccessToken)
+    var pending = this._getRepoPrivacy(info, githubAccessToken)
         .then(function (isPrivate) {
             if (isPrivate) {
-                details.setPrivate(true);
+                info.setPrivate(true);
             }
 
-            log("Creating service for", details.toString(), "...");
-            track.messageForUsername("create service", details.username, {details: details});
+            log("Creating service for", info.toString(), "...");
+            track.messageForUsername("create service", info.username, {info: info});
 
-            var subdomain = details.toPath();
+            var subdomain = info.toPath();
 
             var config = {
-                username: details.username,
-                owner: details.owner,
-                repo: details.repo,
+                username: info.username,
+                owner: info.owner,
+                repo: info.repo,
                 githubAccessToken: githubAccessToken,
                 githubUser: githubUser,
                 subdomain: subdomain
             };
 
             var options = {
-                Name: serviceName(details),
+                Name: info.serviceName,
                 TaskTemplate: {
                     ContainerSpec: {
                         Image: IMAGE_NAME,
@@ -205,13 +194,13 @@ ContainerManager.prototype.create = function (details, githubAccessToken, github
             return self.docker.createService(options);
         })
         .then(function (service) {
-            log("Created service", service.id, "for", details.toString());
-            service.name = serviceName(details);
-            self.services.set(details, service);
+            log("Created service", service.id, "for", info.toString());
+            service.name = info.serviceName;
+            self.services.set(info, service);
             return service;
         });
 
-    this.pending.set(details, pending);
+    this.pending.set(info, pending);
     return pending;
 };
 
@@ -246,15 +235,3 @@ ContainerManager.prototype.waitForServer = function (url, timeout, error) {
     })
     .thenResolve(url);
 };
-
-var REPLACE_RE = /[^a-zA-Z0-9\-]/g;
-function serviceName(details) {
-    // Remove all characters that don't match the RE at the bottom of
-    // http://docs.docker.io/en/latest/reference/api/docker_remote_api_v1.10/#create-a-container
-    // (excluding "_", because we use that ourselves)
-    var username = details.username.replace(REPLACE_RE, "");
-    var owner = details.owner.replace(REPLACE_RE, "");
-    var repo = details.repo.replace(REPLACE_RE, "");
-
-    return username + "_" + owner + "_" + repo;
-}

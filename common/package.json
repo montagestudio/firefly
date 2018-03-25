@@ -16,6 +16,7 @@
     "xmlhttprequest": "~1.6.0"
   },
   "devDependencies": {
+    "collections": "~0.2.2",
     "dotenv": "^5.0.1",
     "istanbul": "~0.1.44",
     "jasmine-node": "~1.14.0",

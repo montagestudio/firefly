@@ -8,7 +8,7 @@ var HTTP = require("q-io/http");
 var HttpApps = require("q-io/http-apps/fs");
 var querystring = require("querystring");
 var generateAccessCode = require("./generate-access-code");
-var PreviewDetails = require("./preview-details");
+var ProjectInfo = require("./common/project-info");
 var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var Set = require("collections/set");
@@ -39,16 +39,15 @@ PreviewManager.prototype.route = function (next) {
             return next(request, response);
         }
 
-        var previewDetails = PreviewDetails.fromPath(request.pathInfo);
-        return self.hasAccess(previewDetails, request.session).then(function (hasAccess) {
+        var projectInfo = ProjectInfo.fromPath(request.pathInfo);
+        return self.hasAccess(projectInfo, request.session).then(function (hasAccess) {
             if (hasAccess) {
-                var projectWorkspaceUrl = self.containerManager.getUrl(previewDetails);
-                if (!projectWorkspaceUrl) {
+                if (!projectInfo.url) {
                     return self.serveNoPreviewPage(request);
                 }
                 // Remove the /user/owner/repo/ part of the URL, project services don't see this
-                request.pathInfo = request.pathInfo.replace(previewDetails.toPath(), "/");
-                return proxyContainer(request, projectWorkspaceUrl, "static")
+                request.pathInfo = request.pathInfo.replace(projectInfo.toPath(), "/");
+                return proxyContainer(request, projectInfo.url, "static")
                 .catch(function (error) {
                     // If there's an error making the request then serve
                     // the no preview page. The container has probably
@@ -56,12 +55,12 @@ PreviewManager.prototype.route = function (next) {
                     return self.serveNoPreviewPage(request);
                 });
             } else {
-                self.containerManager.setup(previewDetails)
+                self.containerManager.setup(projectInfo)
                 .then(function (projectWorkspaceUrl) {
                     if (!projectWorkspaceUrl) {
                         return;
                     }
-                    var code = self.getAccessCode(previewDetails);
+                    var code = self.getAccessCode(projectInfo);
                     // Chunk into groups of 4 by adding a space after
                     // every 4th character except if it's at the end of
                     // the string
@@ -88,17 +87,17 @@ PreviewManager.prototype.route = function (next) {
 
 PreviewManager.prototype.upgrade = function (request, socket, body) {
     var self = this,
-        previewDetails = PreviewDetails.fromPath(request.url);
+        projectInfo = ProjectInfo.fromPath(request.url);
     return this.sessions.getSession(request, function (session) {
-        if (previewDetails) {
-            return self.hasAccess(previewDetails, session);
+        if (projectInfo) {
+            return self.hasAccess(projectInfo, session);
         } else {
             return false;
         }
     }).then(function (hasAccess) {
         if (hasAccess) {
             log("preview websocket", request.headers.host);
-            return self.proxyWebsocket(request, socket, body, previewDetails);
+            return self.proxyWebsocket(request, socket, body, projectInfo);
         } else {
             socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
             socket.destroy();
@@ -111,26 +110,26 @@ PreviewManager.prototype.upgrade = function (request, socket, body) {
  * All other users will only have access if they have been authenticated to see
  * this preview and the owner has it open in the tool.
  */
-PreviewManager.prototype.hasAccess = function (previewDetails, session) {
+PreviewManager.prototype.hasAccess = function (projectInfo, session) {
     return Q.try(function () {
         if (session && session.githubUser) {
             return session.githubUser.then(function (githubUser) {
                 // The user doesn't need to have explicit access to its own previews.
-                var access = githubUser && githubUser.login.toLowerCase() === previewDetails.username;
+                var access = githubUser && githubUser.login.toLowerCase() === projectInfo.username;
 
-                return access || has3rdPartyAccess(previewDetails, session);
+                return access || has3rdPartyAccess(projectInfo, session);
             });
-        } else if (previewDetails.private) {
-            return has3rdPartyAccess(previewDetails, session);
+        } else if (projectInfo.private) {
+            return has3rdPartyAccess(projectInfo, session);
         } else {
             return true;
         }
     });
 };
 
-function has3rdPartyAccess(previewDetails, session) {
+function has3rdPartyAccess(projectInfo, session) {
     if (session && session.previewAccess) {
-        return session.previewAccess.has(previewDetails);
+        return session.previewAccess.has(projectInfo);
     } else {
         return false;
     }
@@ -152,14 +151,14 @@ PreviewManager.prototype.serveNoPreviewPage = function (request) {
     });
 };
 
-PreviewManager.prototype.processAccessRequest = function (request, previewDetails) {
+PreviewManager.prototype.processAccessRequest = function (request, projectInfo) {
     // Get code from the body data
     return request.body.read()
     .then(function(body) {
         if (body.length > 0) {
             var query = querystring.parse(body.toString());
 
-            maybeGrantAccessToPreview(query.code, previewDetails, request.session);
+            maybeGrantAccessToPreview(query.code, projectInfo, request.session);
         }
 
         // 302 - Temporary redirect using GET
@@ -172,28 +171,28 @@ PreviewManager.prototype.processAccessRequest = function (request, previewDetail
     });
 };
 
-PreviewManager.prototype.getAccessCode = function (previewDetails) {
-    var code = HOST_ACCESS_CODE_MAP.get(previewDetails);
+PreviewManager.prototype.getAccessCode = function (projectInfo) {
+    var code = HOST_ACCESS_CODE_MAP.get(projectInfo);
     if (!code) {
         code = generateAccessCode();
-        HOST_ACCESS_CODE_MAP.set(previewDetails, code);
+        HOST_ACCESS_CODE_MAP.set(projectInfo, code);
     }
     return code;
 };
 
-function maybeGrantAccessToPreview(code, previewDetails, session) {
+function maybeGrantAccessToPreview(code, projectInfo, session) {
     if (code) {
         // strip whitespace and make lowercase
         code = code.replace(/\s/g, "").toLowerCase();
-        var accessCode = PreviewManager.prototype.getAccessCode(previewDetails);
+        var accessCode = PreviewManager.prototype.getAccessCode(projectInfo);
 
         if (code === accessCode) {
             if (session.previewAccess) {
-                session.previewAccess.add(previewDetails);
+                session.previewAccess.add(projectInfo);
             } else {
-                session.previewAccess = Set([previewDetails]);
+                session.previewAccess = Set([projectInfo]);
             }
-            log("access granted ", previewDetails);
+            log("access granted ", projectInfo);
             return true;
         }
     }

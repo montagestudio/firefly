@@ -9,13 +9,13 @@ var environment = require("./common/environment");
 var LogStackTraces = require("./common/log-stack-traces");
 var parseCookies = require("./common/parse-cookies");
 var routeProject = require("./common/route-project");
+var ProjectInfo = require("./common/project-info");
 
 var PreviewManager = require("./preview");
 
 var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
-var PreviewDetails = require("./preview-details");
 
 module.exports = server;
 function server(options) {
@@ -91,8 +91,8 @@ function server(options) {
         POST("access")
         .log(log, function (message) { return message; })
         .app(function (request) {
-            var previewDetails = PreviewDetails.fromPath(request.pathname);
-            return previewManager.processAccessRequest(request, previewDetails);
+            var projectInfo = ProjectInfo.fromPath(request.pathname);
+            return previewManager.processAccessRequest(request, projectInfo);
         });
     })
     .use(previewManager.route)
@@ -111,7 +111,7 @@ function server(options) {
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
                 return containerManager.setup(
-                    new PreviewDetails(
+                    new ProjectInfo(
                         session.username,
                         request.params.owner,
                         request.params.repo
@@ -148,7 +148,7 @@ function server(options) {
             var session = request.session;
             return session.githubUser.then(function (githubUser) {
                 return containerManager.setup(
-                    new PreviewDetails(
+                    new ProjectInfo(
                         session.username,
                         request.params.owner,
                         request.params.repo
@@ -176,7 +176,7 @@ function server(options) {
                 log("filament websocket");
                 return sessions.getSession(request, function (session) {
                     details = environment.getDetailsFromAppUrl(request.url);
-                    details = new PreviewDetails(session.username, details.owner, details.repo);
+                    details = new ProjectInfo(session.username, details.owner, details.repo);
                     return proxyAppWebsocket(request, socket, body, details);
                 });
             }
