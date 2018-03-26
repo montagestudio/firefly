@@ -37,12 +37,9 @@ function server(options) {
     .use(sessions)
     .route(function (route, GET) {
         // Public routes only
-        route("").app(checkSession(function (request) {
-            track.message("load project page", request);
-            return proxyMiddleware("http://static/app/index.html")(request);
-        }, proxyMiddleware("http://static/app/login/index.html")));
+        route("").app(proxyMiddleware("http://static/app/index.html"));
 
-        route("favicon.ico").terminate(proxyMiddleware("http://static/app/login/index.html"));
+        route("favicon.ico").terminate(proxyMiddleware("http://static/app/assets/img/favicon.ico"));
 
         GET("auth").app(function (request) {
             return Promise.resolve(request.session && request.session.githubUser)

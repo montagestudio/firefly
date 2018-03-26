@@ -6,13 +6,9 @@ var mockRequest = require("../common/spec/mocks/request");
 describe("login chain", function () {
     var request, sessions;
     beforeEach(function () {
-        var mockStaticFiles = {
-            "http://static/app/index.html": "pass",
-            "http://static/app/login/index.html": "login"
-        };
         var proxyMiddlewareMock = function (path) {
             return function () {
-                var body = mockStaticFiles[path];
+                var body = "app";
                 return Q({
                     status: body ? 200 : 404,
                     headers: {
@@ -64,11 +60,11 @@ describe("login chain", function () {
 
         describe("when not authenticated", function () {
 
-            it("serves login app at /", function (done) {
+            it("serves app at /", function (done) {
                 request("http://127.0.0.1:2440/")
                 .then(function (response) {
                     expect(response.status).toEqual(200);
-                    expect(response.body.toString("utf8")).toEqual("login");
+                    expect(response.body.toString("utf8")).toEqual("app");
                 }).then(done, done);
             });
 
@@ -101,7 +97,7 @@ describe("login chain", function () {
                 })
                 .then(function (response) {
                     expect(response.status).toEqual(200);
-                    expect(response.body.toString("utf8")).toEqual("pass");
+                    expect(response.body.toString("utf8")).toEqual("app");
                 }).then(done, done);
             });
         });
