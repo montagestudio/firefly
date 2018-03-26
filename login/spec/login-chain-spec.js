@@ -33,6 +33,33 @@ describe("login chain", function () {
         };
     });
 
+    describe("/auth", function () {
+        it("returns 200 when authenticated", function (done) {
+            var headers;
+            sessions["abc-123"] = {
+                username: "test",
+                githubUser: Q({})
+            };
+            headers = {
+                "cookie": "session=abc-123"
+            };
+
+            request({
+                url: "http://127.0.0.1:2440/auth",
+                headers: headers
+            }).then(function (response) {
+                expect(response.status).toBe(200);
+            }).then(done, done);
+        });
+
+        it("returns 401 when not authenticated", function (done) {
+            request("http://localhost:2440/auth")
+            .then(function (response) {
+                expect(response.status).toBe(401);
+            }).then(done, done);
+        });
+    });
+
     describe("firefly index", function () {
 
         describe("when not authenticated", function () {

@@ -35,14 +35,29 @@ function server(options) {
     .parseQuery()
     .tap(parseCookies)
     .use(sessions)
-    .route(function (route) {
+    .route(function (route, GET) {
         // Public routes only
         route("").app(checkSession(function (request) {
             track.message("load project page", request);
-            return proxyMiddleware("http://static/app/project-list/index.html")(request);
+            return proxyMiddleware("http://static/app/index.html")(request);
         }, proxyMiddleware("http://static/app/login/index.html")));
 
         route("favicon.ico").terminate(proxyMiddleware("http://static/app/login/index.html"));
+
+        GET("auth").app(function (request) {
+            return Promise.resolve(request.session && request.session.githubUser)
+                .then(function (githubUser) {
+                    if (githubUser) {
+                        return HttpApps.responseForStatus(request, 200);
+                    } else {
+                        return HttpApps.responseForStatus(request, 401);
+                    }
+                })
+                .catch(function (error) {
+                    log("*" + error.stack + "*");
+                    return HttpApps.responseForStatus(request, 500);
+                });
+        });
 
         route("auth/...").route(function (route) {
             route("github/...").route(GithubAuth);
