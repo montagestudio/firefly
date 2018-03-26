@@ -83,7 +83,7 @@ function server(options) {
         route(":owner").redirect("/");
         route(":owner/").redirect("/");
 
-        route(":owner/:repo").proxy("http://static/app/firefly-index.html");
-        route(":owner/:repo/").proxy("http://static/app/firefly-index.html");
+        route(":owner/:repo").proxy("http://static/app/index.html");
+        route(":owner/:repo/").proxy("http://static/app/index.html");
     });
 }
