@@ -7,9 +7,8 @@ describe("login chain", function () {
     var request, sessions;
     beforeEach(function () {
         var mockStaticFiles = {
-            "http://static/app/firefly-index.html": "pass",
-            "http://static/app/login/index.html": "login",
-            "http://static/app/project-list/index.html": "projects"
+            "http://static/app/index.html": "pass",
+            "http://static/app/login/index.html": "login"
         };
         var proxyMiddlewareMock = function (path) {
             return function () {
@@ -68,14 +67,14 @@ describe("login chain", function () {
                 };
             });
 
-            it("serves project-list app at /", function (done) {
+            it("serves app at /", function (done) {
                 request({
                     url: "http://127.0.0.1:2440/",
                     headers: headers
                 })
                 .then(function (response) {
                     expect(response.status).toEqual(200);
-                    expect(response.body.toString("utf8")).toEqual("projects");
+                    expect(response.body.toString("utf8")).toEqual("pass");
                 }).then(done, done);
             });
         });
