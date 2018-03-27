@@ -1,4 +1,3 @@
-/* global XMLHttpRequest */
 var GithubFs = require("./fs-github");
 var GithubApi = require("./github-api");
 var request = require("./request");
