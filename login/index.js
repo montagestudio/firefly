@@ -7,11 +7,7 @@ process.on('uncaughtException', function (err) {
 });
 
 var loginChainFactory = require("./chain");
-var GithubSessionStore = require("./common/github-session-store");
-var Session = require("./common/session");
 var HttpApps = require("q-io/http-apps");
-
-var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
 var commandOptions = {
     "port": {
@@ -26,10 +22,7 @@ var commandOptions = {
 
 module.exports = main;
 function main(options) {
-    var sessions = Session("session", SESSION_SECRET, null, new GithubSessionStore());
-
     var loginChain = loginChainFactory({
-        sessions: sessions,
         proxyMiddleware: HttpApps.Proxy
     });
 

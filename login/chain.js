@@ -1,12 +1,10 @@
 var log = require("./common/logging").from(__filename);
 var track = require("./common/track");
 var joey = require("joey");
-var uuid = require("uuid");
 var querystring = require("querystring");
 
 var Http = require("q-io/http");
 var HttpApps = require("q-io/http-apps");
-var parseCookies = require("./common/parse-cookies");
 var LogStackTraces = require("./common/log-stack-traces");
 var GithubApi = require("./common/inject/adaptor/client/core/github-api");
 var jwt = require("./common/jwt");
@@ -15,14 +13,10 @@ var CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
 var requestAuth = function (request, scopes) {
-    var oauthState = uuid.v4();
-    request.session.oauthState = oauthState;
-
     return HttpApps.redirect(request, "https://github.com/login/oauth/authorize?" +
         querystring.stringify({
             "client_id": CLIENT_ID,
-            "scope": scopes.join(","),
-            "state": oauthState
+            "scope": scopes.join(",")
         }
     ));
 };
@@ -36,15 +30,13 @@ var fixProtocol = function (next) {
         request.url = request.url.replace(/^http:/, "https:");
         return next(request);
     };
-}
+};
 
 module.exports = server;
 function server(options) {
     options = options || {};
 
     //jshint -W116
-    if (!options.sessions) throw new Error("options.sessions required");
-    var sessions = options.sessions;
     if (!options.proxyMiddleware) throw new Error("options.proxyMiddleware required");
     var proxyMiddleware = options.proxyMiddleware;
     //jshint +W116
@@ -61,8 +53,6 @@ function server(options) {
     .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .parseQuery()
-    .tap(parseCookies)
-    .use(sessions)
     .route(function (route, GET) {
         GET("auth").app(jwt(function (request) {
             return HttpApps.responseForStatus(request, 200);
@@ -79,13 +69,6 @@ function server(options) {
                 });
 
                 route("callback").app(function (request) {
-                    if (request.query.state !== request.session.oauthState) {
-                        // It's a forgery!
-                        return HttpApps.redirect(request, "/");
-                    }
-                    // Don't need this any more
-                    delete request.session.oauthState;
-
                     if (request.query.error) {
                         return HttpApps.ok("Github error. Please try again", "text/plain", 400);
                     }
