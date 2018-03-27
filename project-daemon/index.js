@@ -10,15 +10,9 @@ process.on('uncaughtException', function (err) {
 
 var projectChainFactory = require("./chain");
 
-var GithubSessionStore = require("./common/github-session-store");
-var Session = require("./common/session");
-var CheckSession = require("./common/check-session");
-
 var ContainerManager = require("./container-manager");
 var Dockerode = require("dockerode");
 var containerIndex = require("./make-container-index")("/srv/container-index.json");
-
-var SESSION_SECRET = "bdeffd49696a8b84e4456cb0740b3cea7b4f85ce";
 
 var commandOptions = {
     "port": {
@@ -38,13 +32,9 @@ var commandOptions = {
 
 module.exports = main;
 function main(options) {
-    var sessions = Session("session", SESSION_SECRET, {domain: Env.getProjectHost()}, new GithubSessionStore());
-
     var docker  = new Dockerode({socketPath: "/var/run/docker.sock"});
 
     var projectChain = projectChainFactory({
-        sessions: sessions,
-        checkSession: CheckSession,
         containerManager: new ContainerManager(docker, containerIndex),
         containerIndex: containerIndex
     });

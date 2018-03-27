@@ -2,7 +2,7 @@ var log = require("./common/logging").from(__filename);
 var WebSocket = require("faye-websocket");
 
 module.exports = ProxyWebsocket;
-function ProxyWebsocket(containerManager, sessions, protocol) {
+function ProxyWebsocket(containerManager, protocol) {
     return function (request, socket, body, details) {
         return containerManager.setup(details)
         .then(function (projectWorkspaceUrl) {

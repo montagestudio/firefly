@@ -19,10 +19,9 @@ var clientFs = FS.reroot(CLIENT_ROOT);
 
 var HOST_ACCESS_CODE_MAP = new Map();
 
-function PreviewManager(containerManager, sessions) {
+function PreviewManager(containerManager) {
     this.containerManager = containerManager;
-    this.sessions = sessions;
-    this.proxyWebsocket = ProxyWebsocket(containerManager, sessions, "firefly-preview");
+    this.proxyWebsocket = ProxyWebsocket(containerManager, "firefly-preview");
     this.route = this.route.bind(this);
 }
 exports = module.exports = PreviewManager;
@@ -40,7 +39,7 @@ PreviewManager.prototype.route = function (next) {
         }
 
         var projectInfo = ProjectInfo.fromPath(request.pathInfo);
-        return self.hasAccess(projectInfo, request.session).then(function (hasAccess) {
+        return self.hasAccess(request, projectInfo).then(function (hasAccess) {
             if (hasAccess) {
                 if (!projectInfo.url) {
                     return self.serveNoPreviewPage(request);
@@ -88,21 +87,23 @@ PreviewManager.prototype.route = function (next) {
 PreviewManager.prototype.upgrade = function (request, socket, body) {
     var self = this,
         projectInfo = ProjectInfo.fromPath(request.url);
-    return this.sessions.getSession(request, function (session) {
-        if (projectInfo) {
-            return self.hasAccess(projectInfo, session);
-        } else {
-            return false;
-        }
-    }).then(function (hasAccess) {
-        if (hasAccess) {
-            log("preview websocket", request.headers.host);
-            return self.proxyWebsocket(request, socket, body, projectInfo);
-        } else {
-            socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
-            socket.destroy();
-        }
-    });
+    log("PreviewManager.upgrade", request.githubUser);
+    if (!projectInfo) {
+        socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+        socket.destroy();
+        return Promise.resolve();
+    } else {
+        return self.hasAccess(request, projectInfo)
+            .then(function (hasAccess) {
+                if (hasAccess) {
+                    log("preview websocket", request.headers.host);
+                    return self.proxyWebsocket(request, socket, body, projectInfo);
+                } else {
+                    socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+                    socket.destroy();
+                }
+            });
+    }
 };
 
 /**
@@ -110,26 +111,25 @@ PreviewManager.prototype.upgrade = function (request, socket, body) {
  * All other users will only have access if they have been authenticated to see
  * this preview and the owner has it open in the tool.
  */
-PreviewManager.prototype.hasAccess = function (projectInfo, session) {
+PreviewManager.prototype.hasAccess = function (request, projectInfo) {
     return Q.try(function () {
-        if (session && session.githubUser) {
-            return session.githubUser.then(function (githubUser) {
-                // The user doesn't need to have explicit access to its own previews.
-                var access = githubUser && githubUser.login.toLowerCase() === projectInfo.username;
+        if (request.githubUser) {
+            // The user doesn't need to have explicit access to its own previews.
+            var access = request.githubUser && request.githubUser.login.toLowerCase() === projectInfo.username;
 
-                return access || has3rdPartyAccess(projectInfo, session);
-            });
+            return access || has3rdPartyAccess(request, projectInfo);
         } else if (projectInfo.private) {
-            return has3rdPartyAccess(projectInfo, session);
+            return has3rdPartyAccess(request, projectInfo);
         } else {
             return true;
         }
     });
 };
 
-function has3rdPartyAccess(projectInfo, session) {
-    if (session && session.previewAccess) {
-        return session.previewAccess.has(projectInfo);
+function has3rdPartyAccess(request, projectInfo) {
+    // TOOD: Implement
+    if (request.previewAccess) {
+        return request.previewAccess.has(projectInfo);
     } else {
         return false;
     }
@@ -158,7 +158,7 @@ PreviewManager.prototype.processAccessRequest = function (request, projectInfo) 
         if (body.length > 0) {
             var query = querystring.parse(body.toString());
 
-            maybeGrantAccessToPreview(query.code, projectInfo, request.session);
+            maybeGrantAccessToPreview(request, query.code, projectInfo);
         }
 
         // 302 - Temporary redirect using GET
@@ -180,17 +180,17 @@ PreviewManager.prototype.getAccessCode = function (projectInfo) {
     return code;
 };
 
-function maybeGrantAccessToPreview(code, projectInfo, session) {
+function maybeGrantAccessToPreview(request, code, projectInfo) {
     if (code) {
         // strip whitespace and make lowercase
         code = code.replace(/\s/g, "").toLowerCase();
         var accessCode = PreviewManager.prototype.getAccessCode(projectInfo);
 
         if (code === accessCode) {
-            if (session.previewAccess) {
-                session.previewAccess.add(projectInfo);
+            if (request.previewAccess) {
+                request.previewAccess.add(projectInfo);
             } else {
-                session.previewAccess = Set([projectInfo]);
+                request.previewAccess = Set([projectInfo]);
             }
             log("access granted ", projectInfo);
             return true;
