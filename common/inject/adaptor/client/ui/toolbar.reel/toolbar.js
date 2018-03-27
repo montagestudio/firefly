@@ -18,10 +18,7 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
 
             this.addPathChangeListener("environmentBridge", function(bridge) {
                 if (bridge) {
-
-                    self.mainMenu = bridge.mainMenu;
                     self.userMenu = bridge.userMenu;
-
                     // TODO this is more of a hack than anything else, should be rethink
                     self.userMenu.activePath = [];
 
@@ -34,10 +31,12 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
                     .then(function(url) {
                         self.sourceUrl = url;
                     }).done();
+                }
+            });
 
-                    self.mainMenu.then(function (menu) {
-                        self.menu = menu;
-                    });
+            this.addPathChangeListener("mainMenu", function (mainMenu) {
+                if (mainMenu) {
+                    self.menu = mainMenu;
                 }
             });
         }
