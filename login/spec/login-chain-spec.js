@@ -2,10 +2,11 @@ var loginChain = require("../chain");
 var Q = require("q");
 var MockSession = require("../common/spec/mocks/session");
 var mockRequest = require("../common/spec/mocks/request");
+var jwt = require("../common/jwt");
 
 describe("login chain", function () {
-    var request, sessions;
-    beforeEach(function () {
+    var request, sessions, accessToken;
+    beforeEach(function (done) {
         var proxyMiddlewareMock = function (path) {
             return function () {
                 var body = "app";
@@ -27,15 +28,22 @@ describe("login chain", function () {
         request = function (req) {
             return chain(mockRequest(req));
         };
+
+        var githubUser = {
+            login: "Montage"
+        };
+        jwt.sign({githubUser: githubUser}).then(function (token) {
+            accessToken = token;
+        }).then(done, done);
     });
 
     describe("/auth", function () {
         it("returns 200 when authenticated", function (done) {
             var headers = {
-                "Authorization": "Basic abc"
+                "x-access-token": accessToken
             };
 
-            request({
+            return request({
                 url: "http://localhost:2440/auth",
                 headers: headers
             }).then(function (response) {
@@ -78,7 +86,7 @@ describe("login chain", function () {
             var headers;
             beforeEach(function () {
                 headers = {
-                    "Authorization": "Basic abc"
+                    "x-access-token": accessToken
                 };
             });
 

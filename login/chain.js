@@ -8,6 +8,8 @@ var Http = require("q-io/http");
 var HttpApps = require("q-io/http-apps");
 var parseCookies = require("./common/parse-cookies");
 var LogStackTraces = require("./common/log-stack-traces");
+var GithubApi = require("./common/inject/adaptor/client/core/github-api");
+var jwt = require("./common/jwt");
 
 var CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
@@ -50,19 +52,12 @@ function server(options) {
     .tap(parseCookies)
     .use(sessions)
     .route(function (route, GET) {
-        GET("auth").app(function (request) {
-            var auth = request.headers.Authorization;
-            if (auth) {
-                var tokenBase64 = auth.split(' ')[1];
-                var token = new Buffer(tokenBase64, 'base64').toString();
-                console.log("auth token is", token);
-                return HttpApps.responseForStatus(request, 200);
-            }
-            return HttpApps.responseForStatus(request, 401);
-        });
+        GET("auth").app(jwt(function (request) {
+            return HttpApps.responseForStatus(request, 200);
+        }));
 
-        route("auth").route(function (route) {
-            route("github").route(function (route) {
+        route("auth/...").route(function (route) {
+            route("github/...").route(function (route) {
                 route("").app(function (request) {
                     return requestAuth(request, ["user:email", "public_repo", "read:org"]);
                 });
@@ -111,8 +106,14 @@ function server(options) {
 
                             track.message("user logged in", request);
                             //jshint -W106
-                            return HttpApps.redirect(request, "/#token=" + data.access_token);
+                            return new GithubApi(data.access_token).getUser()
                             //jshint +W106
+                                .then(function (githubUser) {
+                                    return jwt.sign({ githubUser: githubUser });
+                                })
+                                .then(function (token) {
+                                    return HttpApps.redirect(request, "/#token=" + token);
+                                });
                         });
                     });
                 });
