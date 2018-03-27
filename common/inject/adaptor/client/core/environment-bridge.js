@@ -673,16 +673,6 @@ exports.EnvironmentBridge = Target.specialize({
         }
     },
 
-    initializeProject: {
-        value: function() {
-            var promise = this.repositoryController.initializeRepositoryWorkspace();
-
-            this.progressPanel.activityPromise = promise;
-
-            return promise;
-        }
-    },
-
     isProjectEmpty: {
         value: function() {
             return this.repositoryController.isRepositoryEmpty();
