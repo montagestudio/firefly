@@ -2,6 +2,7 @@
 var Montage = require("montage").Montage;
 var Promise = require("montage/core/promise").Promise;
 var github = require("./github");
+var request = require("adaptor/client/core/request");
 
 /**
  * The functions provided by this file should be converted into a service.
@@ -49,16 +50,17 @@ exports.RepositoryController = Montage.specialize({
             var self = this;
             var done = Promise.defer();
 
-            return this._request({
+            return request.requestOk({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/init"
             }).then(function () {
                 function poll() {
-                    self._request({
+                    request.requestOk({
                         method: "GET",
                         url: "/api/" + self.owner + "/" + self.repo + "/init/progress"
                     })
-                    .then(function (message) {
+                    .then(function (response) {
+                        var message = JSON.parse(response.body);
                         if (message.state === "pending") {
                             setTimeout(poll, 5000);
                         } else if (message.state === "fulfilled") {
@@ -163,7 +165,7 @@ exports.RepositoryController = Montage.specialize({
 
     workspaceExists: {
         value: function() {
-            return this._request({
+            return request.requestOk({
                 method: "GET",
                 url: "/api/" + this.owner + "/" + this.repo + "/workspace"
             })
@@ -175,7 +177,7 @@ exports.RepositoryController = Montage.specialize({
 
     createComponent: {
         value: function(name, packageHome, destination) {
-            return this._request({
+            return request.requestOk({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/components",
                 data: {
@@ -189,7 +191,7 @@ exports.RepositoryController = Montage.specialize({
 
     createModule: {
         value: function(name, extendsModuleId, extendsName, destination) {
-            return this._request({
+            return request.requestOk({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/modules",
                 data: {
@@ -205,7 +207,7 @@ exports.RepositoryController = Montage.specialize({
     saveFile: {
         value: function(filename, contents) {
             filename = this._removeProjectIdFromPath(filename);
-            return this._request({
+            return request.requestOk({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/save",
                 data: {
@@ -218,7 +220,7 @@ exports.RepositoryController = Montage.specialize({
 
     flush: {
         value: function(message) {
-            return this._request({
+            return request.requestOk({
                 method: "POST",
                 url: "/api/" + this.owner + "/" + this.repo + "/flush",
                 data: {
@@ -235,50 +237,6 @@ exports.RepositoryController = Montage.specialize({
     _removeProjectIdFromPath: {
         value: function (path) {
             return path.replace(this._projectIdRegex, "");
-        }
-    },
-
-    _request: {
-        value: function(request) {
-            var xhr = new XMLHttpRequest(),
-                deferred = Promise.defer();
-
-            xhr.open(request.method, request.url);
-            // IE has a bug that requires withCredentials (or other XHR
-            // properties like responseType) to be set after open() is
-            // called.
-            // http://connect.microsoft.com/IE/feedback/details/795580
-            if (request.withCredentials) {
-                xhr.withCredentials = true;
-            }
-            xhr.addEventListener("load", function() {
-                var message;
-
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    if (xhr.responseText) {
-                        try {
-                            message = JSON.parse(xhr.responseText);
-                        } catch (ex) {
-                            deferred.reject(ex.message);
-                        }
-                    }
-                    deferred.resolve(message);
-                } else {
-                    deferred.reject(xhr);
-                }
-            }, false);
-            xhr.addEventListener("error", function() {
-                deferred.reject(xhr);
-            }, false);
-
-            if (request.data) {
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-                xhr.send(JSON.stringify(request.data));
-            } else {
-                xhr.send();
-            }
-
-            return deferred.promise;
         }
     }
 });
