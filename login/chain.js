@@ -27,6 +27,17 @@ var requestAuth = function (request, scopes) {
     ));
 };
 
+/**
+ * For some reason request.url always starts with http when it should be https.
+ * This causes problems with redirection (especially in local development)
+ */
+var fixProtocol = function (next) {
+    return function (request) {
+        request.url = request.url.replace(/^http:/, "https:");
+        return next(request);
+    };
+}
+
 module.exports = server;
 function server(options) {
     options = options || {};
@@ -45,6 +56,7 @@ function server(options) {
     .route(function () {
         this.OPTIONS("").content("");
     })
+    .use(fixProtocol)
     .log(log, function (message) { return message; })
     .use(track.joeyErrors)
     .use(LogStackTraces(log))
