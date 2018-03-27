@@ -106,10 +106,14 @@ function server(options) {
 
                             track.message("user logged in", request);
                             //jshint -W106
-                            return new GithubApi(data.access_token).getUser()
+                            var githubAccessToken = data.access_token;
                             //jshint +W106
+                            return new GithubApi(githubAccessToken).getUser()
                                 .then(function (githubUser) {
-                                    return jwt.sign({ githubUser: githubUser });
+                                    return jwt.sign({
+                                        githubUser: githubUser,
+                                        githubAccessToken: githubAccessToken
+                                    });
                                 })
                                 .then(function (token) {
                                     return HttpApps.redirect(request, "/#token=" + token);
@@ -117,6 +121,12 @@ function server(options) {
                         });
                     });
                 });
+
+                route("token")
+                    .use(jwt)
+                    .contentApp(function (request) {
+                        return request.githubAccessToken;
+                    });
             });
         });
 

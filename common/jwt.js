@@ -14,6 +14,7 @@ exports = module.exports = function (ok, notOk) {
         return exports.verify(token)
             .then(function (payload) {
                 request.githubUser = payload.githubUser;
+                request.githubAccessToken = payload.githubAccessToken;
                 return ok(request);
             })
             .catch(function (err) {
