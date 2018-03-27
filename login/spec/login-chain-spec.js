@@ -31,17 +31,12 @@ describe("login chain", function () {
 
     describe("/auth", function () {
         it("returns 200 when authenticated", function (done) {
-            var headers;
-            sessions["abc-123"] = {
-                username: "test",
-                githubUser: Q({})
-            };
-            headers = {
-                "cookie": "session=abc-123"
+            var headers = {
+                "Authorization": "Basic abc"
             };
 
             request({
-                url: "http://127.0.0.1:2440/auth",
+                url: "http://localhost:2440/auth",
                 headers: headers
             }).then(function (response) {
                 expect(response.status).toBe(200);
@@ -68,10 +63,11 @@ describe("login chain", function () {
                 }).then(done, done);
             });
 
-            it("redirects /user/repo", function (done) {
+            it("serves app at /user/repo", function (done) {
                 request("http://127.0.0.1:2440/declarativ/filament")
                 .then(function (response) {
-                    expect(response.status).toEqual(302);
+                    expect(response.status).toEqual(200);
+                    expect(response.body.toString("utf8")).toEqual("app");
                 })
                 .then(done, done);
             });
@@ -81,12 +77,8 @@ describe("login chain", function () {
         describe("when authenticated", function () {
             var headers;
             beforeEach(function () {
-                sessions["abc-123"] = {
-                    username: "test",
-                    githubUser: Q({})
-                };
                 headers = {
-                    "cookie": "session=abc-123"
+                    "Authorization": "Basic abc"
                 };
             });
 

@@ -1,15 +1,29 @@
 var log = require("./common/logging").from(__filename);
 var track = require("./common/track");
 var joey = require("joey");
-var env = require("./common/environment");
-var Q = require("q");
+var uuid = require("uuid");
+var querystring = require("querystring");
 
+var Http = require("q-io/http");
 var HttpApps = require("q-io/http-apps");
 var parseCookies = require("./common/parse-cookies");
-var GithubAuth = require("./github");
-var checkSession = require("./common/check-session");
-var routeProject = require("./common/route-project");
 var LogStackTraces = require("./common/log-stack-traces");
+
+var CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+
+var requestAuth = function (request, scopes) {
+    var oauthState = uuid.v4();
+    request.session.oauthState = oauthState;
+
+    return HttpApps.redirect(request, "https://github.com/login/oauth/authorize?" +
+        querystring.stringify({
+            "client_id": CLIENT_ID,
+            "scope": scopes.join(","),
+            "state": oauthState
+        }
+    ));
+};
 
 module.exports = server;
 function server(options) {
@@ -36,56 +50,78 @@ function server(options) {
     .tap(parseCookies)
     .use(sessions)
     .route(function (route, GET) {
-        // Public routes only
+        GET("auth").app(function (request) {
+            var auth = request.headers.Authorization;
+            if (auth) {
+                var tokenBase64 = auth.split(' ')[1];
+                var token = new Buffer(tokenBase64, 'base64').toString();
+                console.log("auth token is", token);
+                return HttpApps.responseForStatus(request, 200);
+            }
+            return HttpApps.responseForStatus(request, 401);
+        });
+
+        route("auth").route(function (route) {
+            route("github").route(function (route) {
+                route("").app(function (request) {
+                    return requestAuth(request, ["user:email", "public_repo", "read:org"]);
+                });
+
+                route("private").app(function (request) {
+                    return requestAuth(request, ["user:email", "repo", "read:org"]);
+                });
+
+                route("callback").app(function (request) {
+                    if (request.query.state !== request.session.oauthState) {
+                        // It's a forgery!
+                        return HttpApps.redirect(request, "/");
+                    }
+                    // Don't need this any more
+                    delete request.session.oauthState;
+
+                    if (request.query.error) {
+                        return HttpApps.ok("Github error. Please try again", "text/plain", 400);
+                    }
+
+                    return Http.request({
+                        url: "https://github.com/login/oauth/access_token",
+                        method: "POST",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: [querystring.stringify({
+                            "client_id": CLIENT_ID,
+                            "client_secret": CLIENT_SECRET,
+                            "code": request.query.code
+                        })]
+                    }).then(function (response) {
+                        return response.body.read().then(function (body) {
+                            if (response.status !== 200) {
+                                throw new Error("Github answered request for access token with status " + response.status + ": " + body);
+                            } else if (response.headers["content-type"] !== "application/json; charset=utf-8") {
+                                throw new Error("Github answered request for access token with an unexpected content type " + response.headers["content-type"] + ": " + body);
+                            }
+                            var data;
+                            try {
+                                data = JSON.parse(body.toString("utf-8"));
+                            } catch (e) {
+                                throw new Error("Github answered request for access token with ill-formatted JSON.");
+                            }
+
+                            track.message("user logged in", request);
+                            //jshint -W106
+                            return HttpApps.redirect(request, "/#token=" + data.access_token);
+                            //jshint +W106
+                        });
+                    });
+                });
+            });
+        });
+
         route("").app(proxyMiddleware("http://static/app/index.html"));
 
         route("favicon.ico").terminate(proxyMiddleware("http://static/app/assets/img/favicon.ico"));
-
-        GET("auth").app(function (request) {
-            return Promise.resolve(request.session && request.session.githubUser)
-                .then(function (githubUser) {
-                    if (githubUser) {
-                        return HttpApps.responseForStatus(request, 200);
-                    } else {
-                        return HttpApps.responseForStatus(request, 401);
-                    }
-                })
-                .catch(function (error) {
-                    log("*" + error.stack + "*");
-                    return HttpApps.responseForStatus(request, 500);
-                });
-        });
-
-        route("auth/...").route(function (route) {
-            route("github/...").route(GithubAuth);
-
-            // This passes the sessionId onto the project/preview domain
-            // It is also used in /logout to remove the session cookie from the
-            // project/preview domain
-            route("next").app(function (request) {
-                return HttpApps.redirect(request, env.getProjectSubdomain('session') + "session?id=" + (request.session.sessionId || ""));
-            });
-        });
-    })
-    //////////////////////////////////////////////////////////////////////
-    .use(checkSession)
-    //////////////////////////////////////////////////////////////////////
-    .use(function (next) {
-        return function (request) {
-            return Q.when(next(request))
-            .then(function (response) {
-                return routeProject.addRouteProjectCookie(request, response);
-            });
-        };
-    })
-    //////////////////////////////////////////////////////////////////////
-    .route(function (route) {
-        // Private/authenticated routes
-        route("logout")
-        .tap(function (request) {
-            return sessions.destroy(request.session);
-        })
-        .redirect("/auth/next");
 
         // We don't have anything to show directly on the user page at the
         // moment, so just redirect them to the root.
@@ -95,7 +131,10 @@ function server(options) {
         route(":owner").redirect("/");
         route(":owner/").redirect("/");
 
-        route(":owner/:repo").proxy("http://static/app/index.html");
-        route(":owner/:repo/").proxy("http://static/app/index.html");
+        route(":owner/:repo").app(proxyMiddleware("http://static/app/index.html"));
+        route(":owner/:repo/").app(proxyMiddleware("http://static/app/index.html"));
+    })
+    //////////////////////////////////////////////////////////////////////
+    .route(function (route) {
     });
 }
