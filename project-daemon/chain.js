@@ -124,10 +124,16 @@ function server(options) {
                 return previewManager.upgrade(request, socket, body);
             } else {
                 log("filament websocket");
-                log("request.githubUser:", request.githubUser);
-                details = environment.getDetailsFromAppUrl(request.url);
-                details = new ProjectInfo(request.githubUser.username, details.owner, details.repo);
-                return proxyAppWebsocket(request, socket, body, details);
+                var accessTokenMatch = /token=(.*?);/.exec(request.headers.cookie);
+                return jwt.verify(accessTokenMatch && accessTokenMatch[1])
+                    .then(function (payload) {
+                        details = environment.getDetailsFromAppUrl(request.url);
+                        details = new ProjectInfo(payload.githubUser.login, details.owner, details.repo);
+                        return proxyAppWebsocket(request, socket, body, details);
+                    }, function (error) {
+                        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+                        socket.destroy();
+                    });
             }
         })
         .catch(function (error) {
