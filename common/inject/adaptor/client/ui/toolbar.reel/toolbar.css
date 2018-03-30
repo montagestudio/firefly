@@ -54,6 +54,11 @@
     color: hsl(0, 0%, 50%);
 }
 
+.Toolbar-homeButton {
+    cursor: pointer;
+    outline: none;
+}
+
 .Toolbar-logo {
     margin: 0 4px 0 8px;
     width: 40px;

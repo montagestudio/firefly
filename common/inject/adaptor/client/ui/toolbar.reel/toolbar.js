@@ -65,6 +65,12 @@ exports.Toolbar = Component.specialize(/** @lends Toolbar# */ {
         value: null
     },
 
+    handleHomeButtonAction: {
+        value: function () {
+            this.application.delegate.changeLocation("/");
+        }
+    },
+
     handleMenuAction: {
         value: function (evt) {
             switch (evt.detail.identifier) {

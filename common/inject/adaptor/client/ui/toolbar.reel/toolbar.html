@@ -11,6 +11,19 @@
             }
         },
 
+        "homeButton": {
+            "prototype": "montage/ui/button.reel",
+            "properties": {
+                "element": {"#": "homeButton"}
+            },
+            "listeners": [
+                {
+                    "type": "action",
+                    "listener": {"@": "owner"}
+                }
+            ]
+        },
+
         "avatar": {
             "prototype": "matte/ui/image.reel",
             "properties": {
@@ -60,9 +73,9 @@
     <div data-montage-id="toolbar" class="Toolbar Toolbar--dark">
 
         <div class="Toolbar-group">
-            <a href="/">
+            <div data-montage-id="homeButton" class="Toolbar-homeButton">
                 <img src="../../../../assets/img/logo-toolbar.png" class="Toolbar-logo" alt="Montage Studio Home">
-            </a>
+            </div>
             <div class="mainMenu">
                 <div data-montage-id="mainMenu"></div>
             </div>
