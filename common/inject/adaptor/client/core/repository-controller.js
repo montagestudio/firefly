@@ -52,12 +52,12 @@ exports.RepositoryController = Montage.specialize({
 
             return request.requestOk({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/init"
+                url: "https://api.local.montage.studio:2440/" + this.owner + "/" + this.repo + "/init"
             }).then(function () {
                 function poll() {
                     request.requestOk({
                         method: "GET",
-                        url: "/api/" + self.owner + "/" + self.repo + "/init/progress"
+                        url: "https://api.local.montage.studio:2440/" + self.owner + "/" + self.repo + "/init/progress"
                     })
                     .then(function (response) {
                         var message = JSON.parse(response.body);
@@ -167,7 +167,7 @@ exports.RepositoryController = Montage.specialize({
         value: function() {
             return request.requestOk({
                 method: "GET",
-                url: "/api/" + this.owner + "/" + this.repo + "/workspace"
+                url: "https://api.local.montage.studio:2440/" + this.owner + "/" + this.repo + "/workspace"
             })
             .then(function(message) {
                 return message.created;
@@ -179,7 +179,7 @@ exports.RepositoryController = Montage.specialize({
         value: function(name, packageHome, destination) {
             return request.requestOk({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/components",
+                url: "https://api.local.montage.studio:2440/" + this.owner + "/" + this.repo + "/components",
                 data: {
                     "name": name,
                     "packageHome": packageHome,
@@ -193,7 +193,7 @@ exports.RepositoryController = Montage.specialize({
         value: function(name, extendsModuleId, extendsName, destination) {
             return request.requestOk({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/modules",
+                url: "https://api.local.montage.studio:2440/" + this.owner + "/" + this.repo + "/modules",
                 data: {
                     "name": name,
                     "extendsModuleId": extendsModuleId,
@@ -209,7 +209,7 @@ exports.RepositoryController = Montage.specialize({
             filename = this._removeProjectIdFromPath(filename);
             return request.requestOk({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/save",
+                url: "https://api.local.montage.studio:2440/" + this.owner + "/" + this.repo + "/save",
                 data: {
                     "filename": filename,
                     "contents": contents
@@ -222,7 +222,7 @@ exports.RepositoryController = Montage.specialize({
         value: function(message) {
             return request.requestOk({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/flush",
+                url: "https://api.local.montage.studio:2440/" + this.owner + "/" + this.repo + "/flush",
                 data: {
                     message: message
                 }

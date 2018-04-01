@@ -15,6 +15,13 @@ var proxyContainer = require("./proxy-container");
 var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
 
+var requestHostStartsWith = function (prefix) {
+    return function (request) {
+        log("request", request.headers.host, request.pathInfo);
+        return request.headers.host.indexOf(prefix) === 0;
+    };
+};
+
 module.exports = server;
 function server(options) {
     options = options || {};
@@ -44,7 +51,7 @@ function server(options) {
         return jwt(next, next);
     })
     .route(function (_, GET, PUT, POST) {
-        POST("access")
+        POST("access", requestHostStartsWith("project"))
         .log(log, function (message) { return message; })
         .app(function (request) {
             var projectInfo = ProjectInfo.fromPath(request.pathname);
@@ -55,30 +62,15 @@ function server(options) {
     .log(log, function (message) { return message; })
     .use(jwt)
     .route(function (any, GET, PUT, POST) {
-        GET("api/workspaces").app(function (request) {
+        GET("workspaces", requestHostStartsWith("api")).app(function (request) {
+            log("route /workspaces");
             var username = request.githubUser.login;
             var workspaceKeys = containerIndex.forUsername(username).keys();
 
             return APPS.json(workspaceKeys);
         });
 
-        GET("build/:owner/:repo/...").app(function (request) {
-            log("build");
-            return containerManager.setup(
-                new ProjectInfo(
-                    request.githubUser.login,
-                    request.params.owner,
-                    request.params.repo
-                ),
-                request.githubAccessToken,
-                request.githubUser
-            )
-            .then(function (projectWorkspacePort) {
-                return proxyContainer(request, projectWorkspacePort, "build");
-            });
-        });
-
-        this.DELETE("api/workspaces").app(function (request) {
+        this.DELETE("workspaces", requestHostStartsWith("api")).app(function (request) {
             var username = request.githubUser.login;
             var workspaceKeys = containerIndex.forUsername(username).keys();
 
@@ -97,7 +89,7 @@ function server(options) {
             });
         });
 
-        any("api/:owner/:repo/...").app(function (request) {
+        any(":owner/:repo/...", requestHostStartsWith("api")).app(function (request) {
             return containerManager.setup(
                 new ProjectInfo(
                     request.githubUser.login,
@@ -109,6 +101,22 @@ function server(options) {
             )
             .then(function (projectWorkspaceUrl) {
                 return proxyContainer(request, projectWorkspaceUrl, "api");
+            });
+        });
+
+        GET(":owner/:repo/...", requestHostStartsWith("build")).app(function (request) {
+            log("build");
+            return containerManager.setup(
+                new ProjectInfo(
+                    request.githubUser.login,
+                    request.params.owner,
+                    request.params.repo
+                ),
+                request.githubAccessToken,
+                request.githubUser
+            )
+            .then(function (projectWorkspacePort) {
+                return proxyContainer(request, projectWorkspacePort, "build");
             });
         });
     });

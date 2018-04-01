@@ -115,7 +115,7 @@ describe("project chain", function () {
 
             request({
                 method: "DELETE",
-                url: "http://127.0.0.1:2440/api/workspaces",
+                url: "http://api.localhost:2440/workspaces",
                 headers: {
                     cookie: "session=abc"
                 }
