@@ -112,7 +112,16 @@ npm run generate-local-certificate
 
 This uses the configuration files in `ssl/` to create a certificate + private key for a local CA (named Kaazing Local) and a `local.montage.studio.pem` file for use in the load balancer.
 
-Next, open the certificate settings in chrome (chrome://settings/certificates). Open the "Authorities" tab, click "IMPORT", and select the `cacert.pem` file that was just generated in `ssl/`. Finally, restart Chrome. Now the browser will trust the certificate and will allow loading Firefly over https. Importing the CA certificate only needs to be done once, as the script will not re-create the `cacert.pem` file if it already exists. The `firefly-stack-dev.yml` swarm file used in development takes care of synchronizing the generated `local.montage.studio.pem` to the load balancer.
+#### Linux
+
+Open the certificate settings in chrome (chrome://settings/certificates). Open the "Authorities" tab, click "IMPORT", and select the `cacert.pem` file that was just generated in `ssl/`. Finally, restart Chrome. 
+
+#### MacOS
+
+Open `ssl/` in Finder and double-click the `local.montage.studio.pem` file. This will add the certificate to Keychain Access. Make sure that this certificate was added to the System chain. Next, double-click the added "Montage Studio" certificate in Keychain Access. Open the "Trust" section and set the "When using this certificate:" option to "Always Trust". If refreshing the page does not turn the security icon green, type in `chrome://restart` to restart the browser.
+
+
+Now the browser will trust the certificate and will allow loading Firefly over https. Importing the CA certificate only needs to be done once, as the script will not re-create the `cacert.pem` file if it already exists. The `firefly-stack-dev.yml` swarm file used in development takes care of synchronizing the generated `local.montage.studio.pem` to the load balancer.
 
 If you need to add a new domain to Firefly, add the domain under the "[ alternate names ]" section of `ssl/openssl-server.cnf` and run `npm run generate-local-certificate` again.
 
