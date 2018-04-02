@@ -35,7 +35,6 @@ exports.request = function (request) {
     };
 
     var headers = request.headers;
-    xhr.setRequestHeader("x-access-token", localStorage.getItem("MontageStudioToken"));
     //jshint -W089
     for (var h in headers) {
         var value = headers[h];

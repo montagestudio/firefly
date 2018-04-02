@@ -2,7 +2,7 @@
 var Montage = require("montage").Montage;
 var Promise = require("montage/core/promise").Promise;
 var github = require("./github");
-var request = require("adaptor/client/core/request");
+var application = require("montage/core/application").application;
 
 /**
  * The functions provided by this file should be converted into a service.
@@ -50,14 +50,16 @@ exports.RepositoryController = Montage.specialize({
             var self = this;
             var done = Promise.defer();
 
-            return request.requestOk({
+            return application.delegate.request({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/init"
+                url: "/" + this.owner + "/" + this.repo + "/init",
+                subdomain: "api"
             }).then(function () {
                 function poll() {
-                    request.requestOk({
+                    application.delegate.request({
                         method: "GET",
-                        url: "/api/" + self.owner + "/" + self.repo + "/init/progress"
+                        url: "/" + self.owner + "/" + self.repo + "/init/progress",
+                        subdomain: "api"
                     })
                     .then(function (response) {
                         var message = JSON.parse(response.body);
@@ -165,9 +167,10 @@ exports.RepositoryController = Montage.specialize({
 
     workspaceExists: {
         value: function() {
-            return request.requestOk({
+            return application.delegate.request({
                 method: "GET",
-                url: "/api/" + this.owner + "/" + this.repo + "/workspace"
+                url: "/" + this.owner + "/" + this.repo + "/workspace",
+                subdomain: "api"
             })
             .then(function(message) {
                 return message.created;
@@ -177,9 +180,10 @@ exports.RepositoryController = Montage.specialize({
 
     createComponent: {
         value: function(name, packageHome, destination) {
-            return request.requestOk({
+            return application.delegate.request({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/components",
+                url: "/" + this.owner + "/" + this.repo + "/components",
+                subdomain: "api",
                 data: {
                     "name": name,
                     "packageHome": packageHome,
@@ -191,9 +195,10 @@ exports.RepositoryController = Montage.specialize({
 
     createModule: {
         value: function(name, extendsModuleId, extendsName, destination) {
-            return request.requestOk({
+            return application.delegate.request({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/modules",
+                url: "/" + this.owner + "/" + this.repo + "/modules",
+                subdomain: "api",
                 data: {
                     "name": name,
                     "extendsModuleId": extendsModuleId,
@@ -207,9 +212,10 @@ exports.RepositoryController = Montage.specialize({
     saveFile: {
         value: function(filename, contents) {
             filename = this._removeProjectIdFromPath(filename);
-            return request.requestOk({
+            return application.delegate.request({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/save",
+                url: "/" + this.owner + "/" + this.repo + "/save",
+                subdomain: "api",
                 data: {
                     "filename": filename,
                     "contents": contents
@@ -220,9 +226,10 @@ exports.RepositoryController = Montage.specialize({
 
     flush: {
         value: function(message) {
-            return request.requestOk({
+            return application.delegate.request({
                 method: "POST",
-                url: "/api/" + this.owner + "/" + this.repo + "/flush",
+                url: "/" + this.owner + "/" + this.repo + "/flush",
+                subdomain: "api",
                 data: {
                     message: message
                 }

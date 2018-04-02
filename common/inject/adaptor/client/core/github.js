@@ -1,6 +1,6 @@
 var GithubFs = require("./fs-github");
 var GithubApi = require("./github-api");
-var request = require("./request");
+var application = require("montage/core/application").application;
 
 var token;
 
@@ -25,7 +25,7 @@ function AuthToken() {
     if (token) {
         return Promise.resolve(token);
     }
-    return request.requestOk({
+    return application.delegate.request({
         url: "/auth/github/token"
     }).then(function (response) {
         token = response.body;
