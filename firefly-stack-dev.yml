@@ -39,7 +39,9 @@ services:
       - static
     volumes:
       - ./login/:/srv/login/
+      - /srv/login/node_modules/
       - ./common/:/srv/login/common/
+      - /srv/login/common/node_modules/
     environment:
       - NODE_ENV
       - FIREFLY_PORT
@@ -59,7 +61,9 @@ services:
       - static
     volumes:
       - ./project-daemon/:/srv/project-daemon/
+      - /srv/project-daemon/node_modules/
       - ./common/:/srv/project-daemon/common/
+      - /srv/project-daemon/common/node_modules/
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - NODE_ENV

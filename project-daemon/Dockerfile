@@ -19,7 +19,9 @@ RUN sudo pip install docker-compose
 RUN docker-compose version
 
 COPY project-daemon/ /srv/project-daemon/
+RUN npm install --prefix /srv/project-daemon/
 COPY common/ /srv/project-daemon/common/
+RUN npm install --prefix /srv/project-daemon/common/
 
 # Define default command.
 ENTRYPOINT [ "node", "/srv/project-daemon" ]
