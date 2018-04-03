@@ -1,4 +1,4 @@
-/* global XMLHttpRequest, localStorage */
+/* global XMLHttpRequest */
 var Promise = require("montage/core/promise").Promise;
 
 /**

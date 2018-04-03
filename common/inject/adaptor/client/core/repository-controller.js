@@ -1,4 +1,3 @@
-/* global XMLHttpRequest */
 var Montage = require("montage").Montage;
 var Promise = require("montage/core/promise").Promise;
 var github = require("./github");
