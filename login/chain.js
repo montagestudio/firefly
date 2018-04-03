@@ -36,11 +36,6 @@ module.exports = server;
 function server(options) {
     options = options || {};
 
-    //jshint -W116
-    if (!options.proxyMiddleware) throw new Error("options.proxyMiddleware required");
-    var proxyMiddleware = options.proxyMiddleware;
-    //jshint +W116
-
     return joey
     .error()
     // Put here to avoid printing logs when HAProxy pings the server for
@@ -124,23 +119,5 @@ function server(options) {
                     });
             });
         });
-
-        route("").app(proxyMiddleware("http://static/app/index.html"));
-
-        route("favicon.ico").terminate(proxyMiddleware("http://static/app/assets/img/favicon.ico"));
-
-        // We don't have anything to show directly on the user page at the
-        // moment, so just redirect them to the root.
-        // At the time of writing, if we don't redirect then the app tries to
-        // load a project with an empty name "", which causes all kinds of
-        // errors.
-        route(":owner").redirect("/");
-        route(":owner/").redirect("/");
-
-        route(":owner/:repo").app(proxyMiddleware("http://static/app/index.html"));
-        route(":owner/:repo/").app(proxyMiddleware("http://static/app/index.html"));
-    })
-    //////////////////////////////////////////////////////////////////////
-    .route(function (route) {
     });
 }

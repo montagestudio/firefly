@@ -7,7 +7,6 @@ process.on('uncaughtException', function (err) {
 });
 
 var loginChainFactory = require("./chain");
-var HttpApps = require("q-io/http-apps");
 
 var commandOptions = {
     "port": {
@@ -22,9 +21,7 @@ var commandOptions = {
 
 module.exports = main;
 function main(options) {
-    var loginChain = loginChainFactory({
-        proxyMiddleware: HttpApps.Proxy
-    });
+    var loginChain = loginChainFactory({ });
 
     return loginChain.listen(options.port)
     .then(function (server) {
