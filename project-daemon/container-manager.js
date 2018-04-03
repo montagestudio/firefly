@@ -166,7 +166,7 @@ ContainerManager.prototype.create = function (info, githubAccessToken, githubUse
                     },
                     Networks: [
                         {
-                            "Target": "firefly_backend"
+                            "Target": "firefly_net"
                         }
                     ],
                     Placement: {

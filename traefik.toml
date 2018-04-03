@@ -1,0 +1,25 @@
+logLevel = "DEBUG"
+accessLogsFile = "/dev/stdout"
+defaultEntryPoints = ["http", "https"]
+
+[web]
+address=":8080"
+
+[entryPoints]
+    [entryPoints.http]
+    address = ":80"
+        [entryPoints.http.redirect]
+        entryPoint = "https"
+    [entryPoints.https]
+    address = ":443"
+        [entryPoints.https.tls]
+            [[entryPoints.https.tls.certificates]]
+            certFile = "/etc/ssl/cert.pem"
+            keyFile = "/etc/ssl/serverkey.pem"
+
+[docker]
+endpoint = "unix://var/run/docker.sock"
+swarmmode = true
+watch = true
+domain = "local.montage.studio"
+exposedbydefault = false
