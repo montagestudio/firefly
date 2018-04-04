@@ -26,6 +26,7 @@ services:
       - net
     volumes:
       - ./static/filament/:/srv/app/
+      - /srv/app/node_modules/
       - ./common/inject/adaptor/:/srv/app/adaptor/
     configs:
       - source: nginx-config
