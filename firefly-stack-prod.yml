@@ -1,39 +1,40 @@
-version: "3.2"
+version: "3.3"
 
 services:
-  load-balancer:
-    image: 127.0.0.1:5000/load-balancer
+  traefik:
+    image: traefik
+    command: --docker.domain=${FIREFLY_HOSTNAME}
     networks:
-      - frontend
-      - backend
+      - net
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      - static
-      - login
-      - project-daemon
-    environment:
-      - NODE_ENV
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./ssl/cert.pem:/etc/ssl/cert.pem:ro
+      - ./ssl/serverkey.pem:/etc/ssl/serverkey.pem:ro
+    configs:
+      - source: traefik-config
+        target: /traefik.toml
     deploy:
-      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
   static:
     image: 127.0.0.1:5000/static
     networks:
-      - backend
-    ports:
-      - "8183:80"
+      - net
     deploy:
       replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=80"
+        - "traefik.docker.network=firefly_net"
+        - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
   login:
     image: 127.0.0.1:5000/login
     networks:
-      - backend
-    ports:
-      - "8184:2440"
-      - "8104:8104"
-    depends_on:
-      - static
+      - net
     environment:
       - NODE_ENV
       - FIREFLY_PORT
@@ -43,13 +44,15 @@ services:
       - GITHUB_CLIENT_SECRET
     deploy:
       replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=2440"
+        - "traefik.docker.network=firefly_net"
+        - "traefik.frontend.rule=Host:auth.${FIREFLY_HOSTNAME}"
   project-daemon:
     image: 127.0.0.1:5000/project-daemon
     networks:
-      - backend
-    ports:
-      - "8185:2440"
-      - "8105:8105"
+      - net
     depends_on:
       - static
     volumes:
@@ -65,8 +68,17 @@ services:
       placement:
         constraints: [node.role == manager]
       replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=2440"
+        - "traefik.docker.network=firefly_net"
+        - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},api.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
 
 networks:
-    frontend:
-    backend:
-      attachable: true
+  net:
+    driver: overlay
+    attachable: true
+
+configs:
+  traefik-config:
+    file: traefik.toml
