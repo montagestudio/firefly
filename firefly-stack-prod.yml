@@ -11,8 +11,6 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./ssl/cert.pem:/etc/ssl/cert.pem:ro
-      - ./ssl/serverkey.pem:/etc/ssl/serverkey.pem:ro
     configs:
       - source: traefik-config
         target: /traefik.toml
