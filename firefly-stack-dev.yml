@@ -3,6 +3,7 @@ version: "3.3"
 services:
   traefik:
     image: traefik
+    command: --docker.domain=${FIREFLY_HOSTNAME}
     networks:
       - net
     ports:
