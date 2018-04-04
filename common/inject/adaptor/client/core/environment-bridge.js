@@ -71,7 +71,7 @@ exports.EnvironmentBridge = Target.specialize({
 
             if (!self._backend) {
                 var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-                var connection = self._connection = adaptConnection(new WebSocket(protocol + "//" + window.location.host + window.location.pathname));
+                var connection = self._connection = adaptConnection(new WebSocket(protocol + "//ws." + window.location.host + window.location.pathname));
 
                 connection.closed.then(function () {
                     self._connection = null;

@@ -43,3 +43,6 @@ DNS.2  = www.local.montage.studio
 DNS.3  = project.local.montage.studio
 DNS.4  = session.local.montage.studio
 DNS.5  = api.local.montage.studio
+DNS.6  = build.local.montage.studio
+DNS.7  = ws.local.montage.studio
+DNS.8  = auth.local.montage.studio

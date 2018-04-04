@@ -1,29 +1,11 @@
 var loginChain = require("../chain");
-var Q = require("q");
-var MockSession = require("../common/spec/mocks/session");
 var mockRequest = require("../common/spec/mocks/request");
 var jwt = require("../common/jwt");
 
 describe("login chain", function () {
-    var request, sessions, accessToken;
+    var request, accessToken;
     beforeEach(function (done) {
-        var proxyMiddlewareMock = function (path) {
-            return function () {
-                var body = "app";
-                return Q({
-                    status: body ? 200 : 404,
-                    headers: {
-                        "content-type": "text/html"
-                    },
-                    body: body
-                });
-            };
-        };
-        sessions = {};
-        var chain = loginChain({
-            sessions: MockSession(sessions),
-            proxyMiddleware: proxyMiddlewareMock
-        }).end();
+        var chain = loginChain({ }).end();
 
         request = function (req) {
             return chain(mockRequest(req));
@@ -37,14 +19,14 @@ describe("login chain", function () {
         }).then(done, done);
     });
 
-    describe("/auth", function () {
+    describe("/", function () {
         it("returns 200 when authenticated", function (done) {
             var headers = {
                 "x-access-token": accessToken
             };
 
             return request({
-                url: "http://localhost:2440/auth",
+                url: "http://auth.localhost:2440/",
                 headers: headers
             }).then(function (response) {
                 expect(response.status).toBe(200);
@@ -52,54 +34,10 @@ describe("login chain", function () {
         });
 
         it("returns 401 when not authenticated", function (done) {
-            request("http://localhost:2440/auth")
+            request("http://auth.localhost:2440/")
             .then(function (response) {
                 expect(response.status).toBe(401);
             }).then(done, done);
-        });
-    });
-
-    describe("firefly index", function () {
-
-        describe("when not authenticated", function () {
-
-            it("serves app at /", function (done) {
-                request("http://127.0.0.1:2440/")
-                .then(function (response) {
-                    expect(response.status).toEqual(200);
-                    expect(response.body.toString("utf8")).toEqual("app");
-                }).then(done, done);
-            });
-
-            it("serves app at /user/repo", function (done) {
-                request("http://127.0.0.1:2440/declarativ/filament")
-                .then(function (response) {
-                    expect(response.status).toEqual(200);
-                    expect(response.body.toString("utf8")).toEqual("app");
-                })
-                .then(done, done);
-            });
-
-        });
-
-        describe("when authenticated", function () {
-            var headers;
-            beforeEach(function () {
-                headers = {
-                    "x-access-token": accessToken
-                };
-            });
-
-            it("serves app at /", function (done) {
-                request({
-                    url: "http://127.0.0.1:2440/",
-                    headers: headers
-                })
-                .then(function (response) {
-                    expect(response.status).toEqual(200);
-                    expect(response.body.toString("utf8")).toEqual("app");
-                }).then(done, done);
-            });
         });
     });
 });

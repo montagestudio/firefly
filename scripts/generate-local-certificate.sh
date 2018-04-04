@@ -19,5 +19,4 @@ pushd ssl
     echo "Combining cert and key into single pem file..."
     openssl x509 -in servercert.pem > cert.pem
     cat cert.pem serverkey.pem > local.montage.studio.pem
-    rm cert.pem
 popd
