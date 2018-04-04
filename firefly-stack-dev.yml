@@ -58,7 +58,7 @@ services:
         - "traefik.enable=true"
         - "traefik.port=2440"
         - "traefik.docker.network=firefly_net"
-        - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME};PathPrefix:/auth"
+        - "traefik.frontend.rule=Host:auth.${FIREFLY_HOSTNAME}"
   project-daemon:
     image: 127.0.0.1:5000/project-daemon
     networks:

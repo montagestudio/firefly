@@ -19,14 +19,14 @@ describe("login chain", function () {
         }).then(done, done);
     });
 
-    describe("/auth", function () {
+    describe("/", function () {
         it("returns 200 when authenticated", function (done) {
             var headers = {
                 "x-access-token": accessToken
             };
 
             return request({
-                url: "http://localhost:2440/auth",
+                url: "http://auth.localhost:2440/",
                 headers: headers
             }).then(function (response) {
                 expect(response.status).toBe(200);
@@ -34,7 +34,7 @@ describe("login chain", function () {
         });
 
         it("returns 401 when not authenticated", function (done) {
-            request("http://localhost:2440/auth")
+            request("http://auth.localhost:2440/")
             .then(function (response) {
                 expect(response.status).toBe(401);
             }).then(done, done);

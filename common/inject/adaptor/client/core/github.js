@@ -26,7 +26,8 @@ function AuthToken() {
         return Promise.resolve(token);
     }
     return application.delegate.request({
-        url: "/auth/github/token"
+        subdomain: "auth",
+        url: "/github/token"
     }).then(function (response) {
         token = response.body;
         return token;
