@@ -18,6 +18,8 @@ SikuliLog.txt
 static/filament/
 ssl/*
 !ssl/*.cnf
+!ssl/id_rsa
+!ssl/id_rsa.pub
 
 ## Build
 /dist
