@@ -299,8 +299,6 @@ exports.EnvironmentBridge = Target.specialize({
                     // to avoid the common issue of applications relying on http services
                     // TODO accept https if the project demands it
                     urlObject = URL.parse(url);
-                    // TODO: This should probably be https, check how this works in prod
-                    urlObject.protocol = "http:";
                     urlObject = URL.resolve(urlObject, "index.html");
                     url = URL.format(urlObject);
 
