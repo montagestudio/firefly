@@ -5,6 +5,7 @@
 FROM firefly
 LABEL author="Corentin Debost <corentin.debost@kaazing.com>"
 
+RUN apt-get update
 RUN apt-get install -y nginx
 
 # Configure SSH so we can clone from private repos
