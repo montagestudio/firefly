@@ -2,17 +2,15 @@ version: "3.3"
 
 services:
   traefik:
-    image: traefik
+    image: traefik:latest
     command: --docker.domain=${FIREFLY_HOSTNAME}
     networks:
       - net
     ports:
-      - "2440:443"
-      - "8080:8080"
+      - "80:80"
+      - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./ssl/cert.pem:/etc/ssl/cert.pem:ro
-      - ./ssl/serverkey.pem:/etc/ssl/serverkey.pem:ro
     configs:
       - source: traefik-config
         target: /traefik.toml
@@ -21,16 +19,12 @@ services:
         constraints:
           - node.role == manager
   static:
-    image: 127.0.0.1:5000/static
+    image: registry.montage.studio/firefly/static:v0.1.0
+    build:
+      context: .
+      dockerfile: static/Dockerfile
     networks:
       - net
-    volumes:
-      - ./static/filament/:/srv/app/
-      - /srv/app/node_modules/
-      - ./common/inject/adaptor/:/srv/app/adaptor/
-    configs:
-      - source: nginx-config
-        target: /etc/nginx/nginx.conf
     deploy:
       replicas: 1
       labels:
@@ -39,14 +33,12 @@ services:
         - "traefik.docker.network=firefly_net"
         - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
   login:
-    image: 127.0.0.1:5000/login
+    image: registry.montage.studio/firefly/login:v0.1.0
+    build:
+      context: .
+      dockerfile: login/Dockerfile
     networks:
       - net
-    volumes:
-      - ./login/:/srv/login/
-      - /srv/login/node_modules/
-      - ./common/:/srv/login/common/
-      - /srv/login/common/node_modules/
     environment:
       - NODE_ENV
       - FIREFLY_PORT
@@ -62,20 +54,20 @@ services:
         - "traefik.docker.network=firefly_net"
         - "traefik.frontend.rule=Host:auth.${FIREFLY_HOSTNAME}"
   project-daemon:
-    image: 127.0.0.1:5000/project-daemon
+    image: registry.montage.studio/firefly/project-daemon:v0.1.0
+    build:
+      context: .
+      dockerfile: project-daemon/Dockerfile
     networks:
       - net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./project-daemon/:/srv/project-daemon/
-      - /srv/project-daemon/node_modules/
-      - ./common/:/srv/project-daemon/common/
-      - /srv/project-daemon/common/node_modules/
     environment:
       - NODE_ENV
       - WORKING_DIR
       - USE_SRC_DOCKER_VOLUMES
       - SWARM_SINGLE_NODE
+      - FIREFLY_PROJECT_IMAGE=registry.montage.studio/firefly/project:v0.1.0
       - FIREFLY_PORT
       - FIREFLY_APP_URL
       - FIREFLY_PROJECT_URL
@@ -97,5 +89,3 @@ networks:
 configs:
   traefik-config:
     file: traefik.toml
-  nginx-config:
-    file: static/nginx.conf

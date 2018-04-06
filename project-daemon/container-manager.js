@@ -7,7 +7,6 @@ var ProjectInfo = require("./common/project-info");
 var GithubService = require("./common/github-service").GithubService;
 var Map = require("collections/map");
 
-var IMAGE_NAME = "127.0.0.1:5000/project";
 var IMAGE_PORT = 2441;
 
 module.exports = ContainerManager;
@@ -142,7 +141,7 @@ ContainerManager.prototype.create = function (info, githubAccessToken, githubUse
                 Name: info.serviceName,
                 TaskTemplate: {
                     ContainerSpec: {
-                        Image: IMAGE_NAME,
+                        Image: process.env.FIREFLY_PROJECT_IMAGE,
                         Args: ['-c', JSON.stringify(config)],
                         Env: [
                             "NODE_ENV=" + (process.env.NODE_ENV || "development"),

@@ -1,0 +1,36 @@
+version: "3.3"
+
+services:
+  traefik:
+    ports:
+      - "2440:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./ssl/cert.pem:/etc/ssl/cert.pem:ro
+      - ./ssl/serverkey.pem:/etc/ssl/serverkey.pem:ro
+  static:
+    volumes:
+      - ./static/filament/:/srv/app/
+      - /srv/app/node_modules/
+      - ./common/inject/adaptor/:/srv/app/adaptor/
+    configs:
+      - source: nginx-config
+        target: /etc/nginx/nginx.conf
+  login:
+    volumes:
+      - ./login/:/srv/login/
+      - /srv/login/node_modules/
+      - ./common/:/srv/login/common/
+      - /srv/login/common/node_modules/
+  project-daemon:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./project-daemon/:/srv/project-daemon/
+      - /srv/project-daemon/node_modules/
+      - ./common/:/srv/project-daemon/common/
+      - /srv/project-daemon/common/node_modules/
+
+configs:
+  nginx-config:
+    file: static/nginx.conf
