@@ -132,7 +132,7 @@ function server(options) {
                 return previewManager.upgrade(request, socket, body);
             } else {
                 log("filament websocket");
-                var accessTokenMatch = /token=(.*?);/.exec(request.headers.cookie);
+                var accessTokenMatch = /token=(.*?)(;|$)/.exec(request.headers.cookie);
                 return jwt.verify(accessTokenMatch && accessTokenMatch[1])
                     .then(function (payload) {
                         details = environment.getDetailsFromAppUrl(request.url);
