@@ -11,7 +11,7 @@ describe("ContainerManager", function () {
         docker = new MockDocker();
         containerIndex = makeContainerIndex();
 
-        containerManager = new ContainerManager(docker, containerIndex, function () {
+        containerManager = new ContainerManager(docker, function () {
             // Shim `request` function
             return Q({
                 status: 200,

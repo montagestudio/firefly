@@ -9,7 +9,7 @@ var GithubService = require("./common/github-service").GithubService;
 var IMAGE_PORT = 2441;
 
 module.exports = ContainerManager;
-function ContainerManager(docker, services, _request) {
+function ContainerManager(docker, _request) {
     this.docker = docker;
     this.GithubService = GithubService;
     // Only used for testing

@@ -29,8 +29,6 @@ function server(options) {
     //jshint -W116
     if (!options.containerManager) throw new Error("options.containerManager required");
     var containerManager = options.containerManager;
-    if (!options.containerIndex) throw new Error("options.containerIndex required");
-    var containerIndex = options.containerIndex;
     //jshint +W116
 
     var previewManager = new PreviewManager(containerManager);
