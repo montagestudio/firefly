@@ -63,30 +63,20 @@ function server(options) {
     .use(jwt)
     .route(function (any, GET, PUT, POST) {
         GET("workspaces", requestHostStartsWith("api")).app(function (request) {
-            log("route /workspaces");
-            var username = request.githubUser.login;
-            var workspaceKeys = containerIndex.forUsername(username).keys();
-
-            return APPS.json(workspaceKeys);
+            return containerManager.list(request.githubUser)
+                .then(function (services) {
+                    return APPS.json(services.map(function (service) {
+                        return service.Spec.Name;
+                    }));
+                });
         });
 
         this.DELETE("workspaces", requestHostStartsWith("api")).app(function (request) {
-            var username = request.githubUser.login;
-            var workspaceKeys = containerIndex.forUsername(username).keys();
-
-            track.message("delete containers", request, {number: workspaceKeys.length});
-
-            return Q.all(workspaceKeys.map(function (details) {
-                // delete
-                return containerManager.delete(details)
-                .catch(function (error) {
-                    // catch error and log
-                    track.error(error, request);
+            track.message("delete containers", request);
+            return containerManager.deleteAll(request.githubUser)
+                .then(function () {
+                    return APPS.json({deleted: true});
                 });
-            }))
-            .then(function () {
-                return APPS.json({deleted: true});
-            });
         });
 
         any(":owner/:repo/...", requestHostStartsWith("api")).app(function (request) {

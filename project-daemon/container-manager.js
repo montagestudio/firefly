@@ -16,6 +16,16 @@ function ContainerManager(docker, services, _request) {
     this.request = _request || request;
 }
 
+ContainerManager.prototype.list = function (githubUser) {
+    return this.docker.listServices()
+        .then(function (services) {
+            return services.filter(function (service) {
+                return service.Spec.TaskTemplate.ContainerSpec.Image.indexOf("firefly/project:") > -1 &&
+                    service.Spec.Name.indexOf(githubUser.login) === 0;
+            });
+        });
+};
+
 ContainerManager.prototype.setup = function (info, githubAccessToken, githubUser) {
     var self = this;
 
@@ -73,6 +83,17 @@ ContainerManager.prototype._wait = function (service) {
 ContainerManager.prototype.delete = function (info) {
     var service = this.docker.getService(info.serviceName);
     return service.remove();
+};
+
+ContainerManager.prototype.deleteAll = function (githubUser) {
+    var self = this;
+    return this.list(githubUser)
+        .then(function (serviceInfos) {
+            return Promise.all(serviceInfos.map(function (serviceInfo) {
+                var service = self.docker.getService(serviceInfo.Spec.Name);
+                return service.remove();
+            }));
+        });
 };
 
 ContainerManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
