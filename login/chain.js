@@ -69,6 +69,7 @@ function server(options) {
                 if (request.query.error) {
                     return HttpApps.ok("Github error. Please try again", "text/plain", 400);
                 }
+                log("github/callback:", CLIENT_ID, CLIENT_SECRET, request.query.code);
 
                 return Http.request({
                     url: "https://github.com/login/oauth/access_token",
@@ -83,7 +84,9 @@ function server(options) {
                         "code": request.query.code
                     })]
                 }).then(function (response) {
+                    log("github login response:", response);
                     return response.body.read().then(function (body) {
+                        log("response body:", body);
                         if (response.status !== 200) {
                             throw new Error("Github answered request for access token with status " + response.status + ": " + body);
                         } else if (response.headers["content-type"] !== "application/json; charset=utf-8") {
@@ -100,8 +103,10 @@ function server(options) {
                         //jshint -W106
                         var githubAccessToken = data.access_token;
                         //jshint +W106
+                        log("new GithubApi", githubAccessToken);
                         return new GithubApi(githubAccessToken).getUser()
                             .then(function (githubUser) {
+                                log("githubUser", githubUser);
                                 return jwt.sign({
                                     githubUser: githubUser,
                                     githubAccessToken: githubAccessToken
