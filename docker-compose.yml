@@ -80,6 +80,15 @@ services:
         - "traefik.port=2440"
         - "traefik.docker.network=firefly_net"
         - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},api.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
+  # This is just here so that docker-compose knows to build, push, and pull the project image
+  # Project services are created dynamically by the project-daemon
+  project:
+    image: registry.montage.studio/firefly/project:v0.1.0
+    build:
+      context: .
+      dockerfile: project/Dockerfile
+    deploy:
+      replicas: 0
 
 networks:
   net:
