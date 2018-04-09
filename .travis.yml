@@ -27,11 +27,11 @@ before_script:
   - npm start
 script:
   - npm run lint
-  - sleep 25
-  - docker ps | grep -q load-balancer
-  - docker ps | grep -q login
-  - docker ps | grep -q static
-  - docker ps | grep -q project-daemon
+  - sleep 120
+  - docker ps | grep -q firefly_traefik
+  - docker ps | grep -q firefly_login
+  - docker ps | grep -q firefly_static
+  - docker ps | grep -q firefly_project-daemon
   - runSlowSpecs=true npm test
 after_script:
   - npm stop
