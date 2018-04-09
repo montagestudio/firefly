@@ -149,8 +149,7 @@ ContainerManager.prototype.create = function (info, githubAccessToken, githubUse
                         Env: [
                             "NODE_ENV=" + (process.env.NODE_ENV || "development"),
                             "FIREFLY_APP_URL=" + environment.app.href,
-                            "FIREFLY_PROJECT_URL=" + environment.project.href,
-                            "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
+                            "FIREFLY_PROJECT_URL=" + environment.project.href
                         ],
                         Mounts: process.env.USE_SRC_DOCKER_VOLUMES ? [
                             {
