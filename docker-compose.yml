@@ -54,7 +54,7 @@ services:
         - "traefik.docker.network=firefly_net"
         - "traefik.frontend.rule=Host:auth.${FIREFLY_HOSTNAME}"
   project-daemon:
-    image: registry.montage.studio/firefly/project-daemon:0.1.0
+    image: registry.montage.studio/firefly/project-daemon:0.1.1
     build:
       context: .
       dockerfile: project-daemon/Dockerfile
