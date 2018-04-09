@@ -44,11 +44,11 @@ ContainerManager.prototype.setup = function (info, githubAccessToken, githubUser
                     });
             }
         })
-        .then(function (res) {
-            if (!res) {
+        .then(function (serviceInfo) {
+            if (!serviceInfo) {
                 return false;
             }
-            return self._wait(service)
+            return self._waitForRunningTask(serviceInfo)
                 .then(function () {
                     return self.waitForServer(info.url);
                 })
@@ -66,16 +66,27 @@ ContainerManager.prototype.setup = function (info, githubAccessToken, githubUser
         });
 };
 
-ContainerManager.prototype._wait = function (service) {
+ContainerManager.prototype._waitForRunningTask = function (serviceInfo) {
     var self = this;
-    return service.inspect()
-        .then(function (info) {
-            var replicas = info.Spec.Mode.Replicated.Replicas;
-            if (!replicas) {
-                return Promise.delay(300)
-                    .then(function () {
-                        return self._wait(service);
-                    });
+    // listTasks() is supposed to be able to take a filter parameter (e.g. to
+    // get tasks belonging to a particular service). Can't figure out how this
+    // works, there isn't much documentation on its usage
+    return this.docker.listTasks()
+        .then(function (allTasks) {
+            return allTasks.filter(function (task) {
+                return task.ServiceID === serviceInfo.ID;
+            });
+        })
+        .then(function (tasks) {
+            var runningTasks = tasks.filter(function (task) {
+                return task.Status.State === "running";
+            });
+            if (runningTasks.length === 0) {
+                return new Promise(function (resolve) {
+                    setTimeout(resolve, 2000);
+                }).then(function () {
+                    return self._wait(serviceInfo);
+                });
             }
         });
 };
