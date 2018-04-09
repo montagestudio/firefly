@@ -85,7 +85,7 @@ ContainerManager.prototype._waitForRunningTask = function (serviceInfo) {
                 return new Promise(function (resolve) {
                     setTimeout(resolve, 2000);
                 }).then(function () {
-                    return self._wait(serviceInfo);
+                    return self._waitForRunningTask(serviceInfo);
                 });
             }
         });
