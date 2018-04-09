@@ -35,8 +35,6 @@ before_script:
 #  - sh -e /etc/init.d/xvfb start
   - export DOCKER_CLIENT_TIMEOUT=120
   - docker swarm init
-  - docker service create --name docker-registry --publish 5000:5000 --detach=true registry:2
-  - npm run build
   - npm start
 script:
   - npm run lint
@@ -48,5 +46,4 @@ script:
   - runSlowSpecs=true npm test
 after_script:
   - npm stop
-  - docker service rm docker-registry
   - docker swarm leave
