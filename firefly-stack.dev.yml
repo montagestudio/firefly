@@ -34,3 +34,4 @@ services:
 configs:
   nginx-config:
     file: static/nginx.conf
+  

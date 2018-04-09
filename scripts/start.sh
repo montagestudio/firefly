@@ -15,10 +15,10 @@ git rev-parse HEAD > common/GIT_HASH
     export WORKING_DIR=$(pwd) 
 
     if [ "$NODE_ENV" == "development" ]; then
-        ./node_modules/.bin/merge-yaml -i docker-compose.yml docker-compose.dev.yml -o .docker-compose.dev.yml
-        docker stack deploy --compose-file .docker-compose.dev.yml firefly
-        rm .docker-compose.dev.yml
+        ./node_modules/.bin/merge-yaml -i firefly-stack.yml firefly-stack.dev.yml -o .firefly-stack.yml
     else
-        docker stack deploy firefly
+        ./node_modules/.bin/merge-yaml -i firefly-stack.yml firefly-stack.prod.yml -o .firefly-stack.yml
     fi
+    docker stack deploy --compose-file .firefly-stack.yml firefly
+    rm .firefly-stack.yml
 )
