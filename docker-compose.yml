@@ -19,7 +19,7 @@ services:
         constraints:
           - node.role == manager
   static:
-    image: registry.montage.studio/firefly/static:v0.1.0
+    image: registry.montage.studio/firefly/static:0.1.0
     build:
       context: .
       dockerfile: static/Dockerfile
@@ -33,7 +33,7 @@ services:
         - "traefik.docker.network=firefly_net"
         - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
   login:
-    image: registry.montage.studio/firefly/login:v0.1.0
+    image: registry.montage.studio/firefly/login:0.1.0a
     build:
       context: .
       dockerfile: login/Dockerfile
@@ -54,7 +54,7 @@ services:
         - "traefik.docker.network=firefly_net"
         - "traefik.frontend.rule=Host:auth.${FIREFLY_HOSTNAME}"
   project-daemon:
-    image: registry.montage.studio/firefly/project-daemon:v0.1.0
+    image: registry.montage.studio/firefly/project-daemon:0.1.0
     build:
       context: .
       dockerfile: project-daemon/Dockerfile
@@ -67,7 +67,7 @@ services:
       - WORKING_DIR
       - USE_SRC_DOCKER_VOLUMES
       - SWARM_SINGLE_NODE
-      - FIREFLY_PROJECT_IMAGE=registry.montage.studio/firefly/project:v0.1.0
+      - FIREFLY_PROJECT_IMAGE=registry.montage.studio/firefly/project:0.1.0
       - FIREFLY_PORT
       - FIREFLY_APP_URL
       - FIREFLY_PROJECT_URL
@@ -83,7 +83,7 @@ services:
   # This is just here so that docker-compose knows to build, push, and pull the project image
   # Project services are created dynamically by the project-daemon
   project:
-    image: registry.montage.studio/firefly/project:v0.1.0
+    image: registry.montage.studio/firefly/project:0.1.0
     build:
       context: .
       dockerfile: project/Dockerfile
