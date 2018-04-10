@@ -3,7 +3,6 @@ RANDFILE        = $ENV::HOME/.rnd
 
 ####################################################################
 [ req ]
-prompt = no
 default_bits       = 2048
 default_keyfile    = serverkey.pem
 distinguished_name = server_distinguished_name
@@ -13,19 +12,19 @@ string_mask        = utf8only
 ####################################################################
 [ server_distinguished_name ]
 countryName         = Country Name (2 letter code)
-countryName_default = US
+countryName_value   = US
 
 stateOrProvinceName         = State or Province Name (full name)
-stateOrProvinceName_default = California
+stateOrProvinceName_value   = California
 
 localityName         = Locality Name (eg, city)
-localityName_default = San Jose
+localityName_value   = San Jose
 
 organizationName            = Organization Name (eg, company)
-organizationName_default    = Kaazing
+organizationName_value      = Kaazing
 
 commonName           = Common Name (e.g. server FQDN or YOUR name)
-commonName_default   = Montage Studio
+commonName_value     = Montage Studio
 
 ####################################################################
 [ server_req_extensions ]
