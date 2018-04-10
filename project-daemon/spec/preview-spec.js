@@ -1,6 +1,6 @@
 var Q = require("q");
 var PreviewManager = require("../preview");
-var ProjectInfo = require("../common/project-info");
+var ProjectInfo = require("../project-info");
 
 // var Set = require("collections/set");
 

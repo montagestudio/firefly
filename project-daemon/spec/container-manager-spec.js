@@ -1,7 +1,7 @@
 var Q = require("q");
 var ContainerManager = require("../container-manager");
 var MockDocker = require("./mocks/docker");
-var ProjectInfo = require("../common/project-info");
+var ProjectInfo = require("../project-info");
 
 describe("ContainerManager", function () {
     var docker, containerManager;

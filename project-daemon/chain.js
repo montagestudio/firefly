@@ -7,7 +7,7 @@ var environment = require("./common/environment");
 
 var LogStackTraces = require("./common/log-stack-traces");
 var jwt = require("./common/jwt");
-var ProjectInfo = require("./common/project-info");
+var ProjectInfo = require("./project-info");
 
 var PreviewManager = require("./preview");
 
