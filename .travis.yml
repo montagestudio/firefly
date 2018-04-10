@@ -14,6 +14,8 @@ install:
   # Update docker-compose via pip
   - sudo pip install docker-compose
   - docker-compose version
+  - git submodule init
+  - git submodule update
   # NodeJS Install
   - "npm install"
   # Update public certs

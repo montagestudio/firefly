@@ -15,7 +15,6 @@ log.txt
 *.log
 *$py.class
 SikuliLog.txt
-static/filament/
 ssl/*
 !ssl/*.cnf
 !ssl/id_rsa

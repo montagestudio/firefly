@@ -1,0 +1,3 @@
+[submodule "static/filament"]
+	path = static/filament
+	url = git@github.com:montagestudio/filament
