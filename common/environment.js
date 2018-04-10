@@ -53,12 +53,6 @@ function Env(options) {
             repo: repo.toLowerCase()
         };
     };
-    env.getDetailsfromProjectUrl = function (url) {
-        throw new Error("Deprecated. Use subdomainDetailsMap and a PreviewDetails object");
-    };
-    env.getProjectUrlFromAppUrl = function (url) {
-        throw new Error("Deprecated. Use FIXME");
-    };
 
     env.getProjectUrl = function (containerPath) {
         return URL.resolve(this.project.href, containerPath);

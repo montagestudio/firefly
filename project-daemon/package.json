@@ -10,6 +10,7 @@
     "collections": "~0.2.2",
     "dockerode": "^2.5.3",
     "faye-websocket": "~0.7.2",
+    "github": "^0.2.3",
     "joey": "^1.5.3",
     "optimist": "~0.6.0",
     "q": "~0.9.7",

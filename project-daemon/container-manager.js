@@ -4,7 +4,7 @@ var request = require("q-io/http").request;
 var Q = require("q");
 var environment = require("./common/environment");
 var ProjectInfo = require("./project-info");
-var GithubService = require("./common/github-service").GithubService;
+var GithubService = require("./github-service").GithubService;
 
 var IMAGE_PORT = 2441;
 
