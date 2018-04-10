@@ -28,6 +28,7 @@ before_script:
 script:
   - npm run lint
   - sleep 120
+  - docker ps
   - docker ps | grep -q firefly_traefik
   - docker ps | grep -q firefly_login
   - docker ps | grep -q firefly_static
