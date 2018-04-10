@@ -28,7 +28,7 @@ before_script:
   - npm start
 script:
   - npm run lint
-  - sleep 60
+  - sleep 120
   - docker service ls
   - docker service ps firefly_traefik
   - docker ps
