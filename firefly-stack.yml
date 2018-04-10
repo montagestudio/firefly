@@ -16,7 +16,7 @@ services:
         constraints:
           - node.role == manager
   static:
-    image: registry.montage.studio/firefly/static:0.1.0
+    image: registry.montage.studio/firefly/static:0.2.0
     build:
       context: .
       dockerfile: static/Dockerfile
