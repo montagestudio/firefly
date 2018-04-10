@@ -23,11 +23,12 @@ addons:
     - local.montage.studio
 before_script:
   - export DOCKER_CLIENT_TIMEOUT=120
+  - npm run generate-local-certificate
   - docker swarm init
   - npm start
 script:
   - npm run lint
-  - sleep 120
+  - sleep 60
   - docker service ls
   - docker service ps firefly_traefik
   - docker ps
