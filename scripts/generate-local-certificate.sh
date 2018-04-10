@@ -14,7 +14,7 @@ pushd ssl
     openssl req -config openssl-server.cnf -newkey rsa:2048 -sha256 -nodes -keyout serverkey.pem -out servercert.csr -outform PEM
 
     echo "Signing certificate with local CA..."
-    openssl ca -config openssl-ca.cnf -policy signing_policy -extensions signing_req -out servercert.pem -infiles servercert.csr
+    openssl ca -batch -config openssl-ca.cnf -policy signing_policy -extensions signing_req -out servercert.pem -infiles servercert.csr
 
     echo "Combining cert and key into single pem file..."
     openssl x509 -in servercert.pem > cert.pem
