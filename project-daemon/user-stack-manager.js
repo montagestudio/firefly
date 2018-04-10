@@ -8,15 +8,15 @@ var GithubService = require("./github-service").GithubService;
 
 var IMAGE_PORT = 2441;
 
-module.exports = ContainerManager;
-function ContainerManager(docker, _request) {
+module.exports = UserStackManager;
+function UserStackManager(docker, _request) {
     this.docker = docker;
     this.GithubService = GithubService;
     // Only used for testing
     this.request = _request || request;
 }
 
-ContainerManager.prototype.list = function (githubUser) {
+UserStackManager.prototype.list = function (githubUser) {
     return this.docker.listServices()
         .then(function (services) {
             return services.filter(function (service) {
@@ -26,7 +26,7 @@ ContainerManager.prototype.list = function (githubUser) {
         });
 };
 
-ContainerManager.prototype.setup = function (info, githubAccessToken, githubUser) {
+UserStackManager.prototype.setup = function (info, githubAccessToken, githubUser) {
     var self = this;
 
     if (!(info instanceof ProjectInfo)) {
@@ -66,7 +66,7 @@ ContainerManager.prototype.setup = function (info, githubAccessToken, githubUser
         });
 };
 
-ContainerManager.prototype._waitForRunningTask = function (serviceInfo) {
+UserStackManager.prototype._waitForRunningTask = function (serviceInfo) {
     var self = this;
     // listTasks() is supposed to be able to take a filter parameter (e.g. to
     // get tasks belonging to a particular service). Can't figure out how this
@@ -91,12 +91,12 @@ ContainerManager.prototype._waitForRunningTask = function (serviceInfo) {
         });
 };
 
-ContainerManager.prototype.delete = function (info) {
+UserStackManager.prototype.delete = function (info) {
     var service = this.docker.getService(info.serviceName);
     return service.remove();
 };
 
-ContainerManager.prototype.deleteAll = function (githubUser) {
+UserStackManager.prototype.deleteAll = function (githubUser) {
     var self = this;
     return this.list(githubUser)
         .then(function (serviceInfos) {
@@ -107,7 +107,7 @@ ContainerManager.prototype.deleteAll = function (githubUser) {
         });
 };
 
-ContainerManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
+UserStackManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
     if (typeof info.private === 'undefined' && githubAccessToken) {
         var githubService = new this.GithubService(githubAccessToken);
         return githubService.getRepo(info.owner, info.repo).then(function(repoInfo) {
@@ -118,7 +118,7 @@ ContainerManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
     }
 };
 
-ContainerManager.prototype.create = function (info, githubAccessToken, githubUser) {
+UserStackManager.prototype.create = function (info, githubAccessToken, githubUser) {
     var self = this;
     return this._getRepoPrivacy(info, githubAccessToken)
         .then(function (isPrivate) {
@@ -209,7 +209,7 @@ ContainerManager.prototype.create = function (info, githubAccessToken, githubUse
  * @return {Promise.<string>}   A promise for the port resolved when the
  * server is available.
  */
-ContainerManager.prototype.waitForServer = function (url, timeout, error) {
+UserStackManager.prototype.waitForServer = function (url, timeout, error) {
     var self = this;
 
     timeout = typeof timeout === "undefined" ? 5000 : timeout;

@@ -27,11 +27,11 @@ function server(options) {
     options = options || {};
 
     //jshint -W116
-    if (!options.containerManager) throw new Error("options.containerManager required");
-    var containerManager = options.containerManager;
+    if (!options.userStackManager) throw new Error("options.userStackManager required");
+    var userStackManager = options.userStackManager;
     //jshint +W116
 
-    var previewManager = new PreviewManager(containerManager);
+    var previewManager = new PreviewManager(userStackManager);
 
     var chain = joey
     .error()
@@ -61,7 +61,7 @@ function server(options) {
     .use(jwt)
     .route(function (any, GET, PUT, POST) {
         GET("workspaces", requestHostStartsWith("api")).app(function (request) {
-            return containerManager.list(request.githubUser)
+            return userStackManager.list(request.githubUser)
                 .then(function (services) {
                     return APPS.json(services.map(function (service) {
                         return service.Spec.Name;
@@ -71,14 +71,14 @@ function server(options) {
 
         this.DELETE("workspaces", requestHostStartsWith("api")).app(function (request) {
             track.message("delete containers", request);
-            return containerManager.deleteAll(request.githubUser)
+            return userStackManager.deleteAll(request.githubUser)
                 .then(function () {
                     return APPS.json({deleted: true});
                 });
         });
 
         any(":owner/:repo/...", requestHostStartsWith("api")).app(function (request) {
-            return containerManager.setup(
+            return userStackManager.setup(
                 new ProjectInfo(
                     request.githubUser.login,
                     request.params.owner,
@@ -94,7 +94,7 @@ function server(options) {
 
         GET(":owner/:repo/...", requestHostStartsWith("build")).app(function (request) {
             log("build");
-            return containerManager.setup(
+            return userStackManager.setup(
                 new ProjectInfo(
                     request.githubUser.login,
                     request.params.owner,
@@ -109,7 +109,7 @@ function server(options) {
         });
     });
 
-    var proxyAppWebsocket = ProxyWebsocket(containerManager, "firefly-app");
+    var proxyAppWebsocket = ProxyWebsocket(userStackManager, "firefly-app");
     chain.upgrade = function (request, socket, body) {
         Q.try(function () {
             if (!WebSocket.isWebSocket(request)) {

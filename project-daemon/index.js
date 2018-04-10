@@ -10,7 +10,7 @@ process.on('uncaughtException', function (err) {
 
 var projectChainFactory = require("./chain");
 
-var ContainerManager = require("./container-manager");
+var UserStackManager = require("./user-stack-manager");
 var Dockerode = require("dockerode");
 
 var commandOptions = {
@@ -34,7 +34,7 @@ function main(options) {
     var docker  = new Dockerode({socketPath: "/var/run/docker.sock"});
 
     var projectChain = projectChainFactory({
-        containerManager: new ContainerManager(docker),
+        userStackManager: new UserStackManager(docker),
     });
     return projectChain.listen(options.port)
     .then(function (server) {

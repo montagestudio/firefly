@@ -1,14 +1,14 @@
 var Q = require("q");
-var ContainerManager = require("../container-manager");
+var UserStackManager = require("../user-stack-manager");
 var MockDocker = require("./mocks/docker");
 var ProjectInfo = require("../project-info");
 
-describe("ContainerManager", function () {
+describe("UserStackManager", function () {
     var docker, containerManager;
     beforeEach(function () {
         docker = new MockDocker();
 
-        containerManager = new ContainerManager(docker, function () {
+        containerManager = new UserStackManager(docker, function () {
             // Shim `request` function
             return Q({
                 status: 200,
