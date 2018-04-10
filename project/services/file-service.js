@@ -257,7 +257,7 @@ function FileService(config, fs, environment, pathname, fsPath) {
                         
                         // Pass in a reduced stat object, with just the mode. This
                         // is the only used client side, to check if the file is
-                        // a directory. See inject/adaptor/client/core/file-descriptor.js
+                        // a directory. See core/file-descriptor.js
                         fileStat = {mode: fileStat.mode};
                         handlers.handleChange(changeType, url, fileStat)
                         .catch(function (error) {
