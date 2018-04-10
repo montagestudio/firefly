@@ -1,0 +1,9 @@
+version: "3.3"
+
+services:
+  project:
+    volumes:
+      - ../../project/:/srv/project/
+      - /srv/project/node_modules/
+      - ../../common/:/srv/project/common/
+      - /srv/project/common/node_modules/
