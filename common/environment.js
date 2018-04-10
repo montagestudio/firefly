@@ -30,10 +30,6 @@ function Env(options) {
 
     log("project", JSON.stringify(env.project));
 
-    env.projectServers = process.env.FIREFLY_PROJECT_SERVER_COUNT;
-
-    log("project server count", env.projectServers);
-
     env.getAppHost = function() {
         return getHost(this.app.hostname, this.app.port);
     };

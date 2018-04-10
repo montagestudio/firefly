@@ -12,7 +12,6 @@ var projectChainFactory = require("./chain");
 
 var ContainerManager = require("./container-manager");
 var Dockerode = require("dockerode");
-var containerIndex = require("./make-container-index")("/srv/container-index.json");
 
 var commandOptions = {
     "port": {
@@ -35,8 +34,7 @@ function main(options) {
     var docker  = new Dockerode({socketPath: "/var/run/docker.sock"});
 
     var projectChain = projectChainFactory({
-        containerManager: new ContainerManager(docker, containerIndex),
-        containerIndex: containerIndex
+        containerManager: new ContainerManager(docker),
     });
     return projectChain.listen(options.port)
     .then(function (server) {

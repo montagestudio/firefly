@@ -1,23 +1,21 @@
 var projectChain = require("../chain");
 var Q = require("q");
 var mockRequest = require("../common/spec/mocks/request");
-var makeContainerIndex = require("../make-container-index");
 var jwt = require("../common/jwt");
 
 describe("project chain", function () {
-    var username, containerManager, containerIndex, chain, request;
+    var username, containerManager, chain, request;
     beforeEach(function () {
         username = "jasmine";
 
         containerManager = {
             setup: function () { return Q("1234"); },
-            delete: jasmine.createSpy().andReturn(Q())
+            delete: jasmine.createSpy().andReturn(Q()),
+            deleteAll: jasmine.createSpy().andReturn(Q())
         };
-        containerIndex = makeContainerIndex();
 
         chain = projectChain({
-            containerManager: containerManager,
-            containerIndex: containerIndex
+            containerManager: containerManager
         }).end();
 
         request = function (req) {
@@ -40,9 +38,6 @@ describe("project chain", function () {
 
     describe("DELETE api/workspaces", function () {
         it("calls containerManager.delete with the container's details", function (done) {
-            var details = {username: username, owner: username, repo: "repo"};
-            containerIndex.set(details, null);
-
             jwt.sign({
                 githubUser: {
                     login: username
@@ -58,7 +53,7 @@ describe("project chain", function () {
             }).then(function (response) {
                 expect(response.status).toEqual(200);
                 expect(response.body.join("")).toEqual('{"deleted":true}');
-                expect(containerManager.delete).toHaveBeenCalledWith(details);
+                expect(containerManager.deleteAll).toHaveBeenCalledWith({ login: username });
             }).then(done, done);
         });
     });

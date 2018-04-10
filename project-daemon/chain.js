@@ -29,8 +29,6 @@ function server(options) {
     //jshint -W116
     if (!options.containerManager) throw new Error("options.containerManager required");
     var containerManager = options.containerManager;
-    if (!options.containerIndex) throw new Error("options.containerIndex required");
-    var containerIndex = options.containerIndex;
     //jshint +W116
 
     var previewManager = new PreviewManager(containerManager);
@@ -63,30 +61,20 @@ function server(options) {
     .use(jwt)
     .route(function (any, GET, PUT, POST) {
         GET("workspaces", requestHostStartsWith("api")).app(function (request) {
-            log("route /workspaces");
-            var username = request.githubUser.login;
-            var workspaceKeys = containerIndex.forUsername(username).keys();
-
-            return APPS.json(workspaceKeys);
+            return containerManager.list(request.githubUser)
+                .then(function (services) {
+                    return APPS.json(services.map(function (service) {
+                        return service.Spec.Name;
+                    }));
+                });
         });
 
         this.DELETE("workspaces", requestHostStartsWith("api")).app(function (request) {
-            var username = request.githubUser.login;
-            var workspaceKeys = containerIndex.forUsername(username).keys();
-
-            track.message("delete containers", request, {number: workspaceKeys.length});
-
-            return Q.all(workspaceKeys.map(function (details) {
-                // delete
-                return containerManager.delete(details)
-                .catch(function (error) {
-                    // catch error and log
-                    track.error(error, request);
+            track.message("delete containers", request);
+            return containerManager.deleteAll(request.githubUser)
+                .then(function () {
+                    return APPS.json({deleted: true});
                 });
-            }))
-            .then(function () {
-                return APPS.json({deleted: true});
-            });
         });
 
         any(":owner/:repo/...", requestHostStartsWith("api")).app(function (request) {
@@ -132,7 +120,7 @@ function server(options) {
                 return previewManager.upgrade(request, socket, body);
             } else {
                 log("filament websocket");
-                var accessTokenMatch = /token=(.*?);/.exec(request.headers.cookie);
+                var accessTokenMatch = /token=(.*?)(;|$)/.exec(request.headers.cookie);
                 return jwt.verify(accessTokenMatch && accessTokenMatch[1])
                     .then(function (payload) {
                         details = environment.getDetailsFromAppUrl(request.url);

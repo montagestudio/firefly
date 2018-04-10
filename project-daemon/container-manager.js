@@ -5,20 +5,26 @@ var Q = require("q");
 var environment = require("./common/environment");
 var ProjectInfo = require("./common/project-info");
 var GithubService = require("./common/github-service").GithubService;
-var Map = require("collections/map");
 
-var IMAGE_NAME = "127.0.0.1:5000/project";
 var IMAGE_PORT = 2441;
 
 module.exports = ContainerManager;
-function ContainerManager(docker, services, _request) {
+function ContainerManager(docker, _request) {
     this.docker = docker;
-    this.services = services;
-    this.pending = new Map();
     this.GithubService = GithubService;
     // Only used for testing
     this.request = _request || request;
 }
+
+ContainerManager.prototype.list = function (githubUser) {
+    return this.docker.listServices()
+        .then(function (services) {
+            return services.filter(function (service) {
+                return service.Spec.TaskTemplate.ContainerSpec.Image.indexOf("firefly/project:") > -1 &&
+                    service.Spec.Name.indexOf(githubUser.login) === 0;
+            });
+        });
+};
 
 ContainerManager.prototype.setup = function (info, githubAccessToken, githubUser) {
     var self = this;
@@ -27,51 +33,78 @@ ContainerManager.prototype.setup = function (info, githubAccessToken, githubUser
         throw new Error("Given info was not an instance of ProjectInfo");
     }
 
-    var service = self.services.get(info);
-    if (!service && (!githubAccessToken || !githubUser)) {
-        return Q(false);
-    }
-
-    var setup = this.pending.get(info);
-    if (!setup) {
-        setup = this.get(info)
-        .then(function (service) {
-            return service || self.create(info, githubAccessToken, githubUser);
+    var service = this.docker.getService(info.serviceName);
+    return service.inspect()
+        .catch(function (err) {
+            if (githubAccessToken && githubUser) {
+                return self.create(info, githubAccessToken, githubUser)
+                    .then(function (s) {
+                        service = s;
+                        return service.inspect();
+                    });
+            }
         })
-        .then(function (service) {
-            return self.waitForServer(info.url);
-        })
-        .catch(function (error) {
-            log("Removing container for", info.toString(), "because", error.message);
+        .then(function (serviceInfo) {
+            if (!serviceInfo) {
+                return false;
+            }
+            return self._waitForRunningTask(serviceInfo)
+                .then(function () {
+                    return self.waitForServer(info.url);
+                })
+                .catch(function (error) {
+                    log("Removing container for", info.toString(), "because", error.message);
 
-            return self.delete(info)
-            .catch(function (error) {
-                track.errorForUsername(error, info.username, {info: info});
-            })
-            .then(function () {
-                track.errorForUsername(error, info.username, {info: info});
-                throw error;
+                    return service.remove()
+                        .then(function () {
+                            track.errorForUsername(error, info.username, {info: info});
+                            throw error;
+                        }, function (error) {
+                            track.errorForUsername(error, info.username, {info: info});
+                        });
+                });
+        });
+};
+
+ContainerManager.prototype._waitForRunningTask = function (serviceInfo) {
+    var self = this;
+    // listTasks() is supposed to be able to take a filter parameter (e.g. to
+    // get tasks belonging to a particular service). Can't figure out how this
+    // works, there isn't much documentation on its usage
+    return this.docker.listTasks()
+        .then(function (allTasks) {
+            return allTasks.filter(function (task) {
+                return task.ServiceID === serviceInfo.ID;
             });
         })
-        .then(function (url) {
-            self.pending.delete(info);
-            return url;
+        .then(function (tasks) {
+            var runningTasks = tasks.filter(function (task) {
+                return task.Status.State === "running";
+            });
+            if (runningTasks.length === 0) {
+                return new Promise(function (resolve) {
+                    setTimeout(resolve, 2000);
+                }).then(function () {
+                    return self._waitForRunningTask(serviceInfo);
+                });
+            }
         });
-
-        this.pending.set(info, setup);
-    }
-    return setup;
 };
 
 ContainerManager.prototype.delete = function (info) {
+    var service = this.docker.getService(info.serviceName);
+    return service.remove();
+};
+
+ContainerManager.prototype.deleteAll = function (githubUser) {
     var self = this;
-    return Q.resolve(this.services.get(info))
-    .then(function (service) {
-        return service.remove();
-    })
-    .finally(function () {
-        self.services.delete(info);
-    });
+    return this.list(githubUser)
+        .then(function (serviceInfos) {
+            return Promise.all(serviceInfos.map(function (serviceInfo) {
+                var service = self.docker.getService(serviceInfo.Spec.Name);
+                return service.remove();
+            }));
+        });
 };
 
 ContainerManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
@@ -85,40 +118,9 @@ ContainerManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
     }
 };
 
-/**
- * Gets a service for the given user/owner/repo combo. If the requested service
- * is not cached, the manager tries to find a matching service from docker service
- * ls. Another project daemon in the stack could have already created an appropriate
- * container.
- * @param  {string} user  The currently logged in username
- * @param  {string} owner The owner of the repo
- * @param  {string} repo  The name of the repo
- * @return {Promise.<Object>} An object of information about the service
- */
-ContainerManager.prototype.get = function (info) {
-    var self = this;
-    var service = self.services.get(info);
-    if (service) {
-        return Q(service);
-    }
-    var discover = this.docker.listServices()
-    .then(function (services) {
-        var existingService = services.filter(function (s) {
-            return s.Spec && s.Spec.Name === info.serviceName;
-        })[0];
-        if (existingService) {
-            log("Discovered an existing service for", info.toString(), "that was created by another daemon in the swarm");
-            existingService.name = info.serviceName;
-            self.services.set(info, existingService);
-            return existingService;
-        }
-    });
-    return discover;
-};
-
 ContainerManager.prototype.create = function (info, githubAccessToken, githubUser) {
     var self = this;
-    var pending = this._getRepoPrivacy(info, githubAccessToken)
+    return this._getRepoPrivacy(info, githubAccessToken)
         .then(function (isPrivate) {
             if (isPrivate) {
                 info.setPrivate(true);
@@ -142,13 +144,12 @@ ContainerManager.prototype.create = function (info, githubAccessToken, githubUse
                 Name: info.serviceName,
                 TaskTemplate: {
                     ContainerSpec: {
-                        Image: IMAGE_NAME,
+                        Image: process.env.FIREFLY_PROJECT_IMAGE,
                         Args: ['-c', JSON.stringify(config)],
                         Env: [
                             "NODE_ENV=" + (process.env.NODE_ENV || "development"),
                             "FIREFLY_APP_URL=" + environment.app.href,
-                            "FIREFLY_PROJECT_URL=" + environment.project.href,
-                            "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
+                            "FIREFLY_PROJECT_URL=" + environment.project.href
                         ],
                         Mounts: process.env.USE_SRC_DOCKER_VOLUMES ? [
                             {
@@ -195,13 +196,8 @@ ContainerManager.prototype.create = function (info, githubAccessToken, githubUse
         })
         .then(function (service) {
             log("Created service", service.id, "for", info.toString());
-            service.name = info.serviceName;
-            self.services.set(info, service);
             return service;
         });
-
-    this.pending.set(info, pending);
-    return pending;
 };
 
 /**

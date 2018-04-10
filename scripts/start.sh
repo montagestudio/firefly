@@ -14,5 +14,11 @@ git rev-parse HEAD > common/GIT_HASH
     # Used for creating volumes to firefly on new project services in development
     export WORKING_DIR=$(pwd) 
 
-    docker stack deploy --compose-file "${SWARM_YML}" firefly
+    if [ "$NODE_ENV" == "development" ]; then
+        ./node_modules/.bin/merge-yaml -i firefly-stack.yml firefly-stack.dev.yml -o .firefly-stack.yml
+    else
+        ./node_modules/.bin/merge-yaml -i firefly-stack.yml firefly-stack.prod.yml -o .firefly-stack.yml
+    fi
+    docker stack deploy --compose-file .firefly-stack.yml firefly
+    rm .firefly-stack.yml
 )
