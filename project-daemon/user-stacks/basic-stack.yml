@@ -4,8 +4,10 @@ services:
   project:
     image: registry.montage.studio/firefly/project:0.2.1
     build:
-      context: .
+      context: ../../
       dockerfile: project/Dockerfile
+    networks:
+      - firefly_projects
     environment:
       - NODE_ENV
       - FIREFLY_APP_URL
@@ -14,3 +16,7 @@ services:
       placement:
         constraints: [node.role == worker]
       replicas: 1
+
+networks:
+  firefly_projects:
+    external: true
