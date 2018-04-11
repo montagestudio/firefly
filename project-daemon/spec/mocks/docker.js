@@ -1,12 +1,21 @@
 var Q = require("q");
 var uuid = require("uuid");
 
-
 module.exports = MockDocker;
 function MockDocker() {
+    this.stacks = [];
     this.services = [];
     this.tasks = [];
 }
+
+MockDocker.prototype.listStacks = function () {
+    return Q(this.stacks);
+};
+
+MockDocker.prototype.deployStack = function (name) {
+    this.stacks.push({ id: name });
+    return Q();
+};
 
 MockDocker.prototype.getService = function (name) {
     var self = this;

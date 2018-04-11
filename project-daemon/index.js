@@ -11,6 +11,8 @@ process.on('uncaughtException', function (err) {
 var projectChainFactory = require("./chain");
 
 var UserStackManager = require("./user-stack-manager");
+
+require("./polyfill-dockerode");
 var Dockerode = require("dockerode");
 
 var commandOptions = {
