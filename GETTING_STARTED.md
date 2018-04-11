@@ -64,6 +64,8 @@ If you need to add a new domain to Firefly, add the domain under the "[ alternat
 
 ### Deploy
 
-Run `npm start`. This deploys the firefly stack to the swarm, pulling all needed images. Pulling these images may take a while on first run. Use `docker service ls` to list all services and see how many replicas of each service are up. Once all services are at 1/1 replicas, the system will be online at https://local.montage.studio:2440/ (an alias to 127.0.0.1).
+Run `docker-compose -f firefly-stack.yml pull` to pull firefly service images from the registry, and `docker-compose -f project-daemon/user-stacks/basic-stack.yml pull` to pull the basic user project images (e.g. the project image).
+
+Run `npm start` to deploy the firefly stack to the swarm. Use `docker service ls` to list all services and see how many replicas of each service are up. Once all services are at 1/1 replicas, the system will be online at https://local.montage.studio:2440/ (an alias to 127.0.0.1).
 
 Use `npm stop` to remove the stack from the swarm.

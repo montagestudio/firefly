@@ -20,6 +20,9 @@ install:
   - "npm install"
   # Update public certs
   - sudo update-ca-certificates --verbose
+  # Pull images
+  - docker-compose -f firefly-stack.yml pull
+  - docker-compose -f project-daemon/user-stacks/basic-stack.yml pull
 addons:
   hosts:
     - local.montage.studio
@@ -30,7 +33,7 @@ before_script:
   - npm start
 script:
   - npm run lint
-  - sleep 120
+  - sleep 30
   - docker service ls
   - docker service ps firefly_traefik
   - docker ps
