@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   project:
-    image: registry.montage.studio/firefly/project:0.2.0
+    image: registry.montage.studio/firefly/project:0.2.1
     build:
       context: .
       dockerfile: project/Dockerfile
