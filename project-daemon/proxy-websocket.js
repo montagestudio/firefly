@@ -2,9 +2,9 @@ var log = require("./common/logging").from(__filename);
 var WebSocket = require("faye-websocket");
 
 module.exports = ProxyWebsocket;
-function ProxyWebsocket(containerManager, protocol) {
+function ProxyWebsocket(userStackManager, protocol) {
     return function (request, socket, body, details) {
-        return containerManager.setup(details)
+        return userStackManager.setup(details)
         .then(function (projectWorkspaceUrl) {
             if (!projectWorkspaceUrl) {
                 socket.write("HTTP/1.1 404 Not Found\r\n\r\n");

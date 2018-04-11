@@ -61,17 +61,17 @@ function server(options) {
     .use(jwt)
     .route(function (any, GET, PUT, POST) {
         GET("workspaces", requestHostStartsWith("api")).app(function (request) {
-            return userStackManager.list(request.githubUser)
-                .then(function (services) {
-                    return APPS.json(services.map(function (service) {
-                        return service.Spec.Name;
+            return userStackManager.stacksForUser(request.githubUser)
+                .then(function (stacks) {
+                    return APPS.json(stacks.map(function (stack) {
+                        return stack.id;
                     }));
                 });
         });
 
         this.DELETE("workspaces", requestHostStartsWith("api")).app(function (request) {
-            track.message("delete containers", request);
-            return userStackManager.deleteAll(request.githubUser)
+            track.message("delete stack", request);
+            return userStackManager.removeUserStacks(request.githubUser)
                 .then(function () {
                     return APPS.json({deleted: true});
                 });

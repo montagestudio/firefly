@@ -19,9 +19,9 @@ var clientFs = FS.reroot(CLIENT_ROOT);
 
 var HOST_ACCESS_CODE_MAP = new Map();
 
-function PreviewManager(containerManager) {
-    this.containerManager = containerManager;
-    this.proxyWebsocket = ProxyWebsocket(containerManager, "firefly-preview");
+function PreviewManager(userStackManager) {
+    this.userStackManager = userStackManager;
+    this.proxyWebsocket = ProxyWebsocket(userStackManager, "firefly-preview");
     this.route = this.route.bind(this);
 }
 exports = module.exports = PreviewManager;
@@ -54,7 +54,7 @@ PreviewManager.prototype.route = function (next) {
                     return self.serveNoPreviewPage(request);
                 });
             } else {
-                self.containerManager.setup(projectInfo)
+                self.userStackManager.setup(projectInfo)
                 .then(function (projectWorkspaceUrl) {
                     if (!projectWorkspaceUrl) {
                         return;

@@ -2,11 +2,18 @@ var log = require("./common/logging").from(__filename);
 var track = require("./common/track");
 var request = require("q-io/http").request;
 var Q = require("q");
-var environment = require("./common/environment");
 var ProjectInfo = require("./project-info");
 var GithubService = require("./github-service").GithubService;
+var fs = require("fs");
+var path = require("path");
+var yaml = require("js-yaml");
+var exec = require("./common/exec");
 
 var IMAGE_PORT = 2441;
+
+var stackNameForProjectInfo = function (projectInfo) {
+    return "firefly-project_" + projectInfo.username + "_" + projectInfo.owner + "_" + projectInfo.repo;
+};
 
 module.exports = UserStackManager;
 function UserStackManager(docker, _request) {
@@ -14,14 +21,24 @@ function UserStackManager(docker, _request) {
     this.GithubService = GithubService;
     // Only used for testing
     this.request = _request || request;
+
+    this.basicStackYml = yaml.safeLoad(fs.readFileSync(path.join(__dirname, "user-stacks/basic-stack.yml")));
 }
 
-UserStackManager.prototype.list = function (githubUser) {
-    return this.docker.listServices()
-        .then(function (services) {
-            return services.filter(function (service) {
-                return service.Spec.TaskTemplate.ContainerSpec.Image.indexOf("firefly/project:") > -1 &&
-                    service.Spec.Name.indexOf(githubUser.login) === 0;
+UserStackManager.prototype.has = function (info) {
+    return this.docker.listStacks()
+        .then(function (stacks) {
+            return !!stacks.filter(function (stack) {
+                return stack.id === stackNameForProjectInfo(info);
+            }).length;
+        });
+};
+
+UserStackManager.prototype.stacksForUser = function (githubUser) {
+    return this.docker.listStacks()
+        .then(function (stacks) {
+            return stacks.filter(function (stack) {
+                return stack.id.indexOf("firefly_project_" + githubUser.login) === 0;
             });
         });
 };
@@ -33,29 +50,24 @@ UserStackManager.prototype.setup = function (info, githubAccessToken, githubUser
         throw new Error("Given info was not an instance of ProjectInfo");
     }
 
-    var service = this.docker.getService(info.serviceName);
-    return service.inspect()
-        .catch(function (err) {
-            if (githubAccessToken && githubUser) {
-                return self.create(info, githubAccessToken, githubUser)
-                    .then(function (s) {
-                        service = s;
-                        return service.inspect();
-                    });
+    return this.docker.listStacks()
+        .then(function (stacks) {
+            var targetStack = stacks.filter(function (stack) {
+                return stack.id === stackNameForProjectInfo(info);
+            })[0];
+            if (targetStack) {
+                return targetStack;
+            } else if (githubAccessToken || githubUser) {
+                return self.deploy(info, githubAccessToken, githubUser);
+            } else {
+                throw new Error("Stack does not exist and no github credentials given to create it.");
             }
         })
-        .then(function (serviceInfo) {
-            if (!serviceInfo) {
-                return false;
-            }
-            return self._waitForRunningTask(serviceInfo)
-                .then(function () {
-                    return self.waitForServer(info.url);
-                })
+        .then(function (stack) {
+            return self.waitForProjectServer(info.url)
                 .catch(function (error) {
-                    log("Removing container for", info.toString(), "because", error.message);
-
-                    return service.remove()
+                    log("Removing stack for", info.toString(), "because", error.message);
+                    return stack.remove()
                         .then(function () {
                             track.errorForUsername(error, info.username, {info: info});
                             throw error;
@@ -66,59 +78,7 @@ UserStackManager.prototype.setup = function (info, githubAccessToken, githubUser
         });
 };
 
-UserStackManager.prototype._waitForRunningTask = function (serviceInfo) {
-    var self = this;
-    // listTasks() is supposed to be able to take a filter parameter (e.g. to
-    // get tasks belonging to a particular service). Can't figure out how this
-    // works, there isn't much documentation on its usage
-    return this.docker.listTasks()
-        .then(function (allTasks) {
-            return allTasks.filter(function (task) {
-                return task.ServiceID === serviceInfo.ID;
-            });
-        })
-        .then(function (tasks) {
-            var runningTasks = tasks.filter(function (task) {
-                return task.Status.State === "running";
-            });
-            if (runningTasks.length === 0) {
-                return new Promise(function (resolve) {
-                    setTimeout(resolve, 2000);
-                }).then(function () {
-                    return self._waitForRunningTask(serviceInfo);
-                });
-            }
-        });
-};
-
-UserStackManager.prototype.delete = function (info) {
-    var service = this.docker.getService(info.serviceName);
-    return service.remove();
-};
-
-UserStackManager.prototype.deleteAll = function (githubUser) {
-    var self = this;
-    return this.list(githubUser)
-        .then(function (serviceInfos) {
-            return Promise.all(serviceInfos.map(function (serviceInfo) {
-                var service = self.docker.getService(serviceInfo.Spec.Name);
-                return service.remove();
-            }));
-        });
-};
-
-UserStackManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
-    if (typeof info.private === 'undefined' && githubAccessToken) {
-        var githubService = new this.GithubService(githubAccessToken);
-        return githubService.getRepo(info.owner, info.repo).then(function(repoInfo) {
-            return Q.resolve(repoInfo.private);
-        });
-    } else {
-        return Q.resolve(info.private);
-    }
-};
-
-UserStackManager.prototype.create = function (info, githubAccessToken, githubUser) {
+UserStackManager.prototype.deploy = function (info, githubAccessToken, githubUser) {
     var self = this;
     return this._getRepoPrivacy(info, githubAccessToken)
         .then(function (isPrivate) {
@@ -126,77 +86,42 @@ UserStackManager.prototype.create = function (info, githubAccessToken, githubUse
                 info.setPrivate(true);
             }
 
-            log("Creating service for", info.toString(), "...");
-            track.messageForUsername("create service", info.username, {info: info});
+            log("Deploying stack for", info.toString(), "...");
+            track.messageForUsername("deploy stack", info.username, {info: info});
 
-            var subdomain = info.toPath();
-
-            var config = {
+            var stackFile = Object.assign({}, self.basicStackYml);
+            var stackFilePath = path.join(__dirname, info.serviceName + "-stack.yml");
+            var projectConfig = {
                 username: info.username,
                 owner: info.owner,
                 repo: info.repo,
                 githubAccessToken: githubAccessToken,
                 githubUser: githubUser,
-                subdomain: subdomain
+                subdomain: info.toPath()
             };
+            stackFile.services.project.command = "-c " + JSON.stringify(projectConfig);
+            if (process.env.NODE_ENV === "development") {
+                stackFile.services.project.volumes = [
+                    process.env.PROJECT_ROOT + "/project/:/srv/project/",
+                    "/srv/project/node_modules/",
+                    process.env.PROJECT_ROOT + "/project/common/:/srv/project/common/",
+                    "/srv/project/common/node_modules"
+                ];
+                stackFile.services.project.deploy.placement.constraints = [];
+            }
+            fs.writeFileSync(stackFilePath, yaml.safeDump(stackFile));
 
-            var options = {
-                Name: info.serviceName,
-                TaskTemplate: {
-                    ContainerSpec: {
-                        Image: process.env.FIREFLY_PROJECT_IMAGE,
-                        Args: ['-c', JSON.stringify(config)],
-                        Env: [
-                            "NODE_ENV=" + (process.env.NODE_ENV || "development"),
-                            "FIREFLY_APP_URL=" + environment.app.href,
-                            "FIREFLY_PROJECT_URL=" + environment.project.href
-                        ],
-                        Mounts: process.env.USE_SRC_DOCKER_VOLUMES ? [
-                            {
-                                "ReadOnly": true,
-                                "Source": process.env.WORKING_DIR + "/project/",
-                                "Target": "/srv/project/",
-                                "Type": "bind"
-                            }, {
-                                "ReadOnly": true,
-                                "Source": process.env.WORKING_DIR + "/common/",
-                                "Target": "/srv/project/common/",
-                                "Type": "bind"
-                            }
-                        ] : []
-                    },
-                    Networks: [
-                        {
-                            "Target": "firefly_net"
-                        }
-                    ],
-                    Placement: {
-                        Constraints: process.env.SWARM_SINGLE_NODE ? [] : [
-                            "node.role == worker"
-                        ]
-                    },
-                    Resources: {
-                        Limits: {
-                            // MemoryBytes: 104857600
-                        }
-                    },
-                    RestartPolicy: {
-                        Condition: "on-failure",
-                        MaxAttempts: 5
-                    }
-                },
-                Mode: {
-                    Replicated: {
-                        Replicas: 1
-                    }
-                }
-            };
-
-            return self.docker.createService(options);
+            return exec("docker-compose", ["-f", stackFilePath, "pull"])
+                .then(function () {
+                    return self.docker.deployStack(stackNameForProjectInfo(info), stackFilePath);
+                })
+                .then(function () {
+                    return fs.unlinkSync(stackFilePath);
+                });
         })
-        .then(function (service) {
-            log("Created service", service.id, "for", info.toString());
-            return service;
+        .then(function () {
+            log("Deployed stack for", info.toString());
+            return null;
         });
 };
 
@@ -209,7 +134,7 @@ UserStackManager.prototype.create = function (info, githubAccessToken, githubUse
  * @return {Promise.<string>}   A promise for the port resolved when the
  * server is available.
  */
-UserStackManager.prototype.waitForServer = function (url, timeout, error) {
+UserStackManager.prototype.waitForProjectServer = function (url, timeout, error) {
     var self = this;
 
     timeout = typeof timeout === "undefined" ? 5000 : timeout;
@@ -226,8 +151,33 @@ UserStackManager.prototype.waitForServer = function (url, timeout, error) {
     .catch(function (error) {
         log("Server at", url, "not available yet. Trying for", timeout - 100, "more ms");
         return Q.delay(100).then(function () {
-            return self.waitForServer(url, timeout - 100, error);
+            return self.waitForProjectServer(url, timeout - 100, error);
         });
     })
     .thenResolve(url);
+};
+
+UserStackManager.prototype.removeStack = function (info) {
+    var stack = this.docker.getStack(stackNameForProjectInfo(info));
+    return stack.remove();
+};
+
+UserStackManager.prototype.removeUserStacks = function (githubUser) {
+    return this.stacksForUser(githubUser)
+        .then(function (stacks) {
+            return Promise.all(stacks.map(function (stack) {
+                return stack.remove();
+            }));
+        });
+};
+
+UserStackManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
+    if (typeof info.private === 'undefined' && githubAccessToken) {
+        var githubService = new this.GithubService(githubAccessToken);
+        return githubService.getRepo(info.owner, info.repo).then(function(repoInfo) {
+            return Q.resolve(repoInfo.private);
+        });
+    } else {
+        return Q.resolve(info.private);
+    }
 };

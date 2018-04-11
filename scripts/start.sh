@@ -12,7 +12,7 @@ git rev-parse HEAD > common/GIT_HASH
     export $(sed '/^#/d' "env/${NODE_ENV}.env")
 
     # Used for creating volumes to firefly on new project services in development
-    export WORKING_DIR=$(pwd) 
+    export PROJECT_ROOT=$(pwd) 
 
     if [ "$NODE_ENV" == "development" ]; then
         ./node_modules/.bin/merge-yaml -i firefly-stack.yml firefly-stack.dev.yml -o .firefly-stack.yml

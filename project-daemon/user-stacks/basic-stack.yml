@@ -3,12 +3,14 @@ version: "3.3"
 services:
   project:
     image: registry.montage.studio/firefly/project:0.2.0
-  build:
-    context: .
-    dockerfile: project/Dockerfile
-  env:
-    - NODE_ENV
-  deploy:
-    placement:
-      constraints: [node.role == worker]
-    replicas: 1
+    build:
+      context: .
+      dockerfile: project/Dockerfile
+    environment:
+      - NODE_ENV
+      - FIREFLY_APP_URL
+      - FIREFLY_PROJECT_URL
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+      replicas: 1
