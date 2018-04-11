@@ -64,7 +64,7 @@ UserStackManager.prototype.setup = function (info, githubAccessToken, githubUser
             }
         })
         .then(function (stack) {
-            return self.waitForProjectServer(info.url)
+            return self.waitForProjectServer(self.projectUrl(info))
                 .catch(function (error) {
                     log("Removing stack for", info.toString(), "because", error.message);
                     return stack.remove()
@@ -99,7 +99,7 @@ UserStackManager.prototype.deploy = function (info, githubAccessToken, githubUse
                 githubUser: githubUser,
                 subdomain: info.toPath()
             };
-            stackFile.services.project.command = "-c " + JSON.stringify(projectConfig);
+            stackFile.services.project.command = "-c '" + JSON.stringify(projectConfig) + "'";
             if (process.env.NODE_ENV === "development") {
                 stackFile.services.project.volumes = [
                     process.env.PROJECT_ROOT + "/project/:/srv/project/",
@@ -111,11 +111,21 @@ UserStackManager.prototype.deploy = function (info, githubAccessToken, githubUse
             }
             fs.writeFileSync(stackFilePath, yaml.safeDump(stackFile));
 
-            return exec("docker-compose", ["-f", stackFilePath, "pull"])
+            var pullPromise;
+            if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+                pullPromise = Promise.resolve();
+            } else {
+                pullPromise = exec("docker-compose", ["-f", stackFilePath, "pull"]);
+            }
+
+            return pullPromise
                 .then(function () {
                     return self.docker.deployStack(stackNameForProjectInfo(info), stackFilePath);
                 })
                 .then(function () {
+                    return fs.unlinkSync(stackFilePath);
+                })
+                .catch(function () {
                     return fs.unlinkSync(stackFilePath);
                 });
         })
@@ -123,6 +133,10 @@ UserStackManager.prototype.deploy = function (info, githubAccessToken, githubUse
             log("Deployed stack for", info.toString());
             return null;
         });
+};
+
+UserStackManager.prototype.projectUrl = function (info) {
+    return stackNameForProjectInfo(info) + "_project:" + IMAGE_PORT;
 };
 
 /**

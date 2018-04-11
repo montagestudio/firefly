@@ -3,27 +3,26 @@ var WebSocket = require("faye-websocket");
 
 module.exports = ProxyWebsocket;
 function ProxyWebsocket(userStackManager, protocol) {
-    return function (request, socket, body, details) {
-        return userStackManager.setup(details)
-        .then(function (projectWorkspaceUrl) {
-            if (!projectWorkspaceUrl) {
+    return function (request, socket, body, projectInfo) {
+        return userStackManager.setup(projectInfo)
+            .then(function (projectWorkspaceUrl) {
+                var projectUrl = userStackManager.projectUrl(projectInfo);
+                // create server
+                var wsServer = new WebSocket(request, socket, body);
+                // create client
+                log("create wsClient", "ws://" + projectUrl + request.url);
+                var clientOptions = {
+                    headers: request.headers
+                };
+                var wsClient = new WebSocket.Client("ws://" + projectUrl + request.url, [protocol], clientOptions);
+                wsClient.on("close", function (event) {
+                    wsServer.close(event.code, event.reason);
+                });
+                // pipe
+                wsServer.pipe(wsClient).pipe(wsServer);
+            }, function () {
                 socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
                 socket.destroy();
-                return;
-            }
-            // create server
-            var wsServer = new WebSocket(request, socket, body);
-            // create client
-            log("create wsClient", "ws://" + projectWorkspaceUrl + request.url);
-            var clientOptions = {
-                headers: request.headers
-            };
-            var wsClient = new WebSocket.Client("ws://" + projectWorkspaceUrl + request.url, [protocol], clientOptions);
-            wsClient.on("close", function (event) {
-                wsServer.close(event.code, event.reason);
             });
-            // pipe
-            wsServer.pipe(wsClient).pipe(wsServer);
-        });
     };
 }

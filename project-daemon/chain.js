@@ -78,34 +78,28 @@ function server(options) {
         });
 
         any(":owner/:repo/...", requestHostStartsWith("api")).app(function (request) {
-            return userStackManager.setup(
-                new ProjectInfo(
-                    request.githubUser.login,
-                    request.params.owner,
-                    request.params.repo
-                ),
-                request.githubAccessToken,
-                request.githubUser
-            )
-            .then(function (projectWorkspaceUrl) {
-                return proxyContainer(request, projectWorkspaceUrl, "api");
-            });
+            var projectInfo = new ProjectInfo(
+                request.githubUser.login,
+                request.params.owner,
+                request.params.repo
+            );
+            return userStackManager.setup(projectInfo, request.githubAccessToken, request.githubUser)
+                .then(function () {
+                    return proxyContainer(request, userStackManager.projectUrl(projectInfo), "api");
+                });
         });
 
         GET(":owner/:repo/...", requestHostStartsWith("build")).app(function (request) {
             log("build");
-            return userStackManager.setup(
-                new ProjectInfo(
-                    request.githubUser.login,
-                    request.params.owner,
-                    request.params.repo
-                ),
-                request.githubAccessToken,
-                request.githubUser
-            )
-            .then(function (projectWorkspacePort) {
-                return proxyContainer(request, projectWorkspacePort, "build");
-            });
+            var projectInfo = new ProjectInfo(
+                request.githubUser.login,
+                request.params.owner,
+                request.params.repo
+            );
+            return userStackManager.setup(projectInfo, request.githubAccessToken, request.githubUser)
+                .then(function () {
+                    return proxyContainer(request, userStackManager.projectUrl(projectInfo), "build");
+                });
         });
     });
 
