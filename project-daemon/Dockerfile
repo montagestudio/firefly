@@ -6,16 +6,17 @@ FROM firefly
 LABEL author="Harold Thetiot <harold.thetiot@montagestudio.com>"
 
 # Docker
-RUN curl -sSL "https://get.docker.com/gpg" | sudo -E apt-key add -
-RUN echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" | sudo tee -a /etc/apt/sources.list
+RUN curl -fsSL "https://download.docker.com/linux/ubuntu/gpg" | sudo apt-key add -
+RUN sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
 RUN sudo apt-get update
-RUN sudo sudo apt-get install python-pip docker-engine --assume-yes --allow-unauthenticated
+RUN sudo sudo apt-get install docker-ce --assume-yes --allow-unauthenticated
 
-# Update Pip
-RUN sudo pip install --upgrade pip
-
-# Update docker-compose via pip
-RUN sudo pip install docker-compose
+# Docker compose
+RUN sudo curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+RUN sudo chmod +x /usr/local/bin/docker-compose
 RUN docker-compose version
 
 COPY project-daemon/ /srv/project-daemon/
