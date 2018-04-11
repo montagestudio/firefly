@@ -26,14 +26,6 @@ describe("UserStackManager", function () {
     });
 
     describe("setup", function () {
-        it("returns the url", function (done) {
-            userStackManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
-            .then(function (addr) {
-                expect(addr).toBe("user_owner_repo:2441");
-            })
-            .then(done, done);
-        });
-
         it("creates new stacks", function (done) {
             var details = new ProjectInfo("user", "owner", "repo");
             spyOn(docker, "deployStack").andCallThrough();

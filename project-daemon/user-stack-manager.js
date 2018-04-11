@@ -123,10 +123,11 @@ UserStackManager.prototype.deploy = function (info, githubAccessToken, githubUse
                     return self.docker.deployStack(stackNameForProjectInfo(info), stackFilePath);
                 })
                 .then(function () {
-                    return fs.unlinkSync(stackFilePath);
+                    fs.unlinkSync(stackFilePath);
                 })
-                .catch(function () {
-                    return fs.unlinkSync(stackFilePath);
+                .catch(function (err) {
+                    fs.unlinkSync(stackFilePath);
+                    throw err;
                 });
         })
         .then(function () {
