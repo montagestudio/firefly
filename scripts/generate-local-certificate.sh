@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pushd ssl
+pushd traefik/ssl
     echo "Generating CA certificate and key..."
     if [ -e "cacert.pem" ]; then
         echo "Already exists, moving on"

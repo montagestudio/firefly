@@ -7,5 +7,5 @@ services:
       - "80" # Put to override the "443:443" definition in traefik-stack.yml
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./ssl/cert.pem:/etc/ssl/cert.pem:ro
-      - ./ssl/serverkey.pem:/etc/ssl/serverkey.pem:ro
+      - ./traefik/ssl/cert.pem:/etc/ssl/cert.pem:ro
+      - ./traefik/ssl/serverkey.pem:/etc/ssl/serverkey.pem:ro
