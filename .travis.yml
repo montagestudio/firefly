@@ -34,12 +34,12 @@ before_script:
   - npm start
 script:
   - npm run lint
+  - runSlowSpecs=true npm test
   - docker ps
   - docker ps | grep -q traefik_traefik
   - docker ps | grep -q firefly_login
   - docker ps | grep -q firefly_static
   - docker ps | grep -q firefly_project-daemon
-  - runSlowSpecs=true npm test
 after_script:
   - npm stop
   - docker swarm leave --force
