@@ -21,6 +21,7 @@ install:
   # Update public certs
   - sudo update-ca-certificates --verbose
   # Pull images
+  - docker-compose -f traefik-stack.yml pull
   - docker-compose -f firefly-stack.yml pull
   - docker-compose -f project-daemon/user-stacks/basic-stack.yml pull
 addons:
@@ -33,11 +34,8 @@ before_script:
   - npm start
 script:
   - npm run lint
-  - sleep 30
-  - docker service ls
-  - docker service ps firefly_traefik
   - docker ps
-  - docker ps | grep -q firefly_traefik
+  - docker ps | grep -q traefik_traefik
   - docker ps | grep -q firefly_login
   - docker ps | grep -q firefly_static
   - docker ps | grep -q firefly_project-daemon

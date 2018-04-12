@@ -58,14 +58,24 @@ Open the certificate settings in chrome (chrome://settings/certificates). Open t
 Open `ssl/` in Finder and double-click the `local.montage.studio.pem` file. This will add the certificate to Keychain Access. Make sure that this certificate was added to the System chain. Next, double-click the added "Montage Studio" certificate in Keychain Access. Open the "Trust" section and set the "When using this certificate:" option to "Always Trust". If refreshing the page does not turn the security icon green, type in `chrome://restart` to restart the browser.
 
 
-Now the browser will trust the certificate and will allow loading Firefly over https. Importing the CA certificate only needs to be done once, as the script will not re-create the `cacert.pem` file if it already exists. If you generate a new certificate after running the stack, you must redeploy at least the traefik service with `docker service update --force firefly_traefik`.
+Now the browser will trust the certificate and will allow loading Firefly over https. Importing the CA certificate only needs to be done once, as the script will not re-create the `cacert.pem` file if it already exists. If you generate a new certificate after running the stack, you must redeploy at least the traefik service.
 
 If you need to add a new domain to Firefly, add the domain under the "[ alternate names ]" section of `ssl/openssl-server.cnf` and run `npm run generate-local-certificate` again.
 
 ### Deploy
 
-Run `docker-compose -f firefly-stack.yml pull` to pull firefly service images from the registry, and `docker-compose -f project-daemon/user-stacks/basic-stack.yml pull` to pull the basic user project images (e.g. the project image).
+Run the following to pull all needed service images. If you don't have these images locally then they will be pulled when you deploy each service, which means you will have to wait a while on the first run:
 
-Run `npm start` to deploy the firefly stack to the swarm. Use `docker service ls` to list all services and see how many replicas of each service are up. Once all services are at 1/1 replicas, the system will be online at https://local.montage.studio:2440/ (an alias to 127.0.0.1).
+```
+docker-compose -f traefik-stack.yml pull
+docker-compose -f firefly-stack.yml pull
+docker-compose -f project-daemon/user-stacks/basic-stack.yml pull
+```
 
-Use `npm stop` to remove the stack from the swarm.
+Run `npm start` to deploy the traefik stack and the firefly stack to the swarm. Use `docker service ls` to list all services and see how many replicas of each service are up.
+
+The app is available at https://local.montage.studio:2440/.
+A swarm visualizer is available at http://local.montage.studio:2441/.
+A traefik control panel is available at http://local.montage.studio:2442/.
+
+Use `npm stop` to remove both stacks from the swarm.
