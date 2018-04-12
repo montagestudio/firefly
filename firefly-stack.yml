@@ -1,6 +1,23 @@
 version: "3.3"
 
 services:
+  auth:
+    image: montagestudio/montage-auth-service:develop-SNAPSHOT
+    networks:
+      - traefik_net
+    environment:
+      - GITHUB_ID
+      - GITHUB_SECRET
+      - APP_SSL='false'
+      - APP_HOST=auth.local.montage.studio
+      - APP_URL=https://auth.local.montage.studio:2440
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=8080"
+        - "traefik.docker.network=traefik_net"
+        - "traefik.frontend.rule=Host:auth.${FIREFLY_HOSTNAME}"
   static:
     image: registry.montage.studio/firefly/static:0.2.0
     build:
@@ -15,27 +32,6 @@ services:
         - "traefik.port=80"
         - "traefik.docker.network=traefik_net"
         - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
-  login:
-    image: registry.montage.studio/firefly/login:0.2.0
-    build:
-      context: .
-      dockerfile: login/Dockerfile
-    networks:
-      - traefik_net
-    environment:
-      - NODE_ENV
-      - FIREFLY_PORT
-      - FIREFLY_APP_URL
-      - FIREFLY_PROJECT_URL
-      - GITHUB_CLIENT_ID
-      - GITHUB_CLIENT_SECRET
-    deploy:
-      replicas: 1
-      labels:
-        - "traefik.enable=true"
-        - "traefik.port=2440"
-        - "traefik.docker.network=traefik_net"
-        - "traefik.frontend.rule=Host:auth.${FIREFLY_HOSTNAME}"
   project-daemon:
     image: registry.montage.studio/firefly/project-daemon:0.2.2
     build:
