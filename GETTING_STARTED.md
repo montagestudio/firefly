@@ -26,19 +26,6 @@ If the command complains about not being able to choose an IP address to adverti
 docker swarm init --advertise-addr <YOUR_IP>
 ```
 
-### Add a swarm visualizer
-
-For ease of debugging and inspecting the swarm, you may add a swarm visualizer service to a cluster manager node. The visualizer provides a UI to see the different nodes in your swarm, see which services are running where, and what the status of every container is. Create the visualizer:
-
-```
-docker service create -d --name swarm-visualizer \
-  -p 5001:8080 \
-  --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
-  dockersamples/visualizer
-```
-
-This will create a web application at 127.0.0.1:5001. You can use this to see which services are currently deployed.
-
 ### Enabling HTTPS in development
 
 Firefly is served locally over https. In order to have the browser trust local.montage.studio, create a local CA and a a signed cert with:
