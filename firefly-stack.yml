@@ -1,33 +1,19 @@
 version: "3.3"
 
 services:
-  traefik:
-    image: traefik:latest
-    command: --docker.domain=${FIREFLY_HOSTNAME}
-    networks:
-      - net
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    configs:
-      - source: traefik-config
-        target: /traefik.toml
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
   static:
     image: registry.montage.studio/firefly/static:0.2.0
     build:
       context: .
       dockerfile: static/Dockerfile
     networks:
-      - net
+      - traefik_net
     deploy:
       replicas: 1
       labels:
         - "traefik.enable=true"
         - "traefik.port=80"
-        - "traefik.docker.network=firefly_net"
+        - "traefik.docker.network=traefik_net"
         - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
   login:
     image: registry.montage.studio/firefly/login:0.2.0
@@ -35,7 +21,7 @@ services:
       context: .
       dockerfile: login/Dockerfile
     networks:
-      - net
+      - traefik_net
     environment:
       - NODE_ENV
       - FIREFLY_PORT
@@ -48,7 +34,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.port=2440"
-        - "traefik.docker.network=firefly_net"
+        - "traefik.docker.network=traefik_net"
         - "traefik.frontend.rule=Host:auth.${FIREFLY_HOSTNAME}"
   project-daemon:
     image: registry.montage.studio/firefly/project-daemon:0.2.2
@@ -56,7 +42,7 @@ services:
       context: .
       dockerfile: project-daemon/Dockerfile
     networks:
-      - net
+      - traefik_net
       - projects
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -75,15 +61,11 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.port=2440"
-        - "traefik.docker.network=firefly_net"
+        - "traefik.docker.network=traefik_net"
         - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},api.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
 
 networks:
-  net:
-    driver: overlay
+  traefik_net:
+    external: true
   projects:
     driver: overlay
-
-configs:
-  traefik-config:
-    file: traefik.toml
