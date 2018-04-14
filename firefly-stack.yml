@@ -18,6 +18,19 @@ services:
         - "traefik.docker.network=traefik_net"
         - "traefik.frontend.rule=PathPrefix:/auth"
         - "traefik.frontend.priority=2"
+  jwt:
+    image: registry.montage.studio/firefly/jwt:1.0.0
+    build:
+      context: jwt
+    networks:
+      - traefik_net
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=80"
+        - "traefik.docker.network=traefik_net"
+        - "traefik.frontend.rule=Host:jwt.${FIREFLY_HOSTNAME}"
   static:
     image: registry.montage.studio/firefly/static:0.2.0
     build:
