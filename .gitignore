@@ -15,10 +15,10 @@ log.txt
 *.log
 *$py.class
 SikuliLog.txt
-ssl/*
-!ssl/*.cnf
-!ssl/id_rsa
-!ssl/id_rsa.pub
+traefik/ssl/*
+!traefik/ssl/*.cnf
+!traefik/ssl/id_rsa
+!traefik/ssl/id_rsa.pub
 
 ## Build
 /dist
