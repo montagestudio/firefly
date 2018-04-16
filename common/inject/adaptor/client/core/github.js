@@ -1,14 +1,7 @@
-var GithubFs = require("./fs-github");
 var GithubApi = require("./github-api");
 var application = require("montage/core/application").application;
 
 var token;
-
-exports.githubFs = function(username, repository) {
-    return AuthToken().then(function (token) {
-        return new GithubFs(username, repository, token);
-    });
-};
 
 var githubApiPromise;
 exports.githubApi = function() {
