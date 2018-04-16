@@ -22,6 +22,18 @@ app.post("/login", (req, res, next) => {
     });
 });
 
+app.get("/profile", (req, res, next) => {
+    const auth = req.headers.authentication;
+    const token = auth && auth.split(" ")[1];
+    jwt.verify(token, privateKey, (err, payload) => {
+        if (err) {
+            next(err);
+        } else {
+            res.send(payload);
+        }
+    });
+});
+
 app.use((err, res) => {
     res.status(500);
     console.error(err);
