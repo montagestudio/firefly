@@ -4,9 +4,9 @@ var Q = require("q");
 var joey = require("joey");
 var APPS = require("q-io/http-apps");
 var environment = require("./common/environment");
+var axios = require("axios");
 
 var LogStackTraces = require("./common/log-stack-traces");
-var jwt = require("./common/jwt");
 var ProjectInfo = require("./project-info");
 
 var PreviewManager = require("./preview");
@@ -16,10 +16,25 @@ var ProxyWebsocket = require("./proxy-websocket");
 var WebSocket = require("faye-websocket");
 
 var requestHostStartsWith = function (prefix) {
-    return function (request) {
-        log("request", request.headers.host, request.pathInfo);
-        return request.headers.host.indexOf(prefix) === 0;
+    return function (req) {
+        log("request", req.headers.host, req.pathInfo);
+        return req.headers.host.indexOf(prefix) === 0;
     };
+};
+
+var getJwtProfile = function (authHeader) {
+    var options = {
+        headers: {
+            "Authentication": authHeader
+        }
+    };
+    return axios.get("http://jwt/profile", options)
+        .then(function (response) {
+            return {
+                profile: response.data.profile,
+                token: response.data.token
+            };
+        });
 };
 
 module.exports = server;
@@ -35,7 +50,7 @@ function server(options) {
 
     var chain = joey
     .error()
-    .cors(environment.getAppUrl(), "*", "*")
+    .cors(environment.getAppUrl(), "*", "x-access-token")
     .headers({"Access-Control-Allow-Credentials": true})
     // Put here to avoid printing logs when HAProxy pings the server for
     // a health check
@@ -45,81 +60,98 @@ function server(options) {
     .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .use(function (next) {
-        // Put the githubUser on the request, without redirect 401 if not available
-        return jwt(next, next);
+        return function (req) {
+            return getJwtProfile("Bearer " + req.headers["x-access-token"])
+                .then(function (profile) {
+                    Object.assign(req, profile);
+                }, Function.noop)
+                .then(function () {
+                    return next(req);
+                });
+        };
     })
     .route(function (_, GET, PUT, POST) {
         POST("access", requestHostStartsWith("project"))
         .log(log, function (message) { return message; })
-        .app(function (request) {
-            var projectInfo = ProjectInfo.fromPath(request.pathname);
-            return previewManager.processAccessRequest(request, projectInfo);
+        .app(function (req) {
+            var projectInfo = ProjectInfo.fromPath(req.pathname);
+            return previewManager.processAccessRequest(req, projectInfo);
         });
     })
     .use(previewManager.route)
     .log(log, function (message) { return message; })
-    .use(jwt)
+    .use(function (next) {
+        return function (req) {
+            if (!req.profile) {
+                return APPS.responseForStatus(req, 401);
+            } else {
+                return next(req);
+            }
+        };
+    })
     .route(function (any, GET, PUT, POST) {
-        GET("workspaces", requestHostStartsWith("api")).app(function (request) {
-            return userStackManager.stacksForUser(request.githubUser)
+        GET("workspaces", requestHostStartsWith("api")).app(function (req) {
+            return userStackManager.stacksForUser(req.profile.username)
                 .then(function (stacks) {
                     return APPS.json(stacks.map(function (stack) {
-                        return stack.id;
+                        return {
+                            id: stack.id
+                        };
                     }));
                 });
         });
 
-        this.DELETE("workspaces", requestHostStartsWith("api")).app(function (request) {
-            track.message("delete stack", request);
-            return userStackManager.removeUserStacks(request.githubUser)
+        this.DELETE("workspaces", requestHostStartsWith("api")).app(function (req) {
+            track.message("delete stack", req);
+            return userStackManager.removeUserStacks(req.profile.username)
                 .then(function () {
                     return APPS.json({deleted: true});
                 });
         });
 
-        any(":owner/:repo/...", requestHostStartsWith("api")).app(function (request) {
+        any(":owner/:repo/...", requestHostStartsWith("api")).app(function (req) {
             var projectInfo = new ProjectInfo(
-                request.githubUser.login,
-                request.params.owner,
-                request.params.repo
+                req.githubUser.login,
+                req.params.owner,
+                req.params.repo
             );
-            return userStackManager.setup(projectInfo, request.githubAccessToken, request.githubUser)
+            return userStackManager.setup(projectInfo, req.githubAccessToken, req.githubUser)
                 .then(function () {
-                    return proxyContainer(request, userStackManager.projectUrl(projectInfo), "api");
+                    return proxyContainer(req, userStackManager.projectUrl(projectInfo), "api");
                 });
         });
 
-        GET(":owner/:repo/...", requestHostStartsWith("build")).app(function (request) {
+        GET(":owner/:repo/...", requestHostStartsWith("build")).app(function (req) {
             log("build");
             var projectInfo = new ProjectInfo(
-                request.githubUser.login,
-                request.params.owner,
-                request.params.repo
+                req.githubUser.login,
+                req.params.owner,
+                req.params.repo
             );
-            return userStackManager.setup(projectInfo, request.githubAccessToken, request.githubUser)
+            return userStackManager.setup(projectInfo, req.githubAccessToken, req.githubUser)
                 .then(function () {
-                    return proxyContainer(request, userStackManager.projectUrl(projectInfo), "build");
+                    return proxyContainer(req, userStackManager.projectUrl(projectInfo), "build");
                 });
         });
     });
 
     var proxyAppWebsocket = ProxyWebsocket(userStackManager, "firefly-app");
-    chain.upgrade = function (request, socket, body) {
+    chain.upgrade = function (req, socket, body) {
         Q.try(function () {
-            if (!WebSocket.isWebSocket(request)) {
+            if (!WebSocket.isWebSocket(req)) {
                 return;
             }
             var details;
-            if (previewManager.isPreview(request)) {
-                return previewManager.upgrade(request, socket, body);
+            if (previewManager.isPreview(req)) {
+                return previewManager.upgrade(req, socket, body);
             } else {
                 log("filament websocket");
-                var accessTokenMatch = /token=(.*?)(;|$)/.exec(request.headers.cookie);
-                return jwt.verify(accessTokenMatch && accessTokenMatch[1])
-                    .then(function (payload) {
-                        details = environment.getDetailsFromAppUrl(request.url);
-                        details = new ProjectInfo(payload.githubUser.login, details.owner, details.repo);
-                        return proxyAppWebsocket(request, socket, body, details);
+                var accessTokenMatch = /token=(.*?)(;|$)/.exec(req.headers.cookie);
+                return getJwtProfile("Bearer " + (accessTokenMatch && accessTokenMatch[1]))
+                    .then(function (profile) {
+                        details = environment.getDetailsFromAppUrl(req.url);
+                        details = new ProjectInfo(profile.profile.username, details.owner, details.repo);
+                        return proxyAppWebsocket(req, socket, body, details);
                     }, function (error) {
                         socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
                         socket.destroy();
@@ -130,7 +162,7 @@ function server(options) {
             log("*Error setting up websocket*", error.stack);
             socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
             socket.destroy();
-            track.error(error, request);
+            track.error(error, req);
         });
     };
 

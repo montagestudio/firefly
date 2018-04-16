@@ -34,11 +34,11 @@ UserStackManager.prototype.has = function (info) {
         });
 };
 
-UserStackManager.prototype.stacksForUser = function (githubUser) {
+UserStackManager.prototype.stacksForUser = function (githubUsername) {
     return this.docker.listStacks()
         .then(function (stacks) {
             return stacks.filter(function (stack) {
-                return stack.id.indexOf("firefly_project_" + githubUser.login) === 0;
+                return stack.id.indexOf("firefly_project_" + githubUsername) === 0;
             });
         });
 };
@@ -177,8 +177,8 @@ UserStackManager.prototype.removeStack = function (info) {
     return stack.remove();
 };
 
-UserStackManager.prototype.removeUserStacks = function (githubUser) {
-    return this.stacksForUser(githubUser)
+UserStackManager.prototype.removeUserStacks = function (githubUsername) {
+    return this.stacksForUser(githubUsername)
         .then(function (stacks) {
             return Promise.all(stacks.map(function (stack) {
                 return stack.remove();
