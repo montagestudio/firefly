@@ -111,7 +111,7 @@ function server(options) {
 
         any(":owner/:repo/...", requestHostStartsWith("api")).app(function (req) {
             var projectInfo = new ProjectInfo(
-                req.githubUser.login,
+                req.profile.username,
                 req.params.owner,
                 req.params.repo
             );
@@ -124,7 +124,7 @@ function server(options) {
         GET(":owner/:repo/...", requestHostStartsWith("build")).app(function (req) {
             log("build");
             var projectInfo = new ProjectInfo(
-                req.githubUser.login,
+                req.profile.username,
                 req.params.owner,
                 req.params.repo
             );
