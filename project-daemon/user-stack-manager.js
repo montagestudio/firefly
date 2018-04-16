@@ -43,7 +43,7 @@ UserStackManager.prototype.stacksForUser = function (githubUsername) {
         });
 };
 
-UserStackManager.prototype.setup = function (info, githubAccessToken, githubUser) {
+UserStackManager.prototype.setup = function (info, githubAccessToken, githubProfile) {
     var self = this;
 
     if (!(info instanceof ProjectInfo)) {
@@ -57,8 +57,8 @@ UserStackManager.prototype.setup = function (info, githubAccessToken, githubUser
             })[0];
             if (targetStack) {
                 return targetStack;
-            } else if (githubAccessToken || githubUser) {
-                return self.deploy(info, githubAccessToken, githubUser);
+            } else if (githubAccessToken && githubProfile) {
+                return self.deploy(info, githubAccessToken, githubProfile);
             } else {
                 throw new Error("Stack does not exist and no github credentials given to create it.");
             }
@@ -78,7 +78,7 @@ UserStackManager.prototype.setup = function (info, githubAccessToken, githubUser
         });
 };
 
-UserStackManager.prototype.deploy = function (info, githubAccessToken, githubUser) {
+UserStackManager.prototype.deploy = function (info, githubAccessToken, githubProfile) {
     var self = this;
     return this._getRepoPrivacy(info, githubAccessToken)
         .then(function (isPrivate) {
@@ -96,7 +96,7 @@ UserStackManager.prototype.deploy = function (info, githubAccessToken, githubUse
                 owner: info.owner,
                 repo: info.repo,
                 githubAccessToken: githubAccessToken,
-                githubUser: githubUser,
+                githubUser: githubProfile,
                 subdomain: info.toPath()
             };
             stackFile.services.project.command = "-c '" + JSON.stringify(projectConfig) + "'";

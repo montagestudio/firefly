@@ -115,7 +115,7 @@ function server(options) {
                 req.params.owner,
                 req.params.repo
             );
-            return userStackManager.setup(projectInfo, req.githubAccessToken, req.githubUser)
+            return userStackManager.setup(projectInfo, req.token, req.profile)
                 .then(function () {
                     return proxyContainer(req, userStackManager.projectUrl(projectInfo), "api");
                 });
@@ -128,7 +128,7 @@ function server(options) {
                 req.params.owner,
                 req.params.repo
             );
-            return userStackManager.setup(projectInfo, req.githubAccessToken, req.githubUser)
+            return userStackManager.setup(projectInfo, req.token, req.profile)
                 .then(function () {
                     return proxyContainer(req, userStackManager.projectUrl(projectInfo), "build");
                 });
