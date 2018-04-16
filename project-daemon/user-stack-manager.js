@@ -38,7 +38,7 @@ UserStackManager.prototype.stacksForUser = function (githubUsername) {
     return this.docker.listStacks()
         .then(function (stacks) {
             return stacks.filter(function (stack) {
-                return stack.id.indexOf("firefly_project_" + githubUsername) === 0;
+                return stack.id.indexOf("firefly-project_" + githubUsername) === 0;
             });
         });
 };
