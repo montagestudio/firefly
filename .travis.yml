@@ -46,7 +46,8 @@ script:
   - runSlowSpecs=true npm test
   - docker ps
   - docker ps | grep -q traefik_traefik
-  - docker ps | grep -q firefly_login
+  - docker ps | grep -q firefly_auth
+  - docker ps | grep -q firefly_jwk
   - docker ps | grep -q firefly_static
   - docker ps | grep -q firefly_project-daemon
 after_script:
