@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   auth:
-    image: montagestudio/montage-auth-service:develop-SNAPSHOT
+    image: montagestudio/montage-auth:develop-SNAPSHOT
     networks:
       - traefik_net
     environment:
