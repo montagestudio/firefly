@@ -32,7 +32,7 @@ services:
         - "traefik.docker.network=traefik_net"
         - "traefik.frontend.rule=Host:jwt.${FIREFLY_HOSTNAME}"
   static:
-    image: registry.montage.studio/firefly/static:0.2.0
+    image: registry.montage.studio/firefly/static:0.3.0
     build:
       context: .
       dockerfile: static/Dockerfile
@@ -47,7 +47,7 @@ services:
         - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
         - "traefik.frontend.priority=1"
   project-daemon:
-    image: registry.montage.studio/firefly/project-daemon:0.2.2
+    image: registry.montage.studio/firefly/project-daemon:0.3.0
     build:
       context: .
       dockerfile: project-daemon/Dockerfile
