@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: node_js
 node_js:
-  - "8"
+  - "4"
 services:
   - docker
 env:
@@ -43,10 +43,11 @@ script:
   - npm start
   - npm run lint
   - runSlowSpecs=true npm test
+  - sleep 120
   - docker ps
   - docker ps | grep -q traefik_traefik
   - docker ps | grep -q firefly_auth
-  - docker ps | grep -q firefly_jwk
+  - docker ps | grep -q firefly_jwt
   - docker ps | grep -q firefly_static
   - docker ps | grep -q firefly_project-daemon
 after_script:
@@ -54,5 +55,5 @@ after_script:
   - docker swarm leave --force
 
 deploy:
-  provider: script
-  script: docker-compose -f firefly-stack.yml push && docker-compose -f project-daemon/user-stacks/basic-stack.yml push
+  - provider: script
+    script: docker-compose -f firefly-stack.yml push && docker-compose -f project-daemon/user-stacks/basic-stack.yml push
