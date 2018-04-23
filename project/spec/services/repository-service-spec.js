@@ -473,7 +473,7 @@ describe("repository-service", function () {
             });
         });
 
-        describe("merge commits", function () {
+        xdescribe("merge commits", function () {
             it ("reset service 1", function(done) {
                 return service1.updateRefs("discard", null)
                 .then(function() {
