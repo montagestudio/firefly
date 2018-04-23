@@ -1,7 +1,6 @@
 var projectChain = require("../chain");
 var Q = require("q");
 var mockRequest = require("../common/spec/mocks/request");
-var jwt = require("../common/jwt");
 
 describe("project chain", function () {
     var username, userStackManager, chain, request;
@@ -14,7 +13,22 @@ describe("project chain", function () {
         };
 
         chain = projectChain({
-            userStackManager: userStackManager
+            userStackManager: userStackManager,
+            request: {
+                get: function (url, options) {
+                    if (url === "http://jwt/profile") {
+                        return Promise.resolve({
+                            data: {
+                                profile: {
+                                    username: username
+                                },
+                                token: "abc"
+                            }
+                        });
+                    }
+                    return Promise.resolve();
+                }
+            }
         }).end();
 
         request = function (req) {
@@ -37,22 +51,16 @@ describe("project chain", function () {
 
     describe("DELETE api/workspaces", function () {
         it("calls userStackManager.delete with the container's details", function (done) {
-            jwt.sign({
-                githubUser: {
-                    login: username
+            return request({
+                method: "DELETE",
+                url: "http://api.localhost:2440/workspaces",
+                headers: {
+                    "x-access-token": "abc"
                 }
-            }).then(function (token) {
-                return request({
-                    method: "DELETE",
-                    url: "http://api.localhost:2440/workspaces",
-                    headers: {
-                        "x-access-token": token
-                    }
-                });
             }).then(function (response) {
                 expect(response.status).toEqual(200);
                 expect(response.body.join("")).toEqual('{"deleted":true}');
-                expect(userStackManager.removeUserStacks).toHaveBeenCalledWith({ login: username });
+                expect(userStackManager.removeUserStacks).toHaveBeenCalledWith(username);
             }).then(done, done);
         });
     });
