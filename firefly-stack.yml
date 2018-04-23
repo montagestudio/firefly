@@ -19,7 +19,7 @@ services:
         - "traefik.frontend.rule=PathPrefix:/auth"
         - "traefik.frontend.priority=2"
   jwt:
-    image: registry.montage.studio/firefly/jwt:1.0.0
+    image: registry.montage.studio/firefly/jwt:${JWT_VERSION:-latest}
     build:
       context: jwt
     networks:
@@ -32,7 +32,7 @@ services:
         - "traefik.docker.network=traefik_net"
         - "traefik.frontend.rule=Host:jwt.${FIREFLY_HOSTNAME}"
   static:
-    image: registry.montage.studio/firefly/static:0.3.0
+    image: registry.montage.studio/firefly/static:${STATIC_VERSION:-latest}
     build:
       context: .
       dockerfile: static/Dockerfile
@@ -47,7 +47,7 @@ services:
         - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
         - "traefik.frontend.priority=1"
   project-daemon:
-    image: registry.montage.studio/firefly/project-daemon:0.3.0
+    image: registry.montage.studio/firefly/project-daemon:${PROJECT_DAEMON_VERSION:-latest}
     build:
       context: .
       dockerfile: project-daemon/Dockerfile
