@@ -4,7 +4,6 @@ var Q = require("q");
 var joey = require("joey");
 var APPS = require("q-io/http-apps");
 var environment = require("./common/environment");
-var axios = require("axios");
 
 var LogStackTraces = require("./common/log-stack-traces");
 var ProjectInfo = require("./project-info");
@@ -22,13 +21,13 @@ var requestHostStartsWith = function (prefix) {
     };
 };
 
-var getJwtProfile = function (authHeader) {
+var getJwtProfile = function (request, authHeader) {
     var options = {
         headers: {
             "Authentication": authHeader
         }
     };
-    return axios.get("http://jwt/profile", options)
+    return request.get("http://jwt/profile", options)
         .then(function (response) {
             return {
                 profile: response.data.profile,
@@ -44,6 +43,8 @@ function server(options) {
     //jshint -W116
     if (!options.userStackManager) throw new Error("options.userStackManager required");
     var userStackManager = options.userStackManager;
+    if (!options.request) throw new Error("options.request required");
+    var request = options.request;
     //jshint +W116
 
     var previewManager = new PreviewManager(userStackManager);
@@ -61,7 +62,7 @@ function server(options) {
     .use(LogStackTraces(log))
     .use(function (next) {
         return function (req) {
-            return getJwtProfile("Bearer " + req.headers["x-access-token"])
+            return getJwtProfile(request, "Bearer " + req.headers["x-access-token"])
                 .then(function (profile) {
                     Object.assign(req, profile);
                 }, Function.noop)
@@ -147,7 +148,7 @@ function server(options) {
             } else {
                 log("filament websocket");
                 var accessTokenMatch = /token=(.*?)(;|$)/.exec(req.headers.cookie);
-                return getJwtProfile("Bearer " + (accessTokenMatch && accessTokenMatch[1]))
+                return getJwtProfile(request, "Bearer " + (accessTokenMatch && accessTokenMatch[1]))
                     .then(function (profile) {
                         details = environment.getDetailsFromAppUrl(req.url);
                         details = new ProjectInfo(profile.profile.username, details.owner, details.repo);
