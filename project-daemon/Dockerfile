@@ -1,22 +1,20 @@
 # Firefly Project Daemon
-#
-# VERSION 1.1
 
 FROM firefly
-LABEL author="Harold Thetiot <harold.thetiot@montagestudio.com>"
+LABEL author="Corentin Debost <corentin.debost@kaazing.com>"
 
 # Docker
-RUN curl -fsSL "https://download.docker.com/linux/ubuntu/gpg" | sudo apt-key add -
-RUN sudo add-apt-repository \
+RUN curl -fsSL "https://download.docker.com/linux/ubuntu/gpg" | apt-key add -
+RUN add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
    $(lsb_release -cs) \
    stable"
-RUN sudo apt-get update
-RUN sudo sudo apt-get install docker-ce --assume-yes --allow-unauthenticated
+RUN apt-get update
+RUN apt-get install docker-ce --assume-yes --allow-unauthenticated
 
 # Docker compose
-RUN sudo curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-RUN sudo chmod +x /usr/local/bin/docker-compose
+RUN curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+RUN chmod +x /usr/local/bin/docker-compose
 RUN docker-compose version
 
 COPY project-daemon/ /srv/project-daemon/
