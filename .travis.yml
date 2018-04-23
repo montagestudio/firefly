@@ -57,3 +57,5 @@ after_script:
 deploy:
   - provider: script
     script: docker-compose -f firefly-stack.yml push && docker-compose -f project-daemon/user-stacks/basic-stack.yml push
+    on:
+      branch: develop
