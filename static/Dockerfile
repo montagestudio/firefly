@@ -47,6 +47,5 @@ COPY static/filament /srv/app
 RUN npm install --prefix /srv/app/
 # TODO Fix in montage
 RUN npm install --prefix /srv/app/node_modules/montage
-COPY common/inject/adaptor /srv/app/adaptor
 
 CMD nginx -g 'daemon off;'

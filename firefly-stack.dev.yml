@@ -5,7 +5,6 @@ services:
     volumes:
       - ./static/filament/:/srv/app/
       - /srv/app/node_modules/
-      - ./common/inject/adaptor/:/srv/app/adaptor/
     configs:
       - source: nginx-config
         target: /etc/nginx/nginx.conf
@@ -14,8 +13,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./project-daemon/:/srv/project-daemon/
       - /srv/project-daemon/node_modules/
-      - ./common/:/srv/project-daemon/common/
-      - /srv/project-daemon/common/node_modules/
 
 configs:
   nginx-config:

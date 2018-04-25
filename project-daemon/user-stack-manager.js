@@ -103,9 +103,7 @@ UserStackManager.prototype.deploy = function (info, githubAccessToken, githubPro
             if (process.env.NODE_ENV === "development") {
                 stackFile.services.project.volumes = [
                     process.env.PROJECT_ROOT + "/project/:/srv/project/",
-                    "/srv/project/node_modules/",
-                    process.env.PROJECT_ROOT + "/project/common/:/srv/project/common/",
-                    "/srv/project/common/node_modules"
+                    "/srv/project/node_modules/"
                 ];
                 stackFile.services.project.deploy.placement.constraints = [];
             }

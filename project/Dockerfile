@@ -46,7 +46,6 @@ RUN chmod +x /usr/bin/collada2gltf && rm -rf /tmp/glTF
 
 COPY project/ /srv/project
 RUN npm install --prefix /srv/project/
-COPY common/ /srv/project/common
 RUN npm install --prefix /srv/project/common/
 
 RUN adduser --disabled-password --gecos "" montage

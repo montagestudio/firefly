@@ -49,7 +49,6 @@ RUN docker-compose version
 
 COPY project-daemon/ /srv/project-daemon/
 RUN npm install --prefix /srv/project-daemon/ --production
-COPY common/ /srv/project-daemon/common/
 RUN npm install --prefix /srv/project-daemon/common/ --production
 
 # Define default command.
