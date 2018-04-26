@@ -45,7 +45,5 @@ RUN echo "    StrictHostKeyChecking=no" >> /etc/ssh/ssh_config
 COPY static/nginx.conf /etc/nginx/nginx.conf
 COPY static/filament /srv/app
 RUN npm install --prefix /srv/app/
-# TODO Fix in montage
-RUN npm install --prefix /srv/app/node_modules/montage
 
 CMD nginx -g 'daemon off;'
