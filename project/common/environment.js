@@ -3,7 +3,7 @@ var URL = require("url");
 
 if (process.env.NODE_ENV === "test") {
     var path = require("path");
-    require("dotenv").config({ path: path.join(__dirname, "..", "env", "development.env") });
+    require("dotenv").config({ path: path.join(__dirname, "..", "..", "env", "development.env") });
 }
 
 function Env(options) {

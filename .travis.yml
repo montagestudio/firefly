@@ -22,6 +22,8 @@ install:
   - git submodule update
   # NodeJS Install
   - npm install
+  - npm install --prefix project/common
+  - npm install --prefix project-daemon/common
   # Update public certs
   - sudo update-ca-certificates --verbose
   # Build images
