@@ -54,5 +54,7 @@ ADD filament /srv/filament
 WORKDIR /srv/firefly
 RUN npm install
 
+RUN chown -R montage /home/montage/.npm
+
 EXPOSE 2441
 ENTRYPOINT ["node", "/srv/firefly/container/index.js"]
