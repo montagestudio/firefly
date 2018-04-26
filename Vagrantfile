@@ -67,7 +67,7 @@ Vagrant.configure('2') do |config|
     config.vm.define "load-balancer" do |lb|
         lb.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         lb.vm.hostname = "load-balancer"
-        lb.vm.network "private_network", ip: "10.0.1.2"
+        lb.vm.network "private_network", ip: "10.0.10.2"
         lb.vm.network "forwarded_port", guest: 80, host: 8182
         # Exposed so that existing URL works
         lb.vm.network "forwarded_port", guest: 80, host: 2440
@@ -89,14 +89,14 @@ Vagrant.configure('2') do |config|
         # Disable the ssl redirect
         lb.vm.provision :shell, inline: "sed -i.bak 's/redirect scheme https .*//' /etc/haproxy/haproxy.cfg"
         #   login
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.1.4/' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server login1 [0-9\.]*/server login1 10.0.10.4/' /etc/haproxy/haproxy.cfg"
         lb.vm.provision :shell, inline: "sed -i.bak 's/server login2 .*//' /etc/haproxy/haproxy.cfg"
         #   web-server
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.1.3/' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server static1 [0-9\.]*/server static1 10.0.10.3/' /etc/haproxy/haproxy.cfg"
 
         lb.vm.provision :shell, inline: "sed -i.bak 's/use-server .*//' /etc/haproxy/haproxy.cfg"
         #   project
-        lb.vm.provision :shell, inline: "sed -i.bak 's/server project1 [0-9\.]*/server project1 10.0.1.5/' /etc/haproxy/haproxy.cfg"
+        lb.vm.provision :shell, inline: "sed -i.bak 's/server project1 [0-9\.]*/server project1 10.0.10.5/' /etc/haproxy/haproxy.cfg"
         lb.vm.provision :shell, inline: "sed -i.bak 's/server project2 .*//' /etc/haproxy/haproxy.cfg"
         lb.vm.provision :shell, inline: "sed -i.bak 's/server project3 .*//' /etc/haproxy/haproxy.cfg"
         lb.vm.provision :shell, inline: "sed -i.bak 's/server project4 .*//' /etc/haproxy/haproxy.cfg"
@@ -113,7 +113,7 @@ Vagrant.configure('2') do |config|
     config.vm.define "web-server" do |web|
         web.vm.synced_folder ".", "/vagrant", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
         web.vm.hostname = "web-server"
-        web.vm.network "private_network", ip: "10.0.1.3"
+        web.vm.network "private_network", ip: "10.0.10.3"
         web.vm.network "forwarded_port", guest: 80, host: 8183
 
         # base web server image
@@ -140,7 +140,7 @@ Vagrant.configure('2') do |config|
         login.vm.provision :shell, path: "deploy/provision/base-login.sh"
 
         login.vm.hostname = "login"
-        login.vm.network "private_network", ip: "10.0.1.4"
+        login.vm.network "private_network", ip: "10.0.10.4"
         login.vm.network "forwarded_port", guest: 2440, host: 8184
         # For node-inspector
         login.vm.network "forwarded_port", guest: 8104, host: 8104
@@ -148,7 +148,7 @@ Vagrant.configure('2') do |config|
         # Install and configure rinetd to make nodejs debugging available
         # externally
         login.vm.provision :shell, :inline => "sudo apt-get install rinetd"
-        login.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.1.4 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
+        login.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.10.4 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
         login.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
 
         # TODO don't mount filament when server is split
@@ -172,7 +172,7 @@ Vagrant.configure('2') do |config|
         project.vm.provision :shell, path: "deploy/provision/base-project.sh"
 
         project.vm.hostname = "project"
-        project.vm.network "private_network", ip: "10.0.1.5"
+        project.vm.network "private_network", ip: "10.0.10.5"
         project.vm.network "forwarded_port", guest: 2440, host: 8185
         # For node-inspector
         project.vm.network "forwarded_port", guest: 8105, host: 8105
@@ -180,7 +180,7 @@ Vagrant.configure('2') do |config|
         # Install and configure rinetd to make nodejs debugging available
         # externally
         project.vm.provision :shell, :inline => "sudo apt-get install rinetd"
-        project.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.1.5 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
+        project.vm.provision :shell, :inline => "sudo sh -c \"echo '10.0.10.5 5858 127.0.0.1 5858' >> /etc/rinetd.conf\""
         project.vm.provision :shell, :inline => "sudo /etc/init.d/rinetd restart"
 
         # TODO don't mount filament when server is split
