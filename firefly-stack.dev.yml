@@ -4,7 +4,6 @@ services:
   static:
     volumes:
       - ./static/filament/:/srv/app/
-      - /srv/app/node_modules/
     configs:
       - source: nginx-config
         target: /etc/nginx/nginx.conf
