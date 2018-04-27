@@ -79,3 +79,4 @@ networks:
     external: true
   projects:
     driver: overlay
+    attachable: true

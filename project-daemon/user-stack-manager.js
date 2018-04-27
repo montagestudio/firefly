@@ -6,7 +6,7 @@ var ProjectInfo = require("./project-info");
 var GithubService = require("./github-service").GithubService;
 var environment = require("./common/environment");
 
-var IMAGE_NAME = "firefly_project:" + (process.env.PROJECT_VERSION || "latest");
+var IMAGE_NAME = "registry.montage.studio/firefly/project:" + (process.env.PROJECT_VERSION || "latest");
 var IMAGE_PORT = 2441;
 var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
 
@@ -25,15 +25,7 @@ var containerHasName = function (nameOrMatcher, containerInfo) {
 };
 
 var isContainerForProjectInfo = function (projectInfo, containerInfo) {
-    return containerHasName(containerInfo, containerNameForProjectInfo(projectInfo));
-};
-
-var getExposedPort = function (containerInfo) {
-    if (containerInfo && containerInfo.NetworkSettings && containerInfo.NetworkSettings.Ports) {
-        return containerInfo.NetworkSettings.Ports[IMAGE_PORT_TCP][0].HostPort;
-    } else {
-        throw new Error("Cannot get exposed port, containerInfo keys: " + Object.keys(containerInfo.State).join(", "));
-    }
+    return containerHasName(containerNameForProjectInfo(projectInfo), containerInfo);
 };
 
 module.exports = UserStackManager;
@@ -89,7 +81,7 @@ UserStackManager.prototype.setup = function (info, githubAccessToken, githubProf
         .then(function (container) {
             return container.inspect()
                 .then(function (containerInfo) {
-                    return self.waitForProjectServer(getExposedPort(containerInfo));
+                    return self.waitForProjectServer(containerNameForProjectInfo(info));
                 })
                 .catch(function (error) {
                     log("Removing stack for", info.toString(), "because", error.message);
@@ -114,7 +106,7 @@ UserStackManager.prototype.buildOptionsForProjectInfo = function (info, githubAc
         subdomain: info.toPath()
     };
     var options = {
-        Name: containerNameForProjectInfo(info),
+        name: containerNameForProjectInfo(info),
         Image: IMAGE_NAME,
         Memory: 256 * 1024 * 1024,
         MemorySwap: 256 * 1024 * 1024,
@@ -146,8 +138,13 @@ UserStackManager.prototype.create = function (info, githubAccessToken, githubPro
             return self.docker.createContainer(options)
                 .then(function (container) {
                     log("Created container", container.id, "for", info.toString());
-                    log("Starting container", container.id);
-                    return container.start({})
+                    log("Connecting container", container.id, "to projects network");
+                    var projectsNetwork = self.docker.getNetwork("firefly_projects");
+                    return projectsNetwork.connect({ Container: container.id })
+                        .then(function () {
+                            log("Starting container", container.id);
+                            return container.start();
+                        })
                         .then(function () {
                             return container;
                         });
@@ -164,27 +161,29 @@ UserStackManager.prototype.create = function (info, githubAccessToken, githubPro
  * @return {Promise.<string>}   A promise for the port resolved when the
  * server is available.
  */
-UserStackManager.prototype.waitForProjectServer = function (port, timeout, error) {
+UserStackManager.prototype.waitForProjectServer = function (url, timeout, error) {
     var self = this;
 
     timeout = typeof timeout === "undefined" ? 5000 : timeout;
     if (timeout <= 0) {
-        return Q.reject(new Error("Timeout while waiting for server on port " + port + (error ? " because " + error.message : "")));
+        return Q.reject(new Error("Timeout while waiting for server at " + url + (error ? " because " + error.message : "")));
     }
 
     return self.request({
-        host: "127.0.0.1",
-        port: port,
+        host: url,
+        port: IMAGE_PORT,
         method: "OPTIONS",
-        path: "/check"
+        path: "/"
     })
     .catch(function (error) {
-        log("Server at", port, "not available yet. Trying for", timeout - 100, "more ms");
+        log("Server at", url, "not available yet. Trying for", timeout - 100, "more ms");
         return Q.delay(100).then(function () {
-            return self.waitForProjectServer(port, timeout - 100, error);
+            return self.waitForProjectServer(url, timeout - 100, error);
         });
     })
-    .thenResolve(port);
+    .then(function () {
+        return url + ":" + IMAGE_PORT;
+    });
 };
 
 UserStackManager.prototype.delete = function (info) {

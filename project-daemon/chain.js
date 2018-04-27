@@ -117,8 +117,8 @@ function server(options) {
                 req.params.repo
             );
             return userStackManager.setup(projectInfo, req.token, req.profile)
-                .then(function (port) {
-                    return proxyContainer(req, port, "api");
+                .then(function (host) {
+                    return proxyContainer(req, host, "api");
                 });
         });
 
@@ -130,8 +130,8 @@ function server(options) {
                 req.params.repo
             );
             return userStackManager.setup(projectInfo, req.token, req.profile)
-                .then(function (port) {
-                    return proxyContainer(req, port, "build");
+                .then(function (host) {
+                    return proxyContainer(req, host, "build");
                 });
         });
     });

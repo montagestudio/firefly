@@ -36,10 +36,10 @@ describe("UserStackManager", function () {
             .then(done, done);
         });
 
-        it("returns the exposed port", function (done) {
+        it("returns the host", function (done) {
             userStackManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
-            .then(function (port) {
-                expect(port).toEqual("1234");
+            .then(function (host) {
+                expect(host).toEqual("firefly-project_user_owner_repo:2441");
             })
             .then(done, done);
         });
@@ -76,7 +76,7 @@ describe("UserStackManager", function () {
             spyOn(docker, "createContainer").andCallThrough();
             userStackManager.setup(new ProjectInfo("one-one", "twotwo", "three123456three"), "xxx", {})
             .then(function () {
-                expect(docker.createContainer.mostRecentCall.args[0].Name).toContain("one-one_twotwo_three123456three");
+                expect(docker.createContainer.mostRecentCall.args[0].name).toContain("one-one_twotwo_three123456three");
             })
             .then(done, done);
         });
