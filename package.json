@@ -11,6 +11,8 @@
     "lint": "jshint --verbose .",
     "test": "npm run lint && scripts/npm-recursive.sh test",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
+    "build": "docker-compose -f firefly-stack.yml build && npm run build:project",
+    "build:project": "docker build -t registry.montage.studio/firefly/project:${PROJECT_VERSION:-latest} project",
     "start": "npm run start:traefik && npm run start:app",
     "start:traefik": "scripts/deploy-stack.sh traefik",
     "start:app": "export PROJECT_ROOT=$(pwd) && scripts/deploy-stack.sh firefly",
