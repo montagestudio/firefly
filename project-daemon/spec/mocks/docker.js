@@ -3,68 +3,68 @@ var uuid = require("uuid");
 
 module.exports = MockDocker;
 function MockDocker() {
-    this.stacks = [];
-    this.services = [];
-    this.tasks = [];
+    this.modem = {
+        containers: []
+    };
 }
 
-MockDocker.prototype.listStacks = function () {
-    return Q(this.stacks);
+function Container(modem, id) {
+    this.modem = modem;
+    this.id = id;
+}
+
+Container.prototype.inspect = function () {
+    var self = this;
+    var info = this.modem.containers.filter(function (container) {
+        return container.ID === self.id;
+    })[0];
+    return info ? Q(info) : Q.reject(new Error("Container does not exist"));
 };
 
-MockDocker.prototype.deployStack = function (name) {
-    this.stacks.push({ id: name });
+Container.prototype.start = function () {
+    var self = this;
+    var info = this.modem.containers.filter(function (container) {
+        return container.ID === self.id;
+    })[0];
+    if (info.PortBindings) {
+        info.NetworkSettings = info.NetworkSettings || {Ports: []};
+        info.NetworkSettings.Ports[Object.keys(info.PortBindings)[0]] = [{ HostPort: "1234" }];
+    }
     return Q();
 };
 
-MockDocker.prototype.getService = function (name) {
+Container.prototype.stop = function () {
+    return Q();
+};
+
+Container.prototype.remove = function () {
     var self = this;
-    return {
-        id: uuid.v4(),
-        inspect: function () {
-            var info = self.services.filter(function (service) {
-                return service.Spec.Name === name;
-            })[0];
-            if (info) {
-                return Q(info);
-            } else {
-                return Q.reject(new Error("Service does not exist"));
-            }
-        }
-    };
+    var info = this.modem.containers.filter(function (container) {
+        return container.Id === self.id;
+    })[0];
+    if (info) {
+        this.modem.containers.splice(this.modem.containers.indexOf(info));
+        return Q();
+    } else {
+        return Q.reject(new Error("Container does not exist"));
+    }
 };
 
-MockDocker.prototype.listServices = function () {
-    return Q(this.services);
+MockDocker.prototype.Container = Container;
+
+MockDocker.prototype.listContainers = function () {
+    return Q(this.modem.containers);
 };
 
-MockDocker.prototype.createService = function (opts) {
-    var self = this;
-    var service = {
-        ID: uuid.v4(),
-        Spec: opts
+MockDocker.prototype.createContainer = function (opts) {
+    var id = uuid.v4();
+    var container = {
+        ID: id,
+        Names: opts.Name,
+        State: {}
     };
-    this.services.push(service);
-    var task = {
-        Status: {
-            State: "running"
-        }
-    };
-    this.tasks.push(task);
+    Object.assign(container, opts);
+    this.modem.containers.push(container);
 
-    return Q({
-        id: service.ID,
-        inspect: function () {
-            return Q(opts);
-        },
-        remove: function () {
-            self.services.splice(self.services.indexOf(service), 1);
-            self.tasks.splice(self.tasks.indexOf(task), 1);
-            return Q.resolve();
-        }
-    });
-};
-
-MockDocker.prototype.listTasks = function () {
-    return Q(this.tasks);
+    return Q(new Container(this.modem, id));
 };

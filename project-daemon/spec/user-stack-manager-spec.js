@@ -26,24 +26,35 @@ describe("UserStackManager", function () {
     });
 
     describe("setup", function () {
-        it("creates new stacks", function (done) {
+        it("creates a new container", function (done) {
             var details = new ProjectInfo("user", "owner", "repo");
-            spyOn(docker, "deployStack").andCallThrough();
+            spyOn(docker, "createContainer").andCallThrough();
             userStackManager.setup(details, "xxx", {})
             .then(function () {
-                expect(docker.deployStack.callCount).toEqual(1);
+                expect(docker.createContainer.callCount).toEqual(1);
             })
             .then(done, done);
         });
 
-        it("removes a stack if it fails", function (done) {
-            docker.deployStack = function () { return  Q.reject(new Error()); };
+        it("returns the exposed port", function (done) {
+            userStackManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
+            .then(function (port) {
+                expect(port).toEqual("1234");
+            })
+            .then(done, done);
+        });
+
+        it("removes a container if it fails", function (done) {
+            docker.createContainer = function () { return  Q.reject(new Error()); };
             userStackManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
             .then(function () {
                 // expect failure
                 expect(false).toBe(true);
             }, function () {
-                expect(docker.stacks.length).toEqual(0);
+                return docker.listContainers()
+                    .then(function (containers) {
+                        expect(containers.length).toEqual(0);
+                    });
             })
             .then(done, done);
         });
@@ -61,21 +72,24 @@ describe("UserStackManager", function () {
             .then(done, done);
         });
 
-        it("gives the stack a useful name", function (done) {
-            spyOn(docker, "deployStack").andCallThrough();
+        it("gives the container a useful name", function (done) {
+            spyOn(docker, "createContainer").andCallThrough();
             userStackManager.setup(new ProjectInfo("one-one", "twotwo", "three123456three"), "xxx", {})
             .then(function () {
-                expect(docker.deployStack.mostRecentCall.args[0]).toContain("one-one_twotwo_three123456three");
+                expect(docker.createContainer.mostRecentCall.args[0].Name).toContain("one-one_twotwo_three123456three");
             })
             .then(done, done);
         });
 
-        it("throws if there's no stack and no github access token or username are given", function (done) {
+        it("throws if there's no container and no github access token or username are given", function (done) {
             userStackManager.setup(new ProjectInfo("user", "owner", "repo"))
             .then(function (port) {
                 expect(false).toBe(true);
             }, function () {
-                expect(docker.stacks.length).toEqual(0);
+                return docker.listContainers()
+                    .then(function (containers) {
+                        expect(containers.length).toEqual(0);
+                    });
             })
             .then(done, done);
         });
@@ -89,6 +103,4 @@ describe("UserStackManager", function () {
             .then(done, done);
         });
     });
-
-
 });

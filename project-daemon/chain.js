@@ -92,11 +92,11 @@ function server(options) {
     })
     .route(function (any, GET, PUT, POST) {
         GET("workspaces", requestHostStartsWith("api")).app(function (req) {
-            return userStackManager.stacksForUser(req.profile.username)
-                .then(function (stacks) {
-                    return APPS.json(stacks.map(function (stack) {
+            return userStackManager.containersForUser(req.profile.username)
+                .then(function (containers) {
+                    return APPS.json(containers.map(function (container) {
                         return {
-                            id: stack.id
+                            id: container.id
                         };
                     }));
                 });
@@ -104,7 +104,7 @@ function server(options) {
 
         this.DELETE("workspaces", requestHostStartsWith("api")).app(function (req) {
             track.message("delete stack", req);
-            return userStackManager.removeUserStacks(req.profile.username)
+            return userStackManager.deleteUserContainers(req.profile.username)
                 .then(function () {
                     return APPS.json({deleted: true});
                 });
@@ -117,8 +117,8 @@ function server(options) {
                 req.params.repo
             );
             return userStackManager.setup(projectInfo, req.token, req.profile)
-                .then(function () {
-                    return proxyContainer(req, userStackManager.projectUrl(projectInfo), "api");
+                .then(function (port) {
+                    return proxyContainer(req, port, "api");
                 });
         });
 
@@ -130,8 +130,8 @@ function server(options) {
                 req.params.repo
             );
             return userStackManager.setup(projectInfo, req.token, req.profile)
-                .then(function () {
-                    return proxyContainer(req, userStackManager.projectUrl(projectInfo), "build");
+                .then(function (port) {
+                    return proxyContainer(req, port, "build");
                 });
         });
     });

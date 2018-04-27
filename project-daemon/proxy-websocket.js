@@ -5,16 +5,15 @@ module.exports = ProxyWebsocket;
 function ProxyWebsocket(userStackManager, protocol) {
     return function (request, socket, body, projectInfo) {
         return userStackManager.setup(projectInfo)
-            .then(function (projectWorkspaceUrl) {
-                var projectUrl = userStackManager.projectUrl(projectInfo);
+            .then(function (port) {
                 // create server
                 var wsServer = new WebSocket(request, socket, body);
                 // create client
-                log("create wsClient", "ws://" + projectUrl + request.url);
+                log("create wsClient", "ws://127.0.0.1:" + port + request.url);
                 var clientOptions = {
                     headers: request.headers
                 };
-                var wsClient = new WebSocket.Client("ws://" + projectUrl + request.url, [protocol], clientOptions);
+                var wsClient = new WebSocket.Client("ws://127.0.0.1" + port + request.url, [protocol], clientOptions);
                 wsClient.on("close", function (event) {
                     wsServer.close(event.code, event.reason);
                 });

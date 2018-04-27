@@ -9,7 +9,7 @@ describe("project chain", function () {
 
         userStackManager = {
             setup: function () { return Q("1234"); },
-            removeUserStacks: jasmine.createSpy().andReturn(Q())
+            deleteUserContainers: jasmine.createSpy().andReturn(Q())
         };
 
         chain = projectChain({
@@ -60,7 +60,7 @@ describe("project chain", function () {
             }).then(function (response) {
                 expect(response.status).toEqual(200);
                 expect(response.body.join("")).toEqual('{"deleted":true}');
-                expect(userStackManager.removeUserStacks).toHaveBeenCalledWith(username);
+                expect(userStackManager.deleteUserContainers).toHaveBeenCalledWith(username);
             }).then(done, done);
         });
     });
