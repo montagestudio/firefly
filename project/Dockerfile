@@ -32,5 +32,10 @@ RUN npm install --prefix /srv/project/ --production
 COPY ./ /srv/project
 RUN npm install --prefix /srv/project/common/ --production
 
+# Restore ownership of .npm to montage, this gets owned by root when we npm install the project
+# I don't really know why we want the montage user to exist in the first place, maybe we
+# should just do everything as root?
+RUN chown -R montage /home/montage/.npm
+
 EXPOSE 2441
 ENTRYPOINT ["node", "/srv/project/index.js"]
