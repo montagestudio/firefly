@@ -27,9 +27,7 @@ install:
   # Update public certs
   - sudo update-ca-certificates --verbose
   # Build images
-  - docker-compose -f traefik-stack.yml pull
-  - docker-compose -f firefly-stack.yml build
-  - docker-compose -f project-daemon/user-stacks/basic-stack.yml build
+  - npm run build
 
 before_script:
   - export DOCKER_CLIENT_TIMEOUT=120
