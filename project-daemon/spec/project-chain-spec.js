@@ -3,17 +3,17 @@ var Q = require("q");
 var mockRequest = require("../common/spec/mocks/request");
 
 describe("project chain", function () {
-    var username, userStackManager, chain, request;
+    var username, containerManager, chain, request;
     beforeEach(function () {
         username = "jasmine";
 
-        userStackManager = {
+        containerManager = {
             setup: function () { return Q("1234"); },
             deleteUserContainers: jasmine.createSpy().andReturn(Q())
         };
 
         chain = projectChain({
-            userStackManager: userStackManager,
+            containerManager: containerManager,
             request: {
                 get: function (url, options) {
                     if (url === "http://jwt/profile") {
@@ -50,7 +50,7 @@ describe("project chain", function () {
     });
 
     describe("DELETE api/workspaces", function () {
-        it("calls userStackManager.delete with the container's details", function (done) {
+        it("calls containerManager.delete with the container's details", function (done) {
             return request({
                 method: "DELETE",
                 url: "http://api.localhost:2440/workspaces",
@@ -60,7 +60,7 @@ describe("project chain", function () {
             }).then(function (response) {
                 expect(response.status).toEqual(200);
                 expect(response.body.join("")).toEqual('{"deleted":true}');
-                expect(userStackManager.deleteUserContainers).toHaveBeenCalledWith(username);
+                expect(containerManager.deleteUserContainers).toHaveBeenCalledWith(username);
             }).then(done, done);
         });
     });

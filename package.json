@@ -18,7 +18,7 @@
     "start:app": "export PROJECT_ROOT=$(pwd) && scripts/deploy-stack.sh firefly",
     "stop": "npm run stop:app && npm run stop:traefik",
     "stop:traefik": "scripts/remove-stack.sh traefik",
-    "stop:app": "scripts/remove-user-stacks.sh && scripts/remove-stack.sh firefly",
+    "stop:app": "scripts/remove-user-containers.sh && scripts/remove-stack.sh firefly",
     "restart": "npm run stop && npm run start",
     "restart:traefik": "npm run stop:traefik && npm run start:traefik",
     "restart:app": "npm run stop:app && npm run start:app",

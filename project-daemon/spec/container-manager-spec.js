@@ -1,14 +1,14 @@
 var Q = require("q");
-var UserStackManager = require("../user-stack-manager");
+var ContainerManager = require("../container-manager");
 var MockDocker = require("./mocks/docker");
 var ProjectInfo = require("../project-info");
 
-describe("UserStackManager", function () {
-    var docker, userStackManager;
+describe("ContainerManager", function () {
+    var docker, containerManager;
     beforeEach(function () {
         docker = new MockDocker();
 
-        userStackManager = new UserStackManager(docker, function () {
+        containerManager = new ContainerManager(docker, function () {
             // Shim `request` function
             return Q({
                 status: 200,
@@ -16,7 +16,7 @@ describe("UserStackManager", function () {
                 body: []
             });
         });
-        userStackManager.GithubService = function() {
+        containerManager.GithubService = function() {
             this.getRepo = function() {
                 return Q.resolve({
                     private: false
@@ -29,7 +29,7 @@ describe("UserStackManager", function () {
         it("creates a new container", function (done) {
             var details = new ProjectInfo("user", "owner", "repo");
             spyOn(docker, "createContainer").andCallThrough();
-            userStackManager.setup(details, "xxx", {})
+            containerManager.setup(details, "xxx", {})
             .then(function () {
                 expect(docker.createContainer.callCount).toEqual(1);
             })
@@ -37,7 +37,7 @@ describe("UserStackManager", function () {
         });
 
         it("returns the host", function (done) {
-            userStackManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
+            containerManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
             .then(function (host) {
                 expect(host).toEqual("firefly-project_user_owner_repo:2441");
             })
@@ -46,7 +46,7 @@ describe("UserStackManager", function () {
 
         it("removes a container if it fails", function (done) {
             docker.createContainer = function () { return  Q.reject(new Error()); };
-            userStackManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
+            containerManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
             .then(function () {
                 // expect failure
                 expect(false).toBe(true);
@@ -60,21 +60,21 @@ describe("UserStackManager", function () {
         });
 
         // TODO: Fix this race condition
-        xit("doesn't create two stacks for one user/owner/repo", function (done) {
-            spyOn(docker, "deployStack").andCallThrough();
+        xit("doesn't create two containers for one user/owner/repo", function (done) {
+            spyOn(docker, "createContainer").andCallThrough();
             Q.all([
-                userStackManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {}),
-                userStackManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
+                containerManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {}),
+                containerManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {})
             ])
             .then(function () {
-                expect(docker.deployStack.callCount).toEqual(1);
+                expect(docker.createContainer.callCount).toEqual(1);
             })
             .then(done, done);
         });
 
         it("gives the container a useful name", function (done) {
             spyOn(docker, "createContainer").andCallThrough();
-            userStackManager.setup(new ProjectInfo("one-one", "twotwo", "three123456three"), "xxx", {})
+            containerManager.setup(new ProjectInfo("one-one", "twotwo", "three123456three"), "xxx", {})
             .then(function () {
                 expect(docker.createContainer.mostRecentCall.args[0].name).toContain("one-one_twotwo_three123456three");
             })
@@ -82,7 +82,7 @@ describe("UserStackManager", function () {
         });
 
         it("throws if there's no container and no github access token or username are given", function (done) {
-            userStackManager.setup(new ProjectInfo("user", "owner", "repo"))
+            containerManager.setup(new ProjectInfo("user", "owner", "repo"))
             .then(function (port) {
                 expect(false).toBe(true);
             }, function () {
@@ -96,7 +96,7 @@ describe("UserStackManager", function () {
 
         it("creates a subdomain for the details", function (done) {
             var details = new ProjectInfo("user", "owner", "repo");
-            userStackManager.setup(details, "xxx", {})
+            containerManager.setup(details, "xxx", {})
             .then(function () {
                 expect(typeof details.toPath()).toEqual("string");
             })

@@ -41,13 +41,13 @@ function server(options) {
     options = options || {};
 
     //jshint -W116
-    if (!options.userStackManager) throw new Error("options.userStackManager required");
-    var userStackManager = options.userStackManager;
+    if (!options.containerManager) throw new Error("options.containerManager required");
+    var containerManager = options.containerManager;
     if (!options.request) throw new Error("options.request required");
     var request = options.request;
     //jshint +W116
 
-    var previewManager = new PreviewManager(userStackManager);
+    var previewManager = new PreviewManager(containerManager);
 
     var chain = joey
     .error()
@@ -92,7 +92,7 @@ function server(options) {
     })
     .route(function (any, GET, PUT, POST) {
         GET("workspaces", requestHostStartsWith("api")).app(function (req) {
-            return userStackManager.containersForUser(req.profile.username)
+            return containerManager.containersForUser(req.profile.username)
                 .then(function (containers) {
                     return APPS.json(containers.map(function (container) {
                         return {
@@ -104,7 +104,7 @@ function server(options) {
 
         this.DELETE("workspaces", requestHostStartsWith("api")).app(function (req) {
             track.message("delete stack", req);
-            return userStackManager.deleteUserContainers(req.profile.username)
+            return containerManager.deleteUserContainers(req.profile.username)
                 .then(function () {
                     return APPS.json({deleted: true});
                 });
@@ -116,7 +116,7 @@ function server(options) {
                 req.params.owner,
                 req.params.repo
             );
-            return userStackManager.setup(projectInfo, req.token, req.profile)
+            return containerManager.setup(projectInfo, req.token, req.profile)
                 .then(function (host) {
                     return proxyContainer(req, host, "api");
                 });
@@ -129,14 +129,14 @@ function server(options) {
                 req.params.owner,
                 req.params.repo
             );
-            return userStackManager.setup(projectInfo, req.token, req.profile)
+            return containerManager.setup(projectInfo, req.token, req.profile)
                 .then(function (host) {
                     return proxyContainer(req, host, "build");
                 });
         });
     });
 
-    var proxyAppWebsocket = ProxyWebsocket(userStackManager, "firefly-app");
+    var proxyAppWebsocket = ProxyWebsocket(containerManager, "firefly-app");
     chain.upgrade = function (req, socket, body) {
         Q.try(function () {
             if (!WebSocket.isWebSocket(req)) {

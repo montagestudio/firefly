@@ -10,7 +10,7 @@ process.on('uncaughtException', function (err) {
 
 var projectChainFactory = require("./chain");
 
-var UserStackManager = require("./user-stack-manager");
+var ContainerManager = require("./container-manager");
 var axios = require("axios");
 
 require("./polyfill-dockerode");
@@ -37,7 +37,7 @@ function main(options) {
     var docker  = new Dockerode({socketPath: "/var/run/docker.sock"});
 
     var projectChain = projectChainFactory({
-        userStackManager: new UserStackManager(docker),
+        containerManager: new ContainerManager(docker),
         request: axios,
     });
     return projectChain.listen(options.port)

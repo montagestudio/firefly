@@ -28,8 +28,8 @@ var isContainerForProjectInfo = function (projectInfo, containerInfo) {
     return containerHasName(containerNameForProjectInfo(projectInfo), containerInfo);
 };
 
-module.exports = UserStackManager;
-function UserStackManager(docker, _request) {
+module.exports = ContainerManager;
+function ContainerManager(docker, _request) {
     this.docker = docker;
     this.pendingContainers = new Map();
     this.GithubService = GithubService;
@@ -37,14 +37,14 @@ function UserStackManager(docker, _request) {
     this.request = _request || request;
 }
 
-UserStackManager.prototype.has = function (info) {
+ContainerManager.prototype.has = function (info) {
     return this.docker.listContainers()
         .then(function (containerInfos) {
             return containerInfos.filter(isContainerForProjectInfo.bind(null, info)).length > 0;
         });
 };
 
-UserStackManager.prototype.containersForUser = function (githubUsername) {
+ContainerManager.prototype.containersForUser = function (githubUsername) {
     var self = this;
     return this.docker.listContainers()
         .then(function (containerInfos) {
@@ -56,11 +56,11 @@ UserStackManager.prototype.containersForUser = function (githubUsername) {
         });
 };
 
-UserStackManager.prototype.hostForProjectInfo = function (projectInfo) {
+ContainerManager.prototype.hostForProjectInfo = function (projectInfo) {
     return containerNameForProjectInfo(projectInfo) + ":" + IMAGE_PORT;
 };
 
-UserStackManager.prototype.setup = function (info, githubAccessToken, githubProfile) {
+ContainerManager.prototype.setup = function (info, githubAccessToken, githubProfile) {
     var self = this;
 
     if (!(info instanceof ProjectInfo)) {
@@ -95,7 +95,7 @@ UserStackManager.prototype.setup = function (info, githubAccessToken, githubProf
         });
 };
 
-UserStackManager.prototype.buildOptionsForProjectInfo = function (info, githubAccessToken, githubProfile) {
+ContainerManager.prototype.buildOptionsForProjectInfo = function (info, githubAccessToken, githubProfile) {
     var projectConfig = {
         username: info.username,
         owner: info.owner,
@@ -122,7 +122,7 @@ UserStackManager.prototype.buildOptionsForProjectInfo = function (info, githubAc
     return options;
 };
 
-UserStackManager.prototype.getOrCreate = function (info, githubAccessToken, githubProfile) {
+ContainerManager.prototype.getOrCreate = function (info, githubAccessToken, githubProfile) {
     var self = this;
     var container;
     if (this.pendingContainers.has(info)) {
@@ -169,7 +169,7 @@ UserStackManager.prototype.getOrCreate = function (info, githubAccessToken, gith
  * @return {Promise.<string>}   A promise for the port resolved when the
  * server is available.
  */
-UserStackManager.prototype.waitForProjectServer = function (url, timeout, error) {
+ContainerManager.prototype.waitForProjectServer = function (url, timeout, error) {
     var self = this;
 
     timeout = typeof timeout === "undefined" ? 5000 : timeout;
@@ -191,7 +191,7 @@ UserStackManager.prototype.waitForProjectServer = function (url, timeout, error)
     });
 };
 
-UserStackManager.prototype.delete = function (info) {
+ContainerManager.prototype.delete = function (info) {
     var self = this;
     return this.listContainers()
         .then(function (containerInfos) {
@@ -204,7 +204,7 @@ UserStackManager.prototype.delete = function (info) {
         });
 };
 
-UserStackManager.prototype.deleteUserContainers = function (githubUsername) {
+ContainerManager.prototype.deleteUserContainers = function (githubUsername) {
     return this.containersForUser()
         .then(function (containers) {
             return Promise.all(containers.map(function (container) {
@@ -216,7 +216,7 @@ UserStackManager.prototype.deleteUserContainers = function (githubUsername) {
         });
 };
 
-UserStackManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
+ContainerManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
     if (typeof info.private === 'undefined' && githubAccessToken) {
         var githubService = new this.GithubService(githubAccessToken);
         return githubService.getRepo(info.owner, info.repo).then(function(repoInfo) {
