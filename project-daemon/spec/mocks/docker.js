@@ -1,56 +1,21 @@
 var Q = require("q");
 var uuid = require("uuid");
+var Container = require("./container");
+var Network = require("./network");
 
 module.exports = MockDocker;
 function MockDocker() {
     this.modem = {
-        containers: []
+        containers: [],
+        networks: [{ id: "firefly_projects" }]
     };
 }
 
-function Container(modem, id) {
-    this.modem = modem;
-    this.id = id;
-}
-
-Container.prototype.inspect = function () {
-    var self = this;
-    var info = this.modem.containers.filter(function (container) {
-        return container.ID === self.id;
-    })[0];
-    return info ? Q(info) : Q.reject(new Error("Container does not exist"));
-};
-
-Container.prototype.start = function () {
-    var self = this;
-    var info = this.modem.containers.filter(function (container) {
-        return container.ID === self.id;
-    })[0];
-    if (info.PortBindings) {
-        info.NetworkSettings = info.NetworkSettings || {Ports: []};
-        info.NetworkSettings.Ports[Object.keys(info.PortBindings)[0]] = [{ HostPort: "1234" }];
-    }
-    return Q();
-};
-
-Container.prototype.stop = function () {
-    return Q();
-};
-
-Container.prototype.remove = function () {
-    var self = this;
-    var info = this.modem.containers.filter(function (container) {
-        return container.Id === self.id;
-    })[0];
-    if (info) {
-        this.modem.containers.splice(this.modem.containers.indexOf(info));
-        return Q();
-    } else {
-        return Q.reject(new Error("Container does not exist"));
-    }
-};
-
 MockDocker.prototype.Container = Container;
+
+MockDocker.prototype.getContainer = function (id) {
+    return new Container(this.modem, id);
+};
 
 MockDocker.prototype.listContainers = function () {
     return Q(this.modem.containers);
@@ -66,5 +31,9 @@ MockDocker.prototype.createContainer = function (opts) {
     Object.assign(container, opts);
     this.modem.containers.push(container);
 
-    return Q(new Container(this.modem, id));
+    return Q(this.getContainer(id));
+};
+
+MockDocker.prototype.getNetwork = function (id) {
+    return new Network(this.modem, id);
 };
