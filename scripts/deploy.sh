@@ -1,6 +1,10 @@
 #!/bin/bash
 
+set -e
+
 STAGING_MANAGER_IP="159.89.176.34"
+
+docker-compose -f firefly-stack.yml push
 
 if [ "$1" == "-p" ]; then
     exit 1
