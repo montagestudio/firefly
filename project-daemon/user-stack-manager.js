@@ -56,6 +56,10 @@ UserStackManager.prototype.containersForUser = function (githubUsername) {
         });
 };
 
+UserStackManager.prototype.hostForProjectInfo = function (projectInfo) {
+    return containerNameForProjectInfo(projectInfo) + ":" + IMAGE_PORT;
+};
+
 UserStackManager.prototype.setup = function (info, githubAccessToken, githubProfile) {
     var self = this;
 
@@ -63,25 +67,20 @@ UserStackManager.prototype.setup = function (info, githubAccessToken, githubProf
         throw new TypeError("Given info was not an instance of ProjectInfo");
     }
 
-    return this.docker.listContainers()
-        .then(function (containerInfos) {
-            var existingContainer = containerInfos.filter(isContainerForProjectInfo.bind(null, info))[0];
-            if (existingContainer) {
-                return new self.docker.Container(self.docker.modem, existingContainer.Id);
-            } else if (self.pendingContainers.has(info)) {
-                return self.pendingContainers.get(info);
-            } else if (githubAccessToken && githubProfile) {
-                var promise = self.create(info, githubAccessToken, githubProfile);
-                self.pendingContainers.set(info, promise);
-                return promise;
-            } else {
-                throw new Error("Container does not exist and no github credentials given to create it.");
-            }
-        })
+    return this.getOrCreate(info, githubAccessToken, githubProfile)
         .then(function (container) {
             return container.inspect()
                 .then(function (containerInfo) {
+                    if (!containerInfo.State.Running) {
+                        log("Starting container", container.id);
+                        return container.start();
+                    }
+                })
+                .then(function () {
                     return self.waitForProjectServer(containerNameForProjectInfo(info));
+                })
+                .then(function () {
+                    return self.hostForProjectInfo(info);
                 })
                 .catch(function (error) {
                     log("Removing stack for", info.toString(), "because", error.message);
@@ -123,30 +122,39 @@ UserStackManager.prototype.buildOptionsForProjectInfo = function (info, githubAc
     return options;
 };
 
-UserStackManager.prototype.create = function (info, githubAccessToken, githubProfile) {
+UserStackManager.prototype.getOrCreate = function (info, githubAccessToken, githubProfile) {
     var self = this;
-    return this._getRepoPrivacy(info, githubAccessToken)
-        .then(function (isPrivate) {
-            if (isPrivate) {
-                info.setPrivate(true);
+    var container;
+    if (this.pendingContainers.has(info)) {
+        return this.pendingContainers.get(info);
+    }
+    container = this.docker.getContainer(containerNameForProjectInfo(info));
+    return container.inspect()
+        .then(function (containerInfo) {
+            return container;
+        }, function () {
+            if (!githubAccessToken || !githubProfile) {
+                throw new Error("Cannot create project container without github credentials.");
             }
+            return self._getRepoPrivacy(info, githubAccessToken)
+                .then(function (isPrivate) {
+                    if (isPrivate) {
+                        info.setPrivate(true);
+                    }
 
-            log("Creating project container for", info.toString(), "...");
-            track.messageForUsername("create container", info.username, {info: info});
+                    log("Creating project container for", info.toString(), "...");
+                    track.messageForUsername("create container", info.username, {info: info});
 
-            var options = self.buildOptionsForProjectInfo(info, githubAccessToken, githubProfile);
-            return self.docker.createContainer(options)
-                .then(function (container) {
-                    log("Created container", container.id, "for", info.toString());
-                    log("Connecting container", container.id, "to projects network");
-                    var projectsNetwork = self.docker.getNetwork("firefly_projects");
-                    return projectsNetwork.connect({ Container: container.id })
-                        .then(function () {
-                            log("Starting container", container.id);
-                            return container.start();
-                        })
-                        .then(function () {
-                            return container;
+                    var options = self.buildOptionsForProjectInfo(info, githubAccessToken, githubProfile);
+                    return self.docker.createContainer(options)
+                        .then(function (container) {
+                            log("Created container", container.id, "for", info.toString());
+                            log("Connecting container", container.id, "to projects network");
+                            var projectsNetwork = self.docker.getNetwork("firefly_projects");
+                            return projectsNetwork.connect({ Container: container.id })
+                                .then(function () {
+                                    return container;
+                                });
                         });
                 });
         });
@@ -180,9 +188,6 @@ UserStackManager.prototype.waitForProjectServer = function (url, timeout, error)
         return Q.delay(100).then(function () {
             return self.waitForProjectServer(url, timeout - 100, error);
         });
-    })
-    .then(function () {
-        return url + ":" + IMAGE_PORT;
     });
 };
 
