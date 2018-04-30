@@ -107,8 +107,8 @@ UserStackManager.prototype.buildOptionsForProjectInfo = function (info, githubAc
     var options = {
         name: containerNameForProjectInfo(info),
         Image: IMAGE_NAME,
-        Memory: 256 * 1024 * 1024,
-        MemorySwap: 256 * 1024 * 1024,
+        Memory: 512 * 1024 * 1024,
+        MemorySwap: 512 * 1024 * 1024,
         Cmd: ['-c', JSON.stringify(projectConfig)],
         Env: [
             "NODE_ENV=" + (process.env.NODE_ENV || "development"),
