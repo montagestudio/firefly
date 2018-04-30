@@ -125,11 +125,11 @@ ContainerManager.prototype.buildOptionsForProjectInfo = function (info, githubAc
 ContainerManager.prototype.getOrCreate = function (info, githubAccessToken, githubProfile) {
     var self = this;
     var container;
-    if (this.pendingContainers.has(info)) {
-        return this.pendingContainers.get(info);
+    if (this.pendingContainers.has(info.hash)) {
+        return this.pendingContainers.get(info.hash);
     }
     container = this.docker.getContainer(containerNameForProjectInfo(info));
-    return container.inspect()
+    var creationPromise = container.inspect()
         .then(function (containerInfo) {
             return container;
         }, function () {
@@ -157,7 +157,13 @@ ContainerManager.prototype.getOrCreate = function (info, githubAccessToken, gith
                                 });
                         });
                 });
+        })
+        .then(function (container) {
+            self.pendingContainers.delete(info.hash);
+            return container;
         });
+    this.pendingContainers.set(info.hash, creationPromise);
+    return creationPromise;
 };
 
 /**

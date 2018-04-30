@@ -59,8 +59,7 @@ describe("ContainerManager", function () {
             .then(done, done);
         });
 
-        // TODO: Fix this race condition
-        xit("doesn't create two containers for one user/owner/repo", function (done) {
+        it("doesn't create two containers for one user/owner/repo", function (done) {
             spyOn(docker, "createContainer").andCallThrough();
             Q.all([
                 containerManager.setup(new ProjectInfo("user", "owner", "repo"), "xxx", {}),
