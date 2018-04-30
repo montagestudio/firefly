@@ -43,7 +43,7 @@ PreviewManager.prototype.route = function (next) {
             if (hasAccess) {
                 // Remove the /user/owner/repo/ part of the URL, project services don't see this
                 request.pathInfo = request.pathInfo.replace(projectInfo.toPath(), "/");
-                return proxyContainer(request, self.userStackManager.projectUrl(projectInfo), "static")
+                return proxyContainer(request, self.userStackManager.hostForProjectInfo(projectInfo), "static")
                 .catch(function (error) {
                     // If there's an error making the request then serve
                     // the no preview page. The container has probably
