@@ -31,7 +31,7 @@ module.exports = function (config) {
             return handleEndpoint(config, request, function() {
                 log("init_popcorn handleEndpoint");
                 if (!initializingPromise) {
-                    initializingPromise = request.projectWorkspace.initializeWithTemplate("/home/montage/popcorn");
+                    initializingPromise = request.projectWorkspace.initializeWithTemplate("/root/popcorn");
                     initializingPromise.catch(function (error) {
                         log("*Error initializing popcorn*", error, error.stack);
                         track.error(error, request);
