@@ -4,24 +4,15 @@ services:
   traefik:
     ports:
       - "2440:443"
-      - "80" # Put to override the "443:443" definition in firefly-stack.yml
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik/ssl/cert.pem:/etc/ssl/cert.pem:ro
       - ./traefik/ssl/serverkey.pem:/etc/ssl/serverkey.pem:ro
   static:
     volumes:
       - ./static/filament/:/srv/app/
-    configs:
-      - source: nginx-config
-        target: /etc/nginx/nginx.conf
+      - ./static/nginx.conf:/etc/nginx/nginx.conf
   project-daemon:
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./project-daemon/:/srv/project-daemon/
       - /srv/project-daemon/node_modules/
-
-configs:
-  nginx-config:
-    file: static/nginx.conf
   
