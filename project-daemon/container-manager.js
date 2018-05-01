@@ -148,8 +148,8 @@ ContainerManager.prototype.buildOptionsForProjectInfo = function (info, githubAc
     var options = {
         name: containerNameForProjectInfo(info),
         Image: IMAGE_NAME,
-        Memory: 512 * 1024 * 1024,
-        MemorySwap: 512 * 1024 * 1024,
+        Memory: 1024 * 1024 * 1024,
+        MemorySwap: 1024 * 1024 * 1024,
         Cmd: ['-c', JSON.stringify(projectConfig)],
         Env: [
             "NODE_ENV=" + (process.env.NODE_ENV || "development"),
