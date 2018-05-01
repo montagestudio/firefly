@@ -37,7 +37,7 @@ script:
   - npm run lint
   - runSlowSpecs=true npm test
   - docker ps
-  - docker ps | grep -q traefik_traefik
+  - docker ps | grep -q firefly_traefik
   - docker ps | grep -q firefly_auth
   - docker ps | grep -q firefly_jwt
   - docker ps | grep -q firefly_static
