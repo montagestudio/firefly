@@ -21,8 +21,7 @@ services:
         - "traefik.frontend.priority=2"
   jwt:
     image: registry.montage.studio/firefly/jwt:${JWT_VERSION:-latest}
-    build:
-      context: jwt
+    build: ./jwt
     networks:
       - traefik_net
     deploy:
@@ -34,9 +33,7 @@ services:
         - "traefik.frontend.rule=Host:jwt.${FIREFLY_HOSTNAME}"
   static:
     image: registry.montage.studio/firefly/static:${STATIC_VERSION:-latest}
-    build:
-      context: .
-      dockerfile: static/Dockerfile
+    build: ./static
     networks:
       - traefik_net
     deploy:
