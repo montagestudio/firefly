@@ -32,12 +32,10 @@ install:
 before_script:
   - export DOCKER_CLIENT_TIMEOUT=120
   - npm run generate-local-certificate
-  - docker swarm init
 script:
   - npm start
   - npm run lint
   - runSlowSpecs=true npm test
-  - sleep 120
   - docker ps
   - docker ps | grep -q traefik_traefik
   - docker ps | grep -q firefly_auth
@@ -46,7 +44,6 @@ script:
   - docker ps | grep -q firefly_project-daemon
 after_script:
   - npm stop
-  - docker swarm leave --force
 
 deploy:
   - provider: script
