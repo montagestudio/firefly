@@ -28,7 +28,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.port=8080"
-      - "traefik.docker.network=traefik_net"
+      - "traefik.docker.network=firefly_backend"
       - "traefik.frontend.rule=PathPrefix:/auth"
       - "traefik.frontend.priority=2"
   jwt:
@@ -40,7 +40,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.port=80"
-      - "traefik.docker.network=traefik_net"
+      - "traefik.docker.network=firefly_backend"
       - "traefik.frontend.rule=Host:jwt.${FIREFLY_HOSTNAME}"
   static:
     container_name: firefly_static
@@ -51,7 +51,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.port=80"
-      - "traefik.docker.network=traefik_net"
+      - "traefik.docker.network=firefly_backend"
       - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
       - "traefik.frontend.priority=1"
   project-daemon:
@@ -72,7 +72,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.port=2440"
-      - "traefik.docker.network=traefik_net"
+      - "traefik.docker.network=firefly_backend"
       - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},api.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
 
 networks:
