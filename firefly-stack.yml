@@ -1,10 +1,30 @@
 version: "3.3"
 
 services:
+  traefik:
+    image: traefik:latest
+    command: --docker.domain=${FIREFLY_HOSTNAME}
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2442:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /acme.json:/acme.json
+    configs:
+      - source: traefik-config
+        target: /traefik.toml
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
   auth:
     image: montagestudio/montage-auth:develop-SNAPSHOT
     networks:
-      - traefik_net
+      - backend
     environment:
       - GITHUB_ID
       - GITHUB_SECRET
@@ -23,7 +43,7 @@ services:
     image: registry.montage.studio/firefly/jwt:${JWT_VERSION:-latest}
     build: ./jwt
     networks:
-      - traefik_net
+      - backend
     deploy:
       replicas: 1
       labels:
@@ -35,7 +55,7 @@ services:
     image: registry.montage.studio/firefly/static:${STATIC_VERSION:-latest}
     build: ./static
     networks:
-      - traefik_net
+      - backend
     deploy:
       replicas: 1
       labels:
@@ -48,7 +68,7 @@ services:
     image: registry.montage.studio/firefly/project-daemon:${PROJECT_DAEMON_VERSION:-latest}
     build: ./project-daemon
     networks:
-      - traefik_net
+      - backend
       - projects
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -68,10 +88,14 @@ services:
         - "traefik.port=2440"
         - "traefik.docker.network=traefik_net"
         - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},api.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
-
 networks:
-  traefik_net:
-    external: true
+  frontend:
+  backend:
+    driver: overlay
   projects:
     driver: overlay
     attachable: true
+
+configs:
+  traefik-config:
+    file: traefik/traefik.toml
