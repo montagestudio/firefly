@@ -1,3 +1,5 @@
+# Compose override file for development
+
 version: "3.3"
 
 services:
@@ -10,9 +12,4 @@ services:
   static:
     volumes:
       - ./static/filament/:/srv/app/
-      - ./static/nginx.conf:/etc/nginx/nginx.conf
-  project-daemon:
-    volumes:
-      - ./project-daemon/:/srv/project-daemon/
-      - /srv/project-daemon/node_modules/
   
