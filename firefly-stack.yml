@@ -46,9 +46,7 @@ services:
         - "traefik.frontend.priority=1"
   project-daemon:
     image: registry.montage.studio/firefly/project-daemon:${PROJECT_DAEMON_VERSION:-latest}
-    build:
-      context: .
-      dockerfile: project-daemon/Dockerfile
+    build: ./project-daemon
     networks:
       - traefik_net
       - projects

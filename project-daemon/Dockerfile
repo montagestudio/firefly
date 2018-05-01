@@ -47,8 +47,9 @@ RUN curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-co
 RUN chmod +x /usr/local/bin/docker-compose
 RUN docker-compose version
 
-COPY project-daemon/ /srv/project-daemon/
+COPY ./package.json /srv/project-daemon/
 RUN npm install --prefix /srv/project-daemon/ --production
+COPY ./ /srv/project-daemon/
 RUN npm install --prefix /srv/project-daemon/common/ --production
 
 # Define default command.
