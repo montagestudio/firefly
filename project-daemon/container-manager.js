@@ -9,6 +9,7 @@ var environment = require("./common/environment");
 var IMAGE_NAME = "registry.montage.studio/firefly/project:" + (process.env.PROJECT_VERSION || "latest");
 var IMAGE_PORT = 2441;
 var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
+var PROJECTS_NETWORK = "firefly_projects";
 
 var containerNameForProjectInfo = function (projectInfo) {
     return "firefly-project_" + projectInfo.username + "_" + projectInfo.owner + "_" + projectInfo.repo;
@@ -62,28 +63,23 @@ ContainerManager.prototype.hostForProjectInfo = function (projectInfo) {
 
 ContainerManager.prototype.setup = function (info, githubAccessToken, githubProfile) {
     var self = this;
-
     if (!(info instanceof ProjectInfo)) {
         throw new TypeError("Given info was not an instance of ProjectInfo");
     }
-
-    return this.getOrCreate(info, githubAccessToken, githubProfile)
+    if (this.pendingContainers.has(info.hash)) {
+        return this.pendingContainers.get(info.hash);
+    }
+    var containerPromise = this.getOrCreate(info, githubAccessToken, githubProfile)
         .then(function (container) {
-            return container.inspect()
-                .then(function (containerInfo) {
-                    if (!containerInfo.State.Running) {
-                        log("Starting container", container.id);
-                        return container.start();
-                    }
+            return self.start(container)
+                .then(function (container) {
+                    return self.connectToProjectsNetwork(container);
                 })
-                .then(function () {
+                .then(function (container) {
                     return self.waitForProjectServer(containerNameForProjectInfo(info));
                 })
-                .then(function () {
-                    return self.hostForProjectInfo(info);
-                })
                 .catch(function (error) {
-                    log("Removing stack for", info.toString(), "because", error.message);
+                    log("Removing container for", info.toString(), "because", error.message);
                     return container.remove()
                         .then(function () {
                             track.errorForUsername(error, info.username, {info: info});
@@ -92,6 +88,51 @@ ContainerManager.prototype.setup = function (info, githubAccessToken, githubProf
                             track.errorForUsername(error, info.username, {info: info});
                         });
                 });
+        })
+        .then(function () {
+            return self.hostForProjectInfo(info);
+        });
+    this.pendingContainers.set(info.hash, containerPromise);
+    return containerPromise;
+};
+
+ContainerManager.prototype.getOrCreate = function (info, githubAccessToken, githubProfile) {
+    var self = this;
+    var container = this.docker.getContainer(containerNameForProjectInfo(info));
+    return container.inspect()
+        .then(function (containerInfo) {
+            if (!containerInfo.State.Running) {
+                return container.remove()
+                    .then(function () {
+                        throw new Error("Container was stopped");
+                    });
+            }
+            return container;
+        })
+        .catch(function (err) {
+            if (!githubAccessToken || !githubProfile) {
+                throw new Error("Cannot create project container without github credentials.");
+            }
+            return self._getRepoPrivacy(info, githubAccessToken)
+                .then(function (isPrivate) {
+                    if (isPrivate) {
+                        info.setPrivate(true);
+                    }
+
+                    log("Creating project container for", info.toString(), "...");
+                    track.messageForUsername("create container", info.username, {info: info});
+
+                    var options = self.buildOptionsForProjectInfo(info, githubAccessToken, githubProfile);
+                    return self.docker.createContainer(options)
+                        .then(function (container) {
+                            log("Created container", container.id, "for", info.toString());
+                            return container;
+                        });
+                });
+        })
+        .then(function (container) {
+            self.pendingContainers.delete(info.hash);
+            return container;
         });
 };
 
@@ -122,48 +163,45 @@ ContainerManager.prototype.buildOptionsForProjectInfo = function (info, githubAc
     return options;
 };
 
-ContainerManager.prototype.getOrCreate = function (info, githubAccessToken, githubProfile) {
-    var self = this;
-    var container;
-    if (this.pendingContainers.has(info.hash)) {
-        return this.pendingContainers.get(info.hash);
-    }
-    container = this.docker.getContainer(containerNameForProjectInfo(info));
-    var creationPromise = container.inspect()
+/**
+ * Starts a container if it is not already running.
+ * @param {Dockerode.Container} container 
+ */
+ContainerManager.prototype.start = function (container) {
+    return container.inspect()
         .then(function (containerInfo) {
-            return container;
-        }, function () {
-            if (!githubAccessToken || !githubProfile) {
-                throw new Error("Cannot create project container without github credentials.");
+            if (!containerInfo.State.Running) {
+                return container.start();
             }
-            return self._getRepoPrivacy(info, githubAccessToken)
-                .then(function (isPrivate) {
-                    if (isPrivate) {
-                        info.setPrivate(true);
-                    }
-
-                    log("Creating project container for", info.toString(), "...");
-                    track.messageForUsername("create container", info.username, {info: info});
-
-                    var options = self.buildOptionsForProjectInfo(info, githubAccessToken, githubProfile);
-                    return self.docker.createContainer(options)
-                        .then(function (container) {
-                            log("Created container", container.id, "for", info.toString());
-                            log("Connecting container", container.id, "to projects network");
-                            var projectsNetwork = self.docker.getNetwork("firefly_projects");
-                            return projectsNetwork.connect({ Container: container.id })
-                                .then(function () {
-                                    return container;
-                                });
-                        });
-                });
+        }, function (err) {
+            throw new Error("Unable to inspect container " + container.id + " while trying to start it. Error: " + err.message);
         })
-        .then(function (container) {
-            self.pendingContainers.delete(info.hash);
+        .then(function () {
             return container;
         });
-    this.pendingContainers.set(info.hash, creationPromise);
-    return creationPromise;
+};
+
+/**
+ * Connects a container to the projects network so that it can communicate with
+ * the project daemon. Does nothing if the container is already on the network.
+ * @param {Dockerode.Container} container
+ */
+ContainerManager.prototype.connectToProjectsNetwork = function (container) {
+    var self = this;
+    return container.inspect()
+        .then(function (containerInfo) {
+            var projectsNetwork;
+            if (!containerInfo.NetworkSettings || !containerInfo.NetworkSettings.Networks[PROJECTS_NETWORK]) {
+                projectsNetwork = self.docker.getNetwork(PROJECTS_NETWORK);
+                log("Connecting container", container.id, "to projects network");
+                return projectsNetwork.connect({ Container: container.id });
+            }
+        })
+        .then(function () {
+            return container;
+        }, function (err) {
+            throw new Error("Unable to connect container " + container.id + " to the projects network because the network does not exist. Error: " + err.message);
+        });
 };
 
 /**
@@ -189,6 +227,7 @@ ContainerManager.prototype.waitForProjectServer = function (url, timeout, error)
         method: "OPTIONS",
         path: "/"
     })
+    .timeout(100)
     .catch(function (error) {
         log("Server at", url, "not available yet. Trying for", timeout - 100, "more ms");
         return Q.delay(100).then(function () {

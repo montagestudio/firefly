@@ -150,6 +150,7 @@ function server(options) {
                 var accessTokenMatch = /token=(.*?)(;|$)/.exec(req.headers.cookie);
                 return getJwtProfile(request, "Bearer " + (accessTokenMatch && accessTokenMatch[1]))
                     .then(function (profile) {
+                        Object.assign(req, profile);
                         details = environment.getDetailsFromAppUrl(req.url);
                         details = new ProjectInfo(profile.profile.username, details.owner, details.repo);
                         return proxyAppWebsocket(req, socket, body, details);
