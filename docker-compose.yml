@@ -3,7 +3,8 @@ version: "3.3"
 services:
   traefik:
     container_name: firefly_traefik
-    image: traefik:latest
+    image: registry.montage.studio/firefly/traefik:${TRAEFIK_VERSION:-latest}
+    build: ./traefik
     command: --docker.domain=${FIREFLY_HOSTNAME}
     networks:
       - frontend
