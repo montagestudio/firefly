@@ -4,7 +4,6 @@ var request = require("q-io/http").request;
 var Q = require("q");
 var ProjectInfo = require("./project-info");
 var GithubService = require("./github-service").GithubService;
-var environment = require("./common/environment");
 
 var IMAGE_NAME = "registry.montage.studio/firefly/project:" + (process.env.PROJECT_VERSION || "latest");
 var IMAGE_PORT = 2441;
@@ -153,9 +152,8 @@ ContainerManager.prototype.buildOptionsForProjectInfo = function (info, githubAc
         Cmd: ['-c', JSON.stringify(projectConfig)],
         Env: [
             "NODE_ENV=" + (process.env.NODE_ENV || "development"),
-            "FIREFLY_APP_URL=" + environment.app.href,
-            "FIREFLY_PROJECT_URL=" + environment.project.href,
-            "FIREFLY_PROJECT_SERVER_COUNT=" + environment.projectServers
+            "FIREFLY_APP_URL=" + process.env.FIREFLY_APP_URL,
+            "FIREFLY_PROJECT_URL=" + process.env.FIREFLY_PROJECT_URL
         ],
         PortBindings: {}
     };
