@@ -1,7 +1,5 @@
 var track = require("./common/track");
-var Env = require("./common/environment");
 var log = require("./common/logging").from(__filename);
-// var FS = require("q-io/fs");
 
 /* Catch possible hidden error */
 process.on('uncaughtException', function (err) {
@@ -20,7 +18,7 @@ var commandOptions = {
     "port": {
         alias: "p",
         describe: "The port to run the app server on",
-        default: Env.project.port || Env.port
+        default: process.env.FIREFLY_PORT
     },
     "mount-workspaces": {
         describe: "Set to mount the container workspaces on the host",
@@ -31,9 +29,13 @@ var commandOptions = {
     }
 };
 
-
 module.exports = main;
 function main(options) {
+    log("env", process.env.NODE_ENV);
+    log("port", process.env.FIREFLY_PORT);
+    log("app", process.env.FIREFLY_APP_URL);
+    log("project", process.env.FIREFLY_PROJECT_URL);
+
     var docker  = new Dockerode({socketPath: "/var/run/docker.sock"});
 
     var projectChain = projectChainFactory({
@@ -42,7 +44,7 @@ function main(options) {
     });
     return projectChain.listen(options.port)
     .then(function (server) {
-        log("Listening on", Env.app.href);
+        log("Listening on", process.env.FIREFLY_APP_URL);
 
         server.node.on("upgrade", projectChain.upgrade);
 

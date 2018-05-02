@@ -3,7 +3,7 @@ var track = require("./common/track");
 var Q = require("q");
 var joey = require("joey");
 var APPS = require("q-io/http-apps");
-var environment = require("./common/environment");
+var URL = require("url");
 
 var LogStackTraces = require("./common/log-stack-traces");
 var ProjectInfo = require("./project-info");
@@ -16,7 +16,6 @@ var WebSocket = require("faye-websocket");
 
 var requestHostStartsWith = function (prefix) {
     return function (req) {
-        log("request", req.headers.host, req.pathInfo);
         return req.headers.host.indexOf(prefix) === 0;
     };
 };
@@ -51,7 +50,7 @@ function server(options) {
 
     var chain = joey
     .error()
-    .cors(environment.getAppUrl(), "*", "x-access-token")
+    .cors(process.env.FIREFLY_APP_URL, "*", "x-access-token")
     .headers({"Access-Control-Allow-Credentials": true})
     // Put here to avoid printing logs when HAProxy pings the server for
     // a health check
@@ -71,15 +70,21 @@ function server(options) {
                 });
         };
     })
-    .route(function (_, GET, PUT, POST) {
+    // Public routes
+    .route(function (any, GET, PUT, POST) {
         POST("access", requestHostStartsWith("project"))
         .log(log, function (message) { return message; })
         .app(function (req) {
             var projectInfo = ProjectInfo.fromPath(req.pathname);
             return previewManager.processAccessRequest(req, projectInfo);
         });
+
+        GET("...", requestHostStartsWith("project"))
+        .log(log, function (message) { return message; })
+        .app(function (req) {
+            return previewManager.app(req);
+        });
     })
-    .use(previewManager.route)
     .log(log, function (message) { return message; })
     .use(function (next) {
         return function (req) {
@@ -90,6 +95,7 @@ function server(options) {
             }
         };
     })
+    // Private (authenticated) routes
     .route(function (any, GET, PUT, POST) {
         GET("workspaces", requestHostStartsWith("api")).app(function (req) {
             return containerManager.containersForUser(req.profile.username)
@@ -142,8 +148,7 @@ function server(options) {
             if (!WebSocket.isWebSocket(req)) {
                 return;
             }
-            var details;
-            if (previewManager.isPreview(req)) {
+            if (requestHostStartsWith("prefix")(req)) {
                 return previewManager.upgrade(req, socket, body);
             } else {
                 log("filament websocket");
@@ -151,8 +156,14 @@ function server(options) {
                 return getJwtProfile(request, "Bearer " + (accessTokenMatch && accessTokenMatch[1]))
                     .then(function (profile) {
                         Object.assign(req, profile);
-                        details = environment.getDetailsFromAppUrl(req.url);
-                        details = new ProjectInfo(profile.profile.username, details.owner, details.repo);
+                        var pathname = URL.parse(req.url).pathname;
+                        var match = pathname.match(/\/?([^\/]+)\/([^\/]+)/);
+                        if (!match) {
+                            throw new Error("Could not parse details from " + req.url);
+                        }
+                        var owner = match[1];
+                        var repo = match[2];
+                        var details = new ProjectInfo(profile.profile.username, owner, repo);
                         return proxyAppWebsocket(req, socket, body, details);
                     }, function (error) {
                         socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");

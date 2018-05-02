@@ -1,0 +1,82 @@
+version: "3.3"
+
+services:
+  traefik:
+    container_name: firefly_traefik
+    image: registry.montage.studio/firefly/traefik:${TRAEFIK_VERSION:-latest}
+    build: ./traefik
+    command: --docker.domain=${FIREFLY_HOSTNAME}
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "2442:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.toml:/traefik.toml
+  auth:
+    container_name: firefly_auth
+    image: montagestudio/montage-auth:develop-SNAPSHOT
+    networks:
+      - backend
+    environment:
+      - GITHUB_ID
+      - GITHUB_SECRET
+      - GITHUB_SCOPES='user,public_repo,repo,gist'
+      - APP_SSL='false'
+      - APP_URL=${FIREFLY_APP_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8080"
+      - "traefik.docker.network=firefly_backend"
+      - "traefik.frontend.rule=PathPrefix:/auth"
+      - "traefik.frontend.priority=2"
+  jwt:
+    container_name: firefly_jwt
+    image: registry.montage.studio/firefly/jwt:${JWT_VERSION:-latest}
+    build: ./jwt
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=80"
+      - "traefik.docker.network=firefly_backend"
+      - "traefik.frontend.rule=Host:jwt.${FIREFLY_HOSTNAME}"
+  static:
+    container_name: firefly_static
+    image: registry.montage.studio/firefly/static:${STATIC_VERSION:-latest}
+    build: ./static
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=80"
+      - "traefik.docker.network=firefly_backend"
+      - "traefik.frontend.rule=Host:${FIREFLY_HOSTNAME}"
+      - "traefik.frontend.priority=1"
+  project-daemon:
+    container_name: firefly_project-daemon
+    image: registry.montage.studio/firefly/project-daemon:${PROJECT_DAEMON_VERSION:-latest}
+    build: ./project-daemon
+    networks:
+      - backend
+      - projects
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - NODE_ENV
+      - FIREFLY_PORT
+      - FIREFLY_APP_URL
+      - FIREFLY_PROJECT_URL
+      - PROJECT_VERSION
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=2440"
+      - "traefik.docker.network=firefly_backend"
+      - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},api.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
+
+networks:
+  frontend:
+  backend:
+  projects:
+    attachable: true

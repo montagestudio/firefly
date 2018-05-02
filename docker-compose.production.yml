@@ -1,0 +1,11 @@
+# Compose override file for production
+
+version: "3.3"
+
+services:
+  traefik:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /acme.json:/acme.json
