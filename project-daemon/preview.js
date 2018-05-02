@@ -1,6 +1,5 @@
 var log = require("./common/logging").from(__filename);
 var track = require("./common/track");
-var environment = require("./common/environment");
 
 var FS = require("q-io/fs");
 var Q = require("q");
@@ -22,63 +21,51 @@ var HOST_ACCESS_CODE_MAP = new Map();
 function PreviewManager(containerManager) {
     this.containerManager = containerManager;
     this.proxyWebsocket = ProxyWebsocket(containerManager, "firefly-preview");
-    this.route = this.route.bind(this);
 }
 exports = module.exports = PreviewManager;
 
-PreviewManager.prototype.isPreview = function (request) {
-    return request.headers.host === environment.getProjectHost();
-};
-
-PreviewManager.prototype.route = function (next) {
+PreviewManager.prototype.app = function (request) {
     var self = this;
-    return function (request, response) {
-        // requests on the project domain are preview requests, everything else is handled elsewhere
-        if (!self.isPreview(request)) {
-            return next(request, response);
+    var projectInfo = ProjectInfo.fromPath(request.pathInfo);
+    return self.hasAccess(request, projectInfo).then(function (hasAccess) {
+        if (hasAccess) {
+            // Remove the /user/owner/repo/ part of the URL, project services don't see this
+            request.pathInfo = request.pathInfo.replace(projectInfo.toPath(), "/");
+            return proxyContainer(request, self.containerManager.hostForProjectInfo(projectInfo), "static")
+            .catch(function (error) {
+                // If there's an error making the request then serve
+                // the no preview page. The container has probably
+                // been shut down due to inactivity
+                return self.serveNoPreviewPage(request);
+            });
+        } else {
+            self.containerManager.setup(projectInfo)
+            .then(function (projectWorkspaceUrl) {
+                if (!projectWorkspaceUrl) {
+                    return;
+                }
+                var code = self.getAccessCode(projectInfo);
+                // Chunk into groups of 4 by adding a space after
+                // every 4th character except if it's at the end of
+                // the string
+                code = code.replace(/(....)(?!$)/g, "$1 ");
+                return HTTP.request({
+                    method: "POST",
+                    url: "http://" + projectWorkspaceUrl + "/notice",
+                    headers: {"content-type": "application/json; charset=utf8"},
+                    body: [JSON.stringify("Preview access code: " + code)]
+                });
+            })
+            .catch(function (error) {
+                log("*Error with preview access code*", error.stack);
+                track.error(error, request);
+            });
+
+            // Serve the access form regardless, so that people
+            // can't work out if a project exists or not.
+            return self.serveAccessForm(request);
         }
-
-        var projectInfo = ProjectInfo.fromPath(request.pathInfo);
-        return self.hasAccess(request, projectInfo).then(function (hasAccess) {
-            if (hasAccess) {
-                // Remove the /user/owner/repo/ part of the URL, project services don't see this
-                request.pathInfo = request.pathInfo.replace(projectInfo.toPath(), "/");
-                return proxyContainer(request, self.containerManager.hostForProjectInfo(projectInfo), "static")
-                .catch(function (error) {
-                    // If there's an error making the request then serve
-                    // the no preview page. The container has probably
-                    // been shut down due to inactivity
-                    return self.serveNoPreviewPage(request);
-                });
-            } else {
-                self.containerManager.setup(projectInfo)
-                .then(function (projectWorkspaceUrl) {
-                    if (!projectWorkspaceUrl) {
-                        return;
-                    }
-                    var code = self.getAccessCode(projectInfo);
-                    // Chunk into groups of 4 by adding a space after
-                    // every 4th character except if it's at the end of
-                    // the string
-                    code = code.replace(/(....)(?!$)/g, "$1 ");
-                    return HTTP.request({
-                        method: "POST",
-                        url: "http://" + projectWorkspaceUrl + "/notice",
-                        headers: {"content-type": "application/json; charset=utf8"},
-                        body: [JSON.stringify("Preview access code: " + code)]
-                    });
-                })
-                .catch(function (error) {
-                    log("*Error with preview access code*", error.stack);
-                    track.error(error, request);
-                });
-
-                // Serve the access form regardless, so that people
-                // can't work out if a project exists or not.
-                return self.serveAccessForm(request);
-            }
-        });
-    };
+    });
 };
 
 PreviewManager.prototype.upgrade = function (request, socket, body) {

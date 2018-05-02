@@ -70,15 +70,21 @@ function server(options) {
                 });
         };
     })
-    .route(function (_, GET, PUT, POST) {
+    // Public routes
+    .route(function (any, GET, PUT, POST) {
         POST("access", requestHostStartsWith("project"))
         .log(log, function (message) { return message; })
         .app(function (req) {
             var projectInfo = ProjectInfo.fromPath(req.pathname);
             return previewManager.processAccessRequest(req, projectInfo);
         });
+
+        GET("...", requestHostStartsWith("project"))
+        .log(log, function (message) { return message; })
+        .app(function (req) {
+            return previewManager.app(req);
+        });
     })
-    .use(previewManager.route)
     .log(log, function (message) { return message; })
     .use(function (next) {
         return function (req) {
@@ -89,6 +95,7 @@ function server(options) {
             }
         };
     })
+    // Private (authenticated) routes
     .route(function (any, GET, PUT, POST) {
         GET("workspaces", requestHostStartsWith("api")).app(function (req) {
             return containerManager.containersForUser(req.profile.username)
@@ -141,7 +148,7 @@ function server(options) {
             if (!WebSocket.isWebSocket(req)) {
                 return;
             }
-            if (previewManager.isPreview(req)) {
+            if (requestHostStartsWith("prefix")(req)) {
                 return previewManager.upgrade(req, socket, body);
             } else {
                 log("filament websocket");
