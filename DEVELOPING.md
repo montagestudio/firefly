@@ -1,40 +1,26 @@
 # Developing
 
-## Compose files
+## Building Images
 
-Firefly is deployed using a composition of multiple docker compose files. The base file, `firefly-stack.yml`, contains the canonical definitions of every service. This file is then temporarily merged with an appropriate override file (`firefly-stack.dev.yml`, `firefly-stack.prod.yml`) that defines environment-specific configurations like ports and volumes.
+Firefly consists of several images. Most of these images are defined in the `docker-compose.yml` file and as such are built by docker-compose. The exception is the project image, whose containers are created at runtime and therefore the image is built separately.
 
-In development, `firefly-stack.dev.yml` adds volumes to each service such that each service's source code is live synced to the running service. This way we do not need to run a Docker image build everytime a service's source code changes. If you change the source code of a service, use `docker service update --force <service_name>` to kill and recreate new tasks for the service with the updated code. The static service does not need to be updated (unless you change `nginx.conf`) because the changes to filament are synced automatically and will be available on the next browser refresh.
+`npm run build` builds both the images in `docker-compose.yml` and the project image. You can also use `npm run build:project` to build just the project image. Remember to do this every time you change the files in `project/`.
 
-For a more nuclear options, use `npm restart` to remove all services from the stack and recreate them.
+`npm start` runs a `docker-compose up -d --build`, so it will rebuild any images that changed and update any containers that need to be updated. Whenever you change any backend code (other than in `project/`), `npm start` is enough to update the system.
 
-If you change the `Dockerfile` or dependencies in the `package.json` of any service you need to rebuild the image with `docker-compose -c firefly-stack.yml build <service_name>`.
-
-## Services
-
-Each service defines its own `Dockerfile`. Images are built by docker-compose through the `firefly-stack.yml` file, using `docker-compose -c firefly-stack.yml build <service_name>`.
-
-Service images may extend from a base `firefly` image with dependencies like node pre-installed. This image is built by hand using `docker built -t firefly .`.
-
-The `common/` directory is meant for modules that are shared by multiple services. Services that require these modules should `ADD` `common/` in their `Dockerfile`s, and the `firely-stack.dev.yml` file should add a volume for `common/`. To use common modules in tests, make a symlink in your service directory using `ln -s ../common`.
-
-Note that `firefly-stack.dev.yml` creates unnamed volumes to `node_modules` directories, e.g. `/srv/<service_name>/node_modules` or `/srv/<service_name>/common/node_modules`. This is to ensure that the volume does not copy local `node_modules` (needed for testing) into the Docker container, which may need to have OS-specific dependencies built for it.
+Changes to `static/filament` do not require an `npm start`. In development, the `docker-compose.override.yml` file defines a volume so that the filament code is automatically synchronized to the static container. Just refresh the page to see filament updated.
 
 ## Useful docker commands
 
-`docker stack ls`: Show the stacks you have deployed.
+`docker ps`: Show running containers.
 
-`docker service ls`: Show all running services and # of active replicas.
+`docker logs -f <container name or id>`: Tail the logs of the given container.
 
-`docker service ps <service_name>`: Show all created tasks for a service. Useful to figure out why a service won't come online (try the `--no-trunc` option).
-
-`docker service logs -f <service_name>`: Tail the logs of a given service (includes logs from every replica belonging to that service).
-
-`docker service update --force <service_name>`: Kills a service's tasks and recreates them. Useful to reload a service without recreating the whole stack.
+`docker exec -it <container name or id> bash`: Open a shell in the given container to check the filesystem.
 
 ## Tests
 
-Run `npm test`. This first lints the entire project to check for style errors. Then it runs `npm test` on every directory.
+Run `npm run lint` to check the project for style errors. Run `npm test` to run `npm test` on every directory.
 
 If a spec takes more than 100ms then it is a "slow" spec and a message telling you this will be logged. Make it faster, or wrap the `it` in an `if (process.env.runSlowSpecs)` block. Run `npm run test:all` to run the slow tests.
 
