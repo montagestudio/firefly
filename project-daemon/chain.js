@@ -148,7 +148,7 @@ function server(options) {
             if (!WebSocket.isWebSocket(req)) {
                 return;
             }
-            if (requestHostStartsWith("prefix")(req)) {
+            if (requestHostStartsWith("project")(req)) {
                 return previewManager.upgrade(req, socket, body);
             } else {
                 log("filament websocket");
