@@ -21,7 +21,7 @@ else
                                                      docker-compose pull && \
                                                      docker pull registry.montage.studio/firefly/project:latest && \
                                                      docker-compose -f docker-compose.yml -f docker-compose.production.yml -p firefly up -d --no-build && \
-                                                     docker image prune'
+                                                     docker image prune -af'
 fi
 
 rm firefly.tar.gz
