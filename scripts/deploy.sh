@@ -19,9 +19,9 @@ else
     ssh ${SSH_OPTIONS} "root@${STAGING_MANAGER_IP}" 'cd /opt/app/ && \ 
                                                      export $(cat env/staging.env) && \
                                                      docker-compose pull && \
-                                                     docker pull registry.montage.studio/firefly/project:latest && \
                                                      docker-compose -f docker-compose.yml -f docker-compose.production.yml -p firefly up -d --no-build && \
-                                                     docker image prune -af'
+                                                     docker image prune -af && \
+                                                     docker pull registry.montage.studio/firefly/project:latest'
 fi
 
 rm firefly.tar.gz
