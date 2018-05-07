@@ -31,7 +31,7 @@ module.exports = ExtensionService;
 function ExtensionService(_, fs, environment, __, ___, request) {
     var appHost = environment.getAppUrl();
     var appExtensionsUrl = Url.resolve(appHost, "app/extensions/");
-    var staticExtensionsUrl = "http://static/app/extensions/";
+    var staticExtensionsUrl = "http://firefly_static/app/extensions/";
 
     // Returned service
     var service = {};
