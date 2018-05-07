@@ -7,6 +7,7 @@ STAGING_MANAGER_IP="159.89.176.34"
 
 # Push tags, staging/prod will pull these tags before starting
 docker-compose push
+docker push registry.montage.studio/firefly/project:latest
 
 # Create an archive of firefly to upload to environments
 tar -cp --exclude='**/node_modules' --exclude=node_modules --exclude='.git' -f firefly.tar.gz .
