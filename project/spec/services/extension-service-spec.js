@@ -11,7 +11,7 @@ describe("extension-service", function () {
             }
         };
         var request = function (url, cb) {
-            var requestPath = url.replace("http://static/", "/");
+            var requestPath = url.replace("http://firefly_static/", "/");
             var fsPath = PATH.join(__dirname, "..", "fixtures", requestPath.replace(/^\/app\//, "/"));
             var stat = fs.statSync(fsPath);
             var entries, body;
