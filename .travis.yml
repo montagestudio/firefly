@@ -26,12 +26,12 @@ install:
   - npm install --prefix project-daemon/common
   # Update public certs
   - sudo update-ca-certificates --verbose
+  - npm run generate-local-certificate
   # Build images
   - npm run build
 
 before_script:
   - export DOCKER_CLIENT_TIMEOUT=120
-  - npm run generate-local-certificate
 script:
   - npm start
   - npm run lint
