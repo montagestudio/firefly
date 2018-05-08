@@ -50,6 +50,7 @@ services:
     build: ./static
     networks:
       - backend
+      - projects
     labels:
       - "traefik.enable=true"
       - "traefik.port=80"
