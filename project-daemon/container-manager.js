@@ -121,6 +121,16 @@ module.exports = class ContainerManager {
                 `FIREFLY_APP_URL=${process.env.FIREFLY_APP_URL}`,
                 `FIREFLY_PROJECT_URL=${process.env.FIREFLY_PROJECT_URL}`
             ],
+            HostConfig: {
+                Mounts: [
+                    {
+                        Type: "volume",
+                        Source: "firefly_workspaces",
+                        Target: "/root/workspace",
+                        ReadOnly: false
+                    }
+                ]
+            },
             PortBindings: {
                 [IMAGE_PORT_TCP]: [ { HostIp: '127.0.0.1' }]
             }
