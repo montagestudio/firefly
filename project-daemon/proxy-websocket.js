@@ -4,7 +4,7 @@ var WebSocket = require("faye-websocket");
 module.exports = ProxyWebsocket;
 function ProxyWebsocket(containerManager, protocol) {
     return function (request, socket, body, projectInfo) {
-        return containerManager.setup(projectInfo)
+        return containerManager.setup(projectInfo, request.token, request.profile)
             .then(function (host) {
                 // create server
                 var wsServer = new WebSocket(request, socket, body);

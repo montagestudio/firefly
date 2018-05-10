@@ -39,7 +39,7 @@ PreviewManager.prototype.app = function (request) {
                 return self.serveNoPreviewPage(request);
             });
         } else {
-            self.containerManager.setup(projectInfo)
+            self.containerManager.setup(projectInfo, request.token, request.profile)
             .then(function (projectWorkspaceUrl) {
                 if (!projectWorkspaceUrl) {
                     return;
