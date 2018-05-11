@@ -12,11 +12,15 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-spies": "^1.0.0",
+    "concurrently": "^3.5.1",
+    "http-server": "^0.11.1",
     "mocha": "^5.1.1",
+    "open": "0.0.5",
     "supertest": "^3.0.0"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "doc": "concurrently 'http-server -p 2450' 'open http://localhost:2450/doc'"
   },
   "license": "ISC"
 }
