@@ -1,52 +1,51 @@
-var ProjectInfo = require("../project-info");
-var Set = require("collections/set");
+const ProjectInfo = require("../project-info");
+const Set = require("collections/set");
 
-describe("ProjectInfo", function () {
+describe("ProjectInfo", () => {
     var details;
-    beforeEach(function () {
+    beforeEach(() => {
         details = new ProjectInfo("username", "owner", "repo");
     });
 
-    it("constructs a details object", function () {
+    it("constructs a details object", () => {
         expect(details.username).toEqual("username");
         expect(details.owner).toEqual("owner");
         expect(details.repo).toEqual("repo");
     });
 
-    it("lower-cases the strings", function () {
-        var details = new ProjectInfo("USernamE", "OwNeR", "REPO");
-
+    it("lower-cases the strings", () => {
+        const details = new ProjectInfo("USernamE", "OwNeR", "REPO");
         expect(details.username).toEqual("username");
         expect(details.owner).toEqual("owner");
         expect(details.repo).toEqual("repo");
     });
 
-    describe("equals", function () {
-        it("is true for the same details", function () {
-            var other = new ProjectInfo("username", "owner", "repo");
+    describe("equals", () => {
+        it("is true for the same details", () => {
+            const other = new ProjectInfo("username", "owner", "repo");
             expect(details.equals(other)).toBe(true);
         });
 
-        it("is false for different details", function () {
-            var other = new ProjectInfo("different", "owner", "repo");
+        it("is false for different details", () => {
+            const other = new ProjectInfo("different", "owner", "repo");
             expect(details.equals(other)).toBe(false);
         });
     });
 
-    describe("hash", function () {
-        it("hashes the same details to the same hash", function () {
-            var other = new ProjectInfo("username", "owner", "repo");
+    describe("hash", () => {
+        it("hashes the same details to the same hash", () => {
+            const other = new ProjectInfo("username", "owner", "repo");
             expect(details.hash()).toEqual(other.hash());
         });
 
-        it("is false for different details", function () {
-            var other = new ProjectInfo("different", "owner", "repo");
+        it("is false for different details", () => {
+            const other = new ProjectInfo("different", "owner", "repo");
             expect(details.hash()).not.toEqual(other.hash());
         });
     });
 
-    it("uniques itself in a set", function () {
-        var set = Set();
+    it("uniques itself in a set", () => {
+        const set = Set();
 
         set.add(new ProjectInfo("one", "one", "one"));
         set.add(new ProjectInfo("one", "one", "one"));
@@ -57,17 +56,17 @@ describe("ProjectInfo", function () {
         expect(set.toArray()[1].username).toEqual("two");
     });
 
-    describe("path", function () {
-        it("generates a path", function () {
+    describe("path", () => {
+        it("generates a path", () => {
             expect(details.toPath()).toEqual("/username/owner/repo/");
         });
 
-        it("generates a url", function () {
+        it("generates a url", () => {
             expect(details.toUrl("http://base/", "foo/bar")).toEqual("http://base/username/owner/repo/foo/bar");
         });
 
-        it("can be created from a url", function () {
-            var other = ProjectInfo.fromPath("/username/owner/repo");
+        it("can be created from a url", () => {
+            const other = ProjectInfo.fromPath("/username/owner/repo");
             expect(other).toEqual(details);
         });
     });

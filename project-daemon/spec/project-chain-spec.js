@@ -1,67 +1,63 @@
-var projectChain = require("../chain");
-var Q = require("q");
-var mockRequest = require("./mocks/request");
+const projectChain = require("../chain");
+const Q = require("q");
+const mockRequest = require("./mocks/request");
 
-describe("project chain", function () {
-    var username, containerManager, chain, request;
-    beforeEach(function () {
+const asyncTest = (test) => (done) =>
+    Promise.resolve(test()).then(done).catch(done);
+
+describe("project chain", () => {
+    let username, containerManager, chain, request;
+    beforeEach(() => {
         username = "jasmine";
 
         containerManager = {
-            setup: function () { return Q("1234"); },
+            setup: async () => "1234",
             deleteUserContainers: jasmine.createSpy().andReturn(Q())
         };
 
         chain = projectChain({
             containerManager: containerManager,
             request: {
-                get: function (url, options) {
+                async get(url) {
                     if (url === "http://jwt/profile") {
-                        return Promise.resolve({
+                        return {
                             data: {
                                 profile: {
-                                    username: username
+                                    username
                                 },
                                 token: "abc"
                             }
-                        });
+                        };
                     }
-                    return Promise.resolve();
                 }
             }
         }).end();
 
-        request = function (req) {
-            return chain(mockRequest(req));
-        };
+        request = (req) => chain(mockRequest(req));
     });
 
     describe("OPTIONS", function () {
-        it("does not return any content", function (done) {
-            request({
+        it("does not return any content", asyncTest(async () => {
+            const response = await request({
                 method: "OPTIONS",
                 url: "http://localhost:2440/index.html"
             })
-            .then(function (response) {
-                expect(response.body.join("")).toEqual("");
-            })
-            .done(done, done);
-        });
+            expect(response.body.join("")).toEqual("");
+        }));
     });
 
     describe("DELETE api/workspaces", function () {
-        it("calls containerManager.delete with the container's details", function (done) {
-            return request({
+        it("calls containerManager.delete with the container's details", asyncTest(async () => {
+            const response = await request({
                 method: "DELETE",
                 url: "http://api.localhost:2440/workspaces",
                 headers: {
                     "x-access-token": "abc"
                 }
-            }).then(function (response) {
-                expect(response.status).toEqual(200);
-                expect(response.body.join("")).toEqual('{"deleted":true}');
-                expect(containerManager.deleteUserContainers).toHaveBeenCalledWith(username);
-            }).then(done, done);
-        });
+            });
+            expect(response.status).toEqual(200);
+            expect(response.body.join("")).toEqual('{"deleted":true}');
+            expect(containerManager.deleteUserContainers).toHaveBeenCalledWith(username);
+        }));
     });
 });
