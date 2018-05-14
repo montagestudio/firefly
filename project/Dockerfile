@@ -1,7 +1,7 @@
 # Firefly Project
 
 FROM montagestudio/collada2gltf:latest
-FROM node:4.8.7
+FROM node:carbon
 LABEL author="Corentin Debost <corentin.debost@kaazing.com>"
 
 COPY --from=0 /usr/bin/collada2gltf /usr/bin/collada2gltf
