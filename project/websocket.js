@@ -1,16 +1,16 @@
-var log = require("logging").from(__filename);
-var activity = require("./activity");
+const log = require("logging").from(__filename);
+const activity = require("./activity");
 
-var Q = require("q");
-var URL = require("url");
-var uuid = require("uuid");
-var FS = require("q-io/fs");
-var WebSocket = require("faye-websocket");
-var adaptWebsocket = require("./adapt-websocket");
-var Connection = require("q-connection");
-var Frontend = require("./frontend");
+const Q = require("q");
+const URL = require("url");
+const uuid = require("uuid");
+const FS = require("q-io/fs");
+const WebSocket = require("faye-websocket");
+const adaptWebsocket = require("./adapt-websocket");
+const Connection = require("q-connection");
+const Frontend = require("./frontend");
 
-var websocketConnections = 0;
+let websocketConnections = 0;
 
 module.exports = websocket;
 function websocket(config, workspacePath, services, request) {
@@ -21,11 +21,11 @@ function websocket(config, workspacePath, services, request) {
 
         wsQueue = wsQueue || adaptWebsocket(new WebSocket(req, socket, body, ["firefly-app"]));
 
-        var pathname = URL.parse(req.url).pathname;
+        const pathname = URL.parse(req.url).pathname;
         // used for logging
-        var remoteAddress = socket.remoteAddress;
-        var frontendId;
-        var frontend;
+        const remoteAddress = socket.remoteAddress;
+        let frontendId;
+        let frontend;
 
         req.session = { username: config.username };
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
@@ -33,42 +33,33 @@ function websocket(config, workspacePath, services, request) {
         frontendId = uuid.v4();
 
         log("Limiting", remoteAddress, pathname, "to", workspacePath);
-        var connectionServices = FS.reroot(workspacePath)
-        .then(function (fs) {
-            return makeServices(services, config, fs, pathname, workspacePath, request);
-        });
+        const connectionServices = FS.reroot(workspacePath)
+        .then((fs) => makeServices(services, config, fs, pathname, workspacePath, request));
 
         // Throw errors if they happen in establishing services
         // This is not included in the chain of resolving connectionService
         // as we'd then be using done to set the connectionServices to undefined
-        connectionServices.catch(function (error) {
-            console.error(error);
-        });
+        connectionServices.catch((error) => console.error(error));
 
         frontend = Connection(wsQueue, connectionServices, {
             capacity: 4096,
-            onmessagelost: function (message) {
+            onmessagelost(message) {
                 log("*message to unknown promise*", message);
                 console.error(new Error("message to unknown promise: " + JSON.stringify(message)), config.username);
             }
         });
-        connectionServices.then(function() {
-            return Frontend.addFrontend(frontendId, frontend);
-        })
-        .done();
+        connectionServices.then(() => Frontend.addFrontend(frontendId, frontend)).done();
 
-        wsQueue.closed.then(function () {
+        wsQueue.closed.then(() => {
             log("disconnect websocket", config.username);
-            connectionServices.then(function(services) {
-                return Q.allSettled(Object.keys(services).map(function (key) {
-                    return services[key].invoke("close");
-                }));
+            connectionServices.then((services) => {
+                return Q.allSettled(Object.keys(services).map((key) => services[key].invoke("close")));
             })
-            .finally(function() {
+            .finally(() => {
                 Frontend.deleteFrontend(frontendId).done();
                 log("websocket connection closed", remoteAddress, pathname, "open connections:", --websocketConnections);
             })
-            .finally(function () {
+            .finally(() => {
                 activity.decreaseToolConnections();
             });
         });
@@ -77,11 +68,11 @@ function websocket(config, workspacePath, services, request) {
 
 // export for testing
 module.exports.makeServices = makeServices;
-function makeServices(services, config, fs, pathname, fsPath, request) {
-    var connectionServices = {};
-    Object.keys(services).forEach(function (name) {
+function makeServices(services, config, fs, env, pathname, fsPath, request) {
+    const connectionServices = {};
+    Object.keys(services).forEach((name) => {
         log("Creating", name);
-        var service = services[name](config, fs, pathname, fsPath, request);
+        const service = services[name](config, fs, pathname, fsPath, request);
         connectionServices[name] = Q.master(service);
     });
     log("Finished creating services");

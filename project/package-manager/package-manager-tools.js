@@ -1,4 +1,4 @@
-var PackageManagerTools = {};
+const PackageManagerTools = {};
 
 /**
  * Checks if a package name is valid.
@@ -22,10 +22,8 @@ PackageManagerTools.isPackageNameValid = function (name, strict) {
  * @param {String} version
  * @return {Boolean}
  */
-PackageManagerTools.isVersionValid = function (version) {
-    return typeof version === 'string' ? (/^v?([0-9]+\.){2}[0-9]+(-?[a-zA-Z0-9])*$/).test(version) : false;
-
-};
+PackageManagerTools.isVersionValid = (version) =>
+    typeof version === 'string' ? (/^v?([0-9]+\.){2}[0-9]+(-?[a-zA-Z0-9])*$/).test(version) : false;
 
 /**
  * Checks if a string is a Git url.
@@ -33,10 +31,9 @@ PackageManagerTools.isVersionValid = function (version) {
  * @param {String} url.
  * @return {Boolean}
  */
-PackageManagerTools.isGitUrl = function (url) {
-    return typeof url === 'string' ?
+PackageManagerTools.isGitUrl = (url) =>
+    typeof url === 'string' ?
         (/^git(\+https?|\+ssh)?:\/\/([\w\-.~]+@)?[/\w.\-:~?]*\/([0-9a-zA-Z~][\w\-.~]*)\.git(#[\w\-.~]*)?$/).exec(url) : false;
-};
 
 /**
  * Checks if a string respects the following format: "name[@version]" or a Git url.
@@ -48,12 +45,10 @@ PackageManagerTools.isRequestValid = function (request) {
     if (this.isGitUrl(request)) { // Case: Git url
         return true;
     }
-
     if (typeof request === 'string' && request.length > 0) { // Case: name[@version]
-        var data = request.split('@'),
+        const data = request.split('@'),
             name = data[0],
             version = data[1];
-
         /*
          * Verification:
          *
@@ -62,11 +57,9 @@ PackageManagerTools.isRequestValid = function (request) {
          * - Version is optional, but if exists should be valid.
          *
          */
-
         return data.length > 0 && data.length < 3 && PackageManagerTools.isPackageNameValid(name, false) &&
             (typeof version === "undefined" || (typeof version !== "undefined" && this.isVersionValid(version)));
     }
-
     return false;
 };
 
@@ -79,14 +72,12 @@ PackageManagerTools.isRequestValid = function (request) {
  */
 PackageManagerTools.getModuleFromString = function (string) {
     if (typeof string === 'string' && string.length > 0) {
-        var module = {},
+        const module = {},
             tmp = string.trim().split('@'),
             name = tmp[0],
             version = tmp[1];
-
         module.name = this.isPackageNameValid(name, false) ? name : null;
         module.version = this.isVersionValid(version) && module.name ? version : null;
-
         return module;
     }
     return null;
@@ -99,20 +90,17 @@ PackageManagerTools.getModuleFromString = function (string) {
  * @return {Object|null} A Person Object.
  */
 PackageManagerTools.formatPersonFromString = function (string) {
-    var person = null;
-
+    let person = null;
     if (typeof string === "string" && string.length > 0) {
         /*
          * \u0020 => space unicode.
          * \u00A1 (Latin-1 Supplement) to \uFFFF (Specials).
          */
 
-        var personName = (/([\w\-.\u0020\u00A1-\uFFFF]+)/).exec(string);
-
+        const personName = (/([\w\-.\u0020\u00A1-\uFFFF]+)/).exec(string);
         if (personName) {
-            var personEmail = (/<(.+)>/).exec(string),
+            const personEmail = (/<(.+)>/).exec(string),
                 personUrl = (/\((.+)\)/).exec(string);
-
             person = {
                 name: personName[1].trim(),
                 email: personEmail ? personEmail[1] : '',
@@ -131,18 +119,15 @@ PackageManagerTools.formatPersonFromString = function (string) {
  * @return {Array} array of Person Objects.
  */
 PackageManagerTools.formatPersonsContainer = function (personsContainer) {
-    var persons = [];
-
+    let persons = [];
     if (personsContainer && typeof personsContainer === "object") { // Contains several Person Objects or Strings.
-        var self = this,
+        const self = this,
             personsKeys = Object.keys(personsContainer);
 
-        personsKeys.forEach(function (personKey) {
-            var person = personsContainer[personKey];
-
+        personsKeys.forEach((personKey) => {
+            let person = personsContainer[personKey];
             if (typeof person === "string") { // Need to be parse into an Person Object.
                 person = self.formatPersonFromString(person);
-
                 if (person && typeof person === "object") {
                     persons.push(person);
                 }
@@ -155,10 +140,9 @@ PackageManagerTools.formatPersonsContainer = function (personsContainer) {
             }
         });
     } else if (typeof personsContainer === "string") {
-        var person = this.formatPersonFromString(personsContainer);
+        const person = this.formatPersonFromString(personsContainer);
         persons = person ? [person] : [];
     }
-
     return persons;
 };
 

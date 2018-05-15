@@ -1,13 +1,10 @@
-/* global process */
-var log = require("logging").from(__filename);
-var Connection = require("q-connection");
-process.nextTick(function() {
-    // preload mop as this is currently taking ~3s when running on vbox.
-    require("mop");
-});
+const log = require("logging").from(__filename);
+const Connection = require("q-connection");
+// preload mop as this is currently taking ~3s when running on vbox.
+process.nextTick(() => require("mop"));
 
-var connectionObject = {
-    optimize: function(applicationPath, options) {
+const connectionObject = {
+    optimize(applicationPath, options) {
         log("optimize");
         return require("mop")(applicationPath, options);
     }

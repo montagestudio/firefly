@@ -1,6 +1,4 @@
-/* jshint camelcase: false */
-
-var joey = require('joey'),
+const joey = require('joey'),
     url = require("url"),
     htmlparser = require("htmlparser2"),
 
@@ -12,10 +10,9 @@ var joey = require('joey'),
         charset: 'utf8'
     };
 
-module.exports = function searchPackages (packages) {
-
-    function _search () {
-        var options = {
+module.exports = function searchPackages(packages) {
+    async function _search () {
+        const options = {
                 host: searchConfig.host,
                 ssl: searchConfig.ssl,
                 method: searchConfig.method,
@@ -24,25 +21,22 @@ module.exports = function searchPackages (packages) {
             },
             request = joey.client();
 
-        return request(options).then(function (response) {
-            if (response.status !== 200) {
-                //Todo improve this error message
-                throw new Error("Error HTTP status code: " + response.status);
-            }
-
-            return response.body.read().then(_formatResultSearchRequest);
-        });
+        const response = await request(options);
+        if (response.status !== 200) {
+            //Todo improve this error message
+            throw new Error("Error HTTP status code: " + response.status);
+        }
+        return response.body.read().then(_formatResultSearchRequest);
     }
 
     function _formatResultSearchRequest(resultSearch) {
-        var inResultEntry = false,
+        let inResultEntry = false,
             inName = false,
             inDescription = false,
             inVersion = false,
             results = [];
-
-        var parser = new htmlparser.Parser({
-            onopentag: function(name, attrs) {
+        const parser = new htmlparser.Parser({
+            onopentag(name, attrs) {
                 if (attrs.class === 'package-details') {
                     inResultEntry = true;
                     results.push({});
@@ -57,9 +51,9 @@ module.exports = function searchPackages (packages) {
                 }
             },
 
-            ontext: function(text) {
+            ontext(text) {
                 if (inResultEntry) {
-                    var curResult = results[results.length - 1];
+                    const curResult = results[results.length - 1];
                     if (inName) {
                         curResult.name = text.trim();
                     } else if (inDescription) {
@@ -70,7 +64,7 @@ module.exports = function searchPackages (packages) {
                 }
             },
 
-            onclosetag: function(name) {
+            onclosetag(name) {
                 if (inResultEntry) {
                     if (inName) {
                         inName = false;
@@ -87,9 +81,7 @@ module.exports = function searchPackages (packages) {
 
         parser.write(resultSearch);
         parser.end();
-
         return results;
     }
-
     return _search();
 };

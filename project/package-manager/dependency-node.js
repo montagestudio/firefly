@@ -1,6 +1,6 @@
-var makeDependencyNode = function makeDependencyNode () {
+function makeDependencyNode() {
 
-    var dependencyNode = {};
+    const dependencyNode = {};
     dependencyNode.name = '';
     dependencyNode.version = '';
     dependencyNode.versionInstalled = null;
@@ -28,7 +28,7 @@ var makeDependencyNode = function makeDependencyNode () {
     });
 
     return dependencyNode;
-};
+}
 
 makeDependencyNode.DEPENDENCY_CATEGORIES = {
     REGULAR: 'dependencies',

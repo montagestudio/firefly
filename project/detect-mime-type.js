@@ -1,55 +1,45 @@
-var mmm = require("mmmagic");
-var Magic = mmm.Magic;
-var htmlparser = require("htmlparser2");
-var Q = require("q");
-var PATH = require('path');
+const mmm = require("mmmagic");
+const Magic = mmm.Magic;
+const htmlparser = require("htmlparser2");
+const Q = require("q");
+const PATH = require('path');
 
-var Configuration = {
-
+const Configuration = {
     mimeTypes: {
-
         APPLICATION_XML: {
             value: "application/xml",
             enabled: true
         },
-
         TEXT_HTML: {
             value: "text/html",
             enabled: true
         },
-
         TEXT_PLAIN: {
             value: "text/plain",
             enabled: true
         },
-
         INODE_DIRECTORY:  {
             value: "inode/directory",
             enabled: true
         },
 
         // List of mime types not supported by mmmagic.
-
         MONTAGE_TEMPLATE: {
             value: "text/montage-template",
             enabled: false
         },
-
         MONTAGE_SERIALIZATION: {
             value: "text/montage-template",
             enabled: false
         },
-
         COLLADA: {
             value: "model/vnd.collada+xml",
             enabled: true
         },
-
         GLTF: {
             value: "model/gltf",
             enabled: false
         },
-
         GLTF_BUNDLE: {
             value: "model/gltf-bundle",
             enabled: true
@@ -61,15 +51,15 @@ module.exports = exports = detectMimeType;
 module.exports.mimeTypes = Configuration.mimeTypes;
 
 function detectMimeType (fs, path, fsPath) {
-    var magic = new Magic(mmm.MAGIC_MIME_TYPE),
+    const magic = new Magic(mmm.MAGIC_MIME_TYPE),
         fsFilePath = PATH.join(fsPath, path);
 
-    return Q.ninvoke(magic, "detectFile", fsFilePath).then(function (mimeType) {
+    return Q.ninvoke(magic, "detectFile", fsFilePath).then((mimeType) => {
         if (path.charAt(path.length - 1) === "/") { // remove last trailing slash.
             path = path.slice(0, -1);
         }
 
-        var parts = path.split('/'),
+        const parts = path.split('/'),
             fileName = parts[parts.length - 1],
             supportedMimeTypes = Configuration.mimeTypes;
 
@@ -120,40 +110,37 @@ function detectMimeType (fs, path, fsPath) {
     });
 }
 
-function isMontageTemplateMimeType (fs, path) {
-    return fs.read(path, "r").then(function (content) {
-        var isTemplate = false,
-            montageSerializationMimeType = Configuration.mimeTypes.MONTAGE_SERIALIZATION.value,
-
-            parser = new htmlparser.Parser({
-                onopentag: function(tagName, attributes){
-                    if (tagName === "script" && attributes.type.toLowerCase() === montageSerializationMimeType) {
-                        isTemplate = true;
-                        parser.reset();
-                    }
+async function isMontageTemplateMimeType (fs, path) {
+    const content = await fs.read(path, "r");
+    let isTemplate = false,
+        montageSerializationMimeType = Configuration.mimeTypes.MONTAGE_SERIALIZATION.value,
+        parser = new htmlparser.Parser({
+            onopentag: function(tagName, attributes){
+                if (tagName === "script" && attributes.type.toLowerCase() === montageSerializationMimeType) {
+                    isTemplate = true;
+                    parser.reset();
                 }
-            });
+            }
+        });
 
-        parser.write(content);
-        parser.end();
+    parser.write(content);
+    parser.end();
 
-        return isTemplate;
-    });
+    return isTemplate;
 }
 
-function isColladaMimeType (fs, path) {
-    return fs.read(path, "r").then(function (content) {
-        var isCollada = false,
-            parser = new htmlparser.Parser({
-                onopentagname: function(tagName){
-                    isCollada = tagName === "collada";
-                    parser.reset(); // collada must be the root element.
-                }
-            });
+async function isColladaMimeType (fs, path) {
+    const content = await fs.read(path, "r");
+    let isCollada = false,
+        parser = new htmlparser.Parser({
+            onopentagname: function(tagName){
+                isCollada = tagName === "collada";
+                parser.reset(); // collada must be the root element.
+            }
+        });
 
-        parser.write(content);
-        parser.end();
+    parser.write(content);
+    parser.end();
 
-        return isCollada;
-    });
+    return isCollada;
 }

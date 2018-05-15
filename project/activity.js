@@ -1,12 +1,12 @@
-var log = require("logging").from(__filename);
+const log = require("logging").from(__filename);
 
-var NO_CONNECTIONS_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-var shutdownTimeout;
-var toolConnections = 0;
-var previewConnections = 0;
+const NO_CONNECTIONS_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+let shutdownTimeout;
+let toolConnections = 0;
+let previewConnections = 0;
 
-function checkConnections() {
-    var totalConnections = toolConnections + previewConnections;
+const checkConnections = () => {
+    const totalConnections = toolConnections + previewConnections;
     if (totalConnections === 0) {
         shutdownTimeout = setTimeout(shutdown, NO_CONNECTIONS_TIMEOUT);
     } else {
@@ -14,7 +14,7 @@ function checkConnections() {
     }
 }
 
-function shutdown() {
+const shutdown = () => {
     // What about pending git operations?
     // FIXME, WE'LL DO IT LIVE
     log("shut down due inactvity for " + NO_CONNECTIONS_TIMEOUT + " ms");

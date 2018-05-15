@@ -1,28 +1,23 @@
-var FileService = require('./file-service'),
+const FileService = require('./file-service'),
     exec = require("../exec"),
     PATH = require("path"),
-    Q = require("q"),
 
     OUT_PUT_EXTENSION = {
         BUNDLE: ".glTF",
         GlTF: ".json"
     };
 
-module.exports = AssetConverterService;
-
-function AssetConverterService (config, fs, pathname, fsPath) {
+module.exports = (config, fs, pathname, fsPath) => {
     // Returned service
-    var service = {},
+    const service = {},
         convertPathToProjectUrl = FileService.makeConvertPathToProjectUrl(pathname, config.subdomain),
         convertProjectUrlToPath = FileService.makeConvertProjectUrlToPath(pathname);
 
-    function _isColladaFile (path) {
-        return (/\.dae$/i).test(path);
-    }
+    const _isColladaFile = (path) => (/\.dae$/i).test(path);
 
     function _getColladaOutPutPath (filename, path, isBundle) {
-        var outputPath = null,
-            extension = isBundle ? OUT_PUT_EXTENSION.BUNDLE : OUT_PUT_EXTENSION.GlTF;
+        let outputPath = null;
+        const extension = isBundle ? OUT_PUT_EXTENSION.BUNDLE : OUT_PUT_EXTENSION.GlTF;
 
         if (_isColladaFile(path)) { // replace dae extension by json
             outputPath = path.replace(/.dae$/, extension);
@@ -42,8 +37,7 @@ function AssetConverterService (config, fs, pathname, fsPath) {
     function _convertToGlTF (inputPath, outputPath, bundle) {
         inputPath = PATH.join(fsPath, inputPath);
         outputPath = PATH.join(fsPath, outputPath);
-        var configPath = PATH.join(__dirname, "collada2gltf-config.json");
-
+        const configPath = PATH.join(__dirname, "collada2gltf-config.json");
         return exec("collada2gltf", ["-f", inputPath, bundle ? "-b" : "-o", outputPath, "-z", configPath], fsPath);
     }
 
@@ -55,30 +49,23 @@ function AssetConverterService (config, fs, pathname, fsPath) {
      * @param  {Object.string} option.output defines the glTF output file.
      * @return {Promise} for the glTF file
      */
-    service.convertColladaAtUrl = function (url, option) {
-        var modelPath = convertProjectUrlToPath(url);
-
+    service.convertColladaAtUrl = async (url, option) => {
+        const modelPath = convertProjectUrlToPath(url);
         if (_isColladaFile(modelPath)) {
-            var isBundle = false,
+            let isBundle = false,
                 fileName = /(.*)\.dae$/i.exec(PATH.basename(modelPath))[1],
                 outputPath = modelPath;
-
             if (option && typeof option === "object") {
                 isBundle = !!option.bundle;
-
                 if (typeof option.output === "string") {
                     outputPath = convertProjectUrlToPath(option.output);
                 }
             }
-
             outputPath = _getColladaOutPutPath(fileName, outputPath, isBundle);
-
-            return _convertToGlTF(modelPath, outputPath, isBundle).then(function () {
-                return convertPathToProjectUrl(outputPath);
-            });
+            await _convertToGlTF(modelPath, outputPath, isBundle);
+            return convertPathToProjectUrl(outputPath);
         }
-
-        return Q.reject(new Error("the given file at: " + modelPath + " is not a collada file"));
+        throw new Error("the given file at: " + modelPath + " is not a collada file");
     };
 
     return service;
