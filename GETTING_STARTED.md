@@ -8,9 +8,13 @@
 
  3. Install docker-compose 1.19.0+: https://docs.docker.com/compose/install/.
 
- 4. Initialize submodules: `git submodule init && git submodule update`.
+ 4. `npm install` to get the jshint dependency required to lint the codebase.
 
- 5. `npm install` to get the jshint dependency required to lint the codebase.
+ 5. Initialize submodules: `git submodule init && git submodule update`.
+
+ 6. Install NVM: https://github.com/creationix/nvm.
+
+ 7. Install filament. `nvm use 4`, then `npm install` inside `static/filament`.
 
 ### Enabling HTTPS in development
 
