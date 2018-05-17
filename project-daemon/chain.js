@@ -76,20 +76,20 @@ module.exports = (options = {}) => {
     })
     // Private (authenticated) routes
     .route(function (any, GET) {
-        GET("workspaces", requestHostStartsWith("api")).app(async (req) => {
+        GET("workspaces").app(async (req) => {
             const containers = await containerManager.containersForUser(req.profile.username);
             return APPS.json(containers.map((container) => ({
                 id: container.id
             })));
         });
 
-        this.DELETE("workspaces", requestHostStartsWith("api")).app(async (req) => {
+        this.DELETE("workspaces").app(async (req) => {
             log("delete stack", req.profile.username);
             await containerManager.deleteUserContainers(req.profile.username);
             return APPS.json({deleted: true});
         });
 
-        any(":owner/:repo/...", requestHostStartsWith("api")).app(async (req) => {
+        any(":owner/:repo/...").app(async (req) => {
             const projectInfo = new ProjectInfo(
                 req.profile.username,
                 req.params.owner,
