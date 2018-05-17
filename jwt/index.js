@@ -15,7 +15,7 @@ app.post("/login", (req, res, next) => {
     const { body } = req;
     jwt.sign(body, privateKey, (err, token) => {
         if (err) {
-            next(err);
+            res.sendStatus(400);
         } else {
             res.send(token);
         }
@@ -27,17 +27,11 @@ app.get("/profile", (req, res, next) => {
     const token = auth && auth.split(" ")[1];
     jwt.verify(token, privateKey, (err, payload) => {
         if (err) {
-            next(err);
+            res.sendStatus(400);
         } else {
             res.send(payload);
         }
     });
-});
-
-app.use((err, res) => {
-    res.status(500);
-    console.error(err);
-    res.end(err.message);
 });
 
 app.listen(80);
