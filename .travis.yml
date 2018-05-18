@@ -2,55 +2,53 @@ sudo: required
 dist: trusty
 language: node_js
 node_js:
-  - "4"
+- '4'
 services:
-  - docker
+- docker
 addons:
   hosts:
-    - local.montage.studio
-
+  - local.montage.studio
 before_install:
-  - export CHROME_BIN=chromium-browser
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
+- export CHROME_BIN=chromium-browser
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
 install:
-  - docker version
-  # Update docker-compose via pip
-  - sudo pip install docker-compose
-  - docker-compose version
-  - git submodule init
-  - git submodule update
-  # NodeJS Install
-  - npm install
-  - npm install --prefix project/common
-  - npm install --prefix project-daemon/common
-  # Update public certs
-  - sudo update-ca-certificates --verbose
-  - npm run generate-local-certificate
-  # Build images
-  - npm run build
-
+- docker version
+- sudo pip install docker-compose
+- docker-compose version
+- git submodule init
+- git submodule update
+- npm install
+- npm install --prefix project/common
+- npm install --prefix project-daemon/common
+- sudo update-ca-certificates --verbose
+- npm run generate-local-certificate
+- npm run build
 before_script:
-  - export DOCKER_CLIENT_TIMEOUT=120
+- export DOCKER_CLIENT_TIMEOUT=120
 script:
-  - npm start
-  - npm run lint
-  - runSlowSpecs=true npm test
-  - docker ps
-  - docker ps | grep -q firefly_traefik
-  - docker ps | grep -q firefly_auth
-  - docker ps | grep -q firefly_jwt
-  - docker ps | grep -q firefly_static
-  - docker ps | grep -q firefly_project-daemon
+- npm start
+- npm run lint
+- runSlowSpecs=true npm test
+- docker ps
+- docker ps | grep -q firefly_traefik
+- docker ps | grep -q firefly_auth
+- docker ps | grep -q firefly_jwt
+- docker ps | grep -q firefly_static
+- docker ps | grep -q firefly_project-daemon
 after_script:
-  - npm stop
-
+- npm stop
 deploy:
-  - provider: script
-    script: scripts/deploy.sh
-    on:
-      branch: develop
-  - provider: script
-    script: scripts/deploy.sh -p
-    on:
-      branch: master
+- provider: script
+  script: scripts/deploy.sh
+  on:
+    branch: develop
+- provider: script
+  script: scripts/deploy.sh -p
+  on:
+    branch: master
+env:
+  global:
+  - secure: X9uxsWRSm9nCRA68/zmFkbkJtqGFqwUou/iGejehYup6WXU294UEIg2MTnQzRX2onqq99SbrrcMssL9/LgSo4M09YQkcbJ7L/fvDHMEjONNV6RoQ4K7IGGhYDyZoH4yXNPLMLbPeR4YXwFzhDGP5i/DEOX7kocc0x+9jwRPYCdU=
+  - secure: Zxv5ZzJyBpTNif0j9lebY3JGBU5zESLJkcF0wCak7S40IXm6VpkuPTArk0+BY86w+sLF+jsPmECBGtt9rLvVyHli/DCxeK5+dwEipOa58xBjYZUTgyej7Aw83tRoX8ute8xrnkY4LfBZb8s45HqYQqeCPN+3+nEVd1ZaszzMYQw=
+  - secure: aoMFPnZRT30PBPpYAVgBavwYwuDU1qs2y5sKERhXcAdmVGyfWnAGWOyZaPAjQXw9VsOCoRthHFGjvuyXf5CYWjtCrRnBOZ/qjVc7JbGkANHCI/37PLQemtjovtoVMABq1WFJnb9XVxmKPmkTbTsPD5cN5S7r3dTw8EmdR8ED2XU=

@@ -5,9 +5,13 @@ set -e
 SSH_OPTIONS="-o IdentitiesOnly=yes -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 STAGING_MANAGER_IP="159.89.176.34"
 
+echo "Pushing with docker user ${DOCKER_USER}"
+
+docker login -e ${DOCKER_EMAIL} -u ${DOCKER_USER} -p ${DOCKER_PASS}
+
 # Push tags, staging/prod will pull these tags before starting
 docker-compose push
-docker push registry.montage.studio/firefly/project:latest
+docker push montagestudio/firefly-project:latest
 
 # Create an archive of firefly to upload to environments
 tar -cp --exclude='**/node_modules' --exclude=node_modules --exclude='.git' -f firefly.tar.gz .
@@ -22,7 +26,7 @@ else
                                                      docker-compose pull && \
                                                      docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d --no-build && \
                                                      docker image prune -af && \
-                                                     docker pull registry.montage.studio/firefly/project:latest'
+                                                     docker pull montagestudio/firefly-project:latest'
 fi
 
 rm firefly.tar.gz
