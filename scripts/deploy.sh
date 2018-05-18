@@ -7,7 +7,7 @@ STAGING_MANAGER_IP="159.89.176.34"
 
 echo "Pushing with docker user ${DOCKER_USER}"
 
-docker login -e ${DOCKER_EMAIL} -u ${DOCKER_USER} -p ${DOCKER_PASS}
+echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
 
 # Push tags, staging/prod will pull these tags before starting
 docker-compose push
