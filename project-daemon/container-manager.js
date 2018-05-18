@@ -5,7 +5,7 @@ var Q = require("q");
 var ProjectInfo = require("./project-info");
 var GithubService = require("./github-service").GithubService;
 
-var IMAGE_NAME = "registry.montage.studio/firefly/project:" + (process.env.PROJECT_VERSION || "latest");
+var IMAGE_NAME = "montagestudio/firefly-project:" + (process.env.PROJECT_VERSION || "latest");
 var IMAGE_PORT = 2441;
 var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
 var PROJECTS_NETWORK = "firefly_projects";

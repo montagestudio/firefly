@@ -3,7 +3,7 @@ version: "3.3"
 services:
   traefik:
     container_name: firefly_traefik
-    image: registry.montage.studio/firefly/traefik:${TRAEFIK_VERSION:-latest}
+    image: montagestudio/firefly-traefik:${TRAEFIK_VERSION:-latest}
     build: ./traefik
     command: --docker.domain=${FIREFLY_HOSTNAME}
     networks:
@@ -34,7 +34,7 @@ services:
     restart: "always"
   jwt:
     container_name: firefly_jwt
-    image: registry.montage.studio/firefly/jwt:${JWT_VERSION:-latest}
+    image: montagestudio/firefly-jwt:${JWT_VERSION:-latest}
     build: ./jwt
     networks:
       - backend
@@ -46,7 +46,7 @@ services:
     restart: "always"
   static:
     container_name: firefly_static
-    image: registry.montage.studio/firefly/static:${STATIC_VERSION:-latest}
+    image: montagestudio/firefly-static:${STATIC_VERSION:-latest}
     build: ./static
     networks:
       - backend
@@ -60,7 +60,7 @@ services:
     restart: "on-failure"
   project-daemon:
     container_name: firefly_project-daemon
-    image: registry.montage.studio/firefly/project-daemon:${PROJECT_DAEMON_VERSION:-latest}
+    image: montagestudio/firefly-project-daemon:${PROJECT_DAEMON_VERSION:-latest}
     build: ./project-daemon
     networks:
       - backend

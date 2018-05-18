@@ -12,7 +12,7 @@
     "test": "scripts/npm-recursive.sh test",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "build": "docker-compose build && npm run build:project",
-    "build:project": "docker build -t registry.montage.studio/firefly/project:${PROJECT_VERSION:-latest} project",
+    "build:project": "docker build -t montagestudio/firefly-project:${PROJECT_VERSION:-latest} project",
     "start": "scripts/remove-user-containers.sh && export $(cat env/development.env) && docker-compose up -d --build",
     "stop": "scripts/remove-user-containers.sh && docker-compose down --volumes",
     "deploy": "deploy/vagrant/deploy.sh",
