@@ -20,13 +20,14 @@ if [ "$1" == "-p" ]; then
     exit 1
 else
     scp ${SSH_OPTIONS} "firefly.tar.gz" "root@${STAGING_MANAGER_IP}:/firefly.tar.gz"
-    ssh ${SSH_OPTIONS} "root@${STAGING_MANAGER_IP}" 'cd /opt/firefly && \
+    ssh ${SSH_OPTIONS} "root@${STAGING_MANAGER_IP}" "cd /opt/firefly && \
                                                      tar -xpf /firefly.tar.gz && \
                                                      export $(cat env/staging.env) && \
+                                                     echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin && \
                                                      docker-compose pull && \
                                                      docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d --no-build && \
                                                      docker image prune -af && \
-                                                     docker pull montagestudio/firefly-project:latest'
+                                                     docker pull montagestudio/firefly-project:latest"
 fi
 
 rm firefly.tar.gz
