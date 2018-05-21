@@ -2,6 +2,8 @@
 
 # setup a bare repo and make 2 clone of it
 
+set -e
+
 dest=$1
 tempRepo="tempServiceRepo"
 bareRepo="originServiceRepo"
@@ -13,14 +15,14 @@ if [ "$dest" != "" ]; then
     fi
     cd $dest
 
-    # configure git properly to avoid annoying warnings
-    git config user.name "jasmine"
-    git config user.email jasmine@example.com
-
     # create a temporary git repo
     mkdir $tempRepo
     cd $tempRepo
     git init
+
+    # configure git properly to avoid annoying warnings
+    git config user.name "jasmine"
+    git config user.email jasmine@example.com
 
     # we need to commit at least one file to have a valid ref
     echo "Are you really one of those guys who reads readme file?" > readme.txt
