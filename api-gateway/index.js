@@ -1,5 +1,6 @@
 const express = require("express");
 const routes = require('./routes');
+const axios = require('axios');
 
 const app = express();
 
@@ -14,7 +15,7 @@ const getJwtProfile = async (authHeader) => {
     return { profile, token };
 };
 
-routes(app);
+routes(app, axios, getJwtProfile);
 
 app.listen(80);
 console.log("Listening on port 80");
