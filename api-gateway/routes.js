@@ -32,7 +32,7 @@ module.exports = (app, request, getJwtProfile) => {
         .get(apiEndpoint(async (req, res, next) => {
             let workspaces;
             try {
-                workspaces = await request.get('http://project-daemon/workspaces');
+                workspaces = await request.get('http://firefly_project-daemon:2440/workspaces');
             } catch (error) {
                 workspaces = [];
             }
@@ -41,7 +41,7 @@ module.exports = (app, request, getJwtProfile) => {
         .delete(apiEndpoint(async (req, res, next) => {
             let response;
             try {
-                response = await request.delete('http://project-daemon/workspaces');
+                response = await request.delete('http://firefly_project-daemon:2440/workspaces');
             } catch (error) {
                 response = { deleted: false };
             }
@@ -50,13 +50,14 @@ module.exports = (app, request, getJwtProfile) => {
 
     app.all('/:owner/:repo/*', apiEndpoint(async (req, res, next) => {
         try {
-            const response = await request[req.method.toLowerCase()].call(request, `http://project-daemon${req.path}`, req.body);
+            const response = await request[req.method.toLowerCase()].call(request, `http://firefly_project-daemon:2440${req.path}`, req.body);
             res.json(response);
         } catch (error) {
             const { response } = error;
             if (response) {
-                res.status(response.status);
-                res.send(typeof response === 'object' ? response : { error: response });
+                const { status, data } = response;
+                res.status(status);
+                res.json(typeof data === 'object' ? data : { error: data });
             } else {
                 throw error;
             }
@@ -68,7 +69,7 @@ module.exports = (app, request, getJwtProfile) => {
     });
 
     app.use((err, req, res, next) => {
-        console.error('Unexpected error: ' + err);
+        console.error('Unexpected error: ', err);
         res.status(500);
         res.json({
             code: 500,

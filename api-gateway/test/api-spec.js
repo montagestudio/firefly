@@ -54,7 +54,7 @@ describe('api', () => {
                 .expect([])
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.get).to.have.been.called.with('http://project-daemon/workspaces');
+                    expect(axios.get).to.have.been.called.with('http://firefly_project-daemon:2440/workspaces');
                     done();
                 });
         });
@@ -82,7 +82,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.delete).to.have.been.called.with('http://project-daemon/workspaces');
+                    expect(axios.delete).to.have.been.called.with('http://firefly_project-daemon:2440/workspaces');
                     done();
                 });
         });
@@ -110,7 +110,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/init');
+                    expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/init');
                     done();
                 });
         });
@@ -127,7 +127,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.get).to.have.been.called.with('http://project-daemon/owner/repo/init/progress');
+                    expect(axios.get).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/init/progress');
                     done();
                 });
         });
@@ -146,7 +146,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/flush', body);
+                    expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/flush', body);
                     done();
                 });
         });
@@ -163,7 +163,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.get).to.have.been.called.with('http://project-daemon/owner/repo/workspace');
+                    expect(axios.get).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/workspace');
                     done();
                 });
         });
@@ -182,7 +182,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/save', body);
+                    expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/save', body);
                     done();
                 });
         });
@@ -201,7 +201,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/components', body);
+                    expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/components', body);
                     done();
                 });
         });
@@ -220,7 +220,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err, res) => {
                     if (err) return done(err);
-                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/modules', body);
+                    expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/modules', body);
                     done();
                 });
         });
