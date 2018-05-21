@@ -4,7 +4,12 @@ const apiEndpoint = require('./api-endpoint');
 
 module.exports = (app, request, getJwtProfile) => {
     app.use(bodyParser.json());
-    app.use(cors());
+
+    const corsOptions = {
+        origin: (origin, callback) => callback(null, true),
+        credentials: true
+    };
+    app.use(cors(corsOptions));
 
     app.use(async (req, res, next) => {
         const accessToken = req.headers['x-access-token'];
