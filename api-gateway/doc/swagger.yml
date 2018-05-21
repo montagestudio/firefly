@@ -316,7 +316,7 @@ paths:
           schema:
             type: "object"
             properties:
-              created:
+              message:
                 type: "string"
 securityDefinitions:
   api_key:

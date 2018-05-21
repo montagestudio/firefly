@@ -45,7 +45,7 @@ module.exports = (app, request, getJwtProfile) => {
 
     app.all('/:owner/:repo/*', apiEndpoint(async (req, res, next) => {
         try {
-            const response = await request[req.method.toLowerCase()].call(request);
+            const response = await request[req.method.toLowerCase()].call(request, `http://project-daemon${req.path}`, req.body);
             res.json(response);
         } catch (error) {
             const { response } = error;

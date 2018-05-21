@@ -98,4 +98,131 @@ describe('api', () => {
                 .expect({ deleted: false }, done);
         });
     });
+
+    describe('POST /{owner}/{repo}/init', () => {
+        it('proxies project-daemon\'s init endpoint', (done) => {
+            const fakeResponse = { message: 'created' };
+            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            supertest(app)
+                .post('/owner/repo/init')
+                .set('x-access-token', 'abc')
+                .expect(200)
+                .expect(fakeResponse)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/init');
+                    done();
+                });
+        });
+    });
+
+    describe('GET /{owner}/{repo}/init/progress', () => {
+        it('proxies project-daemon\'s init/progress endpoint', (done) => {
+            const fakeResponse = { state: 'installing' };
+            chai.spy.on(axios, 'get', async (url) => fakeResponse);
+            supertest(app)
+                .get('/owner/repo/init/progress')
+                .set('x-access-token', 'abc')
+                .expect(200)
+                .expect(fakeResponse)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    expect(axios.get).to.have.been.called.with('http://project-daemon/owner/repo/init/progress');
+                    done();
+                });
+        });
+    });
+
+    describe('POST /{owner}/{repo}/flush', () => {
+        it('proxies project-daemon\'s flush endpoint', (done) => {
+            const fakeResponse = { message: 'flushed' };
+            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            const body = { 'message': 'foo' };
+            supertest(app)
+                .post('/owner/repo/flush')
+                .send(body)
+                .set('x-access-token', 'abc')
+                .expect(200)
+                .expect(fakeResponse)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/flush', body);
+                    done();
+                });
+        });
+    });
+
+    describe('GET /{owner}/{repo}/workspace', () => {
+        it('proxies project-daemon\'s workspace endpoint', (done) => {
+            const fakeResponse = { created: 'yes' };
+            chai.spy.on(axios, 'get', async (url) => fakeResponse);
+            supertest(app)
+                .get('/owner/repo/workspace')
+                .set('x-access-token', 'abc')
+                .expect(200)
+                .expect(fakeResponse)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    expect(axios.get).to.have.been.called.with('http://project-daemon/owner/repo/workspace');
+                    done();
+                });
+        });
+    });
+
+    describe('POST /{owner}/{repo}/save', () => {
+        it('proxies project-daemon\'s flush endpoint', (done) => {
+            const fakeResponse = { message: 'saved' };
+            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            const body = { filename: 'foo.js', content: 'bar' };
+            supertest(app)
+                .post('/owner/repo/save')
+                .send(body)
+                .set('x-access-token', 'abc')
+                .expect(200)
+                .expect(fakeResponse)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/save', body);
+                    done();
+                });
+        });
+    });
+
+    describe('POST /{owner}/{repo}/components', () => {
+        it('proxies project-daemon\'s components endpoint', (done) => {
+            const fakeResponse = { success: true, message: 'created' };
+            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            const body = { name: 'foo', destination: './' };
+            supertest(app)
+                .post('/owner/repo/components')
+                .send(body)
+                .set('x-access-token', 'abc')
+                .expect(200)
+                .expect(fakeResponse)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/components', body);
+                    done();
+                });
+        });
+    });
+
+    describe('POST /{owner}/{repo}/modules', () => {
+        it('proxies project-daemon\'s modules endpoint', (done) => {
+            const fakeResponse = { success: true, message: 'created' };
+            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            const body = { name: 'foo', extendsModuleId: 'bar', extendsName: 'Bar', destination: './' };
+            supertest(app)
+                .post('/owner/repo/modules')
+                .send(body)
+                .set('x-access-token', 'abc')
+                .expect(200)
+                .expect(fakeResponse)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    expect(axios.post).to.have.been.called.with('http://project-daemon/owner/repo/modules', body);
+                    done();
+                });
+        });
+    });
 });
