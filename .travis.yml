@@ -29,7 +29,7 @@ before_script:
 script:
 - npm run lint
 - docker-compose run project-daemon npm test
-- export $(cat .env) && docker run montagestudio/firefly-project:latest npm test
+- docker run --entrypoint npm --env-file .env montagestudio/firefly-project:latest test
 - npm start
 - docker ps
 - docker ps | grep -q firefly_traefik

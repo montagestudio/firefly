@@ -23,4 +23,4 @@ COPY ./ .
 RUN npm install --prefix ./common/
 
 EXPOSE 2441
-CMD ["npm", "start"]
+ENTRYPOINT [ "node", "index.js" ]
