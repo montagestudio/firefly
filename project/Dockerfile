@@ -6,6 +6,9 @@ LABEL author="Corentin Debost <corentin.debost@kaazing.com>"
 
 COPY --from=0 /usr/bin/collada2gltf /usr/bin/collada2gltf
 
+RUN git config --global user.email "noreply@kaazing.com"
+RUN git config --global user.name "firefly"
+
 # Populate npm cache with Montage packages
 RUN npm cache add montage@16
 RUN npm cache add montage@17
