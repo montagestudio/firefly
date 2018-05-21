@@ -121,43 +121,41 @@ describe("file-service", function () {
         });
     });
 
-describe("listAsset", function () {
+    describe("listAsset", function () {
         var fsPath = __dirname + "/assets-tests";
 
         beforeEach(function () {
             fs = require("q-io/fs");
         });
 
-        if (process.env.runSlowSpecs) {
-            it("returns a list of assets with urls and MIME-types", function (done) {
-                return fs.reroot(fsPath).then(function (fs) {
-                    service = FileService({}, fs, {
-                        getProjectUrl: function () {
-                            return "http://localhost:2441";
-                        }
-                    }, null, fsPath);
+        it("returns a list of assets with urls and MIME-types", function (done) {
+            return fs.reroot(fsPath).then(function (fs) {
+                service = FileService({}, fs, {
+                    getProjectUrl: function () {
+                        return "http://localhost:2441";
+                    }
+                }, null, fsPath);
 
-                    return service.listAsset("/").then(function (listAssets) {
-                        listAssets.forEach(function (asset) {
-                            switch (asset.mimeType) {
-                                case ADDITIONAL_MIME_TYPES.MONTAGE_TEMPLATE.value:
-                                    expect(asset.url).toBe("http://localhost:2441/template-test.html");
-                                    break;
-                                case ADDITIONAL_MIME_TYPES.GLTF_BUNDLE.value:
-                                    expect(asset.url).toBe("http://localhost:2441/bundle-test.glTF/");
-                                    break;
-                                case ADDITIONAL_MIME_TYPES.COLLADA.value:
-                                    expect(asset.url).toBe("http://localhost:2441/collada-test.dae");
-                                    break;
-                                case ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION.value:
-                                    expect(asset.url).toBe("http://localhost:2441/serialization-test.json");
-                                    break;
-                            }
-                        });
-                    }).then(done, done);
-                });
+                return service.listAsset("/").then(function (listAssets) {
+                    listAssets.forEach(function (asset) {
+                        switch (asset.mimeType) {
+                            case ADDITIONAL_MIME_TYPES.MONTAGE_TEMPLATE.value:
+                                expect(asset.url).toBe("http://localhost:2441/template-test.html");
+                                break;
+                            case ADDITIONAL_MIME_TYPES.GLTF_BUNDLE.value:
+                                expect(asset.url).toBe("http://localhost:2441/bundle-test.glTF/");
+                                break;
+                            case ADDITIONAL_MIME_TYPES.COLLADA.value:
+                                expect(asset.url).toBe("http://localhost:2441/collada-test.dae");
+                                break;
+                            case ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION.value:
+                                expect(asset.url).toBe("http://localhost:2441/serialization-test.json");
+                                break;
+                        }
+                    });
+                }).then(done, done);
             });
-        }
+        });
     });
 
     describe("makeTree", function () {

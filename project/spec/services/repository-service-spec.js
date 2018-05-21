@@ -221,313 +221,311 @@ describe("repository-service", function () {
         });
     });
 
-    if (process.env.runSlowSpecs) {
-        describe("checkoutShadowBranch", function () {
-            it ("create a shadow branch and check it out", function(done) {
-                service1.checkoutShadowBranch("master")
-                .then(function() {
+    describe("checkoutShadowBranch", function () {
+        it ("create a shadow branch and check it out", function(done) {
+            service1.checkoutShadowBranch("master")
+            .then(function() {
+                return service1.listBranches();
+            })
+            .then(function(branches) {
+                var localeMaster = branches.branches[service1.LOCAL_SOURCE_NAME].master,
+                    remoteMaster = branches.branches[service1.REMOTE_SOURCE_NAME].master;
+                expect(branches.current).toBe("master");
+                expect(branches.currentIsShadow).toBeTruthy();
+                expect(remoteMaster.shadow).toBeDefined();
+                expect(remoteMaster.shadow.sha).toBe(localeMaster.shadow.sha);
+            })
+            .then(function() {
+                return service2.checkoutShadowBranch("master");
+            })
+            .then(done, done);
+        });
+    });
+
+    describe("shadowBranchStatus", function () {
+        it ("works (all refs the sames)", function(done) {
+            service1.shadowBranchStatus()
+            .then(function(status) {
+                expect(status.localParent.ahead).toBe(0);
+                expect(status.localParent.behind).toBe(0);
+                expect(status.remoteParent.ahead).toBe(0);
+                expect(status.remoteParent.behind).toBe(0);
+                expect(status.remoteShadow.ahead).toBe(0);
+                expect(status.remoteShadow.behind).toBe(0);
+
+            })
+            .then(done, done);
+        });
+    });
+
+    describe("commitFiles (simple)", function () {
+        var file1 = "sample1.txt",
+            file2 = "sample2.txt";
+
+        it ("commit local change and push it to origin (repo 1)", function(done) {
+            writeFile(serviceRepo1Path, file1, "A1\n")
+            .then(function() {
+                return service1.commitFiles([file1], "initial commit from repo 1");
+            })
+            .then(function() {
+                return service1.flush();
+            })
+            .then(function(result) {
+                expect(result.success).toBeTruthy();
+                return service1.shadowBranchStatus();
+            })
+            .then(function(status) {
+                expect(status.localParent.ahead).toBe(1);
+                expect(status.localParent.behind).toBe(0);
+                expect(status.remoteParent.ahead).toBe(1);
+                expect(status.remoteParent.behind).toBe(0);
+                expect(status.remoteShadow.ahead).toBe(0);
+                expect(status.remoteShadow.behind).toBe(0);
+
+            })
+            .then(done, done);
+        });
+
+        it ("commit local change and push it to origin (repo 2)", function(done) {
+            writeFile(serviceRepo2Path, file2, "A2\n")
+            .then(function() {
+                return service2.commitFiles([file2], "initial commit from repo 2");
+            })
+            .then(function() {
+                return service2.flush();
+            })
+            .then(function(result) {
+                expect(result.success).toBeTruthy();
+            })
+            .then(done, done);
+        });
+
+        it ("is behind remote shadow", function(done) {
+            service1.shadowBranchStatus(null, true)
+            .then(function(status) {
+                expect(status.localParent.ahead).toBe(1);
+                expect(status.localParent.behind).toBe(0);
+                expect(status.remoteParent.ahead).toBe(1);
+                expect(status.remoteParent.behind).toBe(0);
+                expect(status.remoteShadow.ahead).toBe(0);
+                expect(status.remoteShadow.behind).toBe(1);
+
+            })
+            .then(done, done);
+        });
+    });
+
+    describe("updateRefs (simple)", function () {
+        var reference;
+
+        it ("tries to merge remote shadow into local shadow", function(done) {
+            return service1.updateRefs()
+            .then(function(result) {
+                reference = result.reference;
+                expect(result.success).toBeFalsy();
+                expect(result.local).toBe("montagestudio/jasmine/master");
+                expect(result.remote).toBe("origin/montagestudio/jasmine/master");
+                expect(result.ahead).toBe(0);
+                expect(result.behind).toBe(1);
+                expect(result.resolutionStrategy.length).toBe(1);
+                expect(result.resolutionStrategy[0]).toBe("rebase");
+                expect(reference).toBeDefined();
+            })
+            .then(done, done);
+        });
+
+        it ("rebase local shadow on top of remote shadow", function(done) {
+            return service1.updateRefs("rebase", reference)
+            .then(function(result) {
+                expect(result.success).toBeTruthy();
+            })
+            .then(done, done);
+        });
+
+        it ("is on part with remote shadow and ahead of master by 2", function(done) {
+            service1.shadowBranchStatus()
+            .then(function(status) {
+                expect(status.localParent.ahead).toBe(2);
+                expect(status.localParent.behind).toBe(0);
+                expect(status.remoteParent.ahead).toBe(2);
+                expect(status.remoteParent.behind).toBe(0);
+                expect(status.remoteShadow.ahead).toBe(0);
+                expect(status.remoteShadow.behind).toBe(0);
+            })
+            .then(done, done);
+        });
+    });
+
+    describe("commitFiles (conflict)", function () {
+        var file1 = "sample1.txt";
+
+        it ("commit local changes and push it to origin (repo 1)", function(done) {
+            writeFile(serviceRepo1Path, file1, "A2\n")
+            .then(function() {
+                return service1.commitFiles([file1], "second commit from repo 1");
+            })
+            .then(function() {
+                return service1.flush();
+            })
+            .then(function(result) {
+                expect(result.success).toBeTruthy();
+            })
+            .then(done, done);
+        });
+
+        it ("commit local change and try to push it to origin (repo 2)", function(done) {
+            writeFile(serviceRepo2Path, file1, "B2\n")
+            .then(function() {
+                return service2.commitFiles([file1], "second commit from repo 2");
+            })
+            .then(function() {
+                return service2.flush();
+            })
+            .then(function(result) {
+                expect(result.success).toBeFalsy();
+                return service2.updateRefs();
+            }).then(function(result) {
+                expect(result.success).toBeFalsy();
+                expect(result.ahead).toBe(1);
+                expect(result.behind).toBe(1);
+                expect(result.reference).toBeDefined();
+                expect(result.resolutionStrategy.length).toBe(3);
+                expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
+                expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
+                expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
+            })
+            .then(done, done);
+        });
+
+        it ("discard local change", function(done) {
+            service2.updateRefs()
+            .then(function(result) {
+                return service2.updateRefs("discard", result.reference);
+            })
+            .then(function(result) {
+                expect(result.success).toBeTruthy();
+                return readFile(serviceRepo2Path, file1);
+            })
+            .then(function(data) {
+                expect(data).toBe("A2\n");
+                return service2.shadowBranchStatus();
+            })
+            .then(function(status) {
+                expect(status.localParent.ahead).toBe(3);
+                expect(status.localParent.behind).toBe(0);
+                expect(status.remoteParent.ahead).toBe(3);
+                expect(status.remoteParent.behind).toBe(0);
+                expect(status.remoteShadow.ahead).toBe(0);
+                expect(status.remoteShadow.behind).toBe(0);
+            })
+            .then(done, done);
+        });
+
+        it ("commit local change and try to push it to origin (repo 2)", function(done) {
+            git.command(serviceRepo2Path, "reset", ["--hard", "HEAD~1"])
+            .then(function() {
+                writeFile(serviceRepo2Path, file1, "C2\n");
+            })
+            .then(function() {
+                return service2.commitFiles([file1], "second commit from repo 2");
+            })
+            .then(function() {
+                return service2.flush();
+            })
+            .then(function(result) {
+                expect(result.success).toBeFalsy();
+                return service2.updateRefs();
+            }).then(function(result) {
+                expect(result.ahead).toBe(1);
+                expect(result.behind).toBe(1);
+                expect(result.reference).toBeDefined();
+                expect(result.resolutionStrategy.length).toBe(3);
+                expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
+                expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
+                expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
+            })
+            .then(done, done);
+        });
+
+        it ("revert remote change", function(done) {
+            service2.updateRefs()
+            .then(function(result) {
+                return service2.updateRefs("revert", result.reference);
+            })
+            .then(function(result) {
+                expect(result.success).toBeTruthy();
+                return readFile(serviceRepo2Path, file1);
+            })
+            .then(function(data) {
+                expect(data).toBe("C2\n");
+                return service2.shadowBranchStatus();
+            })
+            .then(function(status) {
+                expect(status.localParent.ahead).toBe(5);
+                expect(status.localParent.behind).toBe(0);
+                expect(status.remoteParent.ahead).toBe(5);
+                expect(status.remoteParent.behind).toBe(0);
+                expect(status.remoteShadow.ahead).toBe(0);
+                expect(status.remoteShadow.behind).toBe(0);
+            })
+            .then(done, done);
+        });
+    });
+
+    xdescribe("merge commits", function () {
+        it ("reset service 1", function(done) {
+            return service1.updateRefs("discard", null)
+            .then(function() {
+                return service2.updateRefs("discard", null);
+            })
+            .then(function(result) {
+                return service1.listBranches();
+            })
+            .then(function(branchesInfo) {
+                var remoteMaster = branchesInfo.branches[service1.REMOTE_SOURCE_NAME].master;
+                return service1._reset(remoteMaster.sha);
+            })
+            .then(function(result) {
+                return service1.shadowBranchStatus();
+            })
+            .then(function(status1) {
+                return service2.shadowBranchStatus()
+                .then(function(status2) {
+                    expect(status1.localParent.ahead).toBe(0);
+                    expect(status1.localParent.behind).toBe(0);
+                    expect(status1.remoteParent.ahead).toBe(0);
+                    expect(status1.remoteParent.behind).toBe(0);
+                    expect(status1.remoteShadow.ahead).toBe(0);
+                    expect(status1.remoteShadow.behind).toBe(0);
+
+                    expect(status2.remoteParent.ahead).not.toBe(0);
+                });
+            })
+            .then(done, done);
+        });
+
+        it ("can merge", function(done) {
+            return service2.mergeShadowBranch("master", "jasmin test", true).then(function(success) {
+                expect(success).toBeTruthy();
+                return service1.updateRefs(null, null, true)
+                .then(function(result) {
+                    return service1.updateRefs("rebase", result.reference);
+                })
+                .then(function(result) {
+                    expect(result.success).toBeTruthy();
                     return service1.listBranches();
                 })
-                .then(function(branches) {
-                    var localeMaster = branches.branches[service1.LOCAL_SOURCE_NAME].master,
-                        remoteMaster = branches.branches[service1.REMOTE_SOURCE_NAME].master;
-                    expect(branches.current).toBe("master");
-                    expect(branches.currentIsShadow).toBeTruthy();
-                    expect(remoteMaster.shadow).toBeDefined();
-                    expect(remoteMaster.shadow.sha).toBe(localeMaster.shadow.sha);
-                })
-                .then(function() {
-                    return service2.checkoutShadowBranch("master");
-                })
-                .then(done, done);
-            });
-        });
-
-        describe("shadowBranchStatus", function () {
-            it ("works (all refs the sames)", function(done) {
-                service1.shadowBranchStatus()
-                .then(function(status) {
-                    expect(status.localParent.ahead).toBe(0);
-                    expect(status.localParent.behind).toBe(0);
-                    expect(status.remoteParent.ahead).toBe(0);
-                    expect(status.remoteParent.behind).toBe(0);
-                    expect(status.remoteShadow.ahead).toBe(0);
-                    expect(status.remoteShadow.behind).toBe(0);
-
-                })
-                .then(done, done);
-            });
-        });
-
-        describe("commitFiles (simple)", function () {
-            var file1 = "sample1.txt",
-                file2 = "sample2.txt";
-
-            it ("commit local change and push it to origin (repo 1)", function(done) {
-                writeFile(serviceRepo1Path, file1, "A1\n")
-                .then(function() {
-                    return service1.commitFiles([file1], "initial commit from repo 1");
-                })
-                .then(function() {
-                    return service1.flush();
-                })
-                .then(function(result) {
-                    expect(result.success).toBeTruthy();
-                    return service1.shadowBranchStatus();
-                })
-                .then(function(status) {
-                    expect(status.localParent.ahead).toBe(1);
-                    expect(status.localParent.behind).toBe(0);
-                    expect(status.remoteParent.ahead).toBe(1);
-                    expect(status.remoteParent.behind).toBe(0);
-                    expect(status.remoteShadow.ahead).toBe(0);
-                    expect(status.remoteShadow.behind).toBe(0);
-
-                })
-                .then(done, done);
-            });
-
-            it ("commit local change and push it to origin (repo 2)", function(done) {
-                writeFile(serviceRepo2Path, file2, "A2\n")
-                .then(function() {
-                    return service2.commitFiles([file2], "initial commit from repo 2");
-                })
-                .then(function() {
-                    return service2.flush();
-                })
-                .then(function(result) {
-                    expect(result.success).toBeTruthy();
-                })
-                .then(done, done);
-            });
-
-            it ("is behind remote shadow", function(done) {
-                service1.shadowBranchStatus(null, true)
-                .then(function(status) {
-                    expect(status.localParent.ahead).toBe(1);
-                    expect(status.localParent.behind).toBe(0);
-                    expect(status.remoteParent.ahead).toBe(1);
-                    expect(status.remoteParent.behind).toBe(0);
-                    expect(status.remoteShadow.ahead).toBe(0);
-                    expect(status.remoteShadow.behind).toBe(1);
-
-                })
-                .then(done, done);
-            });
-        });
-
-        describe("updateRefs (simple)", function () {
-            var reference;
-
-            it ("tries to merge remote shadow into local shadow", function(done) {
-                return service1.updateRefs()
-                .then(function(result) {
-                    reference = result.reference;
-                    expect(result.success).toBeFalsy();
-                    expect(result.local).toBe("montagestudio/jasmine/master");
-                    expect(result.remote).toBe("origin/montagestudio/jasmine/master");
-                    expect(result.ahead).toBe(0);
-                    expect(result.behind).toBe(1);
-                    expect(result.resolutionStrategy.length).toBe(1);
-                    expect(result.resolutionStrategy[0]).toBe("rebase");
-                    expect(reference).toBeDefined();
-                })
-                .then(done, done);
-            });
-
-            it ("rebase local shadow on top of remote shadow", function(done) {
-                return service1.updateRefs("rebase", reference)
-                .then(function(result) {
-                    expect(result.success).toBeTruthy();
-                })
-                .then(done, done);
-            });
-
-            it ("is on part with remote shadow and ahead of master by 2", function(done) {
-                service1.shadowBranchStatus()
-                .then(function(status) {
-                    expect(status.localParent.ahead).toBe(2);
-                    expect(status.localParent.behind).toBe(0);
-                    expect(status.remoteParent.ahead).toBe(2);
-                    expect(status.remoteParent.behind).toBe(0);
-                    expect(status.remoteShadow.ahead).toBe(0);
-                    expect(status.remoteShadow.behind).toBe(0);
-                })
-                .then(done, done);
-            });
-        });
-
-        describe("commitFiles (conflict)", function () {
-            var file1 = "sample1.txt";
-
-            it ("commit local changes and push it to origin (repo 1)", function(done) {
-                writeFile(serviceRepo1Path, file1, "A2\n")
-                .then(function() {
-                    return service1.commitFiles([file1], "second commit from repo 1");
-                })
-                .then(function() {
-                    return service1.flush();
-                })
-                .then(function(result) {
-                    expect(result.success).toBeTruthy();
-                })
-                .then(done, done);
-            });
-
-            it ("commit local change and try to push it to origin (repo 2)", function(done) {
-                writeFile(serviceRepo2Path, file1, "B2\n")
-                .then(function() {
-                    return service2.commitFiles([file1], "second commit from repo 2");
-                })
-                .then(function() {
-                    return service2.flush();
-                })
-                .then(function(result) {
-                    expect(result.success).toBeFalsy();
-                    return service2.updateRefs();
-                }).then(function(result) {
-                    expect(result.success).toBeFalsy();
-                    expect(result.ahead).toBe(1);
-                    expect(result.behind).toBe(1);
-                    expect(result.reference).toBeDefined();
-                    expect(result.resolutionStrategy.length).toBe(3);
-                    expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
-                    expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
-                    expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
-                })
-                .then(done, done);
-            });
-
-            it ("discard local change", function(done) {
-                service2.updateRefs()
-                .then(function(result) {
-                    return service2.updateRefs("discard", result.reference);
-                })
-                .then(function(result) {
-                    expect(result.success).toBeTruthy();
-                    return readFile(serviceRepo2Path, file1);
-                })
-                .then(function(data) {
-                    expect(data).toBe("A2\n");
-                    return service2.shadowBranchStatus();
-                })
-                .then(function(status) {
-                    expect(status.localParent.ahead).toBe(3);
-                    expect(status.localParent.behind).toBe(0);
-                    expect(status.remoteParent.ahead).toBe(3);
-                    expect(status.remoteParent.behind).toBe(0);
-                    expect(status.remoteShadow.ahead).toBe(0);
-                    expect(status.remoteShadow.behind).toBe(0);
-                })
-                .then(done, done);
-            });
-
-            it ("commit local change and try to push it to origin (repo 2)", function(done) {
-                git.command(serviceRepo2Path, "reset", ["--hard", "HEAD~1"])
-                .then(function() {
-                    writeFile(serviceRepo2Path, file1, "C2\n");
-                })
-                .then(function() {
-                    return service2.commitFiles([file1], "second commit from repo 2");
-                })
-                .then(function() {
-                    return service2.flush();
-                })
-                .then(function(result) {
-                    expect(result.success).toBeFalsy();
-                    return service2.updateRefs();
-                }).then(function(result) {
-                    expect(result.ahead).toBe(1);
-                    expect(result.behind).toBe(1);
-                    expect(result.reference).toBeDefined();
-                    expect(result.resolutionStrategy.length).toBe(3);
-                    expect(result.resolutionStrategy.indexOf("discard")).not.toBe(-1);
-                    expect(result.resolutionStrategy.indexOf("revert")).not.toBe(-1);
-                    expect(result.resolutionStrategy.indexOf("force")).not.toBe(-1);
-                })
-                .then(done, done);
-            });
-
-            it ("revert remote change", function(done) {
-                service2.updateRefs()
-                .then(function(result) {
-                    return service2.updateRefs("revert", result.reference);
-                })
-                .then(function(result) {
-                    expect(result.success).toBeTruthy();
-                    return readFile(serviceRepo2Path, file1);
-                })
-                .then(function(data) {
-                    expect(data).toBe("C2\n");
-                    return service2.shadowBranchStatus();
-                })
-                .then(function(status) {
-                    expect(status.localParent.ahead).toBe(5);
-                    expect(status.localParent.behind).toBe(0);
-                    expect(status.remoteParent.ahead).toBe(5);
-                    expect(status.remoteParent.behind).toBe(0);
-                    expect(status.remoteShadow.ahead).toBe(0);
-                    expect(status.remoteShadow.behind).toBe(0);
-                })
-                .then(done, done);
-            });
-        });
-
-        xdescribe("merge commits", function () {
-            it ("reset service 1", function(done) {
-                return service1.updateRefs("discard", null)
-                .then(function() {
-                    return service2.updateRefs("discard", null);
-                })
-                .then(function(result) {
-                    return service1.listBranches();
-                })
-                .then(function(branchesInfo) {
-                    var remoteMaster = branchesInfo.branches[service1.REMOTE_SOURCE_NAME].master;
-                    return service1._reset(remoteMaster.sha);
-                })
-                .then(function(result) {
-                    return service1.shadowBranchStatus();
-                })
-                .then(function(status1) {
-                    return service2.shadowBranchStatus()
-                    .then(function(status2) {
-                        expect(status1.localParent.ahead).toBe(0);
-                        expect(status1.localParent.behind).toBe(0);
-                        expect(status1.remoteParent.ahead).toBe(0);
-                        expect(status1.remoteParent.behind).toBe(0);
-                        expect(status1.remoteShadow.ahead).toBe(0);
-                        expect(status1.remoteShadow.behind).toBe(0);
-
-                        expect(status2.remoteParent.ahead).not.toBe(0);
+                .then(function(branchesInfo1) {
+                    return service2.listBranches()
+                    .then(function(branchesInfo2) {
+                        expect(branchesInfo1.branches[service1.LOCAL_SOURCE_NAME].master.sha)
+                            .toBe(branchesInfo2.branches[service2.LOCAL_SOURCE_NAME].master.sha);
                     });
-                })
-                .then(done, done);
-            });
-
-            it ("can merge", function(done) {
-                return service2.mergeShadowBranch("master", "jasmin test", true).then(function(success) {
-                    expect(success).toBeTruthy();
-                    return service1.updateRefs(null, null, true)
-                    .then(function(result) {
-                        return service1.updateRefs("rebase", result.reference);
-                    })
-                    .then(function(result) {
-                        expect(result.success).toBeTruthy();
-                        return service1.listBranches();
-                    })
-                    .then(function(branchesInfo1) {
-                        return service2.listBranches()
-                        .then(function(branchesInfo2) {
-                            expect(branchesInfo1.branches[service1.LOCAL_SOURCE_NAME].master.sha)
-                                .toBe(branchesInfo2.branches[service2.LOCAL_SOURCE_NAME].master.sha);
-                        });
-                    });
-                })
-                .then(done, done);
-            });
+                });
+            })
+            .then(done, done);
         });
-    }
+    });
 
     // The following describe must be declared last.
     describe("cleanup", function() {

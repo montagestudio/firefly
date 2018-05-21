@@ -29,7 +29,7 @@ before_script:
 script:
 - npm start
 - npm run lint
-- runSlowSpecs=true npm test
+- npm test
 - docker ps
 - docker ps | grep -q firefly_traefik
 - docker ps | grep -q firefly_auth
