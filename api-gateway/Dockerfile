@@ -5,7 +5,7 @@ WORKDIR /opt/app
 
 COPY ./package.json /opt/app/
 COPY ./package-lock.json /opt/app/
-RUN npm install --production
+RUN npm install
 
 COPY ./ /opt/app/
 

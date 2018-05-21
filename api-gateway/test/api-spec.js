@@ -19,6 +19,13 @@ async function getJwtProfile(authHeader) {
     throw { response: { status: 400 } };
 }
 
+function fakeAxiosData(method, data) {
+    chai.spy.on(axios, method, async (url) => ({
+        status: 200,
+        data
+    }));
+}
+
 describe('api', () => {
     let app, sandbox;
 
@@ -46,7 +53,7 @@ describe('api', () => {
 
     describe('GET /workspaces', () => {
         it('proxies project-daemon\'s workspace endpoint', (done) => {
-            chai.spy.on(axios, 'get', async (url) => []);
+            fakeAxiosData('get', []);
             supertest(app)
                 .get('/workspaces')
                 .set('x-access-token', 'abc')
@@ -74,7 +81,7 @@ describe('api', () => {
     describe('DELETE /workspaces', () => {
         it('proxies project-daemon\'s workspace endpoint', (done) => {
             const fakeResponse = { foo: 'bar' };
-            chai.spy.on(axios, 'delete', async (url) => fakeResponse);
+            fakeAxiosData('delete', fakeResponse);
             supertest(app)
                 .delete('/workspaces')
                 .set('x-access-token', 'abc')
@@ -102,7 +109,7 @@ describe('api', () => {
     describe('POST /{owner}/{repo}/init', () => {
         it('proxies project-daemon\'s init endpoint', (done) => {
             const fakeResponse = { message: 'created' };
-            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            fakeAxiosData('post', fakeResponse);
             supertest(app)
                 .post('/owner/repo/init')
                 .set('x-access-token', 'abc')
@@ -119,7 +126,7 @@ describe('api', () => {
     describe('GET /{owner}/{repo}/init/progress', () => {
         it('proxies project-daemon\'s init/progress endpoint', (done) => {
             const fakeResponse = { state: 'installing' };
-            chai.spy.on(axios, 'get', async (url) => fakeResponse);
+            fakeAxiosData('get', fakeResponse);
             supertest(app)
                 .get('/owner/repo/init/progress')
                 .set('x-access-token', 'abc')
@@ -136,7 +143,7 @@ describe('api', () => {
     describe('POST /{owner}/{repo}/flush', () => {
         it('proxies project-daemon\'s flush endpoint', (done) => {
             const fakeResponse = { message: 'flushed' };
-            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            fakeAxiosData('post', fakeResponse);
             const body = { 'message': 'foo' };
             supertest(app)
                 .post('/owner/repo/flush')
@@ -155,7 +162,7 @@ describe('api', () => {
     describe('GET /{owner}/{repo}/workspace', () => {
         it('proxies project-daemon\'s workspace endpoint', (done) => {
             const fakeResponse = { created: 'yes' };
-            chai.spy.on(axios, 'get', async (url) => fakeResponse);
+            fakeAxiosData('get', fakeResponse);
             supertest(app)
                 .get('/owner/repo/workspace')
                 .set('x-access-token', 'abc')
@@ -172,7 +179,7 @@ describe('api', () => {
     describe('POST /{owner}/{repo}/save', () => {
         it('proxies project-daemon\'s flush endpoint', (done) => {
             const fakeResponse = { message: 'saved' };
-            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            fakeAxiosData('post', fakeResponse);
             const body = { filename: 'foo.js', content: 'bar' };
             supertest(app)
                 .post('/owner/repo/save')
@@ -191,7 +198,7 @@ describe('api', () => {
     describe('POST /{owner}/{repo}/components', () => {
         it('proxies project-daemon\'s components endpoint', (done) => {
             const fakeResponse = { success: true, message: 'created' };
-            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            fakeAxiosData('post', fakeResponse);
             const body = { name: 'foo', destination: './' };
             supertest(app)
                 .post('/owner/repo/components')
@@ -210,7 +217,7 @@ describe('api', () => {
     describe('POST /{owner}/{repo}/modules', () => {
         it('proxies project-daemon\'s modules endpoint', (done) => {
             const fakeResponse = { success: true, message: 'created' };
-            chai.spy.on(axios, 'post', async (url) => fakeResponse);
+            fakeAxiosData('post', fakeResponse);
             const body = { name: 'foo', extendsModuleId: 'bar', extendsName: 'Bar', destination: './' };
             supertest(app)
                 .post('/owner/repo/modules')
