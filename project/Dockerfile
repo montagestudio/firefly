@@ -6,6 +6,9 @@ LABEL author="Corentin Debost <corentin.debost@kaazing.com>"
 
 COPY --from=0 /usr/bin/collada2gltf /usr/bin/collada2gltf
 
+RUN git config --global user.email "noreply@kaazing.com"
+RUN git config --global user.name "firefly"
+
 # Populate npm cache with Montage packages
 RUN npm cache add montage@16
 RUN npm cache add montage@17
@@ -16,10 +19,11 @@ RUN git clone https://github.com/montagejs/popcorn.git ~/popcorn
 RUN git --git-dir ~/popcorn/.git remote rm origin
 
 # Add server code
-COPY ./package.json /srv/project/
-RUN npm install --prefix /srv/project/ --production
-COPY ./ /srv/project
-RUN npm install --prefix /srv/project/common/ --production
+WORKDIR /srv/project/
+COPY ./package.json .
+RUN npm install --prefix .
+COPY ./ .
+RUN npm install --prefix ./common/
 
 EXPOSE 2441
-ENTRYPOINT ["node", "/srv/project/index.js"]
+ENTRYPOINT [ "node", "index.js" ]

@@ -3,13 +3,15 @@
   "description": "Per-user-project workspace service for Firefly.",
   "main": "index.js",
   "scripts": {
-    "test": "runSlowSpecs=$runSlowSpecs jasmine-node spec --forceexit"
+    "start": "node index.js",
+    "test": "jasmine-node spec --forceexit"
   },
   "dependencies": {
     "faye-websocket": "~0.7.2",
     "htmlparser2": "3.4.0",
     "joey": "^1.5.3",
     "minimatch": "~0.2.12",
+    "minit": "^0.5.8",
     "mmmagic": "0.5.0",
     "npm": "2.15.11",
     "optimist": "~0.6.0",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "istanbul": "~0.1.44",
-    "jasmine-node": "~1.14.0"
+    "jasmine-node": "~1.14.0",
+    "rewire": "^2.1.3"
   }
 }

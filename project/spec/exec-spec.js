@@ -1,13 +1,11 @@
 var exec = require("../common/exec");
 
 describe("exec", function () {
-    if (process.env.runSlowSpecs) {
-        it("doesn't wait on stdout", function (done) {
-            exec("node", ["./fixtures/stdout-script.js"], __dirname)
-            .timeout(1000)
-            .then(done, done);
-        });
-    }
+    it("doesn't wait on stdout", function (done) {
+        exec("node", ["./fixtures/stdout-script.js"], __dirname)
+        .timeout(1000)
+        .then(done, done);
+    });
 
     it("rejects if the command doesn't exist", function (done) {
         exec("./does-not-exist", [], __dirname)

@@ -3,7 +3,8 @@
   "description": "Service that manages user project containers for Firefly.",
   "main": "index.js",
   "scripts": {
-    "test": "runSlowSpecs=$runSlowSpecs jasmine-node spec --forceexit"
+    "start": "node index.js",
+    "test": "jasmine-node spec --forceexit"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "istanbul": "~0.1.44",
-    "jasmine-node": "~1.14.0"
+    "jasmine-node": "~1.14.0",
+    "rewire": "^2.1.3"
   }
 }
