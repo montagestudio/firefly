@@ -89,14 +89,19 @@ module.exports = (options = {}) => {
             return APPS.json({deleted: true});
         });
 
-        any(":owner/:repo/...").app(async (req) => {
-            const projectInfo = new ProjectInfo(
-                req.profile.username,
-                req.params.owner,
-                req.params.repo
-            );
-            const host = await containerManager.setup(projectInfo, req.token, req.profile);
-            return proxyContainer(req, host, "api");
+        any("...").use(async (next) => {
+            return async (req) => {
+                var match = /^\/*(.+?)\/(.+?)(\/.+)$/.exec(req.path);
+                if (match) {
+                    const [ owner, repo, rest ] = match.slice(1);
+                    const projectInfo = new ProjectInfo(req.profile.username, owner, repo);
+                    const host = await containerManager.setup(projectInfo, req.token, req.profile);
+                    req.pathInfo = rest;
+                    return proxyContainer(req, host, "api");
+                } else {
+                    return next(req);
+                }
+            };
         });
 
         GET(":owner/:repo/...", requestHostStartsWith("build")).app(async (req) => {
