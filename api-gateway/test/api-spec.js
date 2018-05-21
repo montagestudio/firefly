@@ -51,6 +51,7 @@ describe('api', () => {
                 .get('/workspaces')
                 .set('x-access-token', 'abc')
                 .expect(200)
+                .expect([])
                 .end((err, res) => {
                     if (err) return done(err);
                     expect(axios.get).to.have.been.called.with('http://project-daemon/workspaces');
