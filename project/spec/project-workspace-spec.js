@@ -11,7 +11,7 @@ function createWorkspace(tmpPath, owner, repo) {
 
 describe("ProjectWorkspace", function () {
     var projectWorkspace, tmpPath, owner, repo, config, githubUser,
-        minitPath = fs.join(__dirname, "..", "..", "node_modules", "minit", "minit");
+        minitPath = fs.join(__dirname, "..", "node_modules", "minit", "minit");
 
     beforeEach(function () {
         githubUser = {login: "jdoe"};
