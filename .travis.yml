@@ -26,6 +26,7 @@ before_script:
 - export DOCKER_CLIENT_TIMEOUT=120
 script:
 - npm run lint
+- npm test --prefix api-gateway
 - npm test --prefix project-daemon
 - npm test --prefix project
 - npm start
