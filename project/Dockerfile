@@ -16,10 +16,11 @@ RUN git clone https://github.com/montagejs/popcorn.git ~/popcorn
 RUN git --git-dir ~/popcorn/.git remote rm origin
 
 # Add server code
-COPY ./package.json /srv/project/
-RUN npm install --prefix /srv/project/ --production
-COPY ./ /srv/project
-RUN npm install --prefix /srv/project/common/ --production
+WORKDIR /srv/project/
+COPY ./package.json .
+RUN npm install --prefix . --production
+COPY ./ .
+RUN npm install --prefix ./common/ --production
 
 EXPOSE 2441
-ENTRYPOINT ["node", "/srv/project/index.js"]
+CMD ["npm", "start"]

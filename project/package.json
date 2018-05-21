@@ -3,6 +3,7 @@
   "description": "Per-user-project workspace service for Firefly.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "jasmine-node spec --forceexit"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "istanbul": "~0.1.44",
-    "jasmine-node": "~1.14.0"
+    "jasmine-node": "~1.14.0",
+    "rewire": "^2.1.3"
   }
 }

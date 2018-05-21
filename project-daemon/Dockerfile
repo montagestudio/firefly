@@ -47,13 +47,12 @@ RUN curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-co
 RUN chmod +x /usr/local/bin/docker-compose
 RUN docker-compose version
 
-COPY ./package.json /srv/project-daemon/
-RUN npm install --prefix /srv/project-daemon/ --production
-COPY ./ /srv/project-daemon/
-RUN npm install --prefix /srv/project-daemon/common/ --production
+WORKDIR /srv/project-daemon/
+COPY ./package.json .
+RUN npm install --prefix .
+COPY ./ .
+RUN npm install --prefix ./common/
 
-# Define default command.
-ENTRYPOINT [ "node", "/srv/project-daemon" ]
+CMD [ "npm", "start" ]
 
-# Expose ports.
 EXPOSE 2440
