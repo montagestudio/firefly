@@ -18,9 +18,9 @@ RUN git --git-dir ~/popcorn/.git remote rm origin
 # Add server code
 WORKDIR /srv/project/
 COPY ./package.json .
-RUN npm install --prefix . --production
+RUN npm install --prefix .
 COPY ./ .
-RUN npm install --prefix ./common/ --production
+RUN npm install --prefix ./common/
 
 EXPOSE 2441
 CMD ["npm", "start"]
