@@ -1,5 +1,5 @@
 var PreviewService = require("../../services/preview-service");
-var environment = new require("../../../common/environment").Env();
+var environment = new require("../../common/environment").Env();
 
 describe("preview-service", function () {
     var service = PreviewService.service();
