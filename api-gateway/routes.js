@@ -30,28 +30,50 @@ module.exports = (app, request, getJwtProfile) => {
 
     app.route('/workspaces')
         .get(apiEndpoint(async (req, res, next) => {
-            let workspaces;
             try {
-                workspaces = await request.get('http://firefly_project-daemon:2440/workspaces');
+                const response = await request.get('http://firefly_project-daemon:2440/workspaces', {
+                    headers: {
+                        common: {
+                            'x-access-token': req.headers['x-access-token']
+                        }
+                    }
+                });
+                res.json(response.data);
             } catch (error) {
-                workspaces = [];
+                res.json([]);
             }
-            res.json(workspaces);
         }))
         .delete(apiEndpoint(async (req, res, next) => {
-            let response;
             try {
-                response = await request.delete('http://firefly_project-daemon:2440/workspaces');
+                const response = await request.delete('http://firefly_project-daemon:2440/workspaces', {
+                    headers: {
+                        common: {
+                            'x-access-token': req.headers['x-access-token']
+                        }
+                    }
+                });
+                res.json(response.data);
             } catch (error) {
-                response = { deleted: false };
+                res.json({ deleted: false });
             }
-            res.json(response);
         }));
 
     app.all('/:owner/:repo/*', apiEndpoint(async (req, res, next) => {
         try {
-            const response = await request[req.method.toLowerCase()].call(request, `http://firefly_project-daemon:2440${req.path}`, req.body);
-            res.json(response);
+            const axiosConfig = {
+                headers: {
+                    common: req.headers
+                }
+            };
+            const method = req.method.toLowerCase();
+            const projectDaemonUrl = `http://firefly_project-daemon:2440${req.path}`;
+            let response;
+            if (method === 'post') {
+                response = await request.post(projectDaemonUrl, req.body, axiosConfig);
+            } else {
+                response = await request[method].call(request, projectDaemonUrl, axiosConfig);
+            }
+            res.json(response.data);
         } catch (error) {
             const { response } = error;
             if (response) {
@@ -64,7 +86,7 @@ module.exports = (app, request, getJwtProfile) => {
         }
     }));
 
-    app.all('/*', async(req, res, next) => {
+    app.all('*', async(req, res, next) => {
         res.sendStatus(404);
     });
 
