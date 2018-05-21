@@ -10,7 +10,7 @@ const getJwtProfile = async (authHeader) => {
             'Authentication': authHeader
         }
     };
-    const response = await request.get('http://jwt/profile', options);
+    const response = await axios.get('http://jwt/profile', options);
     const { profile, token } = response.data;
     return { profile, token };
 };
