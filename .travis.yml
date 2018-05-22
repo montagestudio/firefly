@@ -26,8 +26,8 @@ before_script:
 - export DOCKER_CLIENT_TIMEOUT=120
 script:
 - npm run lint
-- docker-compose run project-daemon npm test
-- docker run --entrypoint npm --env-file .env montagestudio/firefly-project:latest test
+- npm test --prefix project-daemon
+- npm test --prefix project
 - npm start
 - docker ps
 - docker ps | grep -q firefly_traefik
