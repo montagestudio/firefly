@@ -10,7 +10,6 @@ var projectChainFactory = require("./chain");
 var ContainerManager = require("./container-manager");
 var axios = require("axios");
 
-require("./polyfill-dockerode");
 var Dockerode = require("dockerode");
 
 var commandOptions = {
