@@ -9,7 +9,6 @@ var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 var WebSocket = require("faye-websocket");
 var preview = require("../services/preview-service");
-var Env = require("../common/environment");
 var Frontend = require("../frontend");
 
 var CLIENT_FILES = "{$PREVIEW}";
@@ -114,7 +113,7 @@ function injectPreviewScripts(request, response, subdomain) {
         for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
         }
-        if (!Env.production) {
+        if (process.env.NODE_ENV !== "development" && process.env.NODE_ENV !== "staging") {
             html = injectScriptSource("var MontageStudio = {DEVELOPMENT: true};", html);
         }
 
