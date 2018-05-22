@@ -1,6 +1,6 @@
 var projectChain = require("../chain");
 var Q = require("q");
-var mockRequest = require("../common/spec/mocks/request");
+var mockRequest = require("./mocks/request");
 
 describe("project chain", function () {
     var username, containerManager, chain, request;
