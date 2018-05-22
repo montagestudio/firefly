@@ -1,7 +1,6 @@
-var log = require("./common/logging").from(__filename);
-var track = require("./common/track");
+var log = require("logging").from(__filename);
 var Q = require("q");
-var exec = require("./common/exec");
+var exec = require("./exec");
 var cp = require("child_process");
 var Connection = require("q-connection");
 var HttpApps = require("q-io/http-apps/fs");
@@ -86,7 +85,7 @@ Mop.prototype.archive = function() {
         return archiveLocation;
     })
     .fail(function (error) {
-        track.error(error);
+        console.error(error);
         throw new Error("Creating build archive failed.");
     });
 };

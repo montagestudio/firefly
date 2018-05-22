@@ -1,8 +1,8 @@
 var PreviewService = require("../../services/preview-service");
-var environment = new require("../../common/environment").Env();
 
 describe("preview-service", function () {
     var service = PreviewService.service();
+    var projectHostname = "project.local.montage.studio:2440";
 
     function createConnection(host) {
         return {
@@ -21,9 +21,8 @@ describe("preview-service", function () {
     describe("service", function() {
 
         it("should unregister a preview and close all its connections", function () {
-            var url = environment.project.hostname;
             service.register();
-            var connection = createConnection(url);
+            var connection = createConnection(projectHostname);
             PreviewService.registerConnection(connection, connection.req);
 
             spyOn(connection, "close");
@@ -33,8 +32,7 @@ describe("preview-service", function () {
         });
 
         it("should refresh all preview clients when the preview is registered", function () {
-            var url = environment.project.hostname;
-            var connection = createConnection(url);
+            var connection = createConnection(projectHostname);
             PreviewService.registerConnection(connection, connection.req);
 
             spyOn(connection, "send");
@@ -47,9 +45,8 @@ describe("preview-service", function () {
             var host, connection1, connection2;
 
             beforeEach(function() {
-                host = environment.getProjectHost();
-                connection1 = createConnection(host);
-                connection2 = createConnection(host);
+                connection1 = createConnection(projectHostname);
+                connection2 = createConnection(projectHostname);
 
                 service.register({name: "preview", url: host});
                 PreviewService.registerConnection(connection1, connection1.req);
@@ -89,19 +86,19 @@ describe("preview-service", function () {
         beforeEach(function () {
             service.register({
                 name: "preview",
-                url: environment.project.hostname
+                url: projectHostname
             });
         });
 
         it("should register a new connection from a preview", function() {
-            var connection = createConnection(environment.getProjectHost());
+            var connection = createConnection(projectHostname);
             PreviewService.registerConnection(connection, connection.req);
 
             expect(PreviewService._getPreview().connections.length).toBe(1);
         });
 
         it("should unregister a new connection from a preview", function() {
-            var connection = createConnection(environment.getProjectHost());
+            var connection = createConnection(projectHostname);
 
             PreviewService.registerConnection(connection, connection.req);
             PreviewService.unregisterConnection(connection);

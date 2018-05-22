@@ -1,5 +1,4 @@
-var log = require("./common/logging").from(__filename);
-var track = require("./common/track");
+var log = require("logging").from(__filename);
 
 var NO_CONNECTIONS_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 var shutdownTimeout;
@@ -19,7 +18,6 @@ function shutdown() {
     // What about pending git operations?
     // FIXME, WE'LL DO IT LIVE
     log("shut down due inactvity for " + NO_CONNECTIONS_TIMEOUT + " ms");
-    track.message("shut down due to inactvity");
     process.exit(0);
 }
 

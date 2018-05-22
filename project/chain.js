@@ -1,12 +1,11 @@
-var log = require("./common/logging").from(__filename);
-var track = require("./common/track");
+var log = require("logging").from(__filename);
 var Q = require("q");
 var joey = require("joey");
 
 var HttpApps = require("q-io/http-apps/fs");
 var StatusApps = require("q-io/http-apps/status");
 
-var LogStackTraces = require("./common/log-stack-traces");
+var LogStackTraces = require("./log-stack-traces");
 
 var api = require("./api");
 var serveArchivedBuild = require("./mop").serveArchivedBuild;
@@ -41,7 +40,6 @@ function server(options) {
     .route(function () {
         this.OPTIONS("").content("");
     })
-    .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .tap(setupProjectWorkspace)
     .route(function (route, _, __, POST) {
@@ -77,8 +75,7 @@ function server(options) {
                 var message = JSON.parse(body.toString());
                 Frontend.showNotification(message)
                 .catch(function (error) {
-                    log("*Error notifying", error.stack);
-                    track.error(error, request);
+                    console.error("Error notifying", error.stack);
                 });
                 return {status: 200, body: []};
             });
@@ -110,10 +107,9 @@ function server(options) {
             }
         })
         .catch(function (error) {
-            log("*Error setting up websocket*", error.stack);
+            console.error("Error setting up websocket", error.stack);
             socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
             socket.destroy();
-            track.error(error, request);
         });
     };
 

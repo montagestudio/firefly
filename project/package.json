@@ -7,9 +7,11 @@
     "test": "jasmine-node spec --forceexit"
   },
   "dependencies": {
+    "bluebird": "^3.5.0",
     "faye-websocket": "~0.7.2",
     "htmlparser2": "3.4.0",
     "joey": "^1.5.3",
+    "logging": "montagestudio/logging.git",
     "minimatch": "~0.2.12",
     "minit": "^0.5.8",
     "mmmagic": "0.5.0",
@@ -22,7 +24,8 @@
     "semver": "2.2.1",
     "ua-parser-js": "~0.6.2",
     "uuid": "~1.4.1",
-    "watchr": "2.4.11"
+    "watchr": "2.4.11",
+    "xmlhttprequest": "~1.6.0"
   },
   "devDependencies": {
     "istanbul": "~0.1.44",

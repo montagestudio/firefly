@@ -1,6 +1,4 @@
-var Env = require("./common/environment");
-var log = require("./common/logging").from(__filename);
-var track = require("./common/track");
+var log = require("logging").from(__filename);
 var activity = require("./activity");
 
 var Q = require("q");
@@ -30,7 +28,6 @@ function websocket(config, workspacePath, services, request) {
         var frontend;
 
         req.session = { username: config.username };
-        track.message("connect websocket", req);
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
         frontendId = uuid.v4();
@@ -38,22 +35,21 @@ function websocket(config, workspacePath, services, request) {
         log("Limiting", remoteAddress, pathname, "to", workspacePath);
         var connectionServices = FS.reroot(workspacePath)
         .then(function (fs) {
-            return makeServices(services, config, fs, Env, pathname, workspacePath, request);
+            return makeServices(services, config, fs, pathname, workspacePath, request);
         });
 
         // Throw errors if they happen in establishing services
         // This is not included in the chain of resolving connectionService
         // as we'd then be using done to set the connectionServices to undefined
         connectionServices.catch(function (error) {
-            log("*" + error.stack + "*");
-            track.errorForUsername(error, config.username);
+            console.error(error);
         });
 
         frontend = Connection(wsQueue, connectionServices, {
             capacity: 4096,
             onmessagelost: function (message) {
                 log("*message to unknown promise*", message);
-                track.errorForUsername(new Error("message to unknown promise: " + JSON.stringify(message)), config.username);
+                console.error(new Error("message to unknown promise: " + JSON.stringify(message)), config.username);
             }
         });
         connectionServices.then(function() {
@@ -62,7 +58,7 @@ function websocket(config, workspacePath, services, request) {
         .done();
 
         wsQueue.closed.then(function () {
-            track.messageForUsername("disconnect websocket", config.username);
+            log("disconnect websocket", config.username);
             connectionServices.then(function(services) {
                 return Q.allSettled(Object.keys(services).map(function (key) {
                     return services[key].invoke("close");
@@ -81,11 +77,11 @@ function websocket(config, workspacePath, services, request) {
 
 // export for testing
 module.exports.makeServices = makeServices;
-function makeServices(services, config, fs, env, pathname, fsPath, request) {
+function makeServices(services, config, fs, pathname, fsPath, request) {
     var connectionServices = {};
     Object.keys(services).forEach(function (name) {
         log("Creating", name);
-        var service = services[name](config, fs, env, pathname, fsPath, request);
+        var service = services[name](config, fs, pathname, fsPath, request);
         connectionServices[name] = Q.master(service);
     });
     log("Finished creating services");

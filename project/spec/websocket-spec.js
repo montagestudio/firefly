@@ -13,16 +13,16 @@ describe("websocket", function () {
             };
         });
 
-        it("passes in fs", function () {
-            var fs = {};
-            websocket.makeServices(services, fs);
-            expect(testServiceFn.mostRecentCall.args[0]).toBe(fs);
+        it("passes in config", function () {
+            var config = {};
+            websocket.makeServices(services, config);
+            expect(testServiceFn.mostRecentCall.args[0]).toBe(config);
         });
 
-        it("passes in environment", function () {
-            var environment = {};
-            websocket.makeServices(services, null, environment);
-            expect(testServiceFn.mostRecentCall.args[1]).toBe(environment);
+        it("passes in fs", function () {
+            var fs = {};
+            websocket.makeServices(services, null, fs);
+            expect(testServiceFn.mostRecentCall.args[1]).toBe(fs);
         });
 
         it("passes in pathname", function () {

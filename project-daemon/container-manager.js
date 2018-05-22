@@ -1,5 +1,4 @@
-var log = require("./common/logging").from(__filename);
-var track = require("./common/track");
+var log = require("logging").from(__filename);
 var request = require("q-io/http").request;
 var Q = require("q");
 var ProjectInfo = require("./project-info");
@@ -81,10 +80,10 @@ ContainerManager.prototype.setup = function (info, githubAccessToken, githubProf
                     log("Removing container for", info.toString(), "because", error.message);
                     return container.remove()
                         .then(function () {
-                            track.errorForUsername(error, info.username, {info: info});
+                            console.error(error, 'for', info.username, { info });
                             throw error;
                         }, function (error) {
-                            track.errorForUsername(error, info.username, {info: info});
+                            console.error(error, 'for', info.username, { info });
                         });
                 });
         })
@@ -119,7 +118,6 @@ ContainerManager.prototype.getOrCreate = function (info, githubAccessToken, gith
                     }
 
                     log("Creating project container for", info.toString(), "...");
-                    track.messageForUsername("create container", info.username, {info: info});
 
                     var options = self.buildOptionsForProjectInfo(info, githubAccessToken, githubProfile);
                     return self.docker.createContainer(options)

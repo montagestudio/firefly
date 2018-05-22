@@ -1,4 +1,4 @@
-var log = require("../common/logging").from(__filename);
+var log = require("logging").from(__filename);
 var Q = require("q");
 var minimatch = require("minimatch");
 var PATH = require('path');
@@ -25,20 +25,20 @@ var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function
     };
 };
 
-var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, subdomain, environment) {
+var makeConvertPathToProjectUrl = exports.makeConvertPathToProjectUrl = function (pathname, subdomain) {
     return function (path) {
-        var projectHost = environment.getProjectUrl(subdomain);
+        var projectHost = process.env.FIREFLY_PROJECT_URL || "https://project.local.montage.studio:2440";
         var relativePath = path[0] === "/" ? "." + path : path;
-        return URL.resolve(projectHost, encodeURI(relativePath));
+        return URL.resolve(URL.resolve(projectHost, subdomain), encodeURI(relativePath));
     };
 };
 
-function FileService(config, fs, environment, pathname, fsPath) {
+function FileService(config, fs, pathname, fsPath) {
     // Returned service
     var service = {};
 
     var convertProjectUrlToPath = makeConvertProjectUrlToPath(pathname);
-    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, config.subdomain, environment);
+    var convertPathToProjectUrl = makeConvertPathToProjectUrl(pathname, config.subdomain);
 
     /**
      * Converts an array of (absolute) paths to an array of objects with `url`

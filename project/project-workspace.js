@@ -1,5 +1,4 @@
-var log = require("./common/logging").from(__filename);
-var track = require("./common/track");
+var log = require("logging").from(__filename);
 var PATH = require("path");
 var Minit = require("./minit");
 var RepositoryService = require("./services/repository-service").service;
@@ -174,7 +173,7 @@ ProjectWorkspace.prototype.saveFile = function(filename, contents) {
         return fs.write(filename, contents);
     })
     .fail(function(error) {
-        track.error(error);
+        console.error(error);
         throw new Error("Save file failed.");
     });
 };
@@ -255,7 +254,7 @@ ProjectWorkspace.prototype._npmInstall = function () {
 
     return this._fs.reroot(this._workspacePath)
     .then(function(fs) {
-        var service = PackageManagerService(null, fs, null, pathname, fsPath);
+        var service = PackageManagerService(null, fs, pathname, fsPath);
         return service.installProjectPackages();
     });
 };

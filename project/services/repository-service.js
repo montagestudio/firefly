@@ -2,9 +2,9 @@ var Q = require("q");
 var URL = require("url");
 var Git = require("../git");
 var GitCommitBatchFactory = require("../git-commit-batch");
-var GithubApi = require("../common/inject/adaptor/client/core/github-api");
+var GithubApi = require("../github-api");
 var Frontend = require("../frontend");
-var log = require("../common/logging").from(__filename);
+var log = require("logging").from(__filename);
 
 module.exports = exports = RepositoryService;   // High level access to the service
 module.exports.service = _RepositoryService;    // Low level access to the service
@@ -38,7 +38,7 @@ var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function
     };
 };
 
-function RepositoryService(config, fs, environment, pathname, fsPath, _, githubApi) {
+function RepositoryService(config, fs, pathname, fsPath, _, githubApi) {
     return _RepositoryService(config.username, config.owner, config.githubAccessToken, config.repo, fs, fsPath, true, githubApi);
 }
 
