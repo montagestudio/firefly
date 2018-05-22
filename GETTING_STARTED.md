@@ -8,11 +8,9 @@
 
  3. Install docker-compose 1.19.0+: https://docs.docker.com/compose/install/.
 
- 4. Use npm v4: `nvm use 4`.
+ 4. Initialize submodules: `git submodule init && git submodule update`.
 
- 5. Initialize submodules: `git submodule init && git submodule update`.
-
- 6. `npm install`.
+ 5. `npm install` to get the jshint dependency required to lint the codebase.
 
 ### Enabling HTTPS in development
 
