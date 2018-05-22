@@ -5,7 +5,7 @@ var PATH = require("path");
 describe("extension-service", function () {
     var service;
     beforeEach(function () {
-        process.env.FIREFLY_APP_URL = "http://example.com"
+        process.env.FIREFLY_APP_URL = "http://example.com";
         var request = function (url, cb) {
             var requestPath = url.replace("http://firefly_static/", "/");
             var fsPath = PATH.join(__dirname, "..", "fixtures", requestPath.replace(/^\/app\//, "/"));

@@ -80,10 +80,10 @@ ContainerManager.prototype.setup = function (info, githubAccessToken, githubProf
                     log("Removing container for", info.toString(), "because", error.message);
                     return container.remove()
                         .then(function () {
-                            console.error(error, 'for', info.username, { info });
+                            console.error(error, 'for', info.username, { info: info });
                             throw error;
                         }, function (error) {
-                            console.error(error, 'for', info.username, { info });
+                            console.error(error, 'for', info.username, { info: info });
                         });
                 });
         })

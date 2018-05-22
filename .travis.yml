@@ -19,6 +19,7 @@ install:
 - git submodule init
 - git submodule update
 - sudo update-ca-certificates --verbose
+- npm install
 - npm run generate-local-certificate
 - npm run build
 before_script:

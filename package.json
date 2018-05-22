@@ -5,7 +5,6 @@
   "description": "Server for filament in the browser",
   "main": "index.js",
   "scripts": {
-    "install": "scripts/npm-recursive.sh install",
     "prune": "scripts/npm-recursive.sh prune",
     "generate-local-certificate": "scripts/generate-local-certificate.sh",
     "lint": "jshint --verbose .",
