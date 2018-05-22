@@ -1,7 +1,7 @@
 var log = require("logging").from(__filename);
 var Q = require("q");
 var URL = require("url");
-var exec = require("./common/exec");
+var exec = require("./exec");
 var Semaphore = require("./semaphore").Semaphore;
 
 // This module uses Github's OAuth over Basic Authentication as described at

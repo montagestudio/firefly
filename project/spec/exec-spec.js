@@ -1,4 +1,4 @@
-var exec = require("../common/exec");
+var exec = require("../exec");
 
 describe("exec", function () {
     it("doesn't wait on stdout", function (done) {

@@ -1,5 +1,5 @@
 var FileService = require('./file-service'),
-    exec = require("../common/exec"),
+    exec = require("../exec"),
     PATH = require("path"),
     Q = require("q"),
 
