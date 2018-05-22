@@ -2,7 +2,7 @@ var Q = require("q");
 var URL = require("url");
 var Git = require("../git");
 var GitCommitBatchFactory = require("../git-commit-batch");
-var GithubApi = require("../common/inject/adaptor/client/core/github-api");
+var GithubApi = require("../github-api");
 var Frontend = require("../frontend");
 var log = require("logging").from(__filename);
 

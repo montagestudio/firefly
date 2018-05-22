@@ -1,5 +1,5 @@
 var Q = require("q");
-var GithubApi = require("../common/inject/adaptor/client/core/github-api");
+var GithubApi = require("../github-api");
 var Git = require("../git");
 var mop = require("../mop").mop;
 

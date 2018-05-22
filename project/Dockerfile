@@ -22,8 +22,7 @@ RUN git --git-dir ~/popcorn/.git remote rm origin
 WORKDIR /srv/project/
 COPY ./package.json .
 RUN npm install --prefix .
-COPY ./ .
-RUN npm install --prefix ./common/
+COPY . .
 
 EXPOSE 2441
 ENTRYPOINT [ "node", "index.js" ]

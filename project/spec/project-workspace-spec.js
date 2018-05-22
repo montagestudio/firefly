@@ -1,7 +1,7 @@
 var Q = require("q");
 var fs = require("q-io/fs");
 var exec = require('child_process').exec;
-var MockGithubApi = require("../common/spec/mocks/github-api");
+var MockGithubApi = require("./mocks/github-api");
 var ProjectWorkspace = require("../project-workspace");
 var Git = require("../git");
 
