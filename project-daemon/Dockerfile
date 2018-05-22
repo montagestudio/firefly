@@ -50,8 +50,7 @@ RUN docker-compose version
 WORKDIR /srv/project-daemon/
 COPY ./package.json .
 RUN npm install --prefix .
-COPY ./ .
-RUN npm install --prefix ./common/
+COPY . .
 
 CMD [ "npm", "start" ]
 
