@@ -28,8 +28,8 @@ var parseIndexHtml = function (body) {
 };
 
 module.exports = ExtensionService;
-function ExtensionService(_, fs, environment, __, ___, request) {
-    var appHost = environment.getAppUrl();
+function ExtensionService(_, fs, __, ___, request) {
+    var appHost = process.env.FIREFLY_APP_URL || "https://local.montage.studio:2440";
     var appExtensionsUrl = Url.resolve(appHost, "app/extensions/");
     var staticExtensionsUrl = "http://firefly_static/app/extensions/";
 

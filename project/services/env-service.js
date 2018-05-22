@@ -1,13 +1,11 @@
+var URL = require("url");
+
 module.exports = EnvService;
-function EnvService(config, _, environment, pathname) {
+function EnvService(config, _, pathname) {
     // Returned service
     var service = {};
 
-    service.projectUrl = environment.getProjectUrl(config.subdomain);
-
-    service.getEnv = function (key) {
-        return environment[key];
-    };
+    service.projectUrl = URL.resolve(process.env.FIREFLY_PROJECT_URL || "https://project.local.montage.studio:2440", config.subdomain);
 
     return service;
 }

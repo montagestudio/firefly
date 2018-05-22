@@ -12,11 +12,10 @@ describe("file-service", function () {
             "package.json": "{}"
         });
 
-        service = FileService({}, fs, {
-            getProjectUrl: function () {
-                return "http://localhost:2441/user/owner/repo/";
-            }
-        });
+        process.env.FIREFLY_PROJECT_URL = "http://localhost:2441";
+        service = FileService({
+            subdomain: "/user/owner/repo/"
+        }, fs);
     });
 
     describe("writeFile", function () {
@@ -130,26 +129,24 @@ describe("file-service", function () {
 
         it("returns a list of assets with urls and MIME-types", function (done) {
             return fs.reroot(fsPath).then(function (fs) {
-                service = FileService({}, fs, {
-                    getProjectUrl: function () {
-                        return "http://localhost:2441";
-                    }
-                }, null, fsPath);
+                service = FileService({
+                    subdomain: "/user/owner/repo/"
+                }, fs, null, fsPath);
 
                 return service.listAsset("/").then(function (listAssets) {
                     listAssets.forEach(function (asset) {
                         switch (asset.mimeType) {
                             case ADDITIONAL_MIME_TYPES.MONTAGE_TEMPLATE.value:
-                                expect(asset.url).toBe("http://localhost:2441/template-test.html");
+                                expect(asset.url).toBe("http://localhost:2441/user/owner/repo/template-test.html");
                                 break;
                             case ADDITIONAL_MIME_TYPES.GLTF_BUNDLE.value:
-                                expect(asset.url).toBe("http://localhost:2441/bundle-test.glTF/");
+                                expect(asset.url).toBe("http://localhost:2441/user/owner/repo/bundle-test.glTF/");
                                 break;
                             case ADDITIONAL_MIME_TYPES.COLLADA.value:
-                                expect(asset.url).toBe("http://localhost:2441/collada-test.dae");
+                                expect(asset.url).toBe("http://localhost:2441/user/owner/repo/collada-test.dae");
                                 break;
                             case ADDITIONAL_MIME_TYPES.MONTAGE_SERIALIZATION.value:
-                                expect(asset.url).toBe("http://localhost:2441/serialization-test.json");
+                                expect(asset.url).toBe("http://localhost:2441/user/owner/repo/serialization-test.json");
                                 break;
                         }
                     });
@@ -199,11 +196,9 @@ describe("file-service", function () {
                         "bar": {}
                     }
                 });
-                service = FileService({}, fs, {
-                    getProjectUrlFromAppUrl: function () {
-                        return "http://localhost:2441";
-                    }
-                });
+                service = FileService({
+                    subdomain: "/user/owner/repo/"
+                }, fs);
             });
 
             it("must not replace the specified existing directory", function (done) {
@@ -244,11 +239,9 @@ describe("file-service", function () {
                     "baz": "xyz"
                 }
             });
-            service = FileService({}, fs, {
-                getProjectUrlFromAppUrl: function () {
-                    return "http://localhost:2441/abc";
-                }
-            });
+            service = FileService({
+                subdomain: "/user/owner/repo/"
+            }, fs);
         });
 
         it("must fail if the specified file does not exist, with no reference to the file path", function (done) {
@@ -313,11 +306,9 @@ describe("file-service", function () {
                     "qux": {}
                 }
             });
-            service = FileService({}, fs, {
-                getProjectUrlFromAppUrl: function () {
-                    return "http://localhost:2441/abc";
-                }
-            });
+            service = FileService({
+                subdomain: "/user/owner/repo/"
+            }, fs);
         });
 
         it("must fail if the specified directory does not exist, with no reference to the directory path", function (done) {

@@ -10,10 +10,10 @@ var FileService = require('./file-service'),
 
 module.exports = AssetConverterService;
 
-function AssetConverterService (config, fs, environment, pathname, fsPath) {
+function AssetConverterService (config, fs, pathname, fsPath) {
     // Returned service
     var service = {},
-        convertPathToProjectUrl = FileService.makeConvertPathToProjectUrl(pathname, config.subdomain, environment),
+        convertPathToProjectUrl = FileService.makeConvertPathToProjectUrl(pathname, config.subdomain),
         convertProjectUrlToPath = FileService.makeConvertProjectUrlToPath(pathname);
 
     function _isColladaFile (path) {
@@ -74,7 +74,7 @@ function AssetConverterService (config, fs, environment, pathname, fsPath) {
             outputPath = _getColladaOutPutPath(fileName, outputPath, isBundle);
 
             return _convertToGlTF(modelPath, outputPath, isBundle).then(function () {
-                return convertPathToProjectUrl(outputPath, environment);
+                return convertPathToProjectUrl(outputPath);
             });
         }
 

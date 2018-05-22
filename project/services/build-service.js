@@ -11,7 +11,7 @@ var GITHUB_PAGES_MESSAGE = "Publish build";
 var DEFAULT_GIT_EMAIL = "noreply";
 var semaphore = Git.semaphore;
 
-function BuildService(config, fs, environment, pathname, fsPath) {
+function BuildService(config, fs, pathname, fsPath) {
     // Returned service
     var service = {};
     var _owner = config.owner;

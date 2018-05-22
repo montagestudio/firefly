@@ -38,7 +38,7 @@ var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function
     };
 };
 
-function RepositoryService(config, fs, environment, pathname, fsPath, _, githubApi) {
+function RepositoryService(config, fs, pathname, fsPath, _, githubApi) {
     return _RepositoryService(config.username, config.owner, config.githubAccessToken, config.repo, fs, fsPath, true, githubApi);
 }
 
