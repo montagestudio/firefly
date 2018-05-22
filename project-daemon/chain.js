@@ -4,7 +4,7 @@ var joey = require("joey");
 var APPS = require("q-io/http-apps");
 var URL = require("url");
 
-var LogStackTraces = require("./common/log-stack-traces");
+var LogStackTraces = require("./log-stack-traces");
 var ProjectInfo = require("./project-info");
 
 var PreviewManager = require("./preview");
