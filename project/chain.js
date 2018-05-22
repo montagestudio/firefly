@@ -1,5 +1,4 @@
 var log = require("logging").from(__filename);
-var track = require("./common/track");
 var Q = require("q");
 var joey = require("joey");
 
@@ -41,7 +40,6 @@ function server(options) {
     .route(function () {
         this.OPTIONS("").content("");
     })
-    .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .tap(setupProjectWorkspace)
     .route(function (route, _, __, POST) {
@@ -77,8 +75,7 @@ function server(options) {
                 var message = JSON.parse(body.toString());
                 Frontend.showNotification(message)
                 .catch(function (error) {
-                    log("*Error notifying", error.stack);
-                    track.error(error, request);
+                    console.error("Error notifying", error.stack);
                 });
                 return {status: 200, body: []};
             });
@@ -110,10 +107,9 @@ function server(options) {
             }
         })
         .catch(function (error) {
-            log("*Error setting up websocket*", error.stack);
+            console.error("Error setting up websocket", error.stack);
             socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
             socket.destroy();
-            track.error(error, request);
         });
     };
 

@@ -10,7 +10,6 @@ process.on("SIGUSR2", function() {
 
 var log = require("logging").from(__filename);
 
-var track = require("./common/track");
 var FS = require("q-io/fs");
 var Mop = require("./mop");
 var request = require("request");
@@ -111,6 +110,6 @@ if (require.main === module) {
         throw new Error("Could not parse config " + argv.config + ": " + error.message);
     }
 
-    track.messageForUsername("start container server", argv.config.username);
+    log("start container server", argv.config.username);
     main(argv).done();
 }

@@ -1,5 +1,4 @@
 var log = require("logging").from(__filename);
-var track = require("./common/track");
 
 var FS = require("q-io/fs");
 var Q = require("q");
@@ -58,7 +57,6 @@ PreviewManager.prototype.app = function (request) {
             })
             .catch(function (error) {
                 log("*Error with preview access code*", error.stack);
-                track.error(error, request);
             });
 
             // Serve the access form regardless, so that people

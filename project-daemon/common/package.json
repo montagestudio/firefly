@@ -10,7 +10,6 @@
     "jsonwebtoken": "^8.2.0",
     "q": "~0.9.7",
     "q-io": "^1.13.4",
-    "rollbar": "~0.3.6",
     "xmlhttprequest": "~1.6.0"
   },
   "devDependencies": {

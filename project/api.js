@@ -1,5 +1,4 @@
 var log = require("logging").from(__filename);
-var track = require("./common/track");
 var joey = require("joey");
 var JsonApps = require("q-io/http-apps/json");
 
@@ -17,8 +16,7 @@ module.exports = function (config) {
                 if (!initializingPromise || initializingPromise.isRejected()) {
                     initializingPromise = request.projectWorkspace.initializeWorkspace();
                     initializingPromise.catch(function (error) {
-                        log("*Error initializing*", error, error.stack);
-                        track.error(error, request);
+                        console.error("Error initializing", error, error.stack);
                     });
                 }
             }, function() {
@@ -33,8 +31,7 @@ module.exports = function (config) {
                 if (!initializingPromise) {
                     initializingPromise = request.projectWorkspace.initializeWithTemplate("/root/popcorn");
                     initializingPromise.catch(function (error) {
-                        log("*Error initializing popcorn*", error, error.stack);
-                        track.error(error, request);
+                        console.error("Error initializing popcorn", error, error.stack);
                     });
                 }
             }, function() {
@@ -171,8 +168,7 @@ function handleEndpoint(config, request, endpointCallback, successCallback) {
         return JsonApps.json(createMessage(successMessage));
     })
     .fail(function(error) {
-        log("*handleEndpoint fail*", error.stack);
-        track.error(error, request);
+        console.error("handleEndpoint fail", error.stack);
         return JsonApps.json(createMessage({
             error: error.message
         }));

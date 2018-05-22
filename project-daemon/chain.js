@@ -1,5 +1,4 @@
 var log = require("logging").from(__filename);
-var track = require("./common/track");
 var Q = require("q");
 var joey = require("joey");
 var APPS = require("q-io/http-apps");
@@ -57,7 +56,6 @@ function server(options) {
     .route(function () {
         this.OPTIONS("*").content("");
     })
-    .use(track.joeyErrors)
     .use(LogStackTraces(log))
     .use(function (next) {
         return function (req) {
@@ -109,7 +107,7 @@ function server(options) {
         });
 
         this.DELETE("workspaces", requestHostStartsWith("api")).app(function (req) {
-            track.message("delete stack", req);
+            log("delete stack", req.profile.username);
             return containerManager.deleteUserContainers(req.profile.username)
                 .then(function () {
                     return APPS.json({deleted: true});
@@ -175,7 +173,7 @@ function server(options) {
             log("*Error setting up websocket*", error.stack);
             socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
             socket.destroy();
-            track.error(error, req);
+            console.error(error, req);
         });
     };
 

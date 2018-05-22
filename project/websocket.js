@@ -1,6 +1,5 @@
 var Env = require("./common/environment");
 var log = require("logging").from(__filename);
-var track = require("./common/track");
 var activity = require("./activity");
 
 var Q = require("q");
@@ -30,7 +29,6 @@ function websocket(config, workspacePath, services, request) {
         var frontend;
 
         req.session = { username: config.username };
-        track.message("connect websocket", req);
         log("websocket connection", remoteAddress, pathname, "open connections:", ++websocketConnections);
 
         frontendId = uuid.v4();
@@ -45,15 +43,14 @@ function websocket(config, workspacePath, services, request) {
         // This is not included in the chain of resolving connectionService
         // as we'd then be using done to set the connectionServices to undefined
         connectionServices.catch(function (error) {
-            log("*" + error.stack + "*");
-            track.errorForUsername(error, config.username);
+            console.error(error);
         });
 
         frontend = Connection(wsQueue, connectionServices, {
             capacity: 4096,
             onmessagelost: function (message) {
                 log("*message to unknown promise*", message);
-                track.errorForUsername(new Error("message to unknown promise: " + JSON.stringify(message)), config.username);
+                console.error(new Error("message to unknown promise: " + JSON.stringify(message)), config.username);
             }
         });
         connectionServices.then(function() {
@@ -62,7 +59,7 @@ function websocket(config, workspacePath, services, request) {
         .done();
 
         wsQueue.closed.then(function () {
-            track.messageForUsername("disconnect websocket", config.username);
+            log("disconnect websocket", config.username);
             connectionServices.then(function(services) {
                 return Q.allSettled(Object.keys(services).map(function (key) {
                     return services[key].invoke("close");

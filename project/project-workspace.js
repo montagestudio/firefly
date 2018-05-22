@@ -1,5 +1,4 @@
 var log = require("logging").from(__filename);
-var track = require("./common/track");
 var PATH = require("path");
 var Minit = require("./minit");
 var RepositoryService = require("./services/repository-service").service;
@@ -174,7 +173,7 @@ ProjectWorkspace.prototype.saveFile = function(filename, contents) {
         return fs.write(filename, contents);
     })
     .fail(function(error) {
-        track.error(error);
+        console.error(error);
         throw new Error("Save file failed.");
     });
 };

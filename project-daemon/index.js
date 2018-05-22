@@ -1,4 +1,3 @@
-var track = require("./common/track");
 var log = require("logging").from(__filename);
 
 /* Catch possible hidden error */
@@ -102,11 +101,9 @@ function checkDiskFree() {
             if (level) {
                 var message = "Disk space at " + percentUsed + "%";
                 log(level, message);
-                track.message(message, null, null, level);
             }
         }).catch(function (error) {
-            log(error);
-            track.error(error);
+            console.log(error);
         });
     }, INTERVAL);
 }
