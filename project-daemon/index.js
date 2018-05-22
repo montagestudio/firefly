@@ -70,44 +70,6 @@ function main(options) {
     });
 }
 
-function checkDiskFree() {
-    var df = require("./disk-free");
-    var INTERVAL = 15 * /*minutes*/ 60 * 1000;
-
-    // level strings from https://rollbar.com/docs/notifier/rollbar.js/configuration#context_1
-    var levels = [
-        {percent: 5, level: "debug"}, // sanity check
-        {percent: 50, level: "warning"},
-        {percent: 75, level: "error"},
-        {percent: 90, level: "critical"}
-    ];
-    // This prevents multiple notifications for the same level. When a level
-    // gets exceeded this is incremented to the level index. The next check
-    // starts from the level afterwards.
-    var lastLevelIndex = -1;
-
-    setInterval(function () {
-        df().then(function (percentUsed) {
-            var level;
-            for (var i = lastLevelIndex + 1; i < levels.length; i++) {
-                if (percentUsed > levels[i].percent) {
-                    level = levels[i].level;
-                    lastLevelIndex = i;
-                } else {
-                    break;
-                }
-            }
-
-            if (level) {
-                var message = "Disk space at " + percentUsed + "%";
-                log(level, message);
-            }
-        }).catch(function (error) {
-            console.log(error);
-        });
-    }, INTERVAL);
-}
-
 if (require.main === module) {
     var optimist = require("optimist");
     var argv = optimist
@@ -118,9 +80,6 @@ if (require.main === module) {
         optimist.showHelp();
         return;
     }
-
-    // only check disk free when run as a main process
-    checkDiskFree();
 
     main(argv).done();
 }
