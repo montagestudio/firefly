@@ -1,5 +1,5 @@
 var Env = require("./common/environment");
-var log = require("./common/logging").from(__filename);
+var log = require("logging").from(__filename);
 var track = require("./common/track");
 var activity = require("./activity");
 

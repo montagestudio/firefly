@@ -1,4 +1,4 @@
-var log = require("./common/logging").from(__filename);
+var log = require("logging").from(__filename);
 var track = require("./common/track");
 var request = require("q-io/http").request;
 var Q = require("q");

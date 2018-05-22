@@ -1,4 +1,4 @@
-var log = require("./common/logging").from(__filename);
+var log = require("logging").from(__filename);
 var WebSocket = require("faye-websocket");
 
 module.exports = ProxyWebsocket;

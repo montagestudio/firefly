@@ -10,6 +10,7 @@
     "faye-websocket": "~0.7.2",
     "htmlparser2": "3.4.0",
     "joey": "^1.5.3",
+    "logging": "montagestudio/logging.git",
     "minimatch": "~0.2.12",
     "minit": "^0.5.8",
     "mmmagic": "0.5.0",

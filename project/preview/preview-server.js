@@ -1,5 +1,5 @@
 /*global module, unescape*/
-var log = require("../common/logging").from(__filename);
+var log = require("logging").from(__filename);
 var activity = require("../activity");
 
 var Q = require("q");

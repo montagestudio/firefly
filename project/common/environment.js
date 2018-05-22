@@ -1,4 +1,4 @@
-var log = require("./logging").from(__filename);
+var log = require("logging").from(__filename);
 var URL = require("url");
 
 if (process.env.NODE_ENV === "test") {

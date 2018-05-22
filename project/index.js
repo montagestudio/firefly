@@ -8,7 +8,7 @@ process.on("SIGUSR2", function() {
     global.console.log(process.memoryUsage());
 });
 
-var log = require("./common/logging").from(__filename);
+var log = require("logging").from(__filename);
 
 var track = require("./common/track");
 var FS = require("q-io/fs");

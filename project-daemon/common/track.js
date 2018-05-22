@@ -19,7 +19,7 @@ if (typeof jasmine !== "undefined") {
     return;
 }
 
-var log = require("./logging").from(__filename);
+var log = require("logging").from(__filename);
 var Q = require("q");
 var rollbar = require("rollbar");
 
