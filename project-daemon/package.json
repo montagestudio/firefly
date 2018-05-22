@@ -3,8 +3,8 @@
   "description": "Service that manages user project containers for Firefly.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "jasmine-node spec --forceexit"
+    "build": "docker build -t firefly-project-daemon .",
+    "test": "npm run build && docker run --entrypoint jasmine-node --env-file ../.env firefly-project-daemon spec --forceexit"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -22,8 +22,6 @@
     "uuid": "~1.4.1"
   },
   "devDependencies": {
-    "istanbul": "~0.1.44",
-    "jasmine-node": "~1.14.0",
     "rewire": "^2.1.3"
   }
 }

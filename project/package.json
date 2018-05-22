@@ -3,8 +3,8 @@
   "description": "Per-user-project workspace service for Firefly.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "jasmine-node spec --forceexit"
+    "build": "docker build -t firefly-project .",
+    "test": "npm run build && docker run --entrypoint jasmine-node --env-file ../.env firefly-project spec --forceexit"
   },
   "dependencies": {
     "bluebird": "^3.5.0",
@@ -26,10 +26,5 @@
     "uuid": "~1.4.1",
     "watchr": "2.4.11",
     "xmlhttprequest": "~1.6.0"
-  },
-  "devDependencies": {
-    "istanbul": "~0.1.44",
-    "jasmine-node": "~1.14.0",
-    "rewire": "^2.1.3"
   }
 }

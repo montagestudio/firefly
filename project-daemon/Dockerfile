@@ -47,11 +47,14 @@ RUN curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-co
 RUN chmod +x /usr/local/bin/docker-compose
 RUN docker-compose version
 
+# Testing tools
+RUN npm install -g jasmine-node@~1.14.0
+
 WORKDIR /srv/project-daemon/
 COPY ./package.json .
 RUN npm install --prefix .
 COPY . .
 
-CMD [ "npm", "start" ]
+CMD [ "node", "index.js" ]
 
 EXPOSE 2440

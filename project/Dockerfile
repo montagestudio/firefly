@@ -18,6 +18,9 @@ RUN npm cache add montage
 RUN git clone https://github.com/montagejs/popcorn.git ~/popcorn
 RUN git --git-dir ~/popcorn/.git remote rm origin
 
+# Testing tools
+RUN npm install -g jasmine-node@~1.14.0
+
 # Add server code
 WORKDIR /srv/project/
 COPY ./package.json .
