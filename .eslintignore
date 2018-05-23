@@ -1,3 +1,5 @@
 **/node_modules
 static/filament
 project/preview/client
+deploy
+live-edit-spec

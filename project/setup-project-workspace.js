@@ -3,7 +3,7 @@ var ProjectWorkspace = require("./project-workspace");
 module.exports = SetupProjectWorkspace;
 
 function SetupProjectWorkspace(config, directory, minitPath) {
-    return function (request, response) {
+    return function (request) {
         var owner = config.owner.toLowerCase();
         var repo = config.repo.toLowerCase();
 

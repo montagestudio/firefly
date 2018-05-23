@@ -478,14 +478,14 @@ describe("repository-service", function () {
             .then(function() {
                 return service2.updateRefs("discard", null);
             })
-            .then(function(result) {
+            .then(function() {
                 return service1.listBranches();
             })
             .then(function(branchesInfo) {
                 var remoteMaster = branchesInfo.branches[service1.REMOTE_SOURCE_NAME].master;
                 return service1._reset(remoteMaster.sha);
             })
-            .then(function(result) {
+            .then(function() {
                 return service1.shadowBranchStatus();
             })
             .then(function(status1) {

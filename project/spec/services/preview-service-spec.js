@@ -7,7 +7,7 @@ describe("preview-service", function () {
     function createConnection(host) {
         return {
             req: {headers: {host: host}, connection: {}},
-            send: function(content) {},
+            send: function() {},
             close: function() {}
         };
     }

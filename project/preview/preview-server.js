@@ -110,7 +110,7 @@ function injectPreviewScripts(request, response, subdomain) {
         var html = body.toString();
         var scriptBaseSrc = subdomain + CLIENT_FILES + "/";
 
-        for (var i = 0, scriptSrc; scriptSrc =/*assign*/ PREVIEW_SCRIPTS[i]; i++) {
+        for (var i = 0, scriptSrc; (scriptSrc = PREVIEW_SCRIPTS[i]); i++) {
             html = injectScriptInHtml(scriptBaseSrc + scriptSrc, html);
         }
         if (process.env.NODE_ENV !== "development" && process.env.NODE_ENV !== "staging") {
@@ -152,7 +152,7 @@ function servePreviewClientFile(request, response, subdomain) {
     });
 }
 
-function startWsServer(config) {
+function startWsServer() {
     // this server will get upgraded by container-chain
     var websocketConnections = 0;
 

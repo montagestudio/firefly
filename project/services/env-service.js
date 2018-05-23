@@ -1,7 +1,7 @@
 var URL = require("url");
 
 module.exports = EnvService;
-function EnvService(config, _, pathname) {
+function EnvService(config) {
     // Returned service
     var service = {};
 

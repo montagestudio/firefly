@@ -39,7 +39,7 @@ var commandOptions = {
         default: 2441
     },
     "help": {
-        describe: "Show this help",
+        describe: "Show this help"
     }
 };
 

@@ -18,7 +18,7 @@ var guard = function (exclude) {
 };
 
 module.exports = exports = FileService;
-var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function (pathname) {
+var makeConvertProjectUrlToPath = exports.makeConvertProjectUrlToPath = function () {
     return function (url) {
         // Remove the details path (/user/owner/repo/)
         return decodeURI(URL.parse(url).pathname.replace(/^\/.+?\/.+?\/.+?\//, "/"));
@@ -212,14 +212,14 @@ function FileService(config, fs, pathname, fsPath) {
         return fs.read(PATH.join(path, "package.json")).then(function (contents) {
             var pkg = JSON.parse(contents);
             return guard(exclude.concat(pkg.exclude || []));
-        }, function (err) {
+        }, function () {
             return guard(exclude);
         }).then(function (guard) {
             return fs.listTree(path, guard).then(pathsToUrlStatArray);
         });
     };
 
-    service.open = function (thing) {
+    service.open = function () {
         var done = Q.defer();
         // opener(thing, done.makeNodeResolver());
         done.reject(new Error("TODO Implement me"));

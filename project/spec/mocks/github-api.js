@@ -36,7 +36,7 @@ GithubApi.prototype.getRepository = function(owner, repo) {
     });
 };
 
-GithubApi.prototype.isRepositoryEmpty = function(owner, repo) {
+GithubApi.prototype.isRepositoryEmpty = function() {
     var options = this._options;
     
     return Q.resolve(
@@ -58,12 +58,12 @@ GithubApi.prototype.getInfo = function(owner, repo) {
 };
 
 GithubApi.prototype.checkError = function (method, username, thisp) {
-    return function wrapped(error) {
+    return function wrapped() {
         var args = Array.prototype.slice.call(arguments);
         return method.apply(thisp, args);
     };
 };
 
-GithubApi.prototype.getRepositoryEvents = function (username, repository, lastETag) {
+GithubApi.prototype.getRepositoryEvents = function () {
     return Q.resolve();
 };
