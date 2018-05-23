@@ -3,9 +3,12 @@ FROM node:carbon
 RUN mkdir -p /opt/app/
 WORKDIR /opt/app
 
+# Testing tools
+RUN npm install -g mocha
+
 COPY ./package.json /opt/app/
 COPY ./package-lock.json /opt/app/
-RUN npm install --production
+RUN npm install
 
 COPY ./ /opt/app/
 

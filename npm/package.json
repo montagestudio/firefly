@@ -18,7 +18,8 @@
     "supertest": "^3.0.0"
   },
   "scripts": {
-    "test": "mocha",
+    "build": "docker build -t firefly-npm .",
+    "test": "npm run build && docker run --entrypoint mocha firefly-npm",
     "doc": "concurrently 'http-server -p 2450' 'open http://localhost:2450/doc'"
   },
   "license": "ISC"
