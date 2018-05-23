@@ -9,7 +9,7 @@ const fsSample = require("./mocks/fs-sample");
 const fsFactory = require("./mocks/fs-factory");
 const mockFs = require("mock-fs");
 const DEPENDENCY_CATEGORIES = require("../dependency-node").DEPENDENCY_CATEGORIES;
-const ERROR_TYPES = require("../detect-error-dependency-tree").ERROR_TYPES;
+const ERROR_TYPES = require("../error-codes");
 
 const DEFAULT_PROJECT_NAME = 'project-fs-sample';
 

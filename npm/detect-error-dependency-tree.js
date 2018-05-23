@@ -1,12 +1,7 @@
 const semver = require("semver");
 const DEPENDENCY_CATEGORIES = require("./dependency-node").DEPENDENCY_CATEGORIES;
 
-const ERROR_TYPES = {
-    VERSION_INVALID: 0,
-    DEPENDENCY_MISSING: 1,
-    DEPENDENCY_EXTRANEOUS: 2,
-    PACKAGE_FILE_INVALID: 3
-};
+const ERROR_TYPES = require("./error-codes");
 
 function DetectErrorDependencyTree(dependencyTree) {
     const problems = [];
@@ -150,4 +145,3 @@ function DetectErrorDependencyTree(dependencyTree) {
 }
 
 module.exports = DetectErrorDependencyTree;
-module.exports.ERROR_TYPES = ERROR_TYPES;
