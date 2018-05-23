@@ -29,7 +29,7 @@ module.exports = (app, request, getJwtProfile) => {
     });
 
     app.route('/workspaces')
-        .get(apiEndpoint(async (req, res, next) => {
+        .get(apiEndpoint(async (req, res) => {
             try {
                 const response = await request.get('http://firefly_project-daemon:2440/workspaces', {
                     headers: {
@@ -43,7 +43,7 @@ module.exports = (app, request, getJwtProfile) => {
                 res.json([]);
             }
         }))
-        .delete(apiEndpoint(async (req, res, next) => {
+        .delete(apiEndpoint(async (req, res) => {
             try {
                 const response = await request.delete('http://firefly_project-daemon:2440/workspaces', {
                     headers: {
@@ -58,7 +58,7 @@ module.exports = (app, request, getJwtProfile) => {
             }
         }));
 
-    app.all('/:owner/:repo/*', apiEndpoint(async (req, res, next) => {
+    app.all('/:owner/:repo/*', apiEndpoint(async (req, res) => {
         try {
             const axiosConfig = {
                 headers: {
@@ -86,11 +86,11 @@ module.exports = (app, request, getJwtProfile) => {
         }
     }));
 
-    app.all('*', async(req, res, next) => {
+    app.all('*', async(req, res) => {
         res.sendStatus(404);
     });
 
-    app.use((err, req, res, next) => {
+    app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
         console.error('Unexpected error: ', err);
         res.status(500);
         res.json({

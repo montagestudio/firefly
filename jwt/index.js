@@ -11,7 +11,7 @@ const privateKey = fs.readFileSync(path.join(__dirname, "private.key"));
 app.use(cors());
 app.use(bodyParser.json());
 
-app.post("/login", (req, res, next) => {
+app.post("/login", (req, res) => {
     const { body } = req;
     jwt.sign(body, privateKey, (err, token) => {
         if (err) {
@@ -22,7 +22,7 @@ app.post("/login", (req, res, next) => {
     });
 });
 
-app.get("/profile", (req, res, next) => {
+app.get("/profile", (req, res) => {
     const auth = req.headers.authentication;
     const token = auth && auth.split(" ")[1];
     jwt.verify(token, privateKey, (err, payload) => {

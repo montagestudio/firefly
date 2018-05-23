@@ -4,7 +4,6 @@ const chai = require("chai");
 const { expect } = chai;
 const spies = require("chai-spies");
 const routes = require("../routes");
-const URL = require('url');
 const axios = require('axios');
 
 chai.use(spies);
@@ -20,14 +19,14 @@ async function getJwtProfile(authHeader) {
 }
 
 function fakeAxiosData(method, data) {
-    chai.spy.on(axios, method, async (url) => ({
+    chai.spy.on(axios, method, async () => ({
         status: 200,
         data
     }));
 }
 
 describe('api', () => {
-    let app, sandbox;
+    let app;
 
     beforeEach(() => {
         app = express();
@@ -59,7 +58,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect([])
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.get).to.have.been.called.with('http://firefly_project-daemon:2440/workspaces');
                     done();
@@ -67,7 +66,7 @@ describe('api', () => {
         });
 
         it('returns an empty array if the project-daemon service cannot be reached', (done) => {
-            chai.spy.on(axios, 'get', async (url) => {
+            chai.spy.on(axios, 'get', async () => {
                 throw new Error('chaos');
             });
             supertest(app)
@@ -87,7 +86,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.delete).to.have.been.called.with('http://firefly_project-daemon:2440/workspaces');
                     done();
@@ -95,7 +94,7 @@ describe('api', () => {
         });
 
         it('returns {deleted: false} if the operation failed', (done) => {
-            chai.spy.on(axios, 'delete', async (url) => {
+            chai.spy.on(axios, 'delete', async () => {
                 throw new Error('chaos');
             });
             supertest(app)
@@ -115,7 +114,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/init');
                     done();
@@ -132,7 +131,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.get).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/init/progress');
                     done();
@@ -151,7 +150,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/flush', body);
                     done();
@@ -168,7 +167,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.get).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/workspace');
                     done();
@@ -187,7 +186,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/save', body);
                     done();
@@ -206,7 +205,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/components', body);
                     done();
@@ -225,7 +224,7 @@ describe('api', () => {
                 .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
-                .end((err, res) => {
+                .end((err) => {
                     if (err) return done(err);
                     expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/modules', body);
                     done();
