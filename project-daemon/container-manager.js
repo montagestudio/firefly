@@ -5,7 +5,7 @@ const Q = require('q');
 const ProjectInfo = require('./project-info');
 const GithubApi = require("github");
 
-const IMAGE_NAME = `registry.montage.studio/firefly/project:${(process.env.PROJECT_VERSION || 'latest')}`;
+const IMAGE_NAME = `montagestudio/firefly-project:${(process.env.PROJECT_VERSION || 'latest')}`;
 const IMAGE_PORT = 2441;
 const IMAGE_PORT_TCP = IMAGE_PORT + '/tcp';
 const PROJECTS_NETWORK = 'firefly_projects';
