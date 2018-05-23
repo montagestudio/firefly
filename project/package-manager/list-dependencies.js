@@ -65,7 +65,7 @@ module.exports = function listDependencies (fs, projectPath, shouldReadChildren)
                     installedDependencies.forEach(function (installedDependencyName) {
                         var dependencySaved = _findDependency(dependencyNode.children, installedDependencyName);
 
-                        if (!!dependencySaved) {
+                        if (dependencySaved) {
                             dependencySaved.missing = false;
                         } else {
                             var dependencyExtraneous = makeDependencyNode();

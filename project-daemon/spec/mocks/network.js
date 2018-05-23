@@ -1,11 +1,12 @@
-var Q = require("q");
+class Network {
+    constructor (modem, id) {
+        this.modem = modem;
+        this.id = id;
+    }
 
-function Network(modem, id) {
-    this.modem = modem;
-    this.id = id;
+    async connect() {
+        
+    }
 }
-module.exports = Network;
 
-Network.prototype.connect = function () {
-    return Q();
-};
+module.exports = Network;

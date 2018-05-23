@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "generate-local-certificate": "scripts/generate-local-certificate.sh",
-    "lint": "jshint --verbose .",
+    "lint": "eslint .",
     "coverage": "istanbul test -x 'spec/**' jasmine-node -- --junitreport spec && jshint --verbose .",
     "build": "docker-compose build && npm run build:project",
     "build:project": "docker build -t montagestudio/firefly-project:${PROJECT_VERSION:-latest} project",
@@ -22,7 +22,7 @@
     "exit-mop-mode": "deploy/vagrant/exit-mop-mode.sh"
   },
   "devDependencies": {
-    "jshint": "^2.9.5"
+    "eslint": "^4.19.1"
   },
   "repository": {
     "type": "git",

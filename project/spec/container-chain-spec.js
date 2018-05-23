@@ -60,7 +60,7 @@ describe("container chain", function () {
                 method: "POST",
                 url: url
             })
-            .then(function (response) {
+            .then(function () {
                 expect(projectWorkspace.initializeWorkspace).toHaveBeenCalled();
             }).then(done, done);
         });

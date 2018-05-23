@@ -1,5 +1,0 @@
-**/node_modules/**
-**/inject/adaptor/client/core/fs-boot.js
-coverage/**
-reports/**
-static/filament

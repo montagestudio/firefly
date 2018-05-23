@@ -20,7 +20,7 @@ var parseIndexHtml = function (body) {
     var baseUrl;
     if (matches) {
         baseUrl = matches[1];
-        while (matches = regex.exec(body)) {
+        while ((matches = regex.exec(body))) {
             filePaths.push(PATH.join(baseUrl, matches[1]));
         }
     }

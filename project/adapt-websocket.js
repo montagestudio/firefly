@@ -9,7 +9,7 @@ function adaptWebsocket(ws) {
         queue.put(event.data);
     });
 
-    ws.on("close", function (event) {
+    ws.on("close", function () {
         queue.close();
     });
 

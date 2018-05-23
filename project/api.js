@@ -6,7 +6,7 @@ var sanitize = require("./sanitize");
 
 module.exports = function (config) {
     // TODO version API by reading header Accept: application/vnd.firefly.v2+json
-    return joey.route(function (route, GET, PUT, POST, DELETE) {
+    return joey.route(function (route, GET, PUT, POST) {
         var initializingPromise;
 
         POST("init")

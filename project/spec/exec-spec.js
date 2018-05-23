@@ -11,7 +11,7 @@ describe("exec", function () {
         exec("./does-not-exist", [], __dirname)
         .then(function () {
             expect(true).toBe(false);
-        }, function (error) {
+        }, function () {
             done();
         });
     });

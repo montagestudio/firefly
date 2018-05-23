@@ -44,7 +44,7 @@ function AssetConverterService (config, fs, pathname, fsPath) {
         outputPath = PATH.join(fsPath, outputPath);
         var configPath = PATH.join(__dirname, "collada2gltf-config.json");
 
-        return exec("collada2gltf", ["-f", inputPath, !!bundle ? "-b" : "-o", outputPath, "-z", configPath], fsPath);
+        return exec("collada2gltf", ["-f", inputPath, bundle ? "-b" : "-o", outputPath, "-z", configPath], fsPath);
     }
 
     /**

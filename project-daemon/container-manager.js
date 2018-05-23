@@ -1,269 +1,230 @@
-var log = require("logging").from(__filename);
-var request = require("q-io/http").request;
-var Q = require("q");
-var ProjectInfo = require("./project-info");
-var GithubService = require("./github-service").GithubService;
+const log = require('logging').from(__filename);
+const request = require('q-io/http').request;
+const { promisify } = require('util');
+const Q = require('q');
+const ProjectInfo = require('./project-info');
+const GithubApi = require("github");
 
-var IMAGE_NAME = "montagestudio/firefly-project:" + (process.env.PROJECT_VERSION || "latest");
-var IMAGE_PORT = 2441;
-var IMAGE_PORT_TCP = IMAGE_PORT + "/tcp";
-var PROJECTS_NETWORK = "firefly_projects";
+const IMAGE_NAME = `registry.montage.studio/firefly/project:${(process.env.PROJECT_VERSION || 'latest')}`;
+const IMAGE_PORT = 2441;
+const IMAGE_PORT_TCP = IMAGE_PORT + '/tcp';
+const PROJECTS_NETWORK = 'firefly_projects';
 
-var containerNameForProjectInfo = function (projectInfo) {
-    return "firefly-project_" + projectInfo.username + "_" + projectInfo.owner + "_" + projectInfo.repo;
-};
+const containerNameForProjectInfo = (projectInfo) =>
+    ['firefly-project', projectInfo.username, projectInfo.owner, projectInfo.repo].join('_');
 
-var containerHasName = function (nameOrMatcher, containerInfo) {
-    return containerInfo && containerInfo.Names.filter(function (name) {
-        if (typeof nameOrMatcher === "function") {
-            return nameOrMatcher(name);
-        } else {
-            return name === nameOrMatcher;
+const containerHasName = (nameOrMatcher, containerInfo) => containerInfo &&
+    containerInfo.Names.filter((name) => typeof nameOrMatcher === 'function' ?
+        nameOrMatcher(name) :
+        name === nameOrMatcher
+    ).length > 0;
+
+const isContainerForProjectInfo = (projectInfo, containerInfo) => containerHasName(containerNameForProjectInfo(projectInfo), containerInfo);
+
+module.exports = class ContainerManager {
+    constructor(docker, _request) {
+        this.docker = docker;
+        this.pendingContainers = new Map();
+        this.GithubApi = GithubApi;
+        // Only used for testing
+        this.request = _request || request;
+    }
+
+    async has(info) {
+        const containerInfos = await this.docker.listContainers();
+        return containerInfos.filter(isContainerForProjectInfo.bind(null, info)).length > 0;
+    }
+
+    async containersForUser(githubUsername) {
+        const { docker } = this;
+        const containerInfos = await docker.listContainers();
+        const userContainerInfos = containerInfos.filter(containerHasName.bind(null, (name) =>
+            name.indexOf(`firefly-project_${githubUsername}`) === 0));
+        return userContainerInfos.map((containerInfo) => new docker.Container(docker.modem, containerInfo.Id));
+    }
+
+    hostForProjectInfo(projectInfo) {
+        return containerNameForProjectInfo(projectInfo) + ':' + IMAGE_PORT;
+    }
+
+    async setup(info, githubAccessToken, githubProfile) {
+        if (!(info instanceof ProjectInfo)) {
+            throw new TypeError('Given info was not an instance of ProjectInfo');
         }
-    }).length > 0;
-};
-
-var isContainerForProjectInfo = function (projectInfo, containerInfo) {
-    return containerHasName(containerNameForProjectInfo(projectInfo), containerInfo);
-};
-
-module.exports = ContainerManager;
-function ContainerManager(docker, _request) {
-    this.docker = docker;
-    this.pendingContainers = new Map();
-    this.GithubService = GithubService;
-    // Only used for testing
-    this.request = _request || request;
-}
-
-ContainerManager.prototype.has = function (info) {
-    return this.docker.listContainers()
-        .then(function (containerInfos) {
-            return containerInfos.filter(isContainerForProjectInfo.bind(null, info)).length > 0;
-        });
-};
-
-ContainerManager.prototype.containersForUser = function (githubUsername) {
-    var self = this;
-    return this.docker.listContainers()
-        .then(function (containerInfos) {
-            return containerInfos.filter(containerHasName.bind(null, function (name) {
-                return name.indexOf("firefly-project_" + githubUsername) === 0;
-            })).map(function (containerInfo) {
-                return new self.docker.Container(self.docker.modem, containerInfo.Id);
-            });
-        });
-};
-
-ContainerManager.prototype.hostForProjectInfo = function (projectInfo) {
-    return containerNameForProjectInfo(projectInfo) + ":" + IMAGE_PORT;
-};
-
-ContainerManager.prototype.setup = function (info, githubAccessToken, githubProfile) {
-    var self = this;
-    if (!(info instanceof ProjectInfo)) {
-        throw new TypeError("Given info was not an instance of ProjectInfo");
+        if (this.pendingContainers.has(info.hash)) {
+            return this.pendingContainers.get(info.hash);
+        }
+        const containerPromise = this.getOrCreate(info, githubAccessToken, githubProfile)
+            .then(async (container) => {
+                try {
+                    await this.start(container);
+                    await this.connectToProjectsNetwork(container);
+                    await this.waitForProjectServer(containerNameForProjectInfo(info));
+                } catch (error) {
+                    log('Removing container for', info.toString(), 'because', error.message);
+                    await container.remove();
+                    throw error;
+                }
+            })
+            .then(() => this.hostForProjectInfo(info));
+        this.pendingContainers.set(info.hash, containerPromise);
+        return containerPromise;
     }
-    if (this.pendingContainers.has(info.hash)) {
-        return this.pendingContainers.get(info.hash);
-    }
-    var containerPromise = this.getOrCreate(info, githubAccessToken, githubProfile)
-        .then(function (container) {
-            return self.start(container)
-                .then(function (container) {
-                    return self.connectToProjectsNetwork(container);
-                })
-                .then(function (container) {
-                    return self.waitForProjectServer(containerNameForProjectInfo(info));
-                })
-                .catch(function (error) {
-                    log("Removing container for", info.toString(), "because", error.message);
-                    return container.remove()
-                        .then(function () {
-                            console.error(error, 'for', info.username, { info: info });
-                            throw error;
-                        }, function (error) {
-                            console.error(error, 'for', info.username, { info: info });
-                        });
-                });
-        })
-        .then(function () {
-            return self.hostForProjectInfo(info);
-        });
-    this.pendingContainers.set(info.hash, containerPromise);
-    return containerPromise;
-};
 
-ContainerManager.prototype.getOrCreate = function (info, githubAccessToken, githubProfile) {
-    var self = this;
-    var container = this.docker.getContainer(containerNameForProjectInfo(info));
-    return container.inspect()
-        .then(function (containerInfo) {
-            if (!containerInfo.State.Running) {
-                return container.remove()
-                    .then(function () {
-                        throw new Error("Container was stopped");
-                    });
+    async getOrCreate(info, githubAccessToken, githubProfile) {
+        let container = this.docker.getContainer(containerNameForProjectInfo(info)),
+            doesContainerExist = false;
+        try {
+            const containerInfo = await container.inspect();
+            if (containerInfo.State.Running) {
+                doesContainerExist = true;
+            } else {
+                await container.remove();
             }
-            return container;
-        })
-        .catch(function (err) {
+        } catch (e) {}
+        if (!doesContainerExist) {
             if (!githubAccessToken || !githubProfile) {
-                throw new Error("Cannot create project container without github credentials.");
+                throw new Error('Cannot create project container without github credentials.');
             }
-            return self._getRepoPrivacy(info, githubAccessToken)
-                .then(function (isPrivate) {
-                    if (isPrivate) {
-                        info.setPrivate(true);
-                    }
+            const isPrivate = await this._getRepoPrivacy(info, githubAccessToken);
+            if (isPrivate) {
+                info.setPrivate(true);
+            }
 
-                    log("Creating project container for", info.toString(), "...");
+            log('Creating project container for', info.toString(), '...');
 
-                    var options = self.buildOptionsForProjectInfo(info, githubAccessToken, githubProfile);
-                    return self.docker.createContainer(options)
-                        .then(function (container) {
-                            log("Created container", container.id, "for", info.toString());
-                            return container;
-                        });
-                });
-        })
-        .then(function (container) {
-            self.pendingContainers.delete(info.hash);
-            return container;
-        });
-};
+            const options = this.buildOptionsForProjectInfo(info, githubAccessToken, githubProfile);
+            container = await this.docker.createContainer(options);
+            log('Created container', container.id, 'for', info.toString());
+        }
+        this.pendingContainers.delete(info.hash);
+        return container;
+    }
 
-ContainerManager.prototype.buildOptionsForProjectInfo = function (info, githubAccessToken, githubProfile) {
-    var projectConfig = {
-        username: info.username,
-        owner: info.owner,
-        repo: info.repo,
-        githubAccessToken: githubAccessToken,
-        githubUser: githubProfile,
-        subdomain: info.toPath()
-    };
-    var options = {
-        name: containerNameForProjectInfo(info),
-        Image: IMAGE_NAME,
-        Memory: 1024 * 1024 * 1024,
-        MemorySwap: 1024 * 1024 * 1024,
-        Cmd: ['-c', JSON.stringify(projectConfig)],
-        Env: [
-            "NODE_ENV=" + (process.env.NODE_ENV || "development"),
-            "FIREFLY_APP_URL=" + process.env.FIREFLY_APP_URL,
-            "FIREFLY_PROJECT_URL=" + process.env.FIREFLY_PROJECT_URL
-        ],
-        PortBindings: {}
-    };
-    options.PortBindings[IMAGE_PORT_TCP] = [ {HostIp: "127.0.0.1"} ];
-    return options;
-};
+    buildOptionsForProjectInfo(info, githubAccessToken, githubProfile) {
+        const projectConfig = {
+            username: info.username,
+            owner: info.owner,
+            repo: info.repo,
+            githubAccessToken: githubAccessToken,
+            githubUser: githubProfile,
+            subdomain: info.toPath()
+        };
+        return {
+            name: containerNameForProjectInfo(info),
+            Image: IMAGE_NAME,
+            Memory: 1024 * 1024 * 1024,
+            MemorySwap: 1024 * 1024 * 1024,
+            Cmd: ['-c', JSON.stringify(projectConfig)],
+            Env: [
+                `NODE_ENV=${(process.env.NODE_ENV || 'development')}`,
+                `FIREFLY_APP_URL=${process.env.FIREFLY_APP_URL}`,
+                `FIREFLY_PROJECT_URL=${process.env.FIREFLY_PROJECT_URL}`
+            ],
+            PortBindings: {
+                [IMAGE_PORT_TCP]: [ { HostIp: '127.0.0.1' }]
+            }
+        };
+    }
 
-/**
- * Starts a container if it is not already running.
- * @param {Dockerode.Container} container 
- */
-ContainerManager.prototype.start = function (container) {
-    return container.inspect()
-        .then(function (containerInfo) {
+    /**
+     * Starts a container if it is not already running.
+     * @param {Dockerode.Container} container 
+     */
+    async start(container) {
+        try {
+            const containerInfo = await container.inspect();
             if (!containerInfo.State.Running) {
                 return container.start();
             }
-        }, function (err) {
-            throw new Error("Unable to inspect container " + container.id + " while trying to start it. Error: " + err.message);
-        })
-        .then(function () {
-            return container;
-        });
-};
-
-/**
- * Connects a container to the projects network so that it can communicate with
- * the project daemon. Does nothing if the container is already on the network.
- * @param {Dockerode.Container} container
- */
-ContainerManager.prototype.connectToProjectsNetwork = function (container) {
-    var self = this;
-    return container.inspect()
-        .then(function (containerInfo) {
-            var projectsNetwork;
-            if (!containerInfo.NetworkSettings || !containerInfo.NetworkSettings.Networks[PROJECTS_NETWORK]) {
-                projectsNetwork = self.docker.getNetwork(PROJECTS_NETWORK);
-                log("Connecting container", container.id, "to projects network");
-                return projectsNetwork.connect({ Container: container.id });
-            }
-        })
-        .then(function () {
-            return container;
-        }, function (err) {
-            throw new Error("Unable to connect container " + container.id + " to the projects network because the network does not exist. Error: " + err.message);
-        });
-};
-
-/**
- * Waits for a server to be available on the given port. Retries every
- * 100ms until timeout passes.
- * @param  {string} port         The exposed port of the container
- * @param  {number} [timeout]   The number of milliseconds to keep trying for
- * @param  {Error} [error]      An previous error that caused the timeout
- * @return {Promise.<string>}   A promise for the port resolved when the
- * server is available.
- */
-ContainerManager.prototype.waitForProjectServer = function (url, timeout, error) {
-    var self = this;
-
-    timeout = typeof timeout === "undefined" ? 5000 : timeout;
-    if (timeout <= 0) {
-        return Q.reject(new Error("Timeout while waiting for server at " + url + (error ? " because " + error.message : "")));
+        } catch (err) {
+            throw new Error(`Unable to inspect container ${container.id} while trying to start it. Error: ${err.message}`);
+        }
+        return container;
     }
 
-    return self.request({
-        host: url,
-        port: IMAGE_PORT,
-        method: "OPTIONS",
-        path: "/"
-    })
-    .timeout(100)
-    .catch(function (error) {
-        log("Server at", url, "not available yet. Trying for", timeout - 100, "more ms");
-        return Q.delay(100).then(function () {
-            return self.waitForProjectServer(url, timeout - 100, error);
-        });
-    });
-};
+    /**
+     * Connects a container to the projects network so that it can communicate with
+     * the project daemon. Does nothing if the container is already on the network.
+     * @param {Dockerode.Container} container
+     */
+    async connectToProjectsNetwork(container) {
+        const containerInfo = await container.inspect();
+        if (!containerInfo.NetworkSettings || !containerInfo.NetworkSettings.Networks || !containerInfo.NetworkSettings.Networks[PROJECTS_NETWORK]) {
+            log('Connecting container', container.id, 'to projects network');
+            const projectsNetwork = this.docker.getNetwork(PROJECTS_NETWORK);
+            try {
+                await projectsNetwork.connect({ Container: container.id });
+            } catch (err) {
+                throw new Error(`Unable to connect container ${container.id} to the projects network because the network does not exist. Error: ${err.message}`);
+            }
+        }
+        return container;
+    }
 
-ContainerManager.prototype.delete = function (info) {
-    var self = this;
-    return this.listContainers()
-        .then(function (containerInfos) {
-            var containerInfo = containerInfos.filter(isContainerForProjectInfo.bind(null, info))[0];
-            var container = new self.docker.Container(self.docker.modem, containerInfo.Id);
+    /**
+     * Waits for a server to be available on the given port. Retries every
+     * 100ms until timeout passes.
+     * @param  {string} port         The exposed port of the container
+     * @param  {number} [timeout]   The number of milliseconds to keep trying for
+     * @param  {Error} [error]      An previous error that caused the timeout
+     * @return {Promise.<string>}   A promise for the port resolved when the
+     * server is available.
+     */
+    async waitForProjectServer(url, timeout = 5000, error) {
+        if (timeout <= 0) {
+            throw new Error(`Timeout while waiting for server at ${url} ${error ? ' because ' + error.message : ''}`);
+        }
+        return this.request({
+            host: url,
+            port: IMAGE_PORT,
+            method: 'OPTIONS',
+            path: '/'
+        })
+        .timeout(100)
+        .catch((error) => {
+            log('Server at', url, 'not available yet. Trying for', timeout - 100, 'more ms');
+            return Q.delay(100).then(() => {
+                return this.waitForProjectServer(url, timeout - 100, error);
+            });
+        });
+    }
+
+    async delete(info) {
+        const containerInfos = await this.listContainers();
+        const containerInfo = containerInfos.filter(isContainerForProjectInfo.bind(null, info))[0];
+        const container = this.docker.getContainer(containerInfo.Id);
+        await container.stop();
+        await container.remove();
+    }
+
+    async deleteUserContainers(githubUsername) {
+        const containers = await this.containersForUser(githubUsername);
+        return Promise.all(containers.map((container) => {
             return container.stop()
                 .then(function () {
                     return container.remove();
                 });
-        });
-};
-
-ContainerManager.prototype.deleteUserContainers = function (githubUsername) {
-    return this.containersForUser()
-        .then(function (containers) {
-            return Promise.all(containers.map(function (container) {
-                return container.stop()
-                    .then(function () {
-                        return container.remove();
-                    });
-            }));
-        });
-};
-
-ContainerManager.prototype._getRepoPrivacy = function(info, githubAccessToken) {
-    if (typeof info.private === 'undefined' && githubAccessToken) {
-        var githubService = new this.GithubService(githubAccessToken);
-        return githubService.getRepo(info.owner, info.repo).then(function(repoInfo) {
-            return Q.resolve(repoInfo.private);
-        });
-    } else {
-        return Q.resolve(info.private);
+        }));
     }
-};
+
+    async _getRepoPrivacy(info, githubAccessToken) {
+        if (typeof info.private === 'undefined' && githubAccessToken) {
+            const githubApi = new this.GithubApi({
+                version: '3.0.0',
+                headers: {
+                    'user-agent': 'MontageStudio.com'
+                }
+            });
+            githubApi.authenticate({
+                type: 'oauth',
+                token: githubAccessToken
+            });
+            const getRepoAsync = promisify(githubApi.repos.get);
+            const repoInfo = await getRepoAsync({ user: info.owner, repo: info.repo});
+            return repoInfo.private;
+        } else {
+            return info.private;
+        }
+    }
+}

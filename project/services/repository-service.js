@@ -1239,13 +1239,9 @@ function _RepositoryService(username, owner, githubAccessToken, repo, fs, fsPath
     service._revertRemoteChanges = function(local, remote, status) {
         var self = this,
             stashed = false,
-            branchesInfo,
             next;
 
         return this._listBranches()
-        .then(function(result) {
-            branchesInfo = result;
-        })
         .then(function() {
             return self._hasUncommittedChanges()
             .then(function(uncommittedChanges) {

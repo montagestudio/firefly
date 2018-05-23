@@ -10,10 +10,10 @@ var PackageManagerTools = {};
 PackageManagerTools.isPackageNameValid = function (name, strict) {
     if (typeof strict === "undefined" || strict) {
         return typeof name === 'string' ?
-            (/^(?!(js|node|node_modules|favicon\.ico)$)(?=([0-9a-zA-Z~]([\w\-\.~]){0,})$)/i).test(name) : false;
+            (/^(?!(js|node|node_modules|favicon\.ico)$)(?=([0-9a-zA-Z~]([\w\-.~]){0,})$)/i).test(name) : false;
     }
 
-    return typeof name === 'string' ? /^[0-9a-zA-Z~]([\w\-\.~])*$/.test(name) : false;
+    return typeof name === 'string' ? /^[0-9a-zA-Z~]([\w\-.~])*$/.test(name) : false;
 };
 
 /**
@@ -23,7 +23,7 @@ PackageManagerTools.isPackageNameValid = function (name, strict) {
  * @return {Boolean}
  */
 PackageManagerTools.isVersionValid = function (version) {
-    return typeof version === 'string' ? (/^v?([0-9]+\.){2}[0-9]+(\-?[a-zA-Z0-9])*$/).test(version) : false;
+    return typeof version === 'string' ? (/^v?([0-9]+\.){2}[0-9]+(-?[a-zA-Z0-9])*$/).test(version) : false;
 
 };
 
@@ -35,7 +35,7 @@ PackageManagerTools.isVersionValid = function (version) {
  */
 PackageManagerTools.isGitUrl = function (url) {
     return typeof url === 'string' ?
-        (/^git(\+https?|\+ssh)?:\/\/([\w\-\.~]+@)?[\/\w\.\-:~\?]*\/([0-9a-zA-Z~][\w\-\.~]*)\.git(#[\w\-\.~]*)?$/).exec(url) : false;
+        (/^git(\+https?|\+ssh)?:\/\/([\w\-.~]+@)?[/\w.\-:~?]*\/([0-9a-zA-Z~][\w\-.~]*)\.git(#[\w\-.~]*)?$/).exec(url) : false;
 };
 
 /**
@@ -107,7 +107,7 @@ PackageManagerTools.formatPersonFromString = function (string) {
          * \u00A1 (Latin-1 Supplement) to \uFFFF (Specials).
          */
 
-        var personName = (/([\w\-\.\u0020\u00A1-\uFFFF]+)/).exec(string);
+        var personName = (/([\w\-.\u0020\u00A1-\uFFFF]+)/).exec(string);
 
         if (personName) {
             var personEmail = (/<(.+)>/).exec(string),

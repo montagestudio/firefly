@@ -327,7 +327,7 @@ GithubApi.prototype.repositoryExists = function(username, repository) {
 
 GithubApi.prototype.checkError = function(method, username, thisp) {
     var self = this;
-    return function wrapped(error) {
+    return function wrapped() {
         var args = Array.prototype.slice.call(arguments);
         return method.apply(thisp, args).catch(function(error) {
             console.log("Git Error", error.stack);
@@ -338,7 +338,7 @@ GithubApi.prototype.checkError = function(method, username, thisp) {
                 } else {
                     throw new Error("Unauthorized access");
                 }
-            }, function(error) {
+            }, function() {
                 throw new Error("Network error");
             });
         });

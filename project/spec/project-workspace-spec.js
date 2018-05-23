@@ -165,7 +165,7 @@ describe("ProjectWorkspace", function () {
             });
 
             return projectWorkspace.initializeWorkspace()
-            .then(function(info) {
+            .then(function() {
                 expect(spy).toHaveBeenCalled();
             }).then(done, done);
         });
@@ -226,7 +226,7 @@ describe("ProjectWorkspace", function () {
             .then(function() {
                 return projectWorkspace.createComponent("my-component");
             })
-            .then(function(data) {
+            .then(function() {
                 expect(spy).toHaveBeenCalled();
             }).then(done, done);
         });
@@ -270,7 +270,7 @@ describe("ProjectWorkspace", function () {
             .then(function() {
                 return projectWorkspace.createModule("my-module");
             })
-            .then(function(data) {
+            .then(function() {
                 expect(spy).toHaveBeenCalled();
             }).then(done, done);
         });
