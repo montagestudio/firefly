@@ -14,12 +14,12 @@
     "chai-spies": "^1.0.0",
     "concurrently": "^3.5.1",
     "http-server": "^0.11.1",
-    "mocha": "^5.1.1",
     "open": "0.0.5",
     "supertest": "^3.0.0"
   },
   "scripts": {
-    "test": "mocha",
+    "build": "docker build -t firefly-api-gateway .",
+    "test": "npm run build && docker run --entrypoint mocha firefly-api-gateway",
     "doc": "concurrently 'http-server -p 2450' 'open http://localhost:2450/doc'"
   },
   "license": "ISC"
