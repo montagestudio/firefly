@@ -5,7 +5,7 @@ const routes = require("../routes");
 const fsSample = require("./mocks/fs-sample");
 const ErrorsCodes = require("../error-codes");
 
-describe("DELETE /dependencies", () => {
+xdescribe("DELETE /dependencies", () => {
     let app;
 
     beforeEach(() => {
@@ -20,8 +20,8 @@ describe("DELETE /dependencies", () => {
             .expect(200)
             .end((err, res) => {
                 if (err) throw err;
-                expect(typeof res.body).toEqual("object");
-                expect(res.body.name).toEqual("montage");
+                expect(typeof res.body).to.equal("object");
+                expect(res.body.name).to.equal("montage");
                 done();
             });
     });
@@ -33,7 +33,7 @@ describe("DELETE /dependencies", () => {
             .end((err) => {
                 if (err) throw err;
                 console.log("test err", err);
-                expect(err.code).toEqual(ErrorsCodes.DEPENDENCY_NAME_NOT_VALID);
+                expect(err.code).to.equal(ErrorsCodes.DEPENDENCY_NAME_NOT_VALID);
                 done();
             });
     });
@@ -45,7 +45,7 @@ describe("DELETE /dependencies", () => {
             .end((err) => {
                 if (err) throw err;
                 console.log("test err", err);
-                expect(err.code).toEqual(ErrorsCodes.DEPENDENCY_NOT_FOUND);
+                expect(err.code).to.equal(ErrorsCodes.DEPENDENCY_NOT_FOUND);
                 done();
             });
     });

@@ -1,4 +1,3 @@
-const mock = require("mock-fs");
 const DEPENDENCY_CATEGORIES = require("../../dependency-node").DEPENDENCY_CATEGORIES;
 
 /*
@@ -46,7 +45,7 @@ const DEPENDENCY_CATEGORIES = require("../../dependency-node").DEPENDENCY_CATEGO
  */
 
 function fsFactory(project) {
-    return mock(parseDependencyNode(project));
+    return parseDependencyNode(project);
 }
 module.exports = fsFactory;
 
