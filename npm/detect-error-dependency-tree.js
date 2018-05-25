@@ -1,3 +1,5 @@
+'use strict';
+
 const semver = require("semver");
 const DEPENDENCY_CATEGORIES = require("./dependency-node").DEPENDENCY_CATEGORIES;
 

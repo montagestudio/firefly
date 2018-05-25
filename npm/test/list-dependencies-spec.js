@@ -1,8 +1,10 @@
+'use strict';
+
 const express = require("express");
 const request = require("supertest");
 const chai = require("chai");
 const spies = require("chai-spies");
-const { expect } = chai;
+const expect = chai.expect;
 const routes = require("../routes");
 const fsSample = require("./mocks/fs-sample");
 const fsFactory = require("./mocks/fs-factory");
@@ -65,7 +67,7 @@ describe("GET /dependencies", () => {
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
-                    const { children } = res.body;
+                    const children = res.body.children;
                     Object.values(children).forEach((category) => expect(category.problems).to.be.undefined);
                     done();
                 });
@@ -149,6 +151,7 @@ describe("GET /dependencies", () => {
                 .end((err, res) => {
                     if (err) throw err;
                     const dependencyTree = res.body;
+                    console.log(dependencyTree);
                     const montageNode = dependencyTree.children.regular.filter((dep) => dep.name === 'montage')[0];
                     expect(montageNode.type).to.equal(DEPENDENCY_CATEGORIES.REGULAR);
                     expect(montageNode.problems).to.not.be.undefined;

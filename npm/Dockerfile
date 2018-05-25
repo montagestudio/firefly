@@ -1,4 +1,4 @@
-FROM node:carbon
+FROM node:4.8.7
 
 RUN mkdir -p /opt/app/
 WORKDIR /opt/app
@@ -7,7 +7,6 @@ WORKDIR /opt/app
 RUN npm install -g mocha
 
 COPY ./package.json /opt/app/
-COPY ./package-lock.json /opt/app/
 RUN npm install
 
 COPY ./ /opt/app/

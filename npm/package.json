@@ -4,9 +4,10 @@
   "description": "Service for npm related package operations on a workspace.",
   "main": "index.js",
   "dependencies": {
-    "body-parser": "^1.18.2",
+    "body-parser": "~1.1.0",
     "cors": "^2.8.4",
     "express": "^4.16.3",
+    "q-io": "^1.13.5",
     "semver": "2.2.1"
   },
   "devDependencies": {
@@ -19,9 +20,13 @@
     "supertest": "^3.0.0"
   },
   "scripts": {
-    "build": "docker build -t firefly-npm .",
-    "test": "npm run build && docker run --entrypoint mocha firefly-npm",
+    "build": "docker build -t firefly-npm --rm .",
+    "test": "npm run build && docker run --entrypoint mocha --rm firefly-npm",
     "doc": "concurrently 'http-server -p 2450' 'open http://localhost:2450/doc'"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": "4.8.7",
+    "npm": "2.15.11"
+  }
 }

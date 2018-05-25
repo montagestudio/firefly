@@ -1,15 +1,17 @@
+'use strict';
+
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const apiEndpoint = require("./api-endpoint");
 const listDependencies = require("./list-dependencies");
-const fs = require('fs');
+const fs = require('q-io/fs');
 
 module.exports = (app) => {
     app.use(bodyParser.json());
     app.use(cors());
 
-    app.get("/dependencies", apiEndpoint(async (req, res) => {
-        let { url } = req.query;
+    app.get("/dependencies", apiEndpoint((req, res) => {
+        let url = req.query.url;
         if (!url) {
             res.status(400);
             return res.json({ error: "url query is required" });
@@ -17,12 +19,13 @@ module.exports = (app) => {
 
         url = url.replace(/package\.json$/, '');
 
-        try {
-            const dependencyTree = await listDependencies(fs, url);
-            res.json(dependencyTree);
-        } catch (error) {
-            console.error(error);
-            res.status(400).json({ error });
-        }
+        return listDependencies(fs, url)
+            .then(function (dependencyTree) {
+                res.json(dependencyTree);
+            })
+            .catch(function (error) {
+                console.error(error);
+                res.status(400).json({ error });
+            });
     }));
 };

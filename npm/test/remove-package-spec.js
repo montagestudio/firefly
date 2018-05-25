@@ -1,6 +1,8 @@
+'use strict';
+
 const express = require("express");
 const request = require("supertest");
-const { expect } = require("chai");
+const expect = require("chai").expect;
 const routes = require("../routes");
 const fsSample = require("./mocks/fs-sample");
 const ErrorsCodes = require("../error-codes");
