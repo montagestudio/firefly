@@ -151,7 +151,6 @@ describe("GET /dependencies", () => {
                 .end((err, res) => {
                     if (err) throw err;
                     const dependencyTree = res.body;
-                    console.log(dependencyTree);
                     const montageNode = dependencyTree.children.regular.filter((dep) => dep.name === 'montage')[0];
                     expect(montageNode.type).to.equal(DEPENDENCY_CATEGORIES.REGULAR);
                     expect(montageNode.problems).to.not.be.undefined;
@@ -162,7 +161,7 @@ describe("GET /dependencies", () => {
                     expect(montageTestingNode.problems[0].errorType).to.equal(ERROR_TYPES.VERSION_INVALID);
                     const nativeNode = dependencyTree.children.dev.filter((dep) => dep.name === 'native')[0];
                     expect(nativeNode.type).to.equal(DEPENDENCY_CATEGORIES.DEV);
-                    expect(nativeNode.problems).to.not.be.undefined;
+                    expect(nativeNode.problems).to.be.undefined;
                     done();
             });
         });
@@ -177,7 +176,6 @@ describe("GET /dependencies", () => {
                     expect(montageNode.problems).to.not.be.undefined;
                     expect(montageNode.problems[1].errorType).to.equal(ERROR_TYPES.DEPENDENCY_MISSING);
                     // the module joey needs a valid version of the package named zip.
-                    console.log(montageNode.problems);
                     expect(montageNode.problems[2].errorType).to.equal(ERROR_TYPES.VERSION_INVALID);
                     done();
             });
