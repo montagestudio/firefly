@@ -6,9 +6,9 @@ const chai = require("chai");
 const spies = require("chai-spies");
 const expect = chai.expect;
 const routes = require("../routes");
-const fsSample = require("./mocks/fs-sample");
-const fsFactory = require("./mocks/fs-factory");
-const mockFs = require("mock-fs");
+const QFSMock = require("q-io/fs-mock");
+const ProjectFSMocksFactory = require('./mocks/project-fs-factory');
+const projectFsMocks = require("./mocks/project-fs-sample");
 const DEPENDENCY_CATEGORIES = require("../dependency-node").DEPENDENCY_CATEGORIES;
 const ERROR_TYPES = require("../error-codes");
 
@@ -22,8 +22,8 @@ describe("GET /dependencies", () => {
     describe("no errors situation", () => {
         beforeEach(() => {
             app = express();
-            mockFs(fsSample(DEFAULT_PROJECT_NAME, false));
-            routes(app);
+            const fs = projectFsMocks(DEFAULT_PROJECT_NAME);
+            routes(app, fs);
         });
 
         it('should gather some correct information about the project.', (done) => {
@@ -108,8 +108,8 @@ describe("GET /dependencies", () => {
     describe("errors situation:", function () {
         beforeEach(() => {
             app = express();
-            mockFs(fsSample(DEFAULT_PROJECT_NAME, true));
-            routes(app);
+            const fs = projectFsMocks(DEFAULT_PROJECT_NAME, true);
+            routes(app, fs);
         });
 
         it('should detect when a regular dependency is missing.', (done) => {
@@ -208,12 +208,13 @@ describe("GET /dependencies", () => {
         });
 
         it('should detect when the project package.json file shows some errors.', function(done) {
-            mockFs.restore();
-            mockFs(fsFactory({
+            app = express();
+            const fs = QFSMock(ProjectFSMocksFactory({
                 name: DEFAULT_PROJECT_NAME,
                 version: '0.1.1',
                 jsonFileError: true
             }));
+            routes(app, fs);
             request(app)
                 .get(`/dependencies?url=${encodeURIComponent('./')}`)
                 .expect(200)
@@ -225,11 +226,12 @@ describe("GET /dependencies", () => {
         });
 
         it('should not complain if no dependencies are required.', (done) => {
-            mockFs.restore();
-            mockFs(fsFactory({
+            app = express();
+            const fs = QFSMock(ProjectFSMocksFactory({
                 name: DEFAULT_PROJECT_NAME,
                 version: '0.1.1'
             }));
+            routes(app, fs);
             request(app)
                 .get(`/dependencies?url=${encodeURIComponent('./')}`)
                 .expect(200)
@@ -241,10 +243,11 @@ describe("GET /dependencies", () => {
         });
 
         it('should detect when the project package.json file is missing or empty', (done) => {
-            mockFs.restore();
-            mockFs({
+            app = express();
+            const fs = QFSMock({
                 "package.json": "{}"
             });
+            routes(app, fs);
             request(app)
                 .get(`/dependencies?url=${encodeURIComponent('./')}`)
                 .expect(200)
@@ -256,10 +259,11 @@ describe("GET /dependencies", () => {
         });
 
         it('should detect if a package.json has an end line or not', (done) => {
-            mockFs.restore();
-            mockFs({
+            app = express();
+            const fs = QFSMock({
                 "package.json": "{}\n"
             });
+            routes(app, fs);
             request(app)
                 .get(`/dependencies?url=${encodeURIComponent('./')}`)
                 .expect(200)

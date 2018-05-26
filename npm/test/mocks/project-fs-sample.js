@@ -1,9 +1,12 @@
-const fsFactory = require('./fs-factory');
+/* jshint maxcomplexity:false */
 
-const DEFAULT_PROJECT_NAME = 'project-fs-sample';
+var ProjectFSMocksFactory = require('./project-fs-factory'),
+    QFSMock = require("q-io/fs-mock"),
+    DEFAULT_PROJECT_NAME = 'project-fs-sample';
 
-function fsSample(name, error) {
-    return fsFactory({
+module.exports = function ProjectFSSample (name, error) {
+
+    return QFSMock(ProjectFSMocksFactory({
         name: name || DEFAULT_PROJECT_NAME,
         version: '0.1.0',
         dependencies: [
@@ -110,6 +113,6 @@ function fsSample(name, error) {
             'montage',
             'zip'
         ]
-    });
-}
-module.exports = fsSample;
+    }));
+
+};
