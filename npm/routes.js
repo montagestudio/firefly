@@ -4,9 +4,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const apiEndpoint = require("./api-endpoint");
 const listDependencies = require("./list-dependencies");
-const fs = require('q-io/fs');
+const removePackage = require('./remove-package');
 
-module.exports = (app) => {
+module.exports = (app, fs) => {
     app.use(bodyParser.json());
     app.use(cors());
 
@@ -25,7 +25,22 @@ module.exports = (app) => {
             })
             .catch(function (error) {
                 console.error(error);
-                res.status(400).json({ error });
+                res.status(400).json(error);
+            });
+    }));
+
+    app.delete("/dependencies/:dependency", apiEndpoint((req, res) => {
+        let url = req.query.location;
+        if (!url) {
+            res.status(400);
+            return res.json({ error: "location query is required" });
+        }
+        return removePackage(fs, req.params.dependency, url)
+            .then(function (result) {
+                res.json(result);
+            })
+            .catch(function (error) {
+                res.status(400).json(error);
             });
     }));
 };
