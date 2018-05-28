@@ -6,6 +6,7 @@ const expect = require("chai").expect;
 const routes = require("../routes");
 const projectFSMocks = require("./mocks/project-fs-sample");
 const ErrorsCodes = require("../error-codes");
+const npm = require('npm');
 
 describe("DELETE /dependencies", () => {
     let app;
@@ -13,12 +14,12 @@ describe("DELETE /dependencies", () => {
     beforeEach(() => {
         app = express();
         const mockFs = projectFSMocks();
-        routes(app, mockFs);
+        routes(app, mockFs, npm, '/');
     });
 
     it('should remove a specified dependency.', function (done) {
         request(app)
-            .delete(`/dependencies/montage?location=${encodeURI('/')}`)
+            .delete(`/dependencies/montage`)
             .expect(200)
             .end((err, res) => {
                 if (err) throw err;
@@ -30,7 +31,7 @@ describe("DELETE /dependencies", () => {
 
     it('should throw an error it does not find a package', function (done) {
         request(app)
-            .delete(`/dependencies/montage?location=${encodeURI('/42')}`)
+            .delete(`/dependencies/nonexistentent`)
             .expect(400)
             .end((err, res) => {
                 if (err) throw err;

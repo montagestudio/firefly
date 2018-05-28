@@ -11,6 +11,7 @@ const ProjectFSMocksFactory = require('./mocks/project-fs-factory');
 const projectFsMocks = require("./mocks/project-fs-sample");
 const DEPENDENCY_CATEGORIES = require("../dependency-node").DEPENDENCY_CATEGORIES;
 const ERROR_TYPES = require("../error-codes");
+const npm = require('npm');
 
 const DEFAULT_PROJECT_NAME = 'project-fs-sample';
 
@@ -23,12 +24,12 @@ describe("GET /dependencies", () => {
         beforeEach(() => {
             app = express();
             const fs = projectFsMocks(DEFAULT_PROJECT_NAME);
-            routes(app, fs);
+            routes(app, fs, npm, './');
         });
 
         it('should gather some correct information about the project.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -47,7 +48,7 @@ describe("GET /dependencies", () => {
 
         it('should detect when an ancestor is used by a deeper dependency.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -63,7 +64,7 @@ describe("GET /dependencies", () => {
 
         it('should have no errors in this situation.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -75,7 +76,7 @@ describe("GET /dependencies", () => {
 
         it('a dependency is not extraneous if it belongs to the "bundledDependencies" field.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -89,7 +90,7 @@ describe("GET /dependencies", () => {
 
         it('a dependency is not missing if it belongs to the "devDependencies" or the "optionalDependencies" field.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -109,12 +110,12 @@ describe("GET /dependencies", () => {
         beforeEach(() => {
             app = express();
             const fs = projectFsMocks(DEFAULT_PROJECT_NAME, true);
-            routes(app, fs);
+            routes(app, fs, npm, './');
         });
 
         it('should detect when a regular dependency is missing.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -131,7 +132,7 @@ describe("GET /dependencies", () => {
 
         it('should detect an extraneous dependency.', function(done) {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -146,7 +147,7 @@ describe("GET /dependencies", () => {
 
         it('should detect an invalid regular or optional dependency version.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -168,7 +169,7 @@ describe("GET /dependencies", () => {
 
         it('should detect an invalid ancestor which its used by a deeper dependency.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -183,7 +184,7 @@ describe("GET /dependencies", () => {
 
         it('should detect when a package.json file is missing.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -196,7 +197,7 @@ describe("GET /dependencies", () => {
 
         it('should detect when a package.json file shows some errors.', (done) => {
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -216,7 +217,7 @@ describe("GET /dependencies", () => {
             }));
             routes(app, fs);
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -233,7 +234,7 @@ describe("GET /dependencies", () => {
             }));
             routes(app, fs);
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -249,7 +250,7 @@ describe("GET /dependencies", () => {
             });
             routes(app, fs);
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -265,7 +266,7 @@ describe("GET /dependencies", () => {
             });
             routes(app, fs);
             request(app)
-                .get(`/dependencies?url=${encodeURIComponent('./')}`)
+                .get(`/dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
