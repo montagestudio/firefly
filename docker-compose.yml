@@ -45,7 +45,7 @@ services:
       - "traefik.frontend.rule=Host:jwt.${FIREFLY_HOSTNAME}"
     restart: "always"
   api-gateway:
-    container_name: firefly_api_gateway
+    container_name: firefly_api-gateway
     image: montagestudio/firefly-api-gateway:${API_GATEWAY_VERSION:-latest}
     build: ./api-gateway
     networks:
@@ -91,6 +91,17 @@ services:
     - "traefik.docker.network=firefly_backend"
     - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
     restart: "on-failure"
+  npm:
+    container_name: firefly_npm
+    image: montagestudio/npm:${NPM_VERSION:-latest}
+    build: ./npm
+    networks:
+    - backend
+    - projects
+    volumes:
+    - workspaces:/workspaces
+    environment:
+    - PACKAGE_HOME=/workspaces
 
 volumes:
   workspaces:

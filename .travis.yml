@@ -29,6 +29,7 @@ script:
 - npm test --prefix api-gateway
 - npm test --prefix project-daemon
 - npm test --prefix project
+- npm test --prefix npm
 - npm start
 - docker ps
 - docker ps | grep -q firefly_traefik
@@ -36,6 +37,8 @@ script:
 - docker ps | grep -q firefly_jwt
 - docker ps | grep -q firefly_static
 - docker ps | grep -q firefly_project-daemon
+- docker ps | grep -q firefly_api-gateway
+- docker ps | grep -q firefly_npm
 after_script:
 - npm stop
 deploy:
