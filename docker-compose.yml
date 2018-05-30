@@ -102,6 +102,14 @@ services:
     - workspaces:/workspaces
     environment:
     - PACKAGE_HOME=/workspaces
+  minit:
+    container_name: firefly_minit
+    image: montagestudio/minit:1.0.0
+    networks:
+    - backend
+    - projects
+    volumes:
+    - workspaces:/home
 
 volumes:
   workspaces:
