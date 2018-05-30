@@ -1,5 +1,6 @@
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 const ApiError = require('./api-error');
 const apiEndpoint = require('./api-endpoint');
 
@@ -48,7 +49,35 @@ module.exports = (app, request, jwtMiddleware) => {
             }
         }));
 
-    app.all('/:owner/:repo/*', apiEndpoint(async (req, res) => {
+    app.all('/:owner/:repo/*', apiEndpoint(async (req, res, next) => {
+        const workspacePath = path.join(res.locals.profile.username, req.params.owner, req.params.repo);
+        res.locals.workspacePath = workspacePath;
+        next();
+    }));
+
+    app.post('/:owner/:repo/components', apiEndpoint(async (req, res, next) => {
+        let { name, destination } = req.body;
+        destination = destination || '';
+        if (!name) {
+            return next(new ApiError('name is required in the body', 400));
+        }
+        const fullPath = path.join(res.locals.workspacePath, destination);
+        const response = await request.post(`http://minit/components/${name}?path=${encodeURIComponent(fullPath)}`);
+        res.json(response.data);
+    }));
+
+    app.post('/:owner/:repo/modules', apiEndpoint(async (req, res, next) => {
+        let { name, destination } = req.body;
+        destination = destination || '';
+        if (!name) {
+            return next(new ApiError('name is required in the body', 400));
+        }
+        const fullPath = path.join(res.locals.workspacePath, destination);
+        const response = await request.post(`http://minit/modules/${name}?path=${encodeURIComponent(fullPath)}`);
+        res.json(response.data);
+    }));
+
+    app.all('/:owner/:repo/*', apiEndpoint(async (req, res, next) => {
         try {
             const axiosConfig = {
                 headers: {
@@ -71,7 +100,7 @@ module.exports = (app, request, jwtMiddleware) => {
                 res.status(status);
                 res.json(typeof data === 'object' ? data : { error: data });
             } else {
-                throw error;
+                next(error);
             }
         }
     }));

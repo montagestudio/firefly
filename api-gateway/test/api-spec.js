@@ -169,34 +169,34 @@ describe('api', () => {
     });
 
     describe('POST /{owner}/{repo}/components', () => {
-        it('proxies project-daemon\'s components endpoint', (done) => {
-            const fakeResponse = { success: true, message: 'created' };
+        it('proxies minit\'s components endpoint', (done) => {
+            const fakeResponse = { created: true };
             fakeAxiosData('post', fakeResponse);
-            const body = { name: 'foo', destination: './' };
+            const body = { name: 'foo' };
             authenticated('post', '/owner/repo/components')
                 .send(body)
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
                     if (err) return done(err);
-                    expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/components', body);
+                    expect(axios.post).to.have.been.called.with(`http://minit/components/foo?path=${encodeURIComponent('mocha/owner/repo')}`);
                     done();
                 });
         });
     });
 
     describe('POST /{owner}/{repo}/modules', () => {
-        it('proxies project-daemon\'s modules endpoint', (done) => {
-            const fakeResponse = { success: true, message: 'created' };
+        it('proxies minit\'s modules endpoint', (done) => {
+            const fakeResponse = { created: true };
             fakeAxiosData('post', fakeResponse);
-            const body = { name: 'foo', extendsModuleId: 'bar', extendsName: 'Bar', destination: './' };
+            const body = { name: 'foo', extendsModuleId: 'bar', extendsName: 'Bar' };
             authenticated('post', '/owner/repo/modules')
                 .send(body)
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
                     if (err) return done(err);
-                    expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/modules', body);
+                    expect(axios.post).to.have.been.called.with(`http://minit/modules/foo?path=${encodeURIComponent('mocha/owner/repo')}`);
                     done();
                 });
         });

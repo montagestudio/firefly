@@ -1,4 +1,6 @@
-const profile = {};
+const profile = {
+    username: 'mocha'
+};
 const token = 'xyz';
 const request = {
     async get(url, options) {
