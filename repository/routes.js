@@ -1,29 +1,34 @@
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const apiEndpoint = require("./api-endpoint.js");
+const ApiError = require('./api-error');
 
 module.exports = (app, git) => {
     app.use(bodyParser.json());
     app.use(cors());
 
-    app.post("/clone", apiEndpoint(async (req, res, next) => {
+    app.post("/clone", async (req, res, next) => {
         const body = req.body || {};
         const { repositoryUrl, directory } = body;
         if (!repositoryUrl) {
-            res.status(400);
-            return res.send({ error: "repositoryUrl is required" });
+            return next(new ApiError('repositoryUrl is required', 400));
         }
         if (!directory) {
-            res.status(400);
-            return res.send({ error: "directory is required" });
+            return next(new ApiError('directory is required', 400));
         }
-        await git.Clone(repositoryUrl, directory);
-        res.send({});
-    }));
+        try {
+            await git.Clone(repositoryUrl, directory);
+            res.send({ cloned: true });
+        } catch (err) {
+            next(err);
+        }
+    });
 
-    app.use((err, res) => {
-        res.status(500);
-        console.error(err);
-        res.end(err.message);
+    app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
+        if (err instanceof ApiError) {
+            res.status(err.status || 500).json(err);
+        } else {
+            // console.error(err);
+            res.status(500).json(err);
+        }
     });
 };

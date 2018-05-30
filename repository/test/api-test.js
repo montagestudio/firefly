@@ -28,11 +28,7 @@ describe("Api", () => {
                 .send({
                     directory: "/foo/bar"
                 })
-                .expect(400)
-                .end((err, res) => {
-                    if (err) throw err;
-                    done();
-                });
+                .expect(400, done);
         });
         it("returns an error if directory is not supplied", (done) => {
             request(app)
@@ -40,11 +36,7 @@ describe("Api", () => {
                 .send({
                     repositoryUrl: "git@github.com:montagejs/montage"
                 })
-                .expect(400)
-                .end((err, res) => {
-                    if (err) throw err;
-                    done();
-                });
+                .expect(400, done);
         });
         it("clones a repository with the correct repositoryUrl and directory", (done) => {
             request(app)
