@@ -75,17 +75,4 @@ module.exports = (app, request, jwtMiddleware) => {
             }
         }
     }));
-
-    app.all('*', async(req, res) => {
-        res.sendStatus(404);
-    });
-
-    app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-        console.error('Unexpected error: ', err);
-        res.status(500);
-        res.json({
-            code: 500,
-            error: 'Unexpected error'
-        });
-    });
 };
