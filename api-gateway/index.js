@@ -1,21 +1,11 @@
 const express = require("express");
 const routes = require('./routes');
 const axios = require('axios');
+const jwt = require('./middleware/jwt');
 
 const app = express();
 
-const getJwtProfile = async (authHeader) => {
-    const options = {
-        headers: {
-            'Authentication': authHeader
-        }
-    };
-    const response = await axios.get('http://jwt/profile', options);
-    const { profile, token } = response.data;
-    return { profile, token };
-};
-
-routes(app, axios, getJwtProfile);
+routes(app, axios, jwt(axios));
 
 app.listen(80);
 console.log("Listening on port 80");

@@ -1,8 +1,9 @@
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const ApiError = require('./api-error');
 const apiEndpoint = require('./api-endpoint');
 
-module.exports = (app, request, getJwtProfile) => {
+module.exports = (app, request, jwtMiddleware) => {
     app.use(bodyParser.json());
 
     const corsOptions = {
@@ -11,21 +12,10 @@ module.exports = (app, request, getJwtProfile) => {
     };
     app.use(cors(corsOptions));
 
-    app.use(async (req, res, next) => {
-        const accessToken = req.headers['x-access-token'];
-        try {
-            const info = await getJwtProfile(`Bearer ${accessToken}`);
-            Object.assign(req, info);
-            next();
-        } catch (error) {
-            res.status(401);
-            if (error.response && error.response.status === 400) {
-                res.json({ error: 'Unauthorized'});
-            } else {
-                console.error('Unexpected authorization error: ' + error);
-                res.json({ error: 'Unexpected authorization error'});
-            }
-        }
+    app.use(jwtMiddleware);
+
+    app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
+        res.status(err instanceof ApiError ? err.statusCode : 500).json(err);
     });
 
     app.route('/workspaces')

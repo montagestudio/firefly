@@ -1,3 +1,5 @@
+const ApiError = require('../api-error');
+
 /**
  * Express middleware that reads the request's authorization header and makes
  * a request to the jwt service to extract the jwt profile. If successful, the
@@ -33,8 +35,14 @@ function middleware(requestModule) {
 }
 module.exports = middleware;
 
-class InvalidJWTError extends Error {}
+class JWTError extends ApiError {
+    constructor(message) {
+        super(message, 401);
+    }
+}
+
+class InvalidJWTError extends JWTError {}
 module.exports.InvalidJWTError = InvalidJWTError;
 
-class JWTServiceUnreachableError extends Error {}
+class JWTServiceUnreachableError extends JWTError {}
 module.exports.JWTServiceUnreachableError = JWTServiceUnreachableError;

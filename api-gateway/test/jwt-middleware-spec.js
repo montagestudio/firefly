@@ -1,28 +1,7 @@
 const { expect } = require('chai');
 const jwtMiddleware = require('../middleware/jwt');
 const { InvalidJWTError, JWTServiceUnreachableError } = jwtMiddleware;
-
-const mockProfile = {};
-const mockToken = 'xyz';
-const mockRequest = {
-    async get(url, options) {
-        if (options && options.headers && options.headers['Authentication'] === 'Bearer abc') {
-            return {
-                status: 200,
-                data: {
-                    profile: mockProfile,
-                    token: mockToken
-                }
-            };
-        } else {
-            throw {
-                response: {
-                    status: 400
-                }
-            };
-        }
-    }
-}
+const { profile: mockProfile, token: mockToken, request: mockRequest } = require('./mocks/jwt-request-mock');
 
 describe('jwt middleware', () => {
     it('passes on an InvalidJWTError if no access token is provided', (done) => {

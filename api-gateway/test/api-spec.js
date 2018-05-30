@@ -5,18 +5,10 @@ const { expect } = chai;
 const spies = require("chai-spies");
 const routes = require("../routes");
 const axios = require('axios');
+const jwt = require('../middleware/jwt');
+const { request: jwtRequest } = require('./mocks/jwt-request-mock');
 
 chai.use(spies);
-
-async function getJwtProfile(authHeader) {
-    if (authHeader) {
-        const [ bearer, token ] = authHeader.split(' ');
-        if (bearer === 'Bearer' && token === 'abc') {
-            return { profile: {}, token: 'abc' };
-        }
-    }
-    throw { response: { status: 400 } };
-}
 
 function fakeAxiosData(method, data) {
     chai.spy.on(axios, method, async () => ({
@@ -28,9 +20,11 @@ function fakeAxiosData(method, data) {
 describe('api', () => {
     let app;
 
+    const authenticated = (method, url) => supertest(app)[method](url).set('x-access-token', 'abc');
+
     beforeEach(() => {
         app = express();
-        routes(app, axios, getJwtProfile);
+        routes(app, axios, jwt(jwtRequest));
     });
 
     afterEach(() => {
@@ -44,18 +38,14 @@ describe('api', () => {
     });
 
     it('responds with 404 for a non-existent route', (done) => {
-        supertest(app)
-            .get('/doesntexist')
-            .set('x-access-token', 'abc')
+        authenticated('get', '/doesntexist')
             .expect(404, done);
     });
 
     describe('GET /workspaces', () => {
         it('proxies project-daemon\'s workspace endpoint', (done) => {
             fakeAxiosData('get', []);
-            supertest(app)
-                .get('/workspaces')
-                .set('x-access-token', 'abc')
+            authenticated('get', '/workspaces')
                 .expect(200)
                 .expect([])
                 .end((err) => {
@@ -69,9 +59,7 @@ describe('api', () => {
             chai.spy.on(axios, 'get', async () => {
                 throw new Error('chaos');
             });
-            supertest(app)
-                .get('/workspaces')
-                .set('x-access-token', 'abc')
+            authenticated('get', '/workspaces')
                 .expect(200)
                 .expect([], done);
         });
@@ -81,9 +69,7 @@ describe('api', () => {
         it('proxies project-daemon\'s workspace endpoint', (done) => {
             const fakeResponse = { foo: 'bar' };
             fakeAxiosData('delete', fakeResponse);
-            supertest(app)
-                .delete('/workspaces')
-                .set('x-access-token', 'abc')
+            authenticated('delete', '/workspaces')
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
@@ -97,9 +83,7 @@ describe('api', () => {
             chai.spy.on(axios, 'delete', async () => {
                 throw new Error('chaos');
             });
-            supertest(app)
-                .delete('/workspaces')
-                .set('x-access-token', 'abc')
+            authenticated('delete', '/workspaces')
                 .expect(200)
                 .expect({ deleted: false }, done);
         });
@@ -109,9 +93,7 @@ describe('api', () => {
         it('proxies project-daemon\'s init endpoint', (done) => {
             const fakeResponse = { message: 'created' };
             fakeAxiosData('post', fakeResponse);
-            supertest(app)
-                .post('/owner/repo/init')
-                .set('x-access-token', 'abc')
+            authenticated('post', '/owner/repo/init')
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
@@ -126,9 +108,7 @@ describe('api', () => {
         it('proxies project-daemon\'s init/progress endpoint', (done) => {
             const fakeResponse = { state: 'installing' };
             fakeAxiosData('get', fakeResponse);
-            supertest(app)
-                .get('/owner/repo/init/progress')
-                .set('x-access-token', 'abc')
+            authenticated('get', '/owner/repo/init/progress')
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
@@ -144,10 +124,8 @@ describe('api', () => {
             const fakeResponse = { message: 'flushed' };
             fakeAxiosData('post', fakeResponse);
             const body = { 'message': 'foo' };
-            supertest(app)
-                .post('/owner/repo/flush')
+            authenticated('post', '/owner/repo/flush')
                 .send(body)
-                .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
@@ -162,9 +140,7 @@ describe('api', () => {
         it('proxies project-daemon\'s workspace endpoint', (done) => {
             const fakeResponse = { created: 'yes' };
             fakeAxiosData('get', fakeResponse);
-            supertest(app)
-                .get('/owner/repo/workspace')
-                .set('x-access-token', 'abc')
+            authenticated('get', '/owner/repo/workspace')
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
@@ -180,10 +156,8 @@ describe('api', () => {
             const fakeResponse = { message: 'saved' };
             fakeAxiosData('post', fakeResponse);
             const body = { filename: 'foo.js', content: 'bar' };
-            supertest(app)
-                .post('/owner/repo/save')
+            authenticated('post', '/owner/repo/save')
                 .send(body)
-                .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
@@ -199,10 +173,8 @@ describe('api', () => {
             const fakeResponse = { success: true, message: 'created' };
             fakeAxiosData('post', fakeResponse);
             const body = { name: 'foo', destination: './' };
-            supertest(app)
-                .post('/owner/repo/components')
+            authenticated('post', '/owner/repo/components')
                 .send(body)
-                .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
@@ -218,10 +190,8 @@ describe('api', () => {
             const fakeResponse = { success: true, message: 'created' };
             fakeAxiosData('post', fakeResponse);
             const body = { name: 'foo', extendsModuleId: 'bar', extendsName: 'Bar', destination: './' };
-            supertest(app)
-                .post('/owner/repo/modules')
+            authenticated('post', '/owner/repo/modules')
                 .send(body)
-                .set('x-access-token', 'abc')
                 .expect(200)
                 .expect(fakeResponse)
                 .end((err) => {
