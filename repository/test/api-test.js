@@ -1,54 +1,88 @@
-const express = require("express");
-const request = require("supertest");
-const chai = require("chai");
-const spies = require("chai-spies");
+const express = require('express');
+const request = require('supertest');
+const chai = require('chai');
+const spies = require('chai-spies');
 const { expect } = chai;
-const routes = require("../routes");
+const routes = require('../routes');
+const fs = require('fs');
+const path = require('path');
+const rimraf = require('rimraf');
+const nodegit = require('nodegit');
 
 chai.use(spies);
 
-const gitMock = chai.spy.interface({
-    async Clone(repositoryUrl, directory) {
+describe('Api', () => {
+    let app;
 
-    }
-});
-
-let app;
-
-describe("Api", () => {
     beforeEach(() => {
         app = express();
-        routes(app, gitMock);
+        routes(app, nodegit);
     });
 
-    describe("/clone", () => {
-        it("returns an error if repositoryUrl is not supplied", (done) => {
+    afterEach((done) => {
+        rimraf('tmp', e => done(e));
+        chai.spy.restore();
+    });
+
+    describe('GET /repository', () => {
+        it('returns a 404 if the path does not exist', (done) => {
             request(app)
-                .post("/clone")
-                .send({
-                    directory: "/foo/bar"
-                })
+                .get(`/repository?path=${encodeURIComponent('non/existent')}`)
+                .expect(404, done);
+        });
+
+        it('returns a 404 if the directory is not a git repo', (done) => {
+            fs.mkdirSync('tmp');
+            request(app)
+                .get(`/repository?path=${encodeURIComponent('tmp')}`)
+                .expect(404, done);
+        });
+
+        it('returns a 200 if the repository exists', (done) => {
+            nodegit.Repository.init('tmp', 0)
+                .then(() => {
+                    request(app)
+                        .get(`/repository?path=${encodeURIComponent('tmp')}`)
+                        .expect(200, done);
+                });
+        });
+    });
+
+    describe('POST /repository', () => {
+        it('returns a 400 if path query is not supplied', (done) => {
+            request(app)
+                .post('/repository')
                 .expect(400, done);
         });
-        it("returns an error if directory is not supplied", (done) => {
+        it('initializes a new repository if no repositoryUrl is given', (done) => {
+            chai.spy.on(nodegit.Repository, 'init', async () => ({}));
+            request(app, nodegit)
+                .post(`/repository?path=${encodeURIComponent('tmp')}`)
+                .expect(200)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    expect(nodegit.Repository.init).to.have.been.called.with('tmp');
+                    done();
+                });
+        });
+        it('returns a 400 if a repositoryUrl is given but the repo could not be cloned', (done) => {
+            chai.spy.on(nodegit, 'Clone', async () => {
+                throw new Error();
+            });
             request(app)
-                .post("/clone")
-                .send({
-                    repositoryUrl: "git@github.com:montagejs/montage"
-                })
+                .post(`/repository?path=${encodeURIComponent('tmp')}`)
+                .send({ repositoryUrl: 'git@github.com:montagejs/montage' })
                 .expect(400, done);
         });
-        it("clones a repository with the correct repositoryUrl and directory", (done) => {
+        it('clones a repository with the correct repositoryUrl', (done) => {
+            chai.spy.on(nodegit, 'Clone', async () => ({}));
             request(app)
-                .post("/clone")
-                .send({
-                    repositoryUrl: "git@github.com:montagejs/montage",
-                    directory: "/tmp/firefly-repository-test"
-                })
+                .post(`/repository?path=${encodeURIComponent('tmp')}`)
+                .send({ repositoryUrl: 'git@github.com:montagejs/montage' })
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
-                    expect(gitMock.Clone).to.have.been.called.with("git@github.com:montagejs/montage", "/tmp/firefly-repository-test");
+                    expect(nodegit.Clone).to.have.been.called.with('git@github.com:montagejs/montage', 'tmp');
                     done();
                 });
         });
