@@ -30,29 +30,38 @@ module.exports = (app, git) => {
         const {
             repositoryUrl,
             path: directory,
-            remoteUrl
+            remoteUrl,
+            name,
+            email
         } = body;
-        if (!directory) {
-            return next(new ApiError('path is required', 400));
-        }
+        if (!directory) { return next(new ApiError('path is required', 400)); }
+        let repository;
         if (repositoryUrl) {
             try {
-                await git.Clone(repositoryUrl, directory);
-                res.json({ cloned: true });
+                repository = await git.Clone(repositoryUrl, directory);
             } catch (err) {
-                next(new ApiError('git repository could not be cloned: ' + err, 400));
+                return next(new ApiError('git repository could not be cloned: ' + err, 400));
             }
         } else {
             try {
-                const repo = await git.Repository.init(directory, 0);
+                repository = await git.Repository.init(directory, 0);
                 if (remoteUrl) {
-                    await git.Remote.create(repo, 'origin', remoteUrl);
+                    await git.Remote.create(repository, 'origin', remoteUrl);
                 }
-                res.json({ created: true });
             } catch (err) {
-                next(err);
+                return next(err);
             }
         }
+        if (name || email) {
+            try {
+                const config = await repository.config();
+                await config.setString('user.name', name);
+                await config.setString('user.email', email);
+            } catch (err) {
+                return next(new ApiError('failed configuring repository', 500));
+            }
+        }
+        res.json({ cloned: true });
     });
 
     app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
