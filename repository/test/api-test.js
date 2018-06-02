@@ -57,7 +57,8 @@ describe('Api', () => {
         it('initializes a new repository if no repositoryUrl is given', (done) => {
             chai.spy.on(nodegit.Repository, 'init', async () => ({}));
             request(app, nodegit)
-                .post(`/repository?path=${encodeURIComponent('tmp')}`)
+                .post(`/repository`)
+                .send({ path: 'tmp' })
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -70,15 +71,15 @@ describe('Api', () => {
                 throw new Error();
             });
             request(app)
-                .post(`/repository?path=${encodeURIComponent('tmp')}`)
-                .send({ repositoryUrl: 'git@github.com:montagejs/montage' })
+                .post(`/repository`)
+                .send({ path: 'tmp', repositoryUrl: 'git@github.com:montagejs/montage' })
                 .expect(400, done);
         });
         it('clones a repository with the correct repositoryUrl', (done) => {
             chai.spy.on(nodegit, 'Clone', async () => ({}));
             request(app)
-                .post(`/repository?path=${encodeURIComponent('tmp')}`)
-                .send({ repositoryUrl: 'git@github.com:montagejs/montage' })
+                .post(`/repository`)
+                .send({ path: 'tmp', repositoryUrl: 'git@github.com:montagejs/montage' })
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;

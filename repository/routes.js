@@ -26,22 +26,21 @@ module.exports = (app, git) => {
     });
 
     app.post('/repository', async (req, res, next) => {
-        const pathQuery = req.query.path;
-        if (!pathQuery) {
-            return next(new ApiError('path query is required', 400));
-        }
         const body = req.body || {};
-        const { repositoryUrl } = body;
+        const { repositoryUrl, path: directory } = body;
+        if (!directory) {
+            return next(new ApiError('path is required', 400));
+        }
         if (repositoryUrl) {
             try {
-                await git.Clone(repositoryUrl, pathQuery);
+                await git.Clone(repositoryUrl, directory);
                 res.json({ cloned: true });
             } catch (err) {
                 next(new ApiError('git repository could not be cloned: ' + err, 400));
             }
         } else {
             try {
-                const r = await git.Repository.init(pathQuery, 0);
+                const r = await git.Repository.init(directory, 0);
                 res.json({ created: true });
             } catch (err) {
                 next(err);
