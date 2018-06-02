@@ -27,7 +27,11 @@ module.exports = (app, git) => {
 
     app.post('/repository', async (req, res, next) => {
         const body = req.body || {};
-        const { repositoryUrl, path: directory } = body;
+        const {
+            repositoryUrl,
+            path: directory,
+            remoteUrl
+        } = body;
         if (!directory) {
             return next(new ApiError('path is required', 400));
         }
@@ -40,7 +44,10 @@ module.exports = (app, git) => {
             }
         } else {
             try {
-                const r = await git.Repository.init(directory, 0);
+                const repo = await git.Repository.init(directory, 0);
+                if (remoteUrl) {
+                    await git.Remote.create(repo, 'origin', remoteUrl);
+                }
                 res.json({ created: true });
             } catch (err) {
                 next(err);
