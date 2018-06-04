@@ -108,6 +108,17 @@ describe('Api', () => {
                     .send({ path: 'tmp', repositoryUrl: 'git@github.com:montagejs/montage' })
                     .expect(400, done);
             });
+            it('clones an actual repository over http', (done) => {
+                request(app)
+                    .post(`/repository`)
+                    .send({ path: 'tmp', repositoryUrl: 'http://github.com/montagejs/montage' })
+                    .expect(200)
+                    .end((err, res) => {
+                        if (err) throw err;
+                        nodegit.Repository.open('tmp')
+                            .then(() => done(), done);
+                    });
+            }).timeout(10000);
             it('clones an actual repository over https', (done) => {
                 request(app)
                     .post(`/repository`)
