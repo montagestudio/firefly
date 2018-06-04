@@ -64,21 +64,28 @@ module.exports = (app, git) => {
         res.json({ cloned: true });
     });
 
+    app.post('/repository/*', async (req, res, next) => {
+        const { path } = req.body || {};
+        if (path) {
+            res.locals.path = path;
+            try {
+                res.locals.repo = await git.Repository.open(path);
+                next();
+            } catch (error) {
+                next(new ApiError('unable to open repository', 400));
+            }
+        } else {
+            next(new ApiError('path is required', 400));
+        }
+    });
+
     app.post('/repository/commit', async (req, res, next) => {
-        const body = req.body || {};
+        const { repo } = res.locals;
         let {
-            path,
             fileUrls,
             message
-        } = body;
-        if (!path) return next(new ApiError('path is required', 400));
+        } = req.body || {};
         if (!message) return next(new ApiError('message is required', 400));
-        let repo;
-        try {
-            repo = await git.Repository.open(path);
-        } catch (error) {
-            return next(new ApiError('unable to open repository', 400));
-        }
         const defaultSignature = git.Signature.default(repo);
         if (!fileUrls) {
             const statusFiles = await repo.getStatus();
