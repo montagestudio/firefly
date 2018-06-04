@@ -8,9 +8,19 @@ const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
 const existsAsync = promisify(fs.exists);
 
+const sshPublicKeyPath = path.join(__dirname, 'ssl', 'id_rsa.pub');
+const sshPrivateKeyPath = path.join(__dirname, 'ssl', 'id_rsa');
+
 module.exports = (app, git) => {
     app.use(bodyParser.json());
     app.use(cors());
+
+    const authenticationCallbacks = {
+        certificateCheck: () => 1,
+        credentials: (url, username) => {
+            return git.Cred.sshKeyNew(username, sshPublicKeyPath, sshPrivateKeyPath, '');
+        }
+    };
 
     app.get('/repository', async (req, res, next) => {
         const pathQuery = req.query.path;
@@ -38,7 +48,11 @@ module.exports = (app, git) => {
         let repository;
         if (repositoryUrl) {
             try {
-                repository = await git.Clone(repositoryUrl, directory);
+                repository = await git.Clone(repositoryUrl, directory, {
+                    fetchOpts: {
+                        callbacks: authenticationCallbacks
+                    }
+                });
             } catch (err) {
                 return next(new ApiError('git repository could not be cloned: ' + err, 400));
             }
