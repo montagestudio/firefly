@@ -111,7 +111,7 @@ describe('Api', () => {
             it('clones an actual repository over http', (done) => {
                 request(app)
                     .post(`/repository`)
-                    .send({ path: 'tmp', repositoryUrl: 'http://github.com/montagejs/montage' })
+                    .send({ path: 'tmp', repositoryUrl: 'http://github.com/montagejs/popcorn' })
                     .expect(200)
                     .end((err, res) => {
                         if (err) throw err;
@@ -122,7 +122,7 @@ describe('Api', () => {
             it('clones an actual repository over https', (done) => {
                 request(app)
                     .post(`/repository`)
-                    .send({ path: 'tmp', repositoryUrl: 'https://github.com/montagejs/montage' })
+                    .send({ path: 'tmp', repositoryUrl: 'https://github.com/montagejs/popcorn' })
                     .expect(200)
                     .end((err, res) => {
                         if (err) throw err;
@@ -133,7 +133,7 @@ describe('Api', () => {
             it('clones an actual repository over ssh', (done) => {
                 request(app)
                     .post(`/repository`)
-                    .send({ path: 'tmp', repositoryUrl: 'git@github.com:montagejs/montage' })
+                    .send({ path: 'tmp', repositoryUrl: 'git@github.com:montagejs/popcorn' })
                     .expect(200)
                     .end((err, res) => {
                         if (err) throw err;
