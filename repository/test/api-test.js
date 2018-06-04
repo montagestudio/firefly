@@ -49,12 +49,12 @@ describe('Api', () => {
     });
 
     describe('POST /repository', () => {
-        it('returns a 400 if path is not supplied', (done) => {
-            request(app)
-                .post('/repository')
-                .expect(400, done);
-        });
         describe('creating a repository', () => {
+            it('returns a 400 if path is not supplied', (done) => {
+                request(app)
+                    .post('/repository')
+                    .expect(400, done);
+            });
             it('initializes a new repository if no repositoryUrl is given', (done) => {
                 request(app)
                     .post(`/repository`)
@@ -123,17 +123,6 @@ describe('Api', () => {
                 request(app)
                     .post(`/repository`)
                     .send({ path: 'tmp', repositoryUrl: 'https://github.com/montagejs/popcorn' })
-                    .expect(200)
-                    .end((err, res) => {
-                        if (err) throw err;
-                        nodegit.Repository.open('tmp')
-                            .then(() => done(), done);
-                    });
-            }).timeout(10000);
-            it('clones an actual repository over ssh', (done) => {
-                request(app)
-                    .post(`/repository`)
-                    .send({ path: 'tmp', repositoryUrl: 'git@github.com:montagejs/popcorn' })
                     .expect(200)
                     .end((err, res) => {
                         if (err) throw err;
