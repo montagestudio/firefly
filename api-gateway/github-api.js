@@ -266,13 +266,13 @@ class GithubApi {
      * Gists
      */
     // http://developer.github.com/v3/gists/#create-a-gist
-    createGist(description, files, public) {
+    createGist(description, files, isPublic) {
         return this._request({
             method: "POST",
             url: "/gists",
             data: {
                 description: description,
-                public: this._accessToken ? !!public : true,
+                public: this._accessToken ? !!isPublic : true,
                 files: files
             }
         });
