@@ -11,6 +11,8 @@ const existsAsync = promisify(fs.exists);
 const sshPublicKeyPath = path.join(__dirname, 'ssl', 'id_rsa.pub');
 const sshPrivateKeyPath = path.join(__dirname, 'ssl', 'id_rsa');
 
+const REPOSITORY_HOME = process.env.REPOSITORY_HOME || '';
+
 module.exports = (app, git) => {
     app.use(bodyParser.json());
     app.use(cors());
@@ -27,6 +29,7 @@ module.exports = (app, git) => {
         if (!pathQuery) {
             return next(new ApiError('path query is required', 400));
         }
+        const absolutePath = path.join(REPOSITORY_HOME, pathQuery);
         const gitExists = await existsAsync(path.join(pathQuery, '.git'));
         if (gitExists) {
             res.json({ exists: true });
@@ -39,18 +42,22 @@ module.exports = (app, git) => {
         const body = req.body || {};
         const {
             repositoryUrl,
-            path: directory,
             remoteUrl,
             name,
             email
         } = body;
-        if (!directory) { return next(new ApiError('path is required', 400)); }
+        const githubAccessToken = req.headers['x-github-access-token'];
+        if (!repositoryUrl && !body.path) { return next(new ApiError('path is required when initializing a new repository', 400)); }
+        const directory = path.join(REPOSITORY_HOME, body.path || '');
         let repository;
         if (repositoryUrl) {
             try {
                 repository = await git.Clone(repositoryUrl, directory, {
                     fetchOpts: {
-                        callbacks: authenticationCallbacks
+                        callbacks: {
+                            credentials: () => git.Cred.userpassPlaintextNew(githubAccessToken, 'x-oauth-basic'),
+                            certificateCheck: () => 1
+                        }
                     }
                 });
             } catch (err) {
@@ -79,11 +86,11 @@ module.exports = (app, git) => {
     });
 
     app.post('/repository/*', async (req, res, next) => {
-        const { path } = req.body || {};
-        if (path) {
-            res.locals.path = path;
+        const { path: directory } = req.body || {};
+        if (directory) {
+            res.locals.directory = path.join(REPOSITORY_HOME, directory);
             try {
-                res.locals.repo = await git.Repository.open(path);
+                res.locals.repo = await git.Repository.open(directory);
                 next();
             } catch (error) {
                 next(new ApiError('unable to open repository', 400));
