@@ -56,47 +56,45 @@ describe('Api', () => {
         });
         describe('creating a repository', () => {
             it('initializes a new repository if no repositoryUrl is given', (done) => {
-                chai.spy.on(nodegit.Repository, 'init', async () => ({}));
                 request(app)
                     .post(`/repository`)
                     .send({ path: 'tmp' })
                     .expect(200)
                     .end((err, res) => {
                         if (err) return done(err);
-                        expect(nodegit.Repository.init).to.have.been.called.with('tmp');
-                        done();
+                        nodegit.Repository.open('tmp')
+                            .then(() => done(), done);
                     });
             });
             it('adds a given remote to the new repository', (done) => {
-                const fakeRepo = {};
-                chai.spy.on(nodegit.Repository, 'init', async () => fakeRepo);
-                chai.spy.on(nodegit.Remote, 'create', async () => ({}));
                 request(app)
                     .post('/repository')
                     .send({ path: 'tmp', remoteUrl: 'git@github.com:owner/repo' })
                     .expect(200)
                     .end((err, res) => {
                         if (err) return done(err);
-                        expect(nodegit.Remote.create).to.have.been.called.with(fakeRepo, 'origin', 'git@github.com:owner/repo');
-                        done();
+                        nodegit.Repository.open('tmp')
+                            .then((repo) => repo.getRemote('origin'))
+                            .then((remote) => {
+                                expect(remote.url(), 'git@github.com:owner/repo');
+                            })
+                            .then(done, done);
                     });
             });
             it('configures the repository with name and email', (done) => {
-                const fakeConfig = chai.spy.interface({
-                    async setString(name, value) {}
-                });
-                chai.spy.on(nodegit.Repository, 'init', async () => ({
-                    async config() { return fakeConfig; }
-                }));
                 request(app)
                     .post('/repository')
                     .send({ path: 'tmp', name: 'owner', email: 'owner@foo.com' })
                     .expect(200)
                     .end((err, res) => {
                         if (err) return done(err);
-                        expect(fakeConfig.setString).to.have.been.called.with('user.name', 'owner');
-                        expect(fakeConfig.setString).to.have.been.called.with('user.email', 'owner@foo.com');
-                        done();
+                        nodegit.Repository.open('tmp')
+                            .then((repo) => repo.config())
+                            .then((config) => {
+                                expect(config.getStringBuf('user.name').toString(), 'owner');
+                                expect(config.getStringBuf('user.email').toString(), 'owner@foo.com');
+                            })
+                            .then(done, done);
                     });
             });
         })
