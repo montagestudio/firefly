@@ -64,6 +64,34 @@ module.exports = (app, git) => {
         res.json({ cloned: true });
     });
 
+    app.post('/repository/commit', async (req, res, next) => {
+        const body = req.body || {};
+        let {
+            path,
+            fileUrls,
+            message
+        } = body;
+        if (!path) return next(new ApiError('path is required', 400));
+        if (!message) return next(new ApiError('message is required', 400));
+        let repo;
+        try {
+            repo = await git.Repository.open(path);
+        } catch (error) {
+            return next(new ApiError('unable to open repository', 400));
+        }
+        const defaultSignature = git.Signature.default(repo);
+        if (!fileUrls) {
+            const statusFiles = await repo.getStatus();
+            fileUrls = statusFiles.map((file) => file.path());
+        }
+        try {
+            const oid = await repo.createCommitOnHead(fileUrls, defaultSignature, defaultSignature, message);
+            res.json({ oid });
+        } catch (error) {
+            return next(new ApiError('commit failed', 400));
+        }
+    });
+
     app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
         if (err instanceof ApiError) {
             res.status(err.status || 500).json(err);
