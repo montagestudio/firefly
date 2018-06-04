@@ -108,18 +108,28 @@ describe('Api', () => {
                     .send({ path: 'tmp', repositoryUrl: 'git@github.com:montagejs/montage' })
                     .expect(400, done);
             });
-            it('clones a repository with the correct repositoryUrl', (done) => {
-                chai.spy.on(nodegit, 'Clone', async () => ({}));
+            it('clones an actual repository over https', (done) => {
+                request(app)
+                    .post(`/repository`)
+                    .send({ path: 'tmp', repositoryUrl: 'https://github.com/montagejs/montage' })
+                    .expect(200)
+                    .end((err, res) => {
+                        if (err) throw err;
+                        nodegit.Repository.open('tmp')
+                            .then(() => done(), done);
+                    });
+            }).timeout(10000);
+            it('clones an actual repository over ssh', (done) => {
                 request(app)
                     .post(`/repository`)
                     .send({ path: 'tmp', repositoryUrl: 'git@github.com:montagejs/montage' })
                     .expect(200)
                     .end((err, res) => {
                         if (err) throw err;
-                        expect(nodegit.Clone).to.have.been.called.with('git@github.com:montagejs/montage', 'tmp');
-                        done();
+                        nodegit.Repository.open('tmp')
+                            .then(() => done(), done);
                     });
-            });
+            }).timeout(10000);
         });
         describe('commit', () => {
             let repository;
