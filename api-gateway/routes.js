@@ -2,6 +2,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const ApiError = require('./api-error');
+const WorkspaceApi = require('./service/workspace-api');
 const GithubApi = require('./github-api');
 const RepositoryApi = require('./service/repository-api');
 const MinitApi = require('./service/minit-api');
@@ -18,6 +19,7 @@ module.exports = (app, request, jwtMiddleware) => {
 
     app.use(jwtMiddleware);
 
+    const workspaceApi = new WorkspaceApi(request);
     const repositoryApi = new RepositoryApi(request);
     const minitApi = new MinitApi(request);
     const npmApi = new NpmApi(request);
@@ -25,28 +27,14 @@ module.exports = (app, request, jwtMiddleware) => {
     app.route('/workspaces')
         .get(async (req, res) => {
             try {
-                const response = await request.get('http://firefly_project-daemon:2440/workspaces', {
-                    headers: {
-                        common: {
-                            'x-access-token': req.headers['x-access-token']
-                        }
-                    }
-                });
-                res.json(response.data);
+                res.json(await workspaceApi.listWorkspaces(res.locals.profile.username));
             } catch (error) {
                 res.json([]);
             }
         })
         .delete(async (req, res) => {
             try {
-                const response = await request.delete('http://firefly_project-daemon:2440/workspaces', {
-                    headers: {
-                        common: {
-                            'x-access-token': req.headers['x-access-token']
-                        }
-                    }
-                });
-                res.json(response.data);
+                res.json(await workspaceApi.deleteWorkspaces(res.locals.profile.username));
             } catch (error) {
                 res.json({ deleted: false });
             }
