@@ -90,4 +90,65 @@ describe('api', () => {
                 .expect([], done);
         });
     });
+
+    describe('DELETE /workspaces', () => {
+        let tree;
+
+        beforeEach(() => {
+            tree = {
+                'user1': {
+                    'owner1': {
+                        'repo1': {},
+                        'repo2': {}
+                    },
+                    'owner2': {
+                        'repo1': {}
+                    }
+                },
+                'user2': {
+                    'owner1': {
+                        'repo1': {}
+                    }
+                }
+            };
+            makeFakeWorkspaces('tmp', tree);
+        });
+
+        it('deletes all workspaces', (done) => {
+            supertest(app)
+                .delete('/workspaces')
+                .expect(200)
+                .end((err) => {
+                    if (err) return done(err);
+                    const users = fs.readdirSync('tmp');
+                    expect(users.length).to.equal(0);
+                    done();
+                });
+        });
+
+        it('deletes a specific user\'s workspaces', (done) => {
+            supertest(app)
+                .delete('/workspaces?user=user1')
+                .expect(200)
+                .end((err) => {
+                    if (err) return done(err);
+                    const users = fs.readdirSync('tmp');
+                    expect(users.length).to.equal(1);
+                    expect(users[0]).to.equal('user2');
+                    done();
+                });
+        });
+
+        it('does nothing if the user has no repos', (done) => {
+            supertest(app)
+                .delete('/workspaces?user=user3')
+                .expect(200)
+                .end((err) => {
+                    if (err) return done(err);
+                    const users = fs.readdirSync('tmp');
+                    expect(users.length).to.equal(2);
+                    done();
+                });
+        });
+    });
 });

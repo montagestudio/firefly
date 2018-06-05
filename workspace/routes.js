@@ -2,10 +2,12 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const rimraf = require('rimraf');
 const { promisify } = require('util');
 const ApiError = require('./api-error');
 
 const readdirAsync = promisify(fs.readdir);
+const rimrafAsync = promisify(rimraf);
 
 module.exports = (app, workspacesHome) => {
     app.use(bodyParser.json());
@@ -30,6 +32,20 @@ module.exports = (app, workspacesHome) => {
             }
         }
         res.json(workspaces);
+    });
+
+    app.delete('/workspaces', async (req, res) => {
+        const { user } = req.query;
+        const users = user ? [user] : await readdirAsync(workspacesHome);
+        for (let usr of users) {
+            const userPath = path.join(workspacesHome, usr);
+            try {
+                await rimrafAsync(userPath);
+            } catch (error) {
+                continue;
+            }
+        }
+        res.json({});
     });
 
     app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
