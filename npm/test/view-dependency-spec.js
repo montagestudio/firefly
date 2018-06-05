@@ -4,21 +4,19 @@ const express = require("express");
 const request = require("supertest");
 const expect = require("chai").expect;
 const routes = require("../routes");
-const projectFSMocks = require("./mocks/project-fs-sample");
 const npm = require('npm');
 
 describe("GET /dependencies", function () {
     let app;
-    
+
     beforeEach(() => {
         app = express();
-        const fs = projectFSMocks();
-        routes(app, fs, npm, '/');
+        routes(app, npm, 'test/fixtures');
     });
 
     it('should throw an error if the request is not valid.', function (done) {
         request(app)
-            .get(`/dependencies/montage@1.0`)
+            .get(`/package/dependencies/montage@1.0?prefix=no-errors`)
             .expect(400)
             .end((err, res) => {
                 expect(res.body.code).to.equal(3001);
@@ -28,7 +26,7 @@ describe("GET /dependencies", function () {
 
     it("should get some information about montage@0.13.0.", function (done) {
         request(app)
-            .get(`/dependencies/montage@0.13.0`)
+            .get(`/package/dependencies/montage@0.13.0?prefix=no-errors`)
             .expect(200)
             .end((err, res) => {
                 if (err) throw err;

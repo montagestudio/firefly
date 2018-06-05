@@ -4,22 +4,33 @@ const express = require("express");
 const request = require("supertest");
 const expect = require("chai").expect;
 const routes = require("../routes");
-const projectFSMocks = require("./mocks/project-fs-sample");
 const ErrorsCodes = require("../error-codes");
 const npm = require('npm');
+const FS = require('q-io/fs');
 
 describe("DELETE /dependencies", () => {
     let app;
 
-    beforeEach(() => {
+    beforeEach((done) => {
         app = express();
-        const mockFs = projectFSMocks();
-        routes(app, mockFs, npm, '/');
+        FS.copyTree('test/fixtures', 'tmp')
+            .then(() => {
+                routes(app, npm, 'tmp');
+                done();
+            })
+            .catch(done);
+    });
+
+    afterEach((done) => {
+        FS.removeTree('tmp')
+            .then(() => done())
+            .catch(done);
     });
 
     it('should remove a specified dependency.', function (done) {
         request(app)
-            .delete(`/dependencies/montage`)
+            .delete(`/package/dependencies/montage`)
+            .send({ prefix: 'no-errors' })
             .expect(200)
             .end((err, res) => {
                 if (err) throw err;
@@ -31,7 +42,8 @@ describe("DELETE /dependencies", () => {
 
     it('should throw an error it does not find a package', function (done) {
         request(app)
-            .delete(`/dependencies/nonexistentent`)
+            .delete(`/package/dependencies/nonexistentent`)
+            .send({ prefix: 'no-errors' })
             .expect(400)
             .end((err, res) => {
                 if (err) throw err;

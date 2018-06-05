@@ -36,11 +36,10 @@ var RemovePackage = function RemovePackage (fs, dependencyName, dependencyLocati
         if (error.errno === 3) {
             var wrongPermission = "Error filesystem permissions cannot remove while the dependency named " + dependencyName;
             throw new PackageManagerError(wrongPermission, ERRORS.FS_PERMISSION);
-        } else if (error.errno === 34 || error.code === "ENOENT") {
+        } else {
             var folderNotFound = "Dependency named " + dependencyName + " has not been found on the filesystem";
             throw new PackageManagerError(folderNotFound, ERRORS.DEPENDENCY_NOT_FOUND);
         }
-        throw error;
     });
 };
 

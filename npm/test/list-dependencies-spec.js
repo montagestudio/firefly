@@ -6,36 +6,31 @@ const chai = require("chai");
 const spies = require("chai-spies");
 const expect = chai.expect;
 const routes = require("../routes");
-const QFSMock = require("q-io/fs-mock");
-const ProjectFSMocksFactory = require('./mocks/project-fs-factory');
-const projectFsMocks = require("./mocks/project-fs-sample");
 const DEPENDENCY_CATEGORIES = require("../dependency-node").DEPENDENCY_CATEGORIES;
 const ERROR_TYPES = require("../error-codes");
 const npm = require('npm');
-
-const DEFAULT_PROJECT_NAME = 'project-fs-sample';
 
 chai.use(spies);
 
 describe("GET /dependencies", () => {
     let app;
 
+    beforeEach(() => {
+        app = express();
+        routes(app, npm, 'test/fixtures');
+    });
+
     describe("no errors situation", () => {
-        beforeEach(() => {
-            app = express();
-            const fs = projectFsMocks(DEFAULT_PROJECT_NAME);
-            routes(app, fs, npm, './');
-        });
 
         it('should gather some correct information about the project.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=no-errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
                     const dependencyTree = res.body;
                     expect(typeof dependencyTree).to.equal("object");
-                    expect(dependencyTree.name).to.equal(DEFAULT_PROJECT_NAME);
+                    expect(dependencyTree.name).to.equal('no-errors');
                     expect(dependencyTree.version).to.equal('0.1.0');
                     expect(dependencyTree.fileJsonRaw).to.not.be.undefined;
                     expect(dependencyTree.children.regular.length).to.be.above(0);
@@ -48,7 +43,7 @@ describe("GET /dependencies", () => {
 
         it('should detect when an ancestor is used by a deeper dependency.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=no-errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -64,7 +59,7 @@ describe("GET /dependencies", () => {
 
         it('should have no errors in this situation.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=no-errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -76,7 +71,7 @@ describe("GET /dependencies", () => {
 
         it('a dependency is not extraneous if it belongs to the "bundledDependencies" field.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=no-errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -90,7 +85,7 @@ describe("GET /dependencies", () => {
 
         it('a dependency is not missing if it belongs to the "devDependencies" or the "optionalDependencies" field.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=no-errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -107,15 +102,9 @@ describe("GET /dependencies", () => {
     });
 
     describe("errors situation:", function () {
-        beforeEach(() => {
-            app = express();
-            const fs = projectFsMocks(DEFAULT_PROJECT_NAME, true);
-            routes(app, fs, npm, './');
-        });
-
         it('should detect when a regular dependency is missing.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -132,7 +121,7 @@ describe("GET /dependencies", () => {
 
         it('should detect an extraneous dependency.', function(done) {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -147,7 +136,7 @@ describe("GET /dependencies", () => {
 
         it('should detect an invalid regular or optional dependency version.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -169,7 +158,7 @@ describe("GET /dependencies", () => {
 
         it('should detect an invalid ancestor which its used by a deeper dependency.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -184,7 +173,7 @@ describe("GET /dependencies", () => {
 
         it('should detect when a package.json file is missing.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -197,7 +186,7 @@ describe("GET /dependencies", () => {
 
         it('should detect when a package.json file shows some errors.', (done) => {
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=errors`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -209,15 +198,8 @@ describe("GET /dependencies", () => {
         });
 
         it('should detect when the project package.json file shows some errors.', function(done) {
-            app = express();
-            const fs = QFSMock(ProjectFSMocksFactory({
-                name: DEFAULT_PROJECT_NAME,
-                version: '0.1.1',
-                jsonFileError: true
-            }));
-            routes(app, fs);
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=package-json-error`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -227,14 +209,8 @@ describe("GET /dependencies", () => {
         });
 
         it('should not complain if no dependencies are required.', (done) => {
-            app = express();
-            const fs = QFSMock(ProjectFSMocksFactory({
-                name: DEFAULT_PROJECT_NAME,
-                version: '0.1.1'
-            }));
-            routes(app, fs);
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=no-dependencies`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -244,13 +220,8 @@ describe("GET /dependencies", () => {
         });
 
         it('should detect when the project package.json file is missing or empty', (done) => {
-            app = express();
-            const fs = QFSMock({
-                "package.json": "{}"
-            });
-            routes(app, fs);
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=package-empty`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;
@@ -260,13 +231,8 @@ describe("GET /dependencies", () => {
         });
 
         it('should detect if a package.json has an end line or not', (done) => {
-            app = express();
-            const fs = QFSMock({
-                "package.json": "{}\n"
-            });
-            routes(app, fs);
             request(app)
-                .get(`/dependencies`)
+                .get(`/package/dependencies?prefix=package-empty-with-newline`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) throw err;

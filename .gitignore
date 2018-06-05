@@ -55,6 +55,7 @@ tmtags
 npm-debug.log*
 .npmignore
 **/node_modules/
+!npm/test/fixtures/*/node_modules
 npm-cache
 
 # Vagrant

@@ -2,50 +2,71 @@
 
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const apiEndpoint = require("./api-endpoint");
-const listDependencies = require("./list-dependencies");
+const apiEndpoint = require('./api-endpoint');
+const listDependencies = require('./list-dependencies');
 const removePackage = require('./remove-package');
 const npmView = require('./npm-view');
 const path = require('path');
+const QioFS = require('q-io/fs');
 
-const NPM_PREFIX_HEADER = 'X-NPM-Prefix';
-
-module.exports = (app, fs, npm, packageHome) => {
+module.exports = (app, npm, packageHome) => {
     app.use(bodyParser.json());
     app.use(cors());
 
-    app.all("/dependencies/*", apiEndpoint((req, res, next) => {
-        let prefix = req.headers[NPM_PREFIX_HEADER] || '';
+    app.all('/package/*', apiEndpoint((req, res, next) => {
+        let prefix;
+        if (req.method.toLowerCase() === 'get') {
+            prefix = req.query.prefix;
+        } else {
+            prefix = req.body && req.body.prefix;
+        }
+        if (!prefix) {
+            return next(new Error('prefix is required'));
+        }
         prefix = prefix.replace(/package\.json$/, '');
-        return npm.load({
-            prefix: path.join(packageHome, prefix),
-            global: false
-        }, (err, loadedNpm) => {
-            if (err) {
-                res.status(500).json(err);
-            } else {
-                req.npm = loadedNpm;
-                next();
-            }
+        const absolutePath = path.join(packageHome, prefix);
+        const fsPromise = QioFS.reroot(absolutePath);
+        const npmPromise = new Promise((resolve, reject) => {
+            npm.load({
+                prefix: absolutePath,
+                global: false
+            }, (err, loadedNpm) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(loadedNpm);
+                }
+            });
         });
+        Promise.all([fsPromise, npmPromise])
+            .then((results) => {
+                const fs = results[0];
+                const npm = results[1];
+                res.locals.fs = fs;
+                res.locals.npm = npm;
+                next();
+            })
+            .catch((err) => {
+                res.status(400).json(err);
+            });
     }));
 
-    app.get("/dependencies", apiEndpoint((req, res) => {
-        let url = req.query.url || '';
+    app.get('/package/dependencies', apiEndpoint((req, res) => {
+        let url = req.query.url || './';
         url = url.replace(/package\.json$/, '');
-        return listDependencies(fs, url)
+        return listDependencies(res.locals.fs, url)
             .then((dependencyTree) => res.json(dependencyTree))
             .catch((error) => res.status(400).json(error));
     }));
 
-    app.get("/dependencies/:dependency", apiEndpoint((req, res) => {
-        return npmView(req.npm, req.params.dependency)
+    app.get('/package/dependencies/:dependency', apiEndpoint((req, res) => {
+        return npmView(res.locals.npm, req.params.dependency)
             .then(result => res.json(result))
             .catch((error) => res.status(400).json(error));
     }));
 
-    app.delete("/dependencies/:dependency", apiEndpoint((req, res) => {
-        return removePackage(fs, req.params.dependency, req.npm.prefix)
+    app.delete('/package/dependencies/:dependency', apiEndpoint((req, res) => {
+        return removePackage(res.locals.fs, req.params.dependency, req.body && req.body.location || './node_modules')
             .then((result) => res.json(result))
             .catch((error) => res.status(400).json(error));
     }));
