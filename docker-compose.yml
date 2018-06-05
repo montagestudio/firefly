@@ -91,6 +91,15 @@ services:
     - "traefik.docker.network=firefly_backend"
     - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
     restart: "on-failure"
+  workspace:
+    container_name: firefly_workspace
+    image: montagestudio/workspace:${WORKSPACE_VERSION:-latest}
+    build: ./workspace
+    networks:
+    - backend
+    - projects
+    volumes:
+    - workspaces:/workspaces
   repository:
     container_name: firefly_repository
     image: montagestudio/repository:${REPOSITORY_VERSION:-latest}
