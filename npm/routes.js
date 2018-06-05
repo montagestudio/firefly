@@ -70,4 +70,19 @@ module.exports = (app, npm, packageHome) => {
             .then((result) => res.json(result))
             .catch((error) => res.status(400).json(error));
     }));
+
+    app.post('/package/install', (req, res) => {
+        const installPromise = new Promise((resolve, reject) => {
+            npm.commands.install([], (err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        })
+        installPromise
+            .then(() => res.json({ installed: true }))
+            .catch((err) => res.status(500).json(err));
+    });
 };
