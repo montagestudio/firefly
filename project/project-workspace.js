@@ -63,22 +63,6 @@ ProjectWorkspace.prototype.existsNodeModules = function() {
     return this._fs.exists(this._fs.join(this._workspacePath, "node_modules"));
 };
 
-ProjectWorkspace.prototype.initializeWorkspace = function() {
-    var self = this;
-
-    return this.existsWorkspace().then(function (exists) {
-        if (!exists) {
-            return self._repoService.isProjectEmpty()
-            .then(function(isEmpty) {
-                if (isEmpty) {
-                    return self.initializeWithEmptyProject();
-                } else {
-                    return self.initializeWithRepository();
-                }
-            });
-        }
-    });
-};
 
 /**
  * Initializes the workspace by creating an empty app and pushing it to the
@@ -86,15 +70,7 @@ ProjectWorkspace.prototype.initializeWorkspace = function() {
  */
 ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
     var self = this;
-    var minit = new Minit(this._minitPath);
-
-    return minit.createApp(this._workspacePath, self._repo)
-    .then(function() {
-        return self._repoService.setupProject();
-    })
-    .then(function() {
-        return self._setupWorkspaceRepository();
-    })
+    return this._npmInstall()
     .then(function() {
         return self._repoService.commitFiles(null, INITIAL_COMMIT_MSG);
     })
@@ -115,15 +91,12 @@ ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
 ProjectWorkspace.prototype.initializeWithRepository = function() {
     var self = this;
 
-    return this._repoService.cloneProject()
+    return this._npmInstall()
     .then(function() {
         return self._repoService.defaultBranchName()
         .then(function(branch) {
             return self._repoService.checkoutShadowBranch(branch);
         });
-    })
-    .then(function() {
-        return self._setupWorkspaceRepository();
     })
     .then(function() {
         return self._repoService.commitFiles(null, UPDATE_DEPENDENCIES_MSG);
