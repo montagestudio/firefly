@@ -5,6 +5,7 @@ const ApiError = require('./api-error');
 const GithubApi = require('./github-api');
 const RepositoryApi = require('./service/repository-api');
 const MinitApi = require('./service/minit-api');
+const NpmApi = require('./service/npm-api');
 
 module.exports = (app, request, jwtMiddleware) => {
     app.use(bodyParser.json());
@@ -19,6 +20,7 @@ module.exports = (app, request, jwtMiddleware) => {
 
     const repositoryApi = new RepositoryApi(request);
     const minitApi = new MinitApi(request);
+    const npmApi = new NpmApi(request);
 
     app.route('/workspaces')
         .get(async (req, res) => {
@@ -74,25 +76,29 @@ module.exports = (app, request, jwtMiddleware) => {
             if (isEmpty) {
                 await minitApi.createApp(workspacePath, req.params.repo);
                 await repositoryApi.createRepository(workspacePath, remoteUrl, res.locals.token, name, email);
-                const response = await request.post(`/${req.params.owner}/${req.params.repo}/init_empty`, {}, {
-                    headers: {
-                        common: {
-                            'x-access-token': req.headers['x-access-token']
-                        }
-                    }
-                });
-                res.json(response.data);
             } else {
                 await repositoryApi.cloneRepository(workspacePath, remoteUrl, res.locals.token, name, email);
-                const response = await request.post(`/${req.params.owner}/${req.params.repo}/init_repository`, {}, {
+            }
+            await npmApi.installDependencies(workspacePath);
+            let response;
+            if (isEmpty) {
+                response = await request.post(`/${req.params.owner}/${req.params.repo}/init_empty`, {}, {
                     headers: {
                         common: {
                             'x-access-token': req.headers['x-access-token']
                         }
                     }
                 });
-                res.json(response.data);
+            } else {
+                response = await request.post(`/${req.params.owner}/${req.params.repo}/init_repository`, {}, {
+                    headers: {
+                        common: {
+                            'x-access-token': req.headers['x-access-token']
+                        }
+                    }
+                });
             }
+            res.json(response.data);
         } catch (error) {
             next(error);
         }
