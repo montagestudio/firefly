@@ -49,5 +49,20 @@ class RepositoryApi {
             }
         }
     }
+
+    async commitAll(path, message) {
+        try {
+            const response = await this.axios.post('http://repository/repository/commit', {
+                path, message
+            });
+            return response.body;
+        } catch (error) {
+            if (error.response) {
+                throw new ApiError(error.response.data, error.response.status);
+            } else {
+                throw new ApiError(error, 500);
+            }
+        }
+    }
 }
 module.exports = RepositoryApi;

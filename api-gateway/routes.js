@@ -76,6 +76,7 @@ module.exports = (app, request, jwtMiddleware) => {
             if (isEmpty) {
                 await minitApi.createApp(workspacePath, req.params.repo);
                 await repositoryApi.createRepository(workspacePath, remoteUrl, res.locals.token, name, email);
+                await repositoryApi.commitAll(workspacePath, 'Initial commit');
             } else {
                 await repositoryApi.cloneRepository(workspacePath, remoteUrl, res.locals.token, name, email);
             }

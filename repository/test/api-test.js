@@ -131,76 +131,76 @@ describe('Api', () => {
                     });
             }).timeout(10000);
         });
-        describe('commit', () => {
-            let repository;
+    });
+    describe('POST /repository/commit', () => {
+        let repository;
 
-            beforeEach(async () => {
-                repository = await nodegit.Repository.init('tmp', 0);
-            });
+        beforeEach(async () => {
+            repository = await nodegit.Repository.init('tmp', 0);
+        });
 
-            it('returns a 400 if the given repository path cannot be opened', (done) => {
-                request(app)
-                    .post('/repository/commit')
-                    .send({ path: 'nonexistent', message: 'initial commit' })
-                    .expect(400, done);
-            });
+        it('returns a 400 if the given repository path cannot be opened', (done) => {
+            request(app)
+                .post('/repository/commit')
+                .send({ path: 'nonexistent', message: 'initial commit' })
+                .expect(400, done);
+        });
 
-            it('returns a 400 if no message is given', (done) => {
-                request(app)
-                    .post('/repository/commit')
-                    .send({ path: 'tmp' })
-                    .expect(400, done);
-            });
+        it('returns a 400 if no message is given', (done) => {
+            request(app)
+                .post('/repository/commit')
+                .send({ path: 'tmp' })
+                .expect(400, done);
+        });
 
-            it('commits specific files', (done) => {
-                fs.writeFileSync('tmp/a.txt', 'a');
-                fs.writeFileSync('tmp/b.txt', 'b');
-                request(app)
-                    .post('/repository/commit')
-                    .send({ path: 'tmp', message: 'initial commit', fileUrls: ['a.txt'] })
-                    .expect(200)
-                    .end((err, res) => {
-                        if (err) return done(err);
-                        repository.getHeadCommit()
-                            .then((commit) => {
-                                expect(commit.message()).to.equal('initial commit');
-                                return repository.getStatus();
-                            })
-                            .then((status) => {
-                                expect(status.length).to.equal(1);
-                            })
-                            .then(done, done);
-                    });
-            });
+        it('commits specific files', (done) => {
+            fs.writeFileSync('tmp/a.txt', 'a');
+            fs.writeFileSync('tmp/b.txt', 'b');
+            request(app)
+                .post('/repository/commit')
+                .send({ path: 'tmp', message: 'initial commit', fileUrls: ['a.txt'] })
+                .expect(200)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    repository.getHeadCommit()
+                        .then((commit) => {
+                            expect(commit.message()).to.equal('initial commit');
+                            return repository.getStatus();
+                        })
+                        .then((status) => {
+                            expect(status.length).to.equal(1);
+                        })
+                        .then(done, done);
+                });
+        });
 
-            it('commits all files if no fileUrls are specified', (done) => {
-                fs.writeFileSync('tmp/a.txt', 'a');
-                fs.writeFileSync('tmp/b.txt', 'b');
-                request(app)
-                    .post('/repository/commit')
-                    .send({ path: 'tmp', message: 'initial commit' })
-                    .expect(200)
-                    .end((err, res) => {
-                        if (err) return done(err);
-                        repository.getHeadCommit()
-                            .then((commit) => {
-                                expect(commit.message()).to.equal('initial commit');
-                                return repository.getStatus();
-                            })
-                            .then((status) => {
-                                expect(status.length).to.equal(0);
-                            })
-                            .then(done, done);
-                    });
-            });
+        it('commits all files if no fileUrls are specified', (done) => {
+            fs.writeFileSync('tmp/a.txt', 'a');
+            fs.writeFileSync('tmp/b.txt', 'b');
+            request(app)
+                .post('/repository/commit')
+                .send({ path: 'tmp', message: 'initial commit' })
+                .expect(200)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    repository.getHeadCommit()
+                        .then((commit) => {
+                            expect(commit.message()).to.equal('initial commit');
+                            return repository.getStatus();
+                        })
+                        .then((status) => {
+                            expect(status.length).to.equal(0);
+                        })
+                        .then(done, done);
+                });
+        });
 
-            it('returns a 400 if one of the given fileUrls cannot be opened', (done) => {
-                fs.writeFileSync('tmp/a.txt', 'a');
-                request(app)
-                    .post('/repository/commit')
-                    .send({ path: 'tmp', message: 'initial commit', fileUrls: ['a.txt', 'nonexistent'] })
-                    .expect(400, done);
-            });
+        it('returns a 400 if one of the given fileUrls cannot be opened', (done) => {
+            fs.writeFileSync('tmp/a.txt', 'a');
+            request(app)
+                .post('/repository/commit')
+                .send({ path: 'tmp', message: 'initial commit', fileUrls: ['a.txt', 'nonexistent'] })
+                .expect(400, done);
         });
     });
 });

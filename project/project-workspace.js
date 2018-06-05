@@ -3,7 +3,6 @@ var Minit = require("./minit");
 var RepositoryService = require("./services/repository-service").service;
 var fs = require("q-io/fs");
 
-var INITIAL_COMMIT_MSG = "Initial commit";
 var DEFAULT_GIT_EMAIL = "noreply";
 
 module.exports = ProjectWorkspace;
@@ -59,10 +58,7 @@ ProjectWorkspace.prototype.existsWorkspace = function() {
  */
 ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
     var self = this;
-    return self._repoService.commitFiles(null, INITIAL_COMMIT_MSG)
-    .then(function() {
-        return self._repoService._flush();
-    })
+    return self._repoService._flush()
     .then(function() {
         return self._repoService.defaultBranchName()
         .then(function(branch) {
