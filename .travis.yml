@@ -31,6 +31,7 @@ script:
 - npm test --prefix project
 - npm test --prefix npm
 - npm install --prefix repository
+- BUILD_ONLY=true npm install --prefix repository nodegit
 - npm test --prefix repository
 - npm install --prefix workspace
 - npm test --prefix workspace
