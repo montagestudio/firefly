@@ -1,4 +1,3 @@
-var Q = require("q");
 var fs = require("q-io/fs");
 var exec = require('child_process').exec;
 var MockGithubApi = require("./mocks/github-api");
@@ -42,8 +41,6 @@ describe("ProjectWorkspace", function () {
         var _git = new Git(fs, "");
 
         it("creates git config with login and default email", function(done) {
-            spyOn(projectWorkspace, "_npmInstall");
-
             return _git.init(projectWorkspace._workspacePath)
             .then(function() {
                 return projectWorkspace._setupWorkspaceRepository();
@@ -59,8 +56,6 @@ describe("ProjectWorkspace", function () {
         });
 
         it("creates git config with name and default email", function(done) {
-            spyOn(projectWorkspace, "_npmInstall");
-
             githubUser.name = "John Doe";
 
             return _git.init(projectWorkspace._workspacePath)
@@ -78,8 +73,6 @@ describe("ProjectWorkspace", function () {
         });
 
         it("creates git config with login and email", function(done) {
-            spyOn(projectWorkspace, "_npmInstall");
-
             githubUser.email = "jdoe@declarativ.com";
 
             return _git.init(projectWorkspace._workspacePath)
@@ -92,18 +85,6 @@ describe("ProjectWorkspace", function () {
             .then(function(config) {
                 expect(config.indexOf('[user]')).not.toBe(-1);
                 expect(config.indexOf("email = jdoe@declarativ.com")).not.toBe(-1);
-            })
-            .then(done, done);
-        });
-
-        it("install node modules", function(done) {
-            var spy = spyOn(projectWorkspace, "_npmInstall");
-
-            return _git.init(projectWorkspace._workspacePath)
-            .then(function() {
-                return projectWorkspace._setupWorkspaceRepository();
-            }).then(function() {
-                expect(spy).toHaveBeenCalled();
             })
             .then(done, done);
         });
@@ -127,46 +108,6 @@ describe("ProjectWorkspace", function () {
             })
             .then(function(existsWorkspace) {
                 expect(existsWorkspace).toBe(true);
-            }).then(done, done);
-        });
-    });
-
-    describe("initialization", function() {
-        it("should initialize by creating an empty project", function(done) {
-            var spy = spyOn(projectWorkspace, "initializeWithEmptyProject");
-
-            spyOn(projectWorkspace._repoService, "isProjectEmpty")
-            .andCallFake(function() {
-                return Q.resolve(true);
-            });
-
-            spyOn(projectWorkspace._repoService, "checkoutShadowBranch")
-            .andCallFake(function() {
-                return Q.resolve(true);
-            });
-
-            return projectWorkspace.initializeWorkspace()
-            .then(function() {
-                expect(spy).toHaveBeenCalled();
-            }).then(done, done);
-        });
-
-        it("should initialize by cloning a repository", function(done) {
-            var spy = spyOn(projectWorkspace, "initializeWithRepository");
-
-            spyOn(projectWorkspace._repoService, "isProjectEmpty")
-            .andCallFake(function() {
-                return Q.resolve(false);
-            });
-
-            spyOn(projectWorkspace._repoService, "checkoutShadowBranch")
-            .andCallFake(function() {
-                return Q.resolve(true);
-            });
-
-            return projectWorkspace.initializeWorkspace()
-            .then(function() {
-                expect(spy).toHaveBeenCalled();
             }).then(done, done);
         });
     });
