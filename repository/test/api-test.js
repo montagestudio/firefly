@@ -5,7 +5,6 @@ const spies = require('chai-spies');
 const { expect } = chai;
 const routes = require('../routes');
 const fs = require('fs');
-const path = require('path');
 const rimraf = require('rimraf');
 const nodegit = require('nodegit');
 
@@ -202,5 +201,62 @@ describe('Api', () => {
                 .send({ path: 'tmp', message: 'initial commit', fileUrls: ['a.txt', 'nonexistent'] })
                 .expect(400, done);
         });
+    });
+    describe('POST /repository/branch', () => {
+        let repository;
+
+        beforeEach(async () => {
+            repository = await nodegit.Repository.init('tmp', 0);
+            const defaultSignature = nodegit.Signature.default(repository);
+            await repository.createCommitOnHead([], defaultSignature, defaultSignature, 'Initial commit');
+        });
+
+        it('creates the branch', (done) => {
+            request(app)
+                .post('/repository/branch')
+                .send({ path: 'tmp', branch: 'newbranch' })
+                .expect(200)
+                .end((err) => {
+                    if (err) return done(err);
+                    repository.getReferences(nodegit.Reference.TYPE.LISTALL)
+                        .then(references => {
+                            const referenceNames = references.map(ref => ref.name());
+                            expect(referenceNames.indexOf('refs/heads/newbranch')).to.be.greaterThan(-1);
+                            done();
+                        })
+                        .catch(done);
+                });
+        });
+
+        it('checks out the new branch', (done) => {
+            request(app)
+                .post('/repository/branch')
+                .send({ path: 'tmp', branch: 'newbranch' })
+                .expect(200)
+                .end((err) => {
+                    if (err) return done(err);
+                    repository.getCurrentBranch()
+                        .then(reference => {
+                            expect(reference.name()).to.equal('refs/heads/newbranch');
+                            done();
+                        })
+                        .catch(done);
+                });
+        });
+
+        it('works if the branch already exists', (done) => {
+            repository.getHeadCommit()
+                .then(headCommit => repository.createBranch('existingbranch', headCommit))
+                .then(() => request(app)
+                    .post('/repository/branch')
+                    .send({ path: 'tmp', branch: 'existingbranch' })
+                    .expect(200))
+                .then(() => repository.getCurrentBranch())
+                .then(reference => {
+                    expect(reference.name()).to.equal('refs/heads/existingbranch');
+                    done();
+                })
+                .catch(done);
+        })
     });
 });

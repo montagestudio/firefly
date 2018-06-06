@@ -120,6 +120,30 @@ module.exports = (app, git) => {
         }
     });
 
+    app.post('/repository/branch', async (req, res, next) => {
+        const { repo } = res.locals;
+        const { branch: branchName } = req.body || {};
+        if (!branchName) {
+            return next(new ApiError('branch is required', 400));
+        }
+        try {
+            const currentBranch = await repo.getCurrentBranch();
+            if (currentBranch.name() !== branchName) {
+                let branch;
+                try {
+                    branch = await repo.getBranch(branchName);
+                } catch (error) {
+                    const headCommit = await repo.getHeadCommit();
+                    branch = await repo.createBranch(branchName, headCommit);
+                }
+                await repo.checkoutBranch(branch);
+            }
+            res.json({});
+        } catch (err) {
+            next(err);
+        }
+    });
+
     app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
         if (err instanceof ApiError) {
             res.status(err.status || 500).json(err);
