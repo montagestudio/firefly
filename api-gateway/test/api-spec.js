@@ -92,21 +92,6 @@ describe('api', () => {
     describe('POST /{owner}/{repo}/init', () => {
     });
 
-    describe('GET /{owner}/{repo}/init/progress', () => {
-        it('proxies project-daemon\'s init/progress endpoint', (done) => {
-            const fakeResponse = { state: 'installing' };
-            fakeAxiosData('get', fakeResponse);
-            authenticated('get', '/owner/repo/init/progress')
-                .expect(200)
-                .expect(fakeResponse)
-                .end((err) => {
-                    if (err) return done(err);
-                    expect(axios.get).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/init/progress');
-                    done();
-                });
-        });
-    });
-
     describe('POST /{owner}/{repo}/flush', () => {
         it('proxies project-daemon\'s flush endpoint', (done) => {
             const fakeResponse = { message: 'flushed' };

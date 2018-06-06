@@ -54,15 +54,6 @@ module.exports = function (config) {
             });
         });
 
-        GET("init/progress")
-        .app(function (request) {
-            return handleEndpoint(config, request, function() {
-                return initializingPromise && initializingPromise.inspect().state;
-            }, function (state) {
-                return {state: state};
-            });
-        });
-
         POST("components")
         .app(function (request) {
             return handleEndpoint(config, request, function(data) {

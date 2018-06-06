@@ -56,7 +56,7 @@ paths:
       tags:
       - "workspace"
       summary: "Initialize a user workspace"
-      description: "If the workspace does not already exist: clones the project source into storage in the cloud and installs dependencies. This endpoint only returns whether initialization has started or not. Progress should be monitored using the /init/progress endpoint."
+      description: "If the workspace does not already exist: clones the project source into storage in the cloud and installs dependencies."
       operationId: "findPetsByStatus"
       produces:
       - "application/json"
@@ -106,34 +106,6 @@ paths:
             type: "object"
             properties:
               message:
-                type: "string"
-  /{owner}/{repo}/init/progress:
-    get:
-      tags:
-      - "workspace"
-      summary: "Get the initialization status of a workspace"
-      description: "Returns a state which represents the progress."
-      operationId: "getPetById"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "owner"
-        in: "path"
-        description: "The GitHub owner of the repository"
-        required: true
-        type: "string"
-      - name: "repo"
-        in: "path"
-        description: "The name of the GitHub repository"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            properties:
-              state:
                 type: "string"
   /{owner}/{repo}/components:
     post:
