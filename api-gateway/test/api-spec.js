@@ -43,14 +43,14 @@ describe('api', () => {
     });
 
     describe('GET /workspaces', () => {
-        it('proxies project-daemon\'s workspace endpoint', (done) => {
+        it('proxies workspace\'s workspace endpoint', (done) => {
             fakeAxiosData('get', []);
             authenticated('get', '/workspaces')
                 .expect(200)
                 .expect([])
                 .end((err) => {
                     if (err) return done(err);
-                    expect(axios.get).to.have.been.called.with('http://firefly_project-daemon:2440/workspaces');
+                    expect(axios.get).to.have.been.called.with('http://workspace/workspaces?user=mocha');
                     done();
                 });
         });
@@ -66,7 +66,7 @@ describe('api', () => {
     });
 
     describe('DELETE /workspaces', () => {
-        it('proxies project-daemon\'s workspace endpoint', (done) => {
+        it('proxies workspace\'s workspace endpoint', (done) => {
             const fakeResponse = { foo: 'bar' };
             fakeAxiosData('delete', fakeResponse);
             authenticated('delete', '/workspaces')
@@ -74,7 +74,7 @@ describe('api', () => {
                 .expect(fakeResponse)
                 .end((err) => {
                     if (err) return done(err);
-                    expect(axios.delete).to.have.been.called.with('http://firefly_project-daemon:2440/workspaces');
+                    expect(axios.delete).to.have.been.called.with('http://workspace/workspaces?user=mocha');
                     done();
                 });
         });
@@ -90,18 +90,6 @@ describe('api', () => {
     });
 
     describe('POST /{owner}/{repo}/init', () => {
-        it('proxies project-daemon\'s init endpoint', (done) => {
-            const fakeResponse = { message: 'created' };
-            fakeAxiosData('post', fakeResponse);
-            authenticated('post', '/owner/repo/init')
-                .expect(200)
-                .expect(fakeResponse)
-                .end((err) => {
-                    if (err) return done(err);
-                    expect(axios.post).to.have.been.called.with('http://firefly_project-daemon:2440/owner/repo/init');
-                    done();
-                });
-        });
     });
 
     describe('GET /{owner}/{repo}/init/progress', () => {
