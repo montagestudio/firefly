@@ -30,15 +30,19 @@ script:
 - npm test --prefix project-daemon
 - npm test --prefix project
 - npm test --prefix npm
+- npm test --prefix repository
+- npm test --prefix workspace
 - npm start
 - docker ps
 - docker ps | grep -q firefly_traefik
 - docker ps | grep -q firefly_auth
 - docker ps | grep -q firefly_jwt
 - docker ps | grep -q firefly_static
-- docker ps | grep -q firefly_project-daemon
 - docker ps | grep -q firefly_api-gateway
+- docker ps | grep -q firefly_project-daemon
 - docker ps | grep -q firefly_npm
+- docker ps | grep -q firefly_repository
+- docker ps | grep -q firefly_workspace
 after_script:
 - npm stop
 deploy:
