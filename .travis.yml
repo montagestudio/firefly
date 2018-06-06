@@ -30,7 +30,9 @@ script:
 - npm test --prefix project-daemon
 - npm test --prefix project
 - npm test --prefix npm
+- npm install --prefix repository
 - npm test --prefix repository
+- npm install --prefix workspace
 - npm test --prefix workspace
 - npm start
 - docker ps
