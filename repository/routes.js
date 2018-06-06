@@ -78,7 +78,7 @@ module.exports = (app, git) => {
         if (directory) {
             res.locals.directory = path.join(REPOSITORY_HOME, directory);
             try {
-                res.locals.repo = await git.Repository.open(directory);
+                res.locals.repo = await git.Repository.open(res.locals.directory);
                 next();
             } catch (error) {
                 next(new ApiError('unable to open repository', 400));
