@@ -69,17 +69,8 @@ module.exports = (app, request, jwtMiddleware) => {
                 await repositoryApi.cloneRepository(workspacePath, remoteUrl, res.locals.token, name, email);
             }
             await npmApi.installDependencies(workspacePath);
-            let response;
             if (isEmpty) {
-                response = await request.post(`/${req.params.owner}/${req.params.repo}/init_empty`, {}, {
-                    headers: {
-                        common: {
-                            'x-access-token': req.headers['x-access-token']
-                        }
-                    }
-                });
-            } else {
-                response = await request.post(`/${req.params.owner}/${req.params.repo}/init_repository`, {}, {
+                await request.post(`/${req.params.owner}/${req.params.repo}/flush`, {}, {
                     headers: {
                         common: {
                             'x-access-token': req.headers['x-access-token']
@@ -87,8 +78,10 @@ module.exports = (app, request, jwtMiddleware) => {
                     }
                 });
             }
-            res.json(response.data);
+            await repositoryApi.checkoutShadowBranch(workspacePath, res.locals.profile.username, 'master');
+            res.json({});
         } catch (error) {
+            console.error('init failed because', error);
             next(error);
         }
     });

@@ -52,33 +52,6 @@ ProjectWorkspace.prototype.existsWorkspace = function() {
     return this._fs.exists(this._fs.join(this._workspacePath, ".git"));
 };
 
-/**
- * Initializes the workspace by creating an empty app and pushing it to the
- * remote repository.
- */
-ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
-    var self = this;
-    return self._repoService._flush()
-    .then(function() {
-        return self._repoService.defaultBranchName()
-        .then(function(branch) {
-            return self._repoService.checkoutShadowBranch(branch);
-        });
-    });
-};
-
-/**
- * Initializes the workspace by cloning the remote repository.
- */
-ProjectWorkspace.prototype.initializeWithRepository = function() {
-    var self = this;
-
-    return self._repoService.defaultBranchName()
-    .then(function(branch) {
-        return self._repoService.checkoutShadowBranch(branch);
-    });
-};
-
 ProjectWorkspace.prototype.initializeWithTemplate = function(templateDirectory) {
     var self = this;
 

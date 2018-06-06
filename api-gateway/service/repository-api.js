@@ -64,5 +64,22 @@ class RepositoryApi {
             }
         }
     }
+
+    async checkoutShadowBranch(path, username, regularBranchName) {
+        try {
+            const shadowBranchName = `montagestudio/${username}/${regularBranchName}`;
+            const response = await this.axios.post('http://repository/repository/branch', {
+                path,
+                branch: shadowBranchName
+            });
+            return response.body;
+        } catch (error) {
+            if (error.response) {
+                throw new ApiError(error.response.data, error.response.status);
+            } else {
+                throw new ApiError(error, 500);
+            }
+        }
+    }
 }
 module.exports = RepositoryApi;
