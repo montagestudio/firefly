@@ -8,6 +8,11 @@ services:
 addons:
   hosts:
   - local.montage.studio
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - libstdc++-4.9-dev
 before_install:
 - export CHROME_BIN=chromium-browser
 - export DISPLAY=:99.0
@@ -31,7 +36,6 @@ script:
 - npm test --prefix project
 - npm test --prefix npm
 - npm install --prefix repository
-- BUILD_ONLY=true npm install --prefix repository nodegit
 - npm test --prefix repository
 - npm install --prefix workspace
 - npm test --prefix workspace
