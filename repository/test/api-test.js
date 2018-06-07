@@ -95,14 +95,14 @@ describe('Api', () => {
                     .send({ path: 'tmp', repositoryUrl: 'http://github.com/montagejs/popcorn' })
                     .expect(200);
                 await nodegit.Repository.open('tmp');
-            }).timeout(10000);
+            }).timeout(15000);
             it('clones an actual repository over https', async () => {
                 await request(app)
                     .post(`/repository`)
                     .send({ path: 'tmp', repositoryUrl: 'https://github.com/montagejs/popcorn' })
                     .expect(200);
                 await nodegit.Repository.open('tmp');
-            }).timeout(10000);
+            }).timeout(15000);
         });
     });
     describe('POST /repository/commit', () => {
