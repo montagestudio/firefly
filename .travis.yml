@@ -8,6 +8,11 @@ services:
 addons:
   hosts:
   - local.montage.studio
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - libstdc++-4.9-dev
 before_install:
 - export CHROME_BIN=chromium-browser
 - export DISPLAY=:99.0
@@ -26,15 +31,25 @@ before_script:
 - export DOCKER_CLIENT_TIMEOUT=120
 script:
 - npm run lint
+- npm test --prefix api-gateway
 - npm test --prefix project-daemon
 - npm test --prefix project
+- npm test --prefix npm
+- npm install --prefix repository
+- npm test --prefix repository
+- npm install --prefix workspace
+- npm test --prefix workspace
 - npm start
 - docker ps
 - docker ps | grep -q firefly_traefik
 - docker ps | grep -q firefly_auth
 - docker ps | grep -q firefly_jwt
 - docker ps | grep -q firefly_static
+- docker ps | grep -q firefly_api-gateway
 - docker ps | grep -q firefly_project-daemon
+- docker ps | grep -q firefly_npm
+- docker ps | grep -q firefly_repository
+- docker ps | grep -q firefly_workspace
 after_script:
 - npm stop
 deploy:

@@ -1,12 +1,8 @@
 var log = require("logging").from(__filename);
-var PATH = require("path");
 var Minit = require("./minit");
 var RepositoryService = require("./services/repository-service").service;
 var fs = require("q-io/fs");
-var PackageManagerService = require("./services/package-manager-service");
 
-var INITIAL_COMMIT_MSG = "Initial commit";
-var UPDATE_DEPENDENCIES_MSG = "Update dependencies";
 var DEFAULT_GIT_EMAIL = "noreply";
 
 module.exports = ProjectWorkspace;
@@ -52,85 +48,8 @@ Object.defineProperties(ProjectWorkspace.prototype, {
     }
 });
 
-/**
- * Workspace setup operations
- */
 ProjectWorkspace.prototype.existsWorkspace = function() {
     return this._fs.exists(this._fs.join(this._workspacePath, ".git"));
-};
-
-ProjectWorkspace.prototype.existsNodeModules = function() {
-    return this._fs.exists(this._fs.join(this._workspacePath, "node_modules"));
-};
-
-ProjectWorkspace.prototype.initializeWorkspace = function() {
-    var self = this;
-
-    return this.existsWorkspace().then(function (exists) {
-        if (!exists) {
-            return self._repoService.isProjectEmpty()
-            .then(function(isEmpty) {
-                if (isEmpty) {
-                    return self.initializeWithEmptyProject();
-                } else {
-                    return self.initializeWithRepository();
-                }
-            });
-        }
-    });
-};
-
-/**
- * Initializes the workspace by creating an empty app and pushing it to the
- * remote repository.
- */
-ProjectWorkspace.prototype.initializeWithEmptyProject = function() {
-    var self = this;
-    var minit = new Minit(this._minitPath);
-
-    return minit.createApp(this._workspacePath, self._repo)
-    .then(function() {
-        return self._repoService.setupProject();
-    })
-    .then(function() {
-        return self._setupWorkspaceRepository();
-    })
-    .then(function() {
-        return self._repoService.commitFiles(null, INITIAL_COMMIT_MSG);
-    })
-    .then(function() {
-        return self._repoService._flush();
-    })
-    .then(function() {
-        return self._repoService.defaultBranchName()
-        .then(function(branch) {
-            return self._repoService.checkoutShadowBranch(branch);
-        });
-    });
-};
-
-/**
- * Initializes the workspace by cloning the remote repository.
- */
-ProjectWorkspace.prototype.initializeWithRepository = function() {
-    var self = this;
-
-    return this._repoService.cloneProject()
-    .then(function() {
-        return self._repoService.defaultBranchName()
-        .then(function(branch) {
-            return self._repoService.checkoutShadowBranch(branch);
-        });
-    })
-    .then(function() {
-        return self._setupWorkspaceRepository();
-    })
-    .then(function() {
-        return self._repoService.commitFiles(null, UPDATE_DEPENDENCIES_MSG);
-    })
-    .then(function() {
-        return self._repoService._flush();
-    });
 };
 
 ProjectWorkspace.prototype.initializeWithTemplate = function(templateDirectory) {
@@ -233,28 +152,8 @@ ProjectWorkspace.prototype.flushWorkspace = function(message) {
  * Installs the needed node modules.
  */
 ProjectWorkspace.prototype._setupWorkspaceRepository = function() {
-    var self = this;
     var githubUser = this._config.githubUser;
     var name = githubUser.name || githubUser.login;
     var email = githubUser.email || DEFAULT_GIT_EMAIL;
-
-    return this._repoService.setUserInfo(name, email)
-    .then(function() {
-        return self._npmInstall();
-    });
-};
-
-/**
- * NPM related operations
- */
-ProjectWorkspace.prototype._npmInstall = function () {
-    // Let the PackageManager installs the project's dependencies.
-    var pathname =  PATH.sep + PATH.join(this._owner, this._repo),
-        fsPath = this._workspacePath;
-
-    return this._fs.reroot(this._workspacePath)
-    .then(function(fs) {
-        var service = PackageManagerService(null, fs, pathname, fsPath);
-        return service.installProjectPackages();
-    });
+    return this._repoService.setUserInfo(name, email);
 };

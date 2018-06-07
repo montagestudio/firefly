@@ -76,27 +76,17 @@ module.exports = (options = {}) => {
     })
     // Private (authenticated) routes
     .route(function (any, GET) {
-        GET("workspaces", requestHostStartsWith("api")).app(async (req) => {
+        GET("workspaces").app(async (req) => {
             const containers = await containerManager.containersForUser(req.profile.username);
             return APPS.json(containers.map((container) => ({
                 id: container.id
             })));
         });
 
-        this.DELETE("workspaces", requestHostStartsWith("api")).app(async (req) => {
+        this.DELETE("workspaces").app(async (req) => {
             log("delete stack", req.profile.username);
             await containerManager.deleteUserContainers(req.profile.username);
             return APPS.json({deleted: true});
-        });
-
-        any(":owner/:repo/...", requestHostStartsWith("api")).app(async (req) => {
-            const projectInfo = new ProjectInfo(
-                req.profile.username,
-                req.params.owner,
-                req.params.repo
-            );
-            const host = await containerManager.setup(projectInfo, req.token, req.profile);
-            return proxyContainer(req, host, "api");
         });
 
         GET(":owner/:repo/...", requestHostStartsWith("build")).app(async (req) => {
@@ -108,6 +98,19 @@ module.exports = (options = {}) => {
             );
             const host = await containerManager.setup(projectInfo, req.token, req.profile);
             return proxyContainer(req, host, "build");
+        });
+
+        any("...").use((next) => async (req) => {
+            var match = /^\/*(.+?)\/(.+?)(\/.+)$/.exec(req.path);
+            if (match) {
+                const [ owner, repo, rest ] = match.slice(1);
+                const projectInfo = new ProjectInfo(req.profile.username, owner, repo);
+                const host = await containerManager.setup(projectInfo, req.token, req.profile);
+                req.pathInfo = rest;
+                return proxyContainer(req, host, "api");
+            } else {
+                return next(req);
+            }
         });
     });
 

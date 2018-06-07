@@ -1,0 +1,300 @@
+swagger: "2.0"
+info:
+  description: "This is the public API served by firefly via its API gateway.      For this sample, you can use the api key `special-key` to test the authorization     filters."
+  version: "1.0.0"
+  title: "Firefly"
+host: "api.montage.studio"
+basePath: "/v1"
+tags:
+- name: "workspace"
+  description: "Access to the user project in the cloud"
+- name: "minit"
+  description: "Creating modules and components"
+schemes:
+- "https"
+security: 
+- api_key: []
+paths:
+  /workspaces:
+    get:
+      tags:
+      - "workspace"
+      summary: "List the user's active workspaces"
+      description: "Returns an array of workspace IDs. Each ID represents a workspace that is currently stored in the Studio cloud."
+      operationId: "addPet"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: 'OK'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/WorkspaceId'
+    delete:
+      tags:
+      - "workspace"
+      summary: "Delete the user's active workspaces"
+      description: "Removes all of the user's workspace projects from storage in the Studio cloud. Returns a boolean indicating whether the deletion was successful or whether workspaces could not be deleted for any reason."
+      operationId: "updatePet"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: "boolean"
+  /{owner}/{repo}/init:
+    post:
+      tags:
+      - "workspace"
+      summary: "Initialize a user workspace"
+      description: "If the workspace does not already exist: clones the project source into storage in the cloud and installs dependencies."
+      operationId: "findPetsByStatus"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "owner"
+        in: "path"
+        description: "The GitHub owner of the repository"
+        required: true
+        type: "string"
+      - name: "repo"
+        in: "path"
+        description: "The name of the GitHub repository"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+  /{owner}/{repo}/init_popcorn:
+     post:
+      tags:
+      - "workspace"
+      summary: "Initialize a user workspace with the popcorn template"
+      description: "Works the same as /{owner}/{repo}/init, but clones popcorn instead of a user project."
+      operationId: "bal"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "owner"
+        in: "path"
+        description: "The GitHub owner of the repository"
+        required: true
+        type: "string"
+      - name: "repo"
+        in: "path"
+        description: "The name of the GitHub repository"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+  /{owner}/{repo}/components:
+    post:
+      tags:
+      - "minit"
+      summary: "Create a new component"
+      description: "Uses minit to generate the files for a new component in the project."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "owner"
+        in: "path"
+        description: "The GitHub owner of the repository"
+        required: true
+        type: "string"
+      - name: "repo"
+        in: "path"
+        description: "The name of the GitHub repository"
+        required: true
+        type: "string"
+      - name: "component"
+        in: "body"
+        description: "Component information"
+        required: true
+        schema:
+          properties:
+            name:
+              type: "string"
+            destination:
+              type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              success:
+                type: "string"
+              message:
+                type: "string"
+  /{owner}/{repo}/modules:
+    post:
+      tags:
+      - "minit"
+      summary: "Create a new module"
+      description: "Uses minit to generate the files for a new JS module in the project."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "owner"
+        in: "path"
+        description: "The GitHub owner of the repository"
+        required: true
+        type: "string"
+      - name: "repo"
+        in: "path"
+        description: "The name of the GitHub repository"
+        required: true
+        type: "string"
+      - name: "module"
+        in: "body"
+        description: "Module information"
+        required: true
+        schema:
+          properties:
+            name:
+              type: "string"
+            extendsModuleId:
+              type: "string"
+            extendsName:
+              type: "string"
+            destination:
+              type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              success:
+                type: "string"
+              message:
+                type: "string"
+  /{owner}/{repo}/flush:
+    post:
+      tags:
+      - "workspace"
+      summary: "Flush the workspace"
+      description: "Forces a commit and sync of all local changes in the workspace."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "owner"
+        in: "path"
+        description: "The GitHub owner of the repository"
+        required: true
+        type: "string"
+      - name: "repo"
+        in: "path"
+        description: "The name of the GitHub repository"
+        required: true
+        type: "string"
+      - name: "message"
+        in: "body"
+        description: "Message information"
+        required: true
+        schema:
+          properties:
+            message:
+              type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              success:
+                type: "string"
+              message:
+                type: "string"
+  /{owner}/{repo}/workspace:
+    get:
+      tags:
+      - "workspace"
+      summary: "Get the status of the specific workspace"
+      description: ""
+      produces:
+      - "application/json"
+      parameters:
+      - name: "owner"
+        in: "path"
+        description: "The GitHub owner of the repository"
+        required: true
+        type: "string"
+      - name: "repo"
+        in: "path"
+        description: "The name of the GitHub repository"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              created:
+                type: "string"
+  /{owner}/{repo}/save:
+    post:
+      tags:
+      - "workspace"
+      summary: "Save a file in the workspace"
+      description: ""
+      produces:
+      - "application/json"
+      parameters:
+      - name: "owner"
+        in: "path"
+        description: "The GitHub owner of the repository"
+        required: true
+        type: "string"
+      - name: "repo"
+        in: "path"
+        description: "The name of the GitHub repository"
+        required: true
+        type: "string"
+      - name: "file info"
+        in: "body"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            filename:
+              type: "string"
+            contents:
+              type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "x-access-token"
+    in: "header"
+definitions:
+  WorkspaceId:
+    type: "string"

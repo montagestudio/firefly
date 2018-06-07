@@ -57,11 +57,13 @@ function main(options) {
     var minitPath = fs.join(__dirname, "..", "node_modules", "minit", "minit");
     Mop.init(fs, options.directory);
 
+    var workspacePath = [options.directory, config.username, config.owner, config.repo].join("/");
+
     var containerChain = containerChainFactory({
         fs: fs,
         config: config,
-        workspacePath: options.directory,
-        setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, minitPath),
+        workspacePath: workspacePath,
+        setupProjectWorkspace: SetupProjectWorkspace(config, workspacePath, minitPath),
         request: request 
     });
     return containerChain.listen(options.port)

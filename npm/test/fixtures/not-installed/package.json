@@ -1,0 +1,6 @@
+{
+    "name": "simple",
+    "dependencies": {
+        "minit": "0.5.8"
+    }
+}
