@@ -1,8 +1,8 @@
-var PackageManagerError = function PackageManagerError (message, code) {
+function PackageManagerError(message, code) {
     this.name = "PackageManagerError";
     this.message = message;
     this.code = code;
-};
+}
 
 PackageManagerError.prototype = new Error();
 

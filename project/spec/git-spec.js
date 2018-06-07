@@ -2,15 +2,8 @@ var fs = require("q-io/fs");
 var exec = require('child_process').exec;
 var Git = require("../git");
 
-function initAndConfig(git, path) {
-    return git.init(path)
-        .then(function () {
-            return Promise.all([
-                git.config(path, "user.name", "John Doe"),
-                git.config(path, "user.email", "noreply@declarativ.com")
-            ]);
-        });
-}
+const asyncTest = (test) => (done) =>
+    Promise.resolve(test()).then(done, done);
 
 describe("Git", function () {
     var git, tmpPath;
@@ -24,19 +17,15 @@ describe("Git", function () {
     });
 
     describe("init", function () {
-        it("creates a git repo", function (done) {
-            git.init(tmpPath)
-            .then(function () {
-                return git.isCloned(tmpPath);
-            })
-            .then(function (isCloned) {
+        it("creates a git repo", asyncTest(async () => {
+            try {
+                await git.init(tmpPath);
+                const isCloned = await git.isCloned(tmpPath);
                 expect(isCloned).toBe(true);
-            })
-            .finally(function () {
-                return fs.removeTree(tmpPath);
-            })
-            .then(done, done);
-        });
+            } finally {
+                await fs.removeTree(tmpPath);
+            }
+        }));
     });
 
     describe("config", function () {
@@ -73,7 +62,7 @@ describe("Git", function () {
 
     describe("addRemote", function () {
         it("adds a remote to the .git/config file", function (done) {
-            initAndConfig(git, tmpPath)
+            git.init(tmpPath)
             .then(function () {
                 return git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
             })
@@ -90,7 +79,7 @@ describe("Git", function () {
 
     describe("fetch and branch", function () {
         it("fetches the branches from the remote", function (done) {
-            initAndConfig(git, tmpPath)
+            git.init(tmpPath)
             .then(function () {
                 return git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
             })
@@ -111,7 +100,7 @@ describe("Git", function () {
 
     describe("add", function () {
         it("creates .git/index, impling the file has been staged", function (done) {
-            initAndConfig(git, tmpPath)
+            git.init(tmpPath)
             .then(function () {
                 return fs.write(fs.join(tmpPath, "test.txt"), "pass");
             })
@@ -130,7 +119,7 @@ describe("Git", function () {
 
     describe("commit", function () {
         it("creates the master ref", function (done) {
-            initAndConfig(git, tmpPath)
+            git.init(tmpPath)
             .then(function () {
                 return fs.write(fs.join(tmpPath, "test.txt"), "pass");
             })
@@ -148,21 +137,57 @@ describe("Git", function () {
             })
             .then(done, done);
         });
+        it("adds a remote to the .git/config file", asyncTest(async () => {
+            await git.init(tmpPath)
+            await git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
+            const config = await fs.read(fs.join(tmpPath, ".git", "config"));
+            expect(config.indexOf('[remote "origin"]')).not.toBe(-1);
+            expect(config.indexOf("url = https://github.com/montagejs/mousse.git")).not.toBe(-1);
+        }));
+    });
+
+    describe("fetch and branch", function () {
+        if (process.env.runSlowSpecs) {
+            it("fetches the branches from the remote", asyncTest(async () => {
+                await git.init(tmpPath);
+                await git.addRemote(tmpPath, "https://github.com/montagejs/mousse.git");
+                await git.fetch(tmpPath);
+                const branches = await git.branch(tmpPath, "-a");
+                expect(branches.indexOf("remotes/origin/master")).not.toBe(-1);
+            }));
+        }
+    });
+
+    describe("add", function () {
+        it("creates .git/index, impling the file has been staged", asyncTest(async () => {
+            await git.init(tmpPath);
+            await fs.write(fs.join(tmpPath, "test.txt"), "pass");
+            await git.add(tmpPath, ".");
+            const indexExists = await fs.exists(fs.join(tmpPath, ".git", "index"));
+            expect(indexExists).toBe(true);
+        }));
+    });
+
+    describe("commit", function () {
+        it("creates the master ref", asyncTest(async () => {
+            await git.init(tmpPath);
+            await fs.write(fs.join(tmpPath, "test.txt"), "pass");
+            await git.add(tmpPath, ".");
+            await git.commit(tmpPath, "testing");
+            const masterExists = await fs.exists(fs.join(tmpPath, ".git", "refs", "heads", "master"));
+            expect(masterExists).toBe(true);
+        }));
     });
 
     describe("clone", function () {
-        it("creates a git repo", function (done) {
-            git.clone("https://github.com/montagejs/mousse.git", tmpPath)
-            .then(function () {
-                return git.isCloned(tmpPath);
-            })
-            .then(function (isCloned) {
+        it("creates a git repo", asyncTest(async () => {
+            try {
+                await git.clone("https://github.com/montagejs/mousse.git", tmpPath)
+                const isCloned = await git.isCloned(tmpPath);
                 expect(isCloned).toBe(true);
-            })
-            .finally(function () {
-                return fs.removeTree(tmpPath);
-            })
-            .then(done, done);
-        });
+            } finally {
+                await fs.removeTree(tmpPath);
+            }
+        }));
     });
 });

@@ -1,115 +1,94 @@
-var log = require("logging").from(__filename);
-var joey = require("joey");
-var JsonApps = require("q-io/http-apps/json");
+const log = require("logging").from(__filename);
+const joey = require("joey");
+const JsonApps = require("q-io/http-apps/json");
 
-var sanitize = require("./sanitize");
+const sanitize = require("./sanitize");
 
-module.exports = function (config) {
-    // TODO version API by reading header Accept: application/vnd.firefly.v2+json
-    return joey.route(function (route, GET, PUT, POST) {
-        var initializingPromise;
+// TODO version API by reading header Accept: application/vnd.firefly.v2+json
+module.exports = (config) => joey.route(function (route, GET, PUT, POST) {
+    let initializingPromise;
 
-        POST("init")
-        .app(function (request) {
-            return handleEndpoint(config, request, function() {
-                log("init handleEndpoint");
-                if (!initializingPromise || initializingPromise.isRejected()) {
-                    initializingPromise = request.projectWorkspace.initializeWorkspace();
-                    initializingPromise.catch(function (error) {
-                        console.error("Error initializing", error, error.stack);
-                    });
-                }
-            }, function() {
-                return {message: "initializing"};
-            });
-        });
+    POST("init")
+    .app((request) => handleEndpoint(config, request,
+        () => {
+            log("init handleEndpoint");
+            if (!initializingPromise || initializingPromise.isRejected()) {
+                initializingPromise = request.projectWorkspace.initializeWorkspace();
+                initializingPromise.catch((error) => {
+                    console.error("Error initializing", error, error.stack);
+                });
+            }
+        },
+        () => ({ message: "initializing"})
+    ));
 
-        POST("init_popcorn")
-        .app(function (request) {
-            return handleEndpoint(config, request, function() {
-                log("init_popcorn handleEndpoint");
-                if (!initializingPromise) {
-                    initializingPromise = request.projectWorkspace.initializeWithTemplate("/root/popcorn");
-                    initializingPromise.catch(function (error) {
-                        console.error("Error initializing popcorn", error, error.stack);
-                    });
-                }
-            }, function() {
-                return {message: "initializing"};
-            });
-        });
+    POST("init_popcorn")
+    .app((request) => handleEndpoint(config, request,
+        () => {
+            log("init_popcorn handleEndpoint");
+            if (!initializingPromise) {
+                initializingPromise = request.projectWorkspace.initializeWithTemplate("/root/popcorn");
+                initializingPromise.catch((error) => {
+                    console.error("Error initializing popcorn", error, error.stack);
+                });
+            }
+        },
+        () => ({ message: "initializing"})
+    ));
 
-        GET("init/progress")
-        .app(function (request) {
-            return handleEndpoint(config, request, function() {
-                return initializingPromise && initializingPromise.inspect().state;
-            }, function (state) {
-                return {state: state};
-            });
-        });
+    GET("init/progress")
+    .app((request) => handleEndpoint(config, request,
+        () => initializingPromise && initializingPromise.inspect().state,
+        (state) => ({state: state})
+    ));
 
-        POST("components")
-        .app(function (request) {
-            return handleEndpoint(config, request, function(data) {
-                return request.projectWorkspace.createComponent(
-                    data.name, data.destination);
-            }, function(result) {
-                if (result.success === true) {
-                    result.message = "created";
-                }
-                return result;
-            });
-        });
+    POST("components")
+    .app((request) => handleEndpoint(config, request,
+        (data) => request.projectWorkspace.createComponent(data.name, data.destination),
+        (result) => {
+            if (result.success === true) {
+                result.message = "created";
+            }
+            return result;
+        }
+    ));
 
-        POST("modules")
-        .app(function (request) {
-            return handleEndpoint(config, request, function(data) {
-                return request.projectWorkspace.createModule(
-                    data.name, data.extendsModuleId,
-                    data.extendsName, data.destination);
-            }, function(result) {
-                if (result.success === true) {
-                    result.message = "created";
-                }
-                return result;
-            });
-        });
+    POST("modules")
+    .app((request) => handleEndpoint(config, request,
+        (data) => request.projectWorkspace.createModule(
+            data.name, data.extendsModuleId, data.extendsName, data.destination),
+        (result) => {
+            if (result.success === true) {
+                result.message = "created";
+            }
+            return result;
+        }
+    ));
 
-        POST("flush")
-        .app(function (request) {
-            return handleEndpoint(config, request, function(data) {
-                return request.projectWorkspace.flushWorkspace(
-                    data.message);
-            }, function(result) {
-                if (result.success === true) {
-                    result.message = "flushed";
-                }
-                return result;
-            });
-        });
+    POST("flush")
+    .app((request) => handleEndpoint(config, request,
+        (data) => request.projectWorkspace.flushWorkspace(data.message),
+        (result) => {
+            if (result.success === true) {
+                result.message = "flushed";
+            }
+            return result;
+        }
+    ));
 
-        GET("workspace")
-        .app(function (request) {
-            return handleEndpoint(config, request, function() {
-                return initializingPromise && !initializingPromise.isFulfilled() ?
-                    "initializing" : request.projectWorkspace.existsWorkspace();
-            }, function(status) {
-                return {created: status};
-            });
-        });
+    GET("workspace")
+    .app((request) => handleEndpoint(config, request,
+        () => initializingPromise && !initializingPromise.isFulfilled() ?
+            "initializing" : request.projectWorkspace.existsWorkspace(),
+        (status) => ({created: status})
+    ));
 
-        POST("save")
-        .app(function (request) {
-            return handleEndpoint(config, request, function(data) {
-                return request.projectWorkspace.saveFile(
-                    data.filename, data.contents);
-            }, function() {
-                return {message: "saved"};
-            });
-        });
-
-    });
-};
+    POST("save")
+    .app((request) => handleEndpoint(config, request,
+        (data) => request.projectWorkspace.saveFile(data.filename, data.contents),
+        () => ({message: "saved"})
+    ));
+});
 
 /**
  * Endpoints (to be moved to another file in the future)
@@ -130,19 +109,19 @@ module.exports = function (config) {
  *        that the operation resolved it and is expected to return the message
  *        that will be turned into a response back to the browser.
  */
-function handleEndpoint(config, request, endpointCallback, successCallback) {
-    var owner = sanitize.sanitizeDirectoryName(config.owner),
+async function handleEndpoint(config, request, endpointCallback, successCallback) {
+    const owner = sanitize.sanitizeDirectoryName(config.owner),
         repo = sanitize.sanitizeDirectoryName(config.repo);
 
-    var createMessage = function(message) {
+    const createMessage = (message) => {
         message.owner = owner;
         message.repo = repo;
         return message;
     };
 
-    return request.body.read()
-    .then(function(body) {
-        var data;
+    try {
+        const body = await request.body.read();
+        let data;
 
         if (body.length > 0) {
             try {
@@ -154,10 +133,8 @@ function handleEndpoint(config, request, endpointCallback, successCallback) {
             data = {};
         }
 
-        return endpointCallback(data);
-    })
-    .then(function() {
-        var successMessage;
+        await endpointCallback(data);
+        let successMessage;
 
         if (successCallback) {
             successMessage = successCallback(arguments[0]);
@@ -166,11 +143,10 @@ function handleEndpoint(config, request, endpointCallback, successCallback) {
         }
 
         return JsonApps.json(createMessage(successMessage));
-    })
-    .fail(function(error) {
+    } catch (error) {
         console.error("handleEndpoint fail", error.stack);
         return JsonApps.json(createMessage({
             error: error.message
         }));
-    });
+    }
 }

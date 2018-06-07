@@ -1,5 +1,5 @@
 /*global __dirname */
-var log = require("logging").from(__filename),
+const log = require("logging").from(__filename),
     fork = require('child_process').fork,
     Q = require("q"),
 
@@ -16,16 +16,13 @@ var log = require("logging").from(__filename),
  * @param {String} npmfs - The working directory to run the npm command in.
  * @return {Promise} A promise for the completion of the command.
  */
-var execNpm = function execNpm(command, args, npmfs) {
+const execNpm = function execNpm(command, args, npmfs) {
     log(command, args);
-
-    var deferred = Q.defer(),
-        procChild = null;
-
+    const deferred = Q.defer();
+    let procChild = null;
     if (Array.isArray(args)) {
         args = args.join(",");
     }
-
     switch (command) {
         case COMMANDS.VIEW:
             if (args) {
@@ -43,20 +40,12 @@ var execNpm = function execNpm(command, args, npmfs) {
     }
 
     if (procChild) {
-        var result = null;
-
-        procChild.on('message', function (message) {
-            result = message;
-        });
-
-        procChild.on("error", function (error) {
-            deferred.reject(error);
-        });
-
-        procChild.on('exit', function (code) {
+        let result = null;
+        procChild.on('message', (message) => result = message);
+        procChild.on("error", (error) => deferred.reject(error));
+        procChild.on('exit', (code) => {
             if (code !== 0) {
-                var argumentList = typeof args === "string" ? args.replace(/,/g, " ") : "";
-
+                const argumentList = typeof args === "string" ? args.replace(/,/g, " ") : "";
                 deferred.reject(new Error("'npm " + command + " " + argumentList + "' in " + npmfs + " exited with code " + code));
             } else {
                 if (result) {
@@ -70,11 +59,9 @@ var execNpm = function execNpm(command, args, npmfs) {
                 }
             }
         });
-
     } else {
         deferred.reject(new Error("invalid npm command or missing arguments"));
     }
-
     return deferred.promise;
 };
 

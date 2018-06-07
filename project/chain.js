@@ -1,65 +1,62 @@
-var log = require("logging").from(__filename);
-var Q = require("q");
-var joey = require("joey");
+const log = require("logging").from(__filename);
+const joey = require("joey");
 
-var HttpApps = require("q-io/http-apps/fs");
-var StatusApps = require("q-io/http-apps/status");
+const HttpApps = require("q-io/http-apps/fs");
+const StatusApps = require("q-io/http-apps/status");
 
-var LogStackTraces = require("./log-stack-traces");
+const LogStackTraces = require("./common/log-stack-traces");
 
-var api = require("./api");
-var serveArchivedBuild = require("./mop").serveArchivedBuild;
-var Preview = require("./preview/preview-server").Preview;
-var WebSocket = require("faye-websocket");
-var websocket = require("./websocket");
-var Frontend = require("./frontend");
+const api = require("./api");
+const serveArchivedBuild = require("./mop").serveArchivedBuild;
+const Preview = require("./preview/preview-server").Preview;
+const WebSocket = require("faye-websocket");
+const websocket = require("./websocket");
+const Frontend = require("./frontend");
 
-module.exports = server;
-function server(options) {
-    options = options || {};
-
+module.exports = (options = {}) => {
+    const {
+        setupProjectWorkspace,
+        config,
+        workspacePath,
+        fs,
+        request
+    } = options;
     //jshint -W116
-    if (!options.setupProjectWorkspace) throw new Error("options.setupProjectWorkspace required");
-    var setupProjectWorkspace = options.setupProjectWorkspace;
-    if (!options.config) throw new Error("options.config required");
-    var config = options.config;
-    if (!options.workspacePath) throw new Error("options.workspacePath required");
-    var workspacePath = options.workspacePath;
-    if (!options.fs) throw new Error("options.fs required");
-    var fs = options.fs;
-    if (!options.request) throw new Error("options.request required");
-    var request = options.request;
+    if (!setupProjectWorkspace) throw new TypeError("options.setupProjectWorkspace required");
+    if (!config) throw new TypeError("options.config required");
+    if (!workspacePath) throw new TypeError("options.workspacePath required");
+    if (!fs) throw new TypeError("options.fs required");
+    if (!request) throw new TypeError("options.request required");
     //jshint +W116
 
-    var preview = Preview(config);
+    const preview = Preview(config);
 
-    var chain = joey
+    const chain = joey
     .error()
     // Put here to avoid printing logs when HAProxy pings the server for
     // a health check
-    .route(function () {
-        this.OPTIONS("").content("");
+    .route(function () { 
+        this.OPTIONS("").content("")
     })
     .use(LogStackTraces(log))
     .tap(setupProjectWorkspace)
     .route(function (route, _, __, POST) {
-        var serveProject = preview(function (request) {
+        const serveProject = preview(async (request) => {
             // Aboslute the path so that ".." components are removed, then
             // strip leading slash on pathInfo so that the `join` works
-            var path = fs.absolute(decodeURI(request.pathInfo)).replace(/^\//, "");
+            let path = fs.absolute(decodeURI(request.pathInfo)).replace(/^\//, "");
             path = fs.join(workspacePath, path);
 
-            return fs.isFile(path).then(function(isFile) {
-                if (isFile) {
-                    return HttpApps.file(request, path, null, fs);
-                } else {
-                    return StatusApps.notFound(request);
-                }
-            });
+            const isFile = await fs.isFile(path);
+            if (isFile) {
+                return HttpApps.file(request, path, null, fs);
+            } else {
+                return StatusApps.notFound(request);
+            }
         });
 
         route("api/...")
-        .log(log, function (message) { return message; })
+        .log(log, (message) => message)
         .app(api(config).end());
 
         route("static/...")
@@ -69,20 +66,19 @@ function server(options) {
         .app(serveArchivedBuild);
 
         POST("notice")
-        .app(function (request) {
-            return request.body.read()
-            .then(function (body) {
-                var message = JSON.parse(body.toString());
-                Frontend.showNotification(message)
-                .catch(function (error) {
-                    console.error("Error notifying", error.stack);
-                });
-                return {status: 200, body: []};
-            });
+        .app(async (request) => {
+            const body = await request.body.read();
+            const message = JSON.parse(body.toString());
+            try {
+                await Frontend.showNotification(message);
+            } catch (error) {
+                console.error("Error notifying", error.stack);
+            }
+            return { status: 200, body: [] };
         });
     });
 
-    var services = {};
+    const services = {};
     services["file-service"] = require("./services/file-service");
     services["extension-service"] = require("./services/extension-service");
     services["env-service"] = require("./services/env-service");
@@ -92,25 +88,23 @@ function server(options) {
     services["build-service"] = require("./services/build-service");
     services["asset-converter-service"] = require("./services/asset-converter-service");
 
-    var websocketServer = websocket(config, workspacePath, services, request);
+    const websocketServer = websocket(config, workspacePath, services, request);
 
-    chain.upgrade = function (request, socket, head) {
-        Q.try(function () {
+    chain.upgrade = async (request, socket, head) => {
+        try {
             if (!WebSocket.isWebSocket(request)) {
                 return;
             }
-
             if (request.headers['sec-websocket-protocol'] === "firefly-preview") {
-                return preview.wsServer(request, socket, head);
+                return await preview.wsServer(request, socket, head);
             } else {
-                return websocketServer(request, socket, head);
+                return await websocketServer(request, socket, head);
             }
-        })
-        .catch(function (error) {
+        } catch (error) {
             console.error("Error setting up websocket", error.stack);
             socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
             socket.destroy();
-        });
+        }
     };
 
     return chain;

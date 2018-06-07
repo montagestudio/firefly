@@ -173,13 +173,13 @@ describe("file-service", function () {
             it("should create a directory and all parents up to the existing parent root", function (done) {
                 return service.makeTree("http://localhost:2441/user/owner/repo/foo/bar/baz")
                     .then(function() {
-                        return [
+                        return Promise.all([
                             fs.isDirectory("foo"),
                             fs.isDirectory("foo/bar"),
                             fs.isDirectory("foo/bar/baz")
-                        ];
+                        ]);
                     })
-                    .spread(function(isFooDir, isBarDir, isBazDir) {
+                    .then(([isFooDir, isBarDir, isBazDir]) => {
                         expect(isFooDir).toBe(true);
                         expect(isBarDir).toBe(true);
                         expect(isBazDir).toBe(true);
@@ -204,12 +204,12 @@ describe("file-service", function () {
             it("must not replace the specified existing directory", function (done) {
                 return service.makeTree("http://localhost:2441/user/owner/repo/foo")
                     .then(function() {
-                        return [
+                        return Promise.all([
                             fs.isDirectory("foo"),
                             fs.isDirectory("foo/bar")
-                        ];
+                        ]);
                     })
-                    .spread(function(isFooDir, isBarDir) {
+                    .then(([isFooDir, isBarDir]) => {
                         expect(isFooDir).toBe(true);
                         expect(isBarDir).toBe(true);
                     })
@@ -246,7 +246,7 @@ describe("file-service", function () {
 
         it("must fail if the specified file does not exist, with no reference to the file path", function (done) {
             return service.remove("http://localhost:2441/user/owner/repo/foo/qux")
-                .fail(function(error) {
+                .catch(function(error) {
                     expect(error.message).toBe("Can't remove non-existant file: http://localhost:2441/user/owner/repo/foo/qux");
                 })
                 .then(done, done);
@@ -313,7 +313,7 @@ describe("file-service", function () {
 
         it("must fail if the specified directory does not exist, with no reference to the directory path", function (done) {
             return service.removeTree("http://localhost:2441/user/owner/repo/foo/baz")
-                .fail(function(error) {
+                .catch(function(error) {
                     expect(error.message).toBe('Can\'t find tree to remove given "http://localhost:2441/user/owner/repo/foo/baz"');
                 })
                 .then(done, done);
@@ -322,12 +322,12 @@ describe("file-service", function () {
         it("should remove the specified directory that exists", function (done) {
             return service.removeTree("http://localhost:2441/user/owner/repo/foo/bar")
                 .then(function() {
-                    return [
+                    return Promise.all([
                         fs.isDirectory("foo/bar"),
                         fs.isFile("foo/bar/baz")
-                    ];
+                    ]);
                 })
-                .spread(function(isBarDir, isBazFile) {
+                .then(([isBarDir, isBazFile]) => {
                     expect(isBarDir).toBe(false);
                     expect(isBazFile).toBe(false);
                 })
@@ -362,7 +362,5 @@ describe("file-service", function () {
                 })
                 .then(done, done);
         });
-
     });
-
 });

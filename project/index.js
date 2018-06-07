@@ -8,21 +8,19 @@ process.on("SIGUSR2", function() {
     global.console.log(process.memoryUsage());
 });
 
-var log = require("logging").from(__filename);
+const log = require("logging").from(__filename);
 
-var FS = require("q-io/fs");
-var Mop = require("./mop");
-var request = require("request");
+const FS = require("q-io/fs");
+const Mop = require("./mop");
+const request = require("request");
 
 /* Catch possible hidden error */
-process.on('uncaughtException', function (err) {
-  log("*uncaughtException*", err, err.stack);
-});
+process.on('uncaughtException', (err) => log("*uncaughtException*", err, err.stack));
 
-var containerChainFactory = require("./chain");
-var SetupProjectWorkspace = require("./setup-project-workspace");
+const containerChainFactory = require("./chain");
+const SetupProjectWorkspace = require("./setup-project-workspace");
 
-var commandOptions = {
+const commandOptions = {
     "config": {
         alias: "c",
         describe: "A JSON string of configuration for the server",
@@ -43,59 +41,56 @@ var commandOptions = {
     }
 };
 
-module.exports = main;
-function main(options) {
+module.exports = async (options) => {
     if (!options.config || typeof options.config !== "object") {
         throw new Error("Config must be an object, not " + options.config);
     }
-    var config = options.config;
+    const config = options.config;
     if (!config.githubAccessToken || !config.githubUser || !config.username || !config.owner || !config.repo || !config.subdomain) {
         throw new Error("Config must contain properties: githubAccessToken, githubUser, username, owner, repo, subdomain, given " + JSON.stringify(Object.keys(config)));
     }
 
-    var fs = options.fs || FS;
-    var minitPath = fs.join(__dirname, "..", "node_modules", "minit", "minit");
+    const fs = options.fs || FS;
+    const minitPath = fs.join(__dirname, "..", "node_modules", "minit", "minit");
     Mop.init(fs, options.directory);
 
-    var containerChain = containerChainFactory({
+    const containerChain = containerChainFactory({
         fs: fs,
         config: config,
         workspacePath: options.directory,
         setupProjectWorkspace: SetupProjectWorkspace(config, options.directory, minitPath),
         request: request 
     });
-    return containerChain.listen(options.port)
-    .then(function (server) {
-        log("Listening on", options.port);
+    const server = await containerChain.listen(options.port);
+    log("Listening on", options.port);
 
-        server.node.on("upgrade", containerChain.upgrade);
+    server.node.on("upgrade", containerChain.upgrade);
 
-        // for naught
-        if (process.send) {
-            process.on("message", function(message) {
-                if (message === "shutdown") {
-                    log("shutdown message from Naught");
-                    // TODO gracefully shutdown the websocket connections
-                    server.stop()
-                    .catch(function (error) {
-                        global.console.error("Error shutting down", error.stack);
-                        throw error;
-                    })
-                    .finally(function () {
-                        log("goodbye.");
-                        process.exit(0);
-                    });
+    // for naught
+    if (process.send) {
+        process.on("message", async (message) => {
+            if (message === "shutdown") {
+                log("shutdown message from Naught");
+                // TODO gracefully shutdown the websocket connections
+                try {
+                    await server.stop();
+                } catch (error) {
+                    global.console.error("Error shutting down", error.stack);
+                    throw error;
+                } finally {
+                    log("goodbye.");
+                    process.exit(0);
                 }
-            });
+            }
+        });
 
-            process.send("online");
-        }
-    });
+        process.send("online");
+    }
 }
 
 if (require.main === module) {
-    var optimist = require("optimist");
-    var argv = optimist
+    const optimist = require("optimist");
+    const argv = optimist
         .usage("Usage: $0 [--directory=<directory>] [--port=<port>] --config=<JSON string>")
         .options(commandOptions).argv;
 
@@ -107,9 +102,9 @@ if (require.main === module) {
     try {
         argv.config = JSON.parse(argv.config);
     } catch (error) {
-        throw new Error("Could not parse config " + argv.config + ": " + error.message);
+        throw new Error(`Could not parse config ${argv.config} : ${error.message}`);
     }
 
     log("start container server", argv.config.username);
-    main(argv).done();
+    module.exports(argv).done();
 }

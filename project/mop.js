@@ -1,118 +1,85 @@
-var log = require("logging").from(__filename);
-var Q = require("q");
-var exec = require("./exec");
-var cp = require("child_process");
-var Connection = require("q-connection");
-var HttpApps = require("q-io/http-apps/fs");
-var StatusApps = require("q-io/http-apps/status");
-var path = require("path");
-
-exports.Mop = Mop;
-exports.init = init;
-exports.serveArchivedBuild = serveArchivedBuild;
+const log = require("logging").from(__filename);
+const Q = require("q");
+const exec = require("./exec");
+const cp = require("child_process");
+const Connection = require("q-connection");
+const HttpApps = require("q-io/http-apps/fs");
+const StatusApps = require("q-io/http-apps/status");
+const path = require("path");
 
 function init(fs, workspacePath) {
     exports.mop = new Mop(fs, workspacePath);
 }
 
-function serveArchivedBuild(request) {
-    var archiveLocation;
-
-    return exports.mop.getBuildArchiveLocation()
-    .then(function(_archiveLocation) {
-        archiveLocation = _archiveLocation;
-        return exports.mop._fs.isFile(archiveLocation);
-    })
-    .then(function(isFile) {
-        if (isFile) {
-            return HttpApps.file(request, archiveLocation, null, exports.mop._fs)
-            .then(function(response) {
-                var filename = path.basename(archiveLocation);
-                response.headers['Content-Disposition'] = 'attachment; filename="' + filename + '"';
-                return response;
-            });
-        } else {
-            return StatusApps.notFound(request);
-        }
-    });
-}
-
-function Mop(fs, workspacePath) {
-    this._fs = fs;
-    this._workspacePath = workspacePath;
-    this._buildsLocation = fs.join(workspacePath, "..", "builds");
-}
-
-Mop.prototype.optimize = function(applicationPath, options) {
-    var n = cp.fork(__dirname + "/mop-runner.js");
-    var connection = Connection(n);
-
-    if (!options) {
-        options = {};
+async function serveArchivedBuild(request) {
+    const archiveLocation = await exports.mop.getBuildArchiveLocation();
+    const isFile = await exports.mop._fs.isFile(archiveLocation);
+    if (isFile) {
+        const response = await HttpApps.file(request, archiveLocation, null, exports.mop._fs);
+        const filename = path.basename(archiveLocation);
+        response.headers['Content-Disposition'] = 'attachment; filename="' + filename + '"';
+        return response;
+    } else {
+        return StatusApps.notFound(request);
     }
-    options.buildLocation = this._buildsLocation;
+}
 
-    log("optimize");
-    return connection.invoke("optimize", applicationPath, options)
-        .finally(function() {
-            n.disconnect();
-        });
-};
+class Mop {
+    constructor(fs, workspacePath) {
+        this._fs = fs;
+        this._workspacePath = workspacePath;
+        this._buildsLocation = fs.join(workspacePath, "..", "builds");
+    }
 
-Mop.prototype.archive = function() {
-    var self = this;
-    var buildLocation;
-    var archiveLocation;
-
-    return Q.all([this.getBuildLocation(), this.getBuildArchiveLocation()])
-    .spread(function(_buildLocation, _archiveLocation) {
-        buildLocation = _buildLocation;
-        archiveLocation = _archiveLocation;
-        return self._fs.exists(archiveLocation);
-    })
-    .then(function(exists) {
-        if (exists) {
-            return self._fs.remove(archiveLocation);
+    async optimize(applicationPath, options) {
+        const n = cp.fork(__dirname + "/mop-runner.js");
+        const connection = Connection(n);
+        if (!options) {
+            options = {};
         }
-    })
-    .then(function() {
-        var buildLocationParent = path.dirname(buildLocation);
-        var buildName = path.basename(buildLocation);
+        options.buildLocation = this._buildsLocation;
+        log("optimize");
+        try {
+            return await connection.invoke("optimize", applicationPath, options);
+        } finally {
+            n.disconnect();
+        }
+    }
 
-        return exec("zip", ["-r", archiveLocation, buildName], buildLocationParent, false);
-    })
-    .then(function () {
-        return archiveLocation;
-    })
-    .fail(function (error) {
-        console.error(error);
-        throw new Error("Creating build archive failed.");
-    });
-};
+    async archive() {
+        try {
+            const [ buildLocation, archiveLocation ] = await Q.all([this.getBuildLocation(), this.getBuildArchiveLocation()]);
+            const exists = await this._fs.exists(archiveLocation);
+            if (exists) {
+                await this._fs.remove(archiveLocation);
+            }
+            const buildLocationParent = path.dirname(buildLocation);
+            const buildName = path.basename(buildLocation);
+            await exec("zip", ["-r", archiveLocation, buildName], buildLocationParent, false);
+            return archiveLocation;
+        } catch (error) {
+            console.error(error);
+            throw new Error("Creating build archive failed.");
+        }
+    }
 
-Mop.prototype.getPackageDescriptor = function() {
-    var packageJsonFilename = this._fs.join(this._workspacePath, "package.json");
-
-    return this._fs.read(packageJsonFilename)
-    .then(function(packageJson) {
+    async getPackageDescriptor() {
+        const packageJsonFilename = this._fs.join(this._workspacePath, "package.json");
+        const packageJson = await this._fs.read(packageJsonFilename);
         return JSON.parse(packageJson);
-    });
-};
+    }
 
-Mop.prototype.getBuildLocation = function() {
-    var self = this;
+    async getBuildLocation() {
+        const packageDescriptor = await this.getPackageDescriptor();
+        return this._fs.join(this._buildsLocation, packageDescriptor.name);
+    }
 
-    return this.getPackageDescriptor()
-    .then(function(packageDescriptor) {
-        return self._fs.join(self._buildsLocation, packageDescriptor.name);
-    });
-};
+    async getBuildArchiveLocation() {
+        const packageDescriptor = await this.getPackageDescriptor();
+        return this._fs.join(this._buildsLocation, packageDescriptor.name + ".zip");
+    }
+}
 
-Mop.prototype.getBuildArchiveLocation = function() {
-    var self = this;
-
-    return this.getPackageDescriptor()
-    .then(function(packageDescriptor) {
-        return self._fs.join(self._buildsLocation, packageDescriptor.name + ".zip");
-    });
-};
+exports.Mop = Mop;
+exports.init = init;
+exports.serveArchivedBuild = serveArchivedBuild;

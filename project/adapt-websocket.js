@@ -1,15 +1,14 @@
 var Q = require("q");
 var Queue = require("q/queue");
 
-module.exports = adaptWebsocket;
-function adaptWebsocket(ws) {
+module.exports = (ws) => {
     var queue = Queue();
 
-    ws.on("message", function (event) {
+    ws.on("message", (event) => {
         queue.put(event.data);
     });
 
-    ws.on("close", function () {
+    ws.on("close", () => {
         queue.close();
     });
 

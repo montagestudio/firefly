@@ -1,6 +1,6 @@
 /*global process,module*/
 
-var PackageManagerTools = require("./package-manager-tools"),
+const PackageManagerTools = require("./package-manager-tools"),
     PackageManagerError = require("./package-manager-error"),
     PrepareNpmForExecution = require("./prepare-exec-npm"),
     Arguments = process.argv,
@@ -20,42 +20,36 @@ var PackageManagerTools = require("./package-manager-tools"),
  * @return {Promise.<Object>} A promise for the installed modules.
  * @private
  */
-function execCommand (npmLoaded, ModulesRequested) {
-    var _request = null;
-
+async function execCommand (npmLoaded, ModulesRequested) {
+    let _request = null;
     if (typeof ModulesRequested === "string") {
-        var modulesRequestedCollection = ModulesRequested.split(","),
-
+        const modulesRequestedCollection = ModulesRequested.split(","),
             error = modulesRequestedCollection.some(function (moduleRequested) {
                 return !PackageManagerTools.isRequestValid(moduleRequested);
             });
-
         if (!error) {
             _request = modulesRequestedCollection;
         }
     }
-
     if (_request) {
-        return Q.ninvoke(npmLoaded.commands, "install", _request).then(function (data) {
+        try {
+            const data = await Q.ninvoke(npmLoaded.commands, "install", _request);
             return _formatListModulesInstalled(data[1]);
-        }, function (error) {
-            if (error && typeof error === 'object') {
-                if (error.code === 'E404') {
+        } catch (e) {
+            let error = e;
+            if (e && typeof e === 'object') {
+                if (e.code === 'E404') {
                     error = new PackageManagerError("Dependency not found", ERROR_NOT_FOUND);
-                } else if ((/version not found/).test(error.message)) {
+                } else if ((/version not found/).test(e.message)) {
                     error = new PackageManagerError("Version not found", ERROR_VERSION_NOT_FOUND);
                 } else {
-                    error = new PackageManagerError("Unexpected error " + error.code, ERROR_UNKNOWN);
+                    error = new PackageManagerError("Unexpected error " + e.code, ERROR_UNKNOWN);
                 }
             }
-
             throw error;
-        });
+        }
     }
-
-    return Q.reject(
-        new PackageManagerError("Should respect the following format: name[@version], or a git url", ERROR_WRONG_FORMAT)
-    );
+    throw new PackageManagerError("Should respect the following format: name[@version], or a git url", ERROR_WRONG_FORMAT);
 }
 
 /**
@@ -65,29 +59,24 @@ function execCommand (npmLoaded, ModulesRequested) {
  * @return {Array} A well formatted list of all the modules which have been installed.
  * @private
  */
-function _formatListModulesInstalled (listModules) {
-    var listModulesInstalled = [];
-
+async function _formatListModulesInstalled (listModules) {
+    const listModulesInstalled = [];
     if (listModules && typeof listModules === 'object') {
-        var listModulesKeys = Object.keys(listModules);
-
-        listModulesKeys.forEach(function (moduleKeys) {
-            var moduleInstalled = listModules[moduleKeys],
+        const listModulesKeys = Object.keys(listModules);
+        listModulesKeys.forEach((moduleKeys) => {
+            const moduleInstalled = listModules[moduleKeys],
                 information = PackageManagerTools.getModuleFromString(moduleInstalled.what);
-
             listModulesInstalled.push({
                 name: information.name || '',
                 version: information.version || ''
             });
         });
     }
-
     return listModulesInstalled;
 }
 
 if (require.main === module && Arguments.length === 4) {
-    var request = Arguments[2],
+    const request = Arguments[2],
         fsPath = Arguments[3];
-
     PrepareNpmForExecution(fsPath, request, execCommand);
 }
