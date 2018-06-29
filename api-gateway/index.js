@@ -1,10 +1,8 @@
 const express = require("express");
-const grpc = require('grpc');
 const axios = require('axios');
 const routes = require('./routes');
 const jwt = require('./middleware/jwt');
-
-const PROTO_PATH = 'workspace.proto';
+const makeWorkspaceService = require('./service/workspace');
 
 const app = express();
 
@@ -15,10 +13,9 @@ const axiosInstance = axios.create({
     }
 });
 
-const workspaceService = grpc.load(PROTO_PATH);
-const workspaceClient = new workspaceService.Workspace('workspace:8080', grpc.credentials.createInsecure());
+const workspaceService = makeWorkspaceService();
 
-routes(app, axiosInstance, jwt(axiosInstance), workspaceClient);
+routes(app, axiosInstance, jwt(axiosInstance), workspaceService);
 
 app.listen(80);
 console.log("Listening on port 80");
