@@ -19,12 +19,23 @@ function fakeAxiosData(method, data) {
 
 describe('api', () => {
     let app;
+    let fakeWorkspaceClient;
 
     const authenticated = (method, url) => supertest(app)[method](url).set('x-access-token', 'abc');
 
     beforeEach(() => {
         app = express();
-        routes(app, axios, jwt(jwtRequest));
+        fakeWorkspaceClient = chai.spy.interface({
+            listWorkspaces: () => ({
+                on: (ev, cb) => {
+                    if (ev === 'end') {
+                        cb();
+                    }
+                }
+            }),
+            deleteWorkspaces: (user, cb) => cb(null, null)
+        });
+        routes(app, axios, jwt(jwtRequest), fakeWorkspaceClient);
     });
 
     afterEach(() => {
@@ -44,48 +55,26 @@ describe('api', () => {
 
     describe('GET /workspaces', () => {
         it('proxies workspace\'s workspace endpoint', (done) => {
-            fakeAxiosData('get', []);
             authenticated('get', '/workspaces')
                 .expect(200)
                 .expect([])
                 .end((err) => {
                     if (err) return done(err);
-                    expect(axios.get).to.have.been.called.with('http://workspace/workspaces?user=mocha');
+                    expect(fakeWorkspaceClient.listWorkspaces).to.have.been.called.with({ name: 'mocha'});
                     done();
                 });
-        });
-
-        it('returns an empty array if the project-daemon service cannot be reached', (done) => {
-            chai.spy.on(axios, 'get', async () => {
-                throw new Error('chaos');
-            });
-            authenticated('get', '/workspaces')
-                .expect(200)
-                .expect([], done);
         });
     });
 
     describe('DELETE /workspaces', () => {
         it('proxies workspace\'s workspace endpoint', (done) => {
-            const fakeResponse = { foo: 'bar' };
-            fakeAxiosData('delete', fakeResponse);
             authenticated('delete', '/workspaces')
                 .expect(200)
-                .expect(fakeResponse)
                 .end((err) => {
                     if (err) return done(err);
-                    expect(axios.delete).to.have.been.called.with('http://workspace/workspaces?user=mocha');
+                    expect(fakeWorkspaceClient.deleteWorkspaces).to.have.been.called.with({ name: 'mocha' });
                     done();
                 });
-        });
-
-        it('returns {deleted: false} if the operation failed', (done) => {
-            chai.spy.on(axios, 'delete', async () => {
-                throw new Error('chaos');
-            });
-            authenticated('delete', '/workspaces')
-                .expect(200)
-                .expect({ deleted: false }, done);
         });
     });
 
