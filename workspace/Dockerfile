@@ -8,5 +8,5 @@ RUN npm install --production
 
 COPY . .
 
-EXPOSE 80
-CMD ["node", "index.js"]
+EXPOSE 8080
+CMD ["node", "src/index.js"]
