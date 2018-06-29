@@ -1,9 +1,9 @@
 const grpc = require('grpc');
-const server = require('./server');
+const makeServer = require('./server');
 
 const WORKSPACE_HOME = process.env.WORKSPACE_HOME || '/workspaces';
 
-server(WORKSPACE_HOME)
-    .bind('0.0.0.0:8080', grpc.ServerCredentials.createInsecure())
-    .start();
+const server = makeServer(WORKSPACE_HOME);
+server.bind('0.0.0.0:8080', grpc.ServerCredentials.createInsecure());
+server.start();
 console.log('Listening for gRPC connections on port 8080');

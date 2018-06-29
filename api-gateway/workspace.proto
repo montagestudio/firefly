@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+service Workspace {
+    // Get the status of a specific workspace
+    rpc GetWorkspace(WorkspaceIdentifier) returns (WorkspaceStatus) {}
+
+    // List all of a user's workspaces
+    rpc ListWorkspaces(User) returns (stream WorkspaceStatus) {}
+
+    // Delete all the user's active workspaces
+    rpc DeleteWorkspaces(User) returns (Empty) {}
+}
+
+message Empty {
+
+}
+
+message WorkspaceIdentifier {
+    User user = 1;
+    string owner = 2;
+    string repo = 3;
+}
+
+message User {
+    string name = 1;
+}
+
+message WorkspaceStatus {
+    WorkspaceIdentifier id = 1;
+    string status = 2;
+}

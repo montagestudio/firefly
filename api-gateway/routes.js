@@ -2,13 +2,12 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const ApiError = require('./api-error');
-const WorkspaceApi = require('./service/workspace-api');
 const GithubApi = require('./github-api');
 const RepositoryApi = require('./service/repository-api');
 const MinitApi = require('./service/minit-api');
 const NpmApi = require('./service/npm-api');
 
-module.exports = (app, request, jwtMiddleware) => {
+module.exports = (app, request, jwtMiddleware, workspaceClient) => {
     app.use(bodyParser.json());
 
     const corsOptions = {
@@ -19,25 +18,25 @@ module.exports = (app, request, jwtMiddleware) => {
 
     app.use(jwtMiddleware);
 
-    const workspaceApi = new WorkspaceApi(request);
     const repositoryApi = new RepositoryApi(request);
     const minitApi = new MinitApi(request);
     const npmApi = new NpmApi(request);
 
     app.route('/workspaces')
-        .get(async (req, res) => {
-            try {
-                res.json(await workspaceApi.listWorkspaces(res.locals.profile.username));
-            } catch (error) {
-                res.json([]);
-            }
+        .get((req, res) => {
+            const workspaces = [];
+            const call = workspaceClient.listWorkspaces({ name: res.locals.profile.username });
+            call.on('data', (workspace) => workspaces.push(workspace));
+            call.on('end', () => res.json(workspaces));
         })
-        .delete(async (req, res) => {
-            try {
-                res.json(await workspaceApi.deleteWorkspaces(res.locals.profile.username));
-            } catch (error) {
-                res.json({ deleted: false });
-            }
+        .delete((req, res, next) => {
+            workspaceClient.deleteWorkspaces({ name: res.locals.profile.username }, (err) => {
+                if (err) {
+                    next(new ApiError(err.message));
+                } else {
+                    res.json({ deleted: true });
+                }
+            })
         });
 
     app.all('/:owner/:repo/*', async (req, res, next) => {
