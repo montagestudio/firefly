@@ -56,6 +56,13 @@ services:
     - "traefik.docker.network=firefly_backend"
     - "traefik.frontend.rule=Host:api.${FIREFLY_HOSTNAME}"
     restart: "always"
+    depends_on:
+    - jwt
+    - workspace
+    - project-daemon
+    - repository
+    - npm
+    - minit
   static:
     container_name: firefly_static
     image: montagestudio/firefly-static:${STATIC_VERSION:-latest}
