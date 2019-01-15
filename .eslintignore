@@ -3,5 +3,3 @@ static/filament
 project/preview/client
 deploy
 live-edit-spec
-
-npm/test/fixtures/errors/*

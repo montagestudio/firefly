@@ -48,6 +48,24 @@ describe("container chain", function () {
         });
     });
 
+    describe("/api", function () {
+        // This is just to check that we are routing the /api path correctly.
+        // The main specs are in api-spec.js
+
+        it("/init calls initializeWorkspace", function (done) {
+            var url = "http://127.0.0.1:2440/api/init";
+            projectWorkspace.initializeWorkspace = jasmine.createSpy().andReturn(Q());
+
+            request({
+                method: "POST",
+                url: url
+            })
+            .then(function () {
+                expect(projectWorkspace.initializeWorkspace).toHaveBeenCalled();
+            }).then(done, done);
+        });
+    });
+
     describe("/static", function () {
         it("serves an existing file", function (done) {
             request("http://127.0.0.1:2440/static/index.html")

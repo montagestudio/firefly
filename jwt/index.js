@@ -11,27 +11,33 @@ const privateKey = fs.readFileSync(path.join(__dirname, "private.key"));
 app.use(cors());
 app.use(bodyParser.json());
 
-app.post("/login", (req, res) => {
+app.post("/login", (req, res, next) => {
     const { body } = req;
     jwt.sign(body, privateKey, (err, token) => {
         if (err) {
-            res.sendStatus(400);
+            next(err);
         } else {
             res.send(token);
         }
     });
 });
 
-app.get("/profile", (req, res) => {
+app.get("/profile", (req, res, next) => {
     const auth = req.headers.authentication;
     const token = auth && auth.split(" ")[1];
     jwt.verify(token, privateKey, (err, payload) => {
         if (err) {
-            res.sendStatus(400);
+            next(err);
         } else {
             res.send(payload);
         }
     });
+});
+
+app.use((err, res) => {
+    res.status(500);
+    console.error(err);
+    res.end(err.message);
 });
 
 app.listen(80);

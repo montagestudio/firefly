@@ -44,18 +44,6 @@ services:
       - "traefik.docker.network=firefly_backend"
       - "traefik.frontend.rule=Host:jwt.${FIREFLY_HOSTNAME}"
     restart: "always"
-  api-gateway:
-    container_name: firefly_api-gateway
-    image: montagestudio/firefly-api-gateway:${API_GATEWAY_VERSION:-latest}
-    build: ./api-gateway
-    networks:
-    - backend
-    labels:
-    - "traefik.enable=true"
-    - "traefik.port=80"
-    - "traefik.docker.network=firefly_backend"
-    - "traefik.frontend.rule=Host:api.${FIREFLY_HOSTNAME}"
-    restart: "always"
   static:
     container_name: firefly_static
     image: montagestudio/firefly-static:${STATIC_VERSION:-latest}
@@ -86,53 +74,11 @@ services:
       - FIREFLY_PROJECT_URL
       - PROJECT_VERSION
     labels:
-    - "traefik.enable=true"
-    - "traefik.port=2440"
-    - "traefik.docker.network=firefly_backend"
-    - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
+      - "traefik.enable=true"
+      - "traefik.port=2440"
+      - "traefik.docker.network=firefly_backend"
+      - "traefik.frontend.rule=Host:project.${FIREFLY_HOSTNAME},api.${FIREFLY_HOSTNAME},build.${FIREFLY_HOSTNAME},ws.${FIREFLY_HOSTNAME}"
     restart: "on-failure"
-  workspace:
-    container_name: firefly_workspace
-    image: montagestudio/workspace:${WORKSPACE_VERSION:-latest}
-    build: ./workspace
-    networks:
-    - backend
-    - projects
-    volumes:
-    - workspaces:/workspaces
-  repository:
-    container_name: firefly_repository
-    image: montagestudio/repository:${REPOSITORY_VERSION:-latest}
-    build: ./repository
-    networks:
-    - backend
-    - projects
-    volumes:
-    - workspaces:/workspaces
-    environment:
-    - REPOSITORY_HOME=/workspaces
-  npm:
-    container_name: firefly_npm
-    image: montagestudio/npm:${NPM_VERSION:-latest}
-    build: ./npm
-    networks:
-    - backend
-    - projects
-    volumes:
-    - workspaces:/workspaces
-    environment:
-    - PACKAGE_HOME=/workspaces
-  minit:
-    container_name: firefly_minit
-    image: montagestudio/minit:1.1.0
-    networks:
-    - backend
-    - projects
-    volumes:
-    - workspaces:/home
-
-volumes:
-  workspaces:
 
 networks:
   frontend:

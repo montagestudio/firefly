@@ -9,27 +9,12 @@ module.exports = function (config) {
     return joey.route(function (route, GET, PUT, POST) {
         var initializingPromise;
 
-        POST("init_empty")
+        POST("init")
         .app(function (request) {
             return handleEndpoint(config, request, function() {
                 log("init handleEndpoint");
                 if (!initializingPromise || initializingPromise.isRejected()) {
-                    initializingPromise = request.projectWorkspace.initializeWithEmptyProject();
-                    initializingPromise.catch(function (error) {
-                        console.error("Error initializing", error, error.stack);
-                    });
-                }
-            }, function() {
-                return {message: "initializing"};
-            });
-        });
-
-        POST("init_repository")
-        .app(function (request) {
-            return handleEndpoint(config, request, function() {
-                log("init handleEndpoint");
-                if (!initializingPromise || initializingPromise.isRejected()) {
-                    initializingPromise = request.projectWorkspace.initializeWithRepository();
+                    initializingPromise = request.projectWorkspace.initializeWorkspace();
                     initializingPromise.catch(function (error) {
                         console.error("Error initializing", error, error.stack);
                     });
@@ -51,6 +36,15 @@ module.exports = function (config) {
                 }
             }, function() {
                 return {message: "initializing"};
+            });
+        });
+
+        GET("init/progress")
+        .app(function (request) {
+            return handleEndpoint(config, request, function() {
+                return initializingPromise && initializingPromise.inspect().state;
+            }, function (state) {
+                return {state: state};
             });
         });
 
