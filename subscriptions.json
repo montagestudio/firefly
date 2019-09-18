@@ -1,0 +1,13 @@
+{
+    "none": {
+        "testFeature": false,
+        "testLimit": 2
+    },
+    "test": {
+        "testFeature": true,
+        "testLimit": 10
+    },
+    "developer": {
+        "devFeature": true
+    }
+}
