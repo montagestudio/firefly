@@ -2,6 +2,8 @@ var listDependencies = require('../package-manager/list-dependencies');
 var FileService = require('./file-service');
 var RemovePackage = require('../package-manager/remove-package');
 var SearchPackages = require('../package-manager/search-packages');
+var PackageManagerTools = require('../package-manager/package-manager-tools');
+var installPackages = require('../package-manager/install-packages');
 var execNpm = require('../package-manager/exec-npm');
 
 //FIXME use fs from the service once the function “removeTree” of QFS would have be fixed after having reroot it.
@@ -38,7 +40,7 @@ function PackageManagerService (_, fs, environment, pathname, fsPath) {
     };
 
     service.installPackages = function (requestedPackages) {
-        return execNpm(execNpm.COMMANDS.INSTALL, requestedPackages, fsPath);
+        return installPackages(requestedPackages, session.githubAccessToken, fsPath);
     };
 
     service.removePackage= function (packageName) {
@@ -74,12 +76,16 @@ function PackageManagerService (_, fs, environment, pathname, fsPath) {
 
             dependenciesToInstall.forEach(function (dependency) {
                 if (dependency.missing) {
-                    requestedPackages.push(dependency.name);
+                    if (PackageManagerTools.isNpmCompatibleGitUrl(dependency.version)) {
+                        requestedPackages.push(dependency.version);
+                    } else {
+                        requestedPackages.push(dependency.name);
+                    }
                 }
             });
 
             if (requestedPackages.length > 0) {
-                return execNpm(execNpm.COMMANDS.INSTALL, requestedPackages, fsPath);
+                return installPackages(requestedPackages, session.githubAccessToken, fsPath);
             }
         });
     };

@@ -28,14 +28,81 @@ PackageManagerTools.isVersionValid = function (version) {
 };
 
 /**
- * Checks if a string is a Git url.
+ * Checks if a string is a GitHub url.
  * @function
- * @param {String} url.
+ * @param {String} gitUrl.
  * @return {Boolean}
  */
-PackageManagerTools.isGitUrl = function (url) {
+PackageManagerTools.isGitUrl = function (gitUrl) {
+    var response = false;
+
+    if (typeof gitUrl === 'string') {
+        var result = /^(?:(git|https?|ssh)?:\/\/|[\w\-\.~]+@)/.exec(gitUrl);
+
+        if (Array.isArray(result) && result.length > 1) {
+            var protocol = result[1];
+
+            if (protocol === "https" || protocol === "http") { // http[s]:// case
+                response = this.isHttpGitUrl(gitUrl);
+
+            } else if (protocol === "ssh") { // ssh:// case
+                response = this.isSecureShellGitUrl(gitUrl);
+
+            } else { // git:// case
+                response = /^(?:git:\/\/(?:[\w\-\.~]+@)?|[\w\-\.~]+@)github\.com(?:\/|:)[\/\w\.\-:~\?]*\/(?:[0-9a-zA-Z~][\w\-\.~]*)\.git(?:#[\w\-\.~]*)?$/.test(gitUrl);
+            }
+        }
+    }
+
+    return response;
+};
+
+PackageManagerTools.isSecureShellGitUrl = function (url) {
     return typeof url === 'string' ?
-        (/^git(\+https?|\+ssh)?:\/\/([\w\-\.~]+@)?[\/\w\.\-:~\?]*\/([0-9a-zA-Z~][\w\-\.~]*)\.git(#[\w\-\.~]*)?$/).exec(url) : false;
+        /^(?:ssh:\/\/)?[\w\-\.~]+@github\.com:[\/\w\.\-:~\?]*\/(?:[0-9a-zA-Z~][\w\-\.~]*)\.git(?:#[\w\-\.~]*)?$/.test(url) : false;
+};
+
+PackageManagerTools.isHttpGitUrl = function (url) {
+    return typeof url === 'string' ?
+        /^https?:\/\/(?:[\w\-\.~]+@)?github\.com\/[\/\w\.\-:~\?]*\/(?:[0-9a-zA-Z~][\w\-\.~]*)\.git(?:#[\w\-\.~]*)?$/.test(url) : false;
+};
+
+PackageManagerTools.isNpmCompatibleGitUrl = function (gitUrl) {
+    var response = false;
+
+    if (typeof gitUrl === 'string' && /^git(?:\+https?|\+ssh)?:\/\//.test(gitUrl)) { // npm compatible git url
+        var url = gitUrl.replace(/^git\+/, "");
+        response = this.isGitUrl(url);
+    }
+
+    return response;
+};
+
+PackageManagerTools.transformGitUrlToHttpGitUrl = function (gitUrl, secure) {
+    var urlTransformed = null;
+
+    if (typeof gitUrl === 'string') {
+        var url = null;
+
+        if (this.isNpmCompatibleGitUrl(gitUrl)) {
+            url = gitUrl.replace(/^git\+/, "");
+
+        } else if (this.isGitUrl(gitUrl)) {
+            url = gitUrl;
+        }
+
+        if (url) {
+            var patternProtocol = (secure || typeof secure === "undefined") ? 'https://' : 'http://';
+
+            if (/github.com:/.test(url)) {
+                url = url.replace(/github\.com:/, "github.com/");
+            }
+
+            urlTransformed = url.replace(/^(?:(?:https?|ssh|git):\/\/(?:[\w\-\.~]+@)?|[\w\-\.~]+@)/, patternProtocol);
+        }
+    }
+
+    return urlTransformed;
 };
 
 /**
@@ -45,7 +112,7 @@ PackageManagerTools.isGitUrl = function (url) {
  * @return {Boolean}
  */
 PackageManagerTools.isRequestValid = function (request) {
-    if (this.isGitUrl(request)) { // Case: Git url
+    if (this.isNpmCompatibleGitUrl(request)) { // Case: Git url
         return true;
     }
 
